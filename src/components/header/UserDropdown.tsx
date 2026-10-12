@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 export default function UserDropdown() {
-  const t = useTranslations("userDropdown");
+  const t = useTranslations("common");
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
@@ -222,6 +222,30 @@ export default function UserDropdown() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
+          <div className="px-2.5 mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            {t("language")}
+          </div>
+          <div className="flex gap-1">
+            {languages.map((language) => (
+              <button
+                key={language.id}
+                type="button"
+                onClick={() => handleSelectLanguage(language.id)}
+                aria-pressed={locale === language.id}
+                className={cn(
+                  "flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0099ff]",
+                  locale === language.id
+                    ? "bg-[#0099ff]/10 text-[#0099ff]"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5",
+                )}
+              >
+                {language.shortName}
+              </button>
+            ))}
           </div>
         </div>
 

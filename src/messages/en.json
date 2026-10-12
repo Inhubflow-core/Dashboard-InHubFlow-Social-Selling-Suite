@@ -1,5 +1,6 @@
 {
   "common": {
+    "language": "Language",
     "home": "Home",
     "edit": "Edit",
     "close": "Close",
