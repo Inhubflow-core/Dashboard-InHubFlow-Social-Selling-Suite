@@ -559,7 +559,7 @@ export default function LinkedInAccountsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="flex flex-col gap-2">
             {displayedAccounts.map((acc) => (
               <LinkedInAccountCard
                 key={acc.id}
