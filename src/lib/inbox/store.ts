@@ -7,13 +7,14 @@ export function getInboxConversations(): ChatConversation[] {
   if (typeof window === "undefined") return INITIAL_CONVERSATIONS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_CONVERSATIONS));
-      return INITIAL_CONVERSATIONS;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((c: ChatConversation) => c && !/^conv-[1-3]$/.test(c.id));
+    if (clean.length !== parsed.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return INITIAL_CONVERSATIONS;
+    return [];
   }
 }
 

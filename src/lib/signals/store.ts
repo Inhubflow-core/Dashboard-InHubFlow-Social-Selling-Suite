@@ -23,13 +23,14 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
   if (typeof window === "undefined") return initialLevel1Monitors;
   try {
     const raw = localStorage.getItem(L1_KEY);
-    if (!raw) {
-      localStorage.setItem(L1_KEY, JSON.stringify(initialLevel1Monitors));
-      return initialLevel1Monitors;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((m: Level1Monitor) => m && !m.id?.startsWith("mon-l1-"));
+    if (clean.length !== parsed.length) localStorage.setItem(L1_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return initialLevel1Monitors;
+    return [];
   }
 }
 
@@ -37,13 +38,14 @@ export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
   if (typeof window === "undefined") return initialLevel2Monitors;
   try {
     const raw = localStorage.getItem(L2_KEY);
-    if (!raw) {
-      localStorage.setItem(L2_KEY, JSON.stringify(initialLevel2Monitors));
-      return initialLevel2Monitors;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((m: Level2CompetitorMonitor) => m && !m.id?.startsWith("mon-l2-"));
+    if (clean.length !== parsed.length) localStorage.setItem(L2_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return initialLevel2Monitors;
+    return [];
   }
 }
 
@@ -51,13 +53,14 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
   if (typeof window === "undefined") return initialLevel3Monitors;
   try {
     const raw = localStorage.getItem(L3_KEY);
-    if (!raw) {
-      localStorage.setItem(L3_KEY, JSON.stringify(initialLevel3Monitors));
-      return initialLevel3Monitors;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((m: Level3GlobalMonitor) => m && !m.id?.startsWith("mon-l3-"));
+    if (clean.length !== parsed.length) localStorage.setItem(L3_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return initialLevel3Monitors;
+    return [];
   }
 }
 
@@ -65,13 +68,14 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
   if (typeof window === "undefined") return initialDiscoveredLeads;
   try {
     const raw = localStorage.getItem(LEADS_KEY);
-    if (!raw) {
-      localStorage.setItem(LEADS_KEY, JSON.stringify(initialDiscoveredLeads));
-      return initialDiscoveredLeads;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((l: SignalLeadItem) => l && !l.id?.startsWith("sig-lead-"));
+    if (clean.length !== parsed.length) localStorage.setItem(LEADS_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return initialDiscoveredLeads;
+    return [];
   }
 }
 

@@ -26,13 +26,14 @@ export function getStoredCreatedPosts(): CreatedPost[] {
   if (typeof window === "undefined") return initialCreatedPosts;
   try {
     const raw = localStorage.getItem(CREATED_POSTS_KEY);
-    if (!raw) {
-      localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(initialCreatedPosts));
-      return initialCreatedPosts;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((p: CreatedPost) => p && !/^created-0[1-3]$/.test(p.id));
+    if (clean.length !== parsed.length) localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return initialCreatedPosts;
+    return [];
   }
 }
 

@@ -11,13 +11,17 @@ export function getStoredLeads(): Lead360Item[] {
   if (typeof window === "undefined") return initialLeadsData;
   try {
     const raw = localStorage.getItem(LEADS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(initialLeadsData));
-      return initialLeadsData;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    // Purgar leads mock antiguos
+    const cleanLeads = parsed.filter((l: Lead360Item) => l && !l.id?.startsWith("lead-360-"));
+    if (cleanLeads.length !== parsed.length) {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(cleanLeads));
     }
-    return JSON.parse(raw);
+    return cleanLeads;
   } catch {
-    return initialLeadsData;
+    return [];
   }
 }
 
@@ -25,13 +29,17 @@ export function getStoredLeadLists(): LeadListGroup[] {
   if (typeof window === "undefined") return initialLeadLists;
   try {
     const raw = localStorage.getItem(LISTS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(initialLeadLists));
-      return initialLeadLists;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    // Purgar listas mock antiguas
+    const cleanLists = parsed.filter((lg: LeadListGroup) => lg && !lg.id?.startsWith("list-l"));
+    if (cleanLists.length !== parsed.length) {
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(cleanLists));
     }
-    return JSON.parse(raw);
+    return cleanLists;
   } catch {
-    return initialLeadLists;
+    return [];
   }
 }
 

@@ -9,42 +9,27 @@ const ACTIVE_ACCOUNT_KEY = "inhubflow_active_linkedin_account_id";
 // an empty sandbox cannot look like a live Unipile connection.
 export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [];
 
-function getDemoAccounts(): ConnectedLinkedInAccount[] {
-  if (process.env.NEXT_PUBLIC_INHUBFLOW_DEMO_DATA !== "true") return [];
-  return [
-    {
-      id: "demo-acc-roberto",
-      unipileAccountId: "demo-up-acc-roberto",
-      name: "Roberto OrSe (Demo)",
-      email: "inhubflow@gmail.com",
-      headline: "Cuenta simulada de Social Selling",
-      profilePictureUrl: "/images/user/owner.png",
-      publicProfileUrl: "https://www.linkedin.com/in/roberto-orse",
-      status: "OK",
-      authMode: "hosted",
-      connectedAt: "2026-10-01T10:00:00.000Z",
-      lastSyncAt: "Datos de demostracion",
-      ownerId: "usr-super-admin-01",
-      assignedUserId: "usr-super-admin-01",
-      assignedUserName: "Roberto OrSe (Demo)",
-      dailyActionsCount: { invitationsSent: 0, messagesSent: 0, profilesVisited: 0 },
-    },
-  ];
-}
-
 export function getStoredAccounts(): ConnectedLinkedInAccount[] {
   if (typeof window === "undefined") return initialLinkedInAccounts;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      const demoAccounts = getDemoAccounts();
-      if (demoAccounts.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(demoAccounts));
-      return demoAccounts;
-    }
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : getDemoAccounts();
+    if (!Array.isArray(parsed)) return [];
+    // Purgar cualquier dato falso o demo remanente
+    const cleanAccounts = parsed.filter(
+      (a: ConnectedLinkedInAccount) =>
+        a &&
+        !a.id?.startsWith("demo-") &&
+        !a.unipileAccountId?.startsWith("demo-") &&
+        !a.name?.toLowerCase().includes("(demo)")
+    );
+    if (cleanAccounts.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanAccounts));
+    }
+    return cleanAccounts;
   } catch {
-    return getDemoAccounts();
+    return [];
   }
 }
 

@@ -8,13 +8,14 @@ export function getPipelineDeals(): PipelineDeal[] {
   if (typeof window === "undefined") return INITIAL_DEALS;
   try {
     const raw = localStorage.getItem(DEALS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(DEALS_STORAGE_KEY, JSON.stringify(INITIAL_DEALS));
-      return INITIAL_DEALS;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((d: PipelineDeal) => d && !/^deal-[1-7]$/.test(d.id));
+    if (clean.length !== parsed.length) localStorage.setItem(DEALS_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return INITIAL_DEALS;
+    return [];
   }
 }
 
@@ -58,13 +59,14 @@ export function getMeetings(): CommercialMeeting[] {
   if (typeof window === "undefined") return INITIAL_MEETINGS;
   try {
     const raw = localStorage.getItem(MEETINGS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(INITIAL_MEETINGS));
-      return INITIAL_MEETINGS;
-    }
-    return JSON.parse(raw);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const clean = parsed.filter((m: CommercialMeeting) => m && !/^meet-[1-3]$/.test(m.id));
+    if (clean.length !== parsed.length) localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
   } catch {
-    return INITIAL_MEETINGS;
+    return [];
   }
 }
 
