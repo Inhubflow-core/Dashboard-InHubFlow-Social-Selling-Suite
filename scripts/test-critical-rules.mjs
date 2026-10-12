@@ -207,7 +207,6 @@ const mockTemplateNodeTypes = [
   "action_follow_connect",
   "logic_delay",
   "action_dm",
-  "crm_stage",
   "control_end",
 ];
 
@@ -222,6 +221,10 @@ assert(
 assert(
   !mockTemplateNodeTypes.includes("action_like") && !mockTemplateNodeTypes.includes("action_comment"),
   "Like y Comentar no existen como pasos atomicos separados en el flujo principal"
+);
+assert(
+  !mockTemplateNodeTypes.includes("crm_stage"),
+  "El paso de CRM ha sido eliminado del flujo activo simplificado"
 );
 
 // Limpieza de base de datos de test

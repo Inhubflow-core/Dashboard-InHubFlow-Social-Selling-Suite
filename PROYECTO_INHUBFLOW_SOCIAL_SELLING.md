@@ -233,7 +233,7 @@ Este es el núcleo operativo de la plataforma. La construcción de secuencias se
                          │       │
                          │       ▼
                          │  [ CONDICION: ¿Respondió al Mensaje? ]
-                         │       ├── SI ──► [ DETENER SECUENCIA & MOVER A KANBAN "Interesado" ]
+                         │       ├── SI ──► [ DETENER SECUENCIA & ATENCION MANUAL (Stop on Reply) ]
                          │       └── NO ──► [ ACCION: Enviar Follow-up o Audio ]
                          │
                          └── NO ──► [ ACCION ALTERNATIVA: Enviar Sales Nav InMail (Opcional) ]
@@ -252,7 +252,6 @@ Este es el núcleo operativo de la plataforma. La construcción de secuencias se
 | **ACTION** | AC-05 | **InMail Sales Navigator** | Para cuentas con Sales Nav; envía InMail a prospectos fuera de red sin consumir conexión. |
 | **LOGIC** | LG-01 | **Delay / Retardo** | Configura tiempo de espera (ej. 24h, 3 días) y ventana de horario laboral (L-V de 09:00 a 18:00). |
 | **LOGIC** | LG-02 | **Condición Lógica** | Evalúa ramas: ¿Es contacto?, ¿Aceptó en X tiempo?, ¿Respondió al mensaje? |
-| **CRM** | CR-01 | **Actualizar Etapa CRM** | Mueve automáticamente la tarjeta del prospecto en el Kanban del Pipeline. |
 | **CONTROL** | CT-01 | **Finalizar Flujo** | Concluye la secuencia para el prospecto. |
 
 #### 3.2 Motor de Seguridad y Pacing Humano

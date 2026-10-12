@@ -128,15 +128,14 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-crm-01",
-    type: "crmNode",
+    id: "node-end-01",
+    type: "controlNode",
     position: { x: 740, y: 1080 },
     data: {
-      label: "CR-01: Mover a 'Conversacion Activa'",
-      category: "crm",
-      nodeType: "crm_stage",
-      description: "Detener secuencia y transferir al Inbox / Kanban",
-      crmStageTarget: "s4",
+      label: "CT-01: Finalizar Secuencia",
+      category: "control",
+      nodeType: "control_end",
+      description: "Prospecto respondio al DM. Secuencia finalizada para atencion manual personalizada.",
     } as NodeConfigData,
   },
   {
@@ -164,7 +163,7 @@ export const defaultCampaignEdges: Edge[] = [
   { id: "e-cond2-yes", source: "node-cond-02", sourceHandle: "yes", target: "node-ac-04", label: "SI" },
   { id: "e-ac4-delay2", source: "node-ac-04", target: "node-delay-02" },
   { id: "e-delay2-cond3", source: "node-delay-02", target: "node-cond-03" },
-  { id: "e-cond3-yes", source: "node-cond-03", sourceHandle: "yes", target: "node-crm-01", label: "SI (Respondio)" },
+  { id: "e-cond3-yes", source: "node-cond-03", sourceHandle: "yes", target: "node-end-01", label: "SI (Respondio)" },
   { id: "e-cond3-no", source: "node-cond-03", sourceHandle: "no", target: "node-ac-05", label: "NO (Sin respuesta)" },
 ];
 
@@ -217,13 +216,6 @@ export const availablePaletteNodes = [
     category: "logic" as const,
     nodeType: "logic_condition" as const,
     description: "Bifurca el flujo segun conexion o respuesta",
-  },
-  {
-    type: "crmNode",
-    label: "CR-01: Mover Etapa CRM",
-    category: "crm" as const,
-    nodeType: "crm_stage" as const,
-    description: "Mueve la tarjeta del prospecto en el Kanban comercial",
   },
   {
     type: "controlNode",
