@@ -43,6 +43,8 @@ export default function LinkedInAccountsPage() {
   const [activeId, setActiveId] = useState<string>("");
   const [filterMode, setFilterMode] = useState<"all" | "mine" | "team">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalInitialAccount, setModalInitialAccount] = useState<ConnectedLinkedInAccount | null>(null);
+  const [modalInitialStep, setModalInitialStep] = useState<1 | 2>(1);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [editingLimitsAccount, setEditingLimitsAccount] = useState<ConnectedLinkedInAccount | null>(null);
   const [isLimitsModalOpen, setIsLimitsModalOpen] = useState(false);
@@ -131,6 +133,9 @@ export default function LinkedInAccountsPage() {
   };
 
   const handleReconnect = (id: string) => {
+    const acc = accounts.find((a) => a.id === id);
+    setModalInitialAccount(acc || null);
+    setModalInitialStep(2);
     setIsModalOpen(true);
   };
 
@@ -166,6 +171,8 @@ export default function LinkedInAccountsPage() {
       setIsUpgradeModalOpen(true);
       return;
     }
+    setModalInitialAccount(null);
+    setModalInitialStep(1);
     setIsModalOpen(true);
   };
 
@@ -572,8 +579,14 @@ export default function LinkedInAccountsPage() {
       {/* Modal de Conexión de Cuenta */}
       <ConnectLinkedInModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalInitialAccount(null);
+          setModalInitialStep(1);
+        }}
         onAccountConnected={handleAccountConnected}
+        initialAccount={modalInitialAccount}
+        initialStep={modalInitialStep}
       />
 
       {/* Modal para Configurar Límites y Horario de la Cuenta */}

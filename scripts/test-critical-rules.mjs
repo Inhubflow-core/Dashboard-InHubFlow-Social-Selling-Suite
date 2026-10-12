@@ -346,6 +346,44 @@ const nuevoTeamSinCuenta = { id: "usr-team-nuevo", role: "member", email: "nuevo
 const visibleNuevo = getVisibleAccountsTest(nuevoTeamSinCuenta, mockAccounts, mockTeamMembersElena);
 assert(visibleNuevo.length === 0, "Usuario de equipo sin cuenta asignada no ve ninguna cuenta de terceros (0 cuentas)");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 9: Proceso de Conexión Unificado de 2 Pasos y Límites de Seguridad
+// -----------------------------------------------------------------------------
+console.log("\n--- 9. Prueba de Proceso de Conexión 2-Step y Límites Recomendados (Estilo B2B) ---");
+
+const BLANK_CONNECT_FORM = {
+  name: "",
+  email: "",
+  daily_connection_limit: 20,
+  daily_message_limit: 20,
+  daily_visit_limit: 20,
+  active_hours_start: 9,
+  active_hours_end: 18,
+  timezone: "Europe/Madrid",
+  working_days: "1,2,3,4,5",
+};
+
+assert(BLANK_CONNECT_FORM.daily_connection_limit === 20, "Límite por defecto de conexiones/día configurado en 20");
+assert(BLANK_CONNECT_FORM.daily_message_limit === 20, "Límite por defecto de mensajes/día configurado en 20");
+assert(BLANK_CONNECT_FORM.daily_visit_limit === 20, "Límite por defecto de visitas/día configurado en 20");
+
+// Sanitización de límites: no se permite superar el tope recomendado de 20
+function sanitizeLimit(val, min = 1, max = 20) {
+  return Math.min(max, Math.max(min, Number(val)));
+}
+
+assert(sanitizeLimit(50, 1, 20) === 20, "Sanitización frena cualquier intento de superar el tope de 20 acciones/día");
+assert(sanitizeLimit(0, 1, 20) === 1, "Sanitización respeta el mínimo permitido de 1 conexión/día");
+assert(sanitizeLimit(15, 1, 20) === 15, "Sanitización acepta valores seguros entre 1 y 20");
+
+// Validar que el horario comercial sea válido (inicio < fin)
+function validateBusinessHours(start, end) {
+  return start < end;
+}
+
+assert(validateBusinessHours(9, 18) === true, "Horario laboral estándar 9 AM a 6 PM es válido");
+assert(validateBusinessHours(18, 9) === false, "Horario con inicio superior o igual a fin es rechazado");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

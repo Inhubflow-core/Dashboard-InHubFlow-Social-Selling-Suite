@@ -1,244 +1,269 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
-  ExternalLink,
-  Key,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  X,
+  Eye,
+  EyeOff,
   ShieldCheck,
   Lock,
   Globe,
-  AlertCircle,
-  CheckCircle2,
-  X,
   Loader2,
-  Cookie,
-  UserCheck,
+  KeyRound,
+  Rocket,
+  Lightbulb,
 } from "lucide-react";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import { addStoredAccount } from "@/lib/unipile/store";
+import { useAuth } from "@/context/AuthContext";
 
 interface ConnectLinkedInModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAccountConnected: (account: ConnectedLinkedInAccount) => void;
+  initialAccount?: ConnectedLinkedInAccount | null;
+  initialStep?: 1 | 2;
+}
+
+const BLANK_FORM = {
+  name: "",
+  email: "",
+  daily_connection_limit: 20,
+  daily_message_limit: 20,
+  daily_visit_limit: 20,
+  active_hours_start: 9,
+  active_hours_end: 18,
+  timezone: "Europe/Madrid",
+  working_days: "1,2,3,4,5",
+};
+
+const TIMEZONES = [
+  { value: "Pacific/Midway", label: "UTC−11 — Midway Island" },
+  { value: "Pacific/Honolulu", label: "UTC−10 — Hawaii" },
+  { value: "America/Anchorage", label: "UTC−9  — Alaska" },
+  { value: "America/Los_Angeles", label: "UTC−8  — Pacific Time (US)" },
+  { value: "America/Denver", label: "UTC−7  — Mountain Time (US)" },
+  { value: "America/Chicago", label: "UTC−6  — Central Time (US)" },
+  { value: "America/New_York", label: "UTC−5  — Eastern Time (US)" },
+  { value: "America/Caracas", label: "UTC−4  — Caracas, La Paz" },
+  { value: "America/Sao_Paulo", label: "UTC−3  — São Paulo, Buenos Aires" },
+  { value: "America/Noronha", label: "UTC−2  — Mid-Atlantic" },
+  { value: "Atlantic/Azores", label: "UTC−1  — Azores" },
+  { value: "UTC", label: "UTC+0  — London (no DST)" },
+  { value: "Europe/London", label: "UTC+0/+1 — London (BST)" },
+  { value: "Europe/Madrid", label: "UTC+1/+2 — Madrid, París, Berlín" },
+  { value: "Europe/Helsinki", label: "UTC+2/+3 — Helsinki, Kyiv, Tallinn" },
+  { value: "Europe/Moscow", label: "UTC+3  — Moscow, Istanbul" },
+  { value: "Asia/Dubai", label: "UTC+4  — Dubai, Abu Dhabi" },
+  { value: "Asia/Karachi", label: "UTC+5  — Karachi, Islamabad" },
+  { value: "Asia/Kolkata", label: "UTC+5:30 — India" },
+  { value: "Asia/Dhaka", label: "UTC+6  — Dhaka, Almaty" },
+  { value: "Asia/Bangkok", label: "UTC+7  — Bangkok, Jakarta, Hanoi" },
+  { value: "Asia/Shanghai", label: "UTC+8  — Beijing, Singapore, HK" },
+  { value: "Asia/Tokyo", label: "UTC+9  — Tokyo, Seoul" },
+  { value: "Australia/Sydney", label: "UTC+10/+11 — Sydney" },
+  { value: "Pacific/Auckland", label: "UTC+12/+13 — Auckland" },
+];
+
+const WEEKDAYS = [
+  { iso: 1, short: "Lun" },
+  { iso: 2, short: "Mar" },
+  { iso: 3, short: "Mié" },
+  { iso: 4, short: "Jue" },
+  { iso: 5, short: "Vie" },
+  { iso: 6, short: "Sáb" },
+  { iso: 7, short: "Dom" },
+];
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+function fmtHour(h: number) {
+  if (h === 0) return "12 AM";
+  if (h < 12) return `${h} AM`;
+  if (h === 12) return "12 PM";
+  return `${h - 12} PM`;
 }
 
 export default function ConnectLinkedInModal({
   isOpen,
   onClose,
   onAccountConnected,
+  initialAccount = null,
+  initialStep = 1,
 }: ConnectLinkedInModalProps) {
-  const [activeTab, setActiveTab] = useState<"hosted" | "native">("hosted");
+  const { currentUser } = useAuth();
 
-  // Estados de Hosted Auth
-  const [hostedLoading, setHostedLoading] = useState(false);
-  const [hostedUrl, setHostedUrl] = useState<string | null>(null);
+  // Paso del slider: 1 = Configuración de límites y horario, 2 = Autenticación y opciones avanzadas
+  const [modalStep, setModalStep] = useState<1 | 2>(initialStep);
 
-  // Estados de Native Auth
-  const [nativeMode, setNativeMode] = useState<"credentials" | "cookie">("credentials");
-  const [accountName, setAccountName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [cookieLiAt, setCookieLiAt] = useState("");
-  const [country, setCountry] = useState("ES");
-  const [proxy, setProxy] = useState("");
-  const [nativeLoading, setNativeLoading] = useState(false);
+  // Formulario del Paso 1
+  const [form, setForm] = useState(BLANK_FORM);
 
-  // Checkpoint 2FA
+  // Formulario del Paso 2 (Autenticación Nativa)
+  const [authMode, setAuthMode] = useState<"credentials" | "cookie">("credentials");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
+  const [authCookieLiAt, setAuthCookieLiAt] = useState("");
+  const [authCookieLiA, setAuthCookieLiA] = useState("");
+  const [authCountry, setAuthCountry] = useState("ES");
+  const [authCustomProxy, setAuthCustomProxy] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Estados de Verificación en Dos Pasos (2FA / Checkpoint)
   const [isCheckpoint, setIsCheckpoint] = useState(false);
-  const [checkpointAccountId, setCheckpointAccountId] = useState("");
   const [checkpointCode, setCheckpointCode] = useState("");
+  const [checkpointRemoteAccountId, setCheckpointRemoteAccountId] = useState<string | null>(null);
   const [checkpointLoading, setCheckpointLoading] = useState(false);
 
-  // Errores y notificaciones
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  // Modal final de recomendación y éxito estilo B2B
+  const [showSuccessAdviceModal, setShowSuccessAdviceModal] = useState(false);
+  const [connectedAccountResult, setConnectedAccountResult] = useState<ConnectedLinkedInAccount | null>(null);
 
-  // Sincronizar la última cuenta conectada desde Unipile
-  const syncLatestAccount = useCallback(async () => {
-    try {
-      const res = await fetch("/api/unipile/accounts");
-      const data = await res.json();
-      if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
-        const latest: ConnectedLinkedInAccount = data.accounts[0];
-        addStoredAccount(latest);
-        onAccountConnected(latest);
-        onClose();
-        return true;
-      }
-    } catch (err) {
-      console.error("Error sincronizando cuentas en modal:", err);
-    }
-    return false;
-  }, [onAccountConnected, onClose]);
-
-  // Escuchar mensaje postMessage desde ventana emergente (hosted auth callback)
+  // Inicializar o resetear datos cuando cambia isOpen o initialAccount
   useEffect(() => {
-    if (!isOpen) return;
-
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === "LINKEDIN_AUTH_SUCCESS") {
-        setSuccessNotice("¡Cuenta autorizada en LinkedIn con éxito! Sincronizando...");
-        await syncLatestAccount();
-      } else if (event.data?.type === "LINKEDIN_AUTH_ERROR") {
-        setErrorMsg("La conexión con LinkedIn no pudo completarse.");
+    if (isOpen) {
+      if (initialAccount) {
+        setForm({
+          name: initialAccount.name || "",
+          email: initialAccount.email || "",
+          daily_connection_limit: Math.min(20, initialAccount.daily_connection_limit ?? 20),
+          daily_message_limit: Math.min(20, initialAccount.daily_message_limit ?? 20),
+          daily_visit_limit: Math.min(20, initialAccount.daily_visit_limit ?? 20),
+          active_hours_start: initialAccount.active_hours_start ?? 9,
+          active_hours_end: initialAccount.active_hours_end ?? 18,
+          timezone: initialAccount.timezone ?? "Europe/Madrid",
+          working_days: initialAccount.working_days ?? "1,2,3,4,5",
+        });
+        setAuthEmail(initialAccount.email || "");
+        setModalStep(initialStep || 2);
+        if (initialAccount.status === "CHECKPOINT") {
+          setIsCheckpoint(true);
+          setCheckpointRemoteAccountId(initialAccount.unipileAccountId);
+        } else {
+          setIsCheckpoint(false);
+        }
+      } else {
+        setForm(BLANK_FORM);
+        setAuthEmail("");
+        setModalStep(1);
+        setIsCheckpoint(false);
       }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [isOpen, syncLatestAccount]);
+      setAuthPassword("");
+      setShowAuthPassword(false);
+      setAuthCookieLiAt("");
+      setAuthCookieLiA("");
+      setAuthCountry("ES");
+      setAuthCustomProxy("");
+      setAuthError(null);
+      setCheckpointCode("");
+      setShowSuccessAdviceModal(false);
+      setConnectedAccountResult(null);
+    }
+  }, [isOpen, initialAccount, initialStep]);
 
   if (!isOpen) return null;
 
-  // Generar enlace Hosted Auth (Método recomendado)
-  const handleGenerateHostedLink = async () => {
-    setHostedLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const res = await fetch("/api/unipile/hosted-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: accountName.trim() || undefined,
-        }),
-      });
-
-      const data = await res.json();
-      setHostedLoading(false);
-
-      if (!res.ok) {
-        setErrorMsg(data.error || "No se pudo generar el enlace seguro de Unipile.");
-        return;
-      }
-
-      setHostedUrl(data.url);
-
-      if (data.url) {
-        const popup = window.open(data.url, "_blank", "width=600,height=750");
-        setSuccessNotice(
-          data.mock
-            ? "Enlace simulado abierto. No se ha conectado ninguna cuenta real."
-            : "Ventana de conexión abierta. Completa la autorización en LinkedIn; la cuenta se sincronizará automáticamente."
-        );
-
-        if (popup) {
-          const pollTimer = setInterval(async () => {
-            try {
-              if (popup.closed) {
-                clearInterval(pollTimer);
-                await syncLatestAccount();
-              }
-            } catch {
-              clearInterval(pollTimer);
-            }
-          }, 1500);
-        }
-      } else {
-        setErrorMsg("Unipile no devolvio un enlace de autenticacion valido.");
-      }
-    } catch (err: unknown) {
-      setHostedLoading(false);
-      setErrorMsg(err instanceof Error ? err.message : "Error de conexion con el servidor");
+  // Manejo de avance de Paso 1 al Paso 2
+  const handleProceedToStep2 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim()) {
+      setAuthError("Por favor ingresa un nombre para mostrar y un correo electrónico válido.");
+      return;
     }
+
+    if (form.active_hours_start >= form.active_hours_end) {
+      setAuthError("La hora de inicio debe ser anterior a la de fin en el horario de prospección.");
+      return;
+    }
+
+    setAuthError(null);
+    if (!authEmail.trim()) {
+      setAuthEmail(form.email.trim());
+    }
+    setModalStep(2);
   };
 
-  // Conexión Nativa (Credenciales directas o Cookie)
-  const handleNativeConnect = async (e: React.FormEvent) => {
+  // Manejo de autenticación nativa en Paso 2
+  const handleNativeLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNativeLoading(true);
-    setErrorMsg(null);
+
+    if (authMode === "cookie") {
+      if (!authCookieLiAt.trim()) {
+        setAuthError("Por favor ingresa el valor de la cookie li_at de LinkedIn.");
+        return;
+      }
+    } else {
+      if (!authEmail.trim() || !authPassword) {
+        setAuthError("Por favor ingresa tu correo y contraseña de LinkedIn.");
+        return;
+      }
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
 
     try {
       const res = await fetch("/api/unipile/auth-native", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode: nativeMode,
-          name: accountName.trim() || undefined,
-          username: email.trim(),
-          password,
-          accessToken: cookieLiAt.trim(),
-          country,
-          proxy: proxy.trim() || undefined,
+          mode: authMode,
+          name: form.name.trim() || undefined,
+          username: authEmail.trim(),
+          password: authPassword,
+          accessToken: authCookieLiAt.trim(),
+          premiumToken: authCookieLiA.trim() || undefined,
+          country: authCountry || undefined,
+          proxy: authCustomProxy.trim() || undefined,
         }),
       });
 
       const data = await res.json();
-      setNativeLoading(false);
+      setAuthLoading(false);
 
       if (!res.ok) {
-        setErrorMsg(data.error || "Error al conectar con LinkedIn.");
+        setAuthError(data.error || "No se pudo autenticar con LinkedIn.");
         return;
       }
 
-      // LinkedIn pide 2FA (Checkpoint)
+      // LinkedIn solicita 2FA (Checkpoint)
       if (data.checkpoint) {
         setIsCheckpoint(true);
-        setCheckpointAccountId(data.remoteAccountId);
-        setErrorMsg(null);
+        setCheckpointRemoteAccountId(data.remoteAccountId);
+        setAuthError(null);
         return;
       }
 
-      // En demo no se debe presentar una cuenta simulada como conexion real.
-      if (data.mock) {
-        setSuccessNotice("Autenticacion simulada correctamente. No se ha conectado ninguna cuenta real.");
-        setNativeLoading(false);
-        return;
-      }
-
-      // Conexión exitosa
-      const newAcc: ConnectedLinkedInAccount = {
-        id: `acc-li-${data.remoteAccountId || Date.now()}`,
-        unipileAccountId: data.remoteAccountId || `up_acc_${Date.now()}`,
-        name: accountName.trim() || email.split("@")[0] || "Cuenta LinkedIn",
-        headline: "Perfil autenticado mediante transporte nativo de Unipile",
-        profilePictureUrl: "/images/user/owner.png",
-        status: "OK",
-        authMode: nativeMode,
-        connectedAt: new Date().toISOString(),
-        lastSyncAt: "Recien conectado",
-        dailyActionsCount: {
-          invitationsSent: 0,
-          messagesSent: 0,
-          profilesVisited: 0,
-        },
-        daily_connection_limit: 20,
-        daily_message_limit: 20,
-        daily_visit_limit: 20,
-        active_hours_start: 9,
-        active_hours_end: 18,
-        timezone: "Europe/Madrid",
-        working_days: "1,2,3,4,5",
-      };
-
-      addStoredAccount(newAcc);
-      onAccountConnected(newAcc);
-      onClose();
+      // Conexión exitosa directa
+      finalizeConnection(data.remoteAccountId);
     } catch (err: unknown) {
-      setNativeLoading(false);
-      setErrorMsg(err instanceof Error ? err.message : "Error al conectar con el servidor.");
+      setAuthLoading(false);
+      setAuthError(err instanceof Error ? err.message : "Error al conectar con el servidor.");
     }
   };
 
-  // Resolver Checkpoint 2FA
+  // Manejo de resolución de 2FA
   const handleSolveCheckpoint = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!checkpointCode.trim()) {
-      setErrorMsg("Por favor ingresa el codigo de verificacion recibido.");
+    if (!checkpointRemoteAccountId || !checkpointCode.trim()) {
+      setAuthError("Por favor ingresa el código de verificación recibido.");
       return;
     }
 
     setCheckpointLoading(true);
-    setErrorMsg(null);
+    setAuthError(null);
 
     try {
       const res = await fetch("/api/unipile/solve-checkpoint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          remoteAccountId: checkpointAccountId,
+          remoteAccountId: checkpointRemoteAccountId,
           code: checkpointCode.trim(),
         }),
       });
@@ -247,376 +272,678 @@ export default function ConnectLinkedInModal({
       setCheckpointLoading(false);
 
       if (!res.ok) {
-        setErrorMsg(data.error || "Codigo invalido o expirado.");
+        setAuthError(data.error || "Código incorrecto o expirado al validar con LinkedIn.");
         return;
       }
 
-      const newAcc: ConnectedLinkedInAccount = {
-        id: `acc-li-${checkpointAccountId}`,
-        unipileAccountId: checkpointAccountId,
-        name: accountName.trim() || email.split("@")[0] || "Cuenta LinkedIn Verificada",
-        headline: "Perfil autenticado con verificacion 2FA exitosa",
-        profilePictureUrl: "/images/user/owner.png",
-        status: "OK",
-        authMode: nativeMode,
-        connectedAt: new Date().toISOString(),
-        lastSyncAt: "Recien conectado",
-        dailyActionsCount: {
-          invitationsSent: 0,
-          messagesSent: 0,
-          profilesVisited: 0,
-        },
-        daily_connection_limit: 20,
-        daily_message_limit: 20,
-        daily_visit_limit: 20,
-        active_hours_start: 9,
-        active_hours_end: 18,
-        timezone: "Europe/Madrid",
-        working_days: "1,2,3,4,5",
-      };
-
-      addStoredAccount(newAcc);
-      onAccountConnected(newAcc);
-      onClose();
+      // Verificación exitosa
+      finalizeConnection(data.remoteAccountId || checkpointRemoteAccountId);
     } catch (err: unknown) {
       setCheckpointLoading(false);
-      setErrorMsg(err instanceof Error ? err.message : "Error al validar codigo 2FA.");
+      setAuthError(err instanceof Error ? err.message : "Error al verificar código con LinkedIn.");
     }
   };
 
+  // Finalizar conexión, guardar en store y desplegar modal de recomendación estilo B2B
+  const finalizeConnection = (remoteAccountId: string) => {
+    const finalAccount: ConnectedLinkedInAccount = {
+      id: initialAccount?.id || `acc-li-${remoteAccountId || Date.now()}`,
+      unipileAccountId: remoteAccountId || `up_acc_${Date.now()}`,
+      name: form.name.trim() || authEmail.split("@")[0] || "Cuenta LinkedIn",
+      email: form.email.trim() || authEmail.trim(),
+      headline: "Perfil sincronizado con Unipile API",
+      profilePictureUrl: initialAccount?.profilePictureUrl || "/images/user/owner.png",
+      status: "OK",
+      authMode: authMode,
+      connectedAt: initialAccount?.connectedAt || new Date().toISOString(),
+      lastSyncAt: "Recién conectado",
+      ownerId: currentUser?.id,
+      assignedUserId: currentUser?.id,
+      assignedUserName: currentUser?.name || "Administrador",
+      dailyActionsCount: {
+        invitationsSent: 0,
+        messagesSent: 0,
+        profilesVisited: 0,
+      },
+      daily_connection_limit: form.daily_connection_limit,
+      daily_message_limit: form.daily_message_limit,
+      daily_visit_limit: form.daily_visit_limit,
+      active_hours_start: form.active_hours_start,
+      active_hours_end: form.active_hours_end,
+      timezone: form.timezone,
+      working_days: form.working_days,
+    };
+
+    addStoredAccount(finalAccount);
+    onAccountConnected(finalAccount);
+    setConnectedAccountResult(finalAccount);
+    setShowSuccessAdviceModal(true);
+  };
+
+  const handleFinishAll = () => {
+    setShowSuccessAdviceModal(false);
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xl dark:border-gray-800 dark:bg-gray-900 my-8">
-        {/* Boton Cerrar */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar modal"
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-        >
-          <X className="size-5" />
-        </button>
-
-        {/* Encabezado */}
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
-            <ShieldCheck className="size-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Conectar Cuenta de LinkedIn (Unipile)
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Transporte oficial y seguro validado para prospeccion y envio de mensajes.
-            </p>
-          </div>
-        </div>
-
-        {/* Mensajes de error o éxito */}
-        {errorMsg && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
-            <AlertCircle className="size-4 shrink-0 mt-0.5" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        {successNotice && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-green-200 bg-green-50 p-3 text-xs text-green-700 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-400">
-            <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
-            <span>{successNotice}</span>
-          </div>
-        )}
-
-        {/* Vista Checkpoint 2FA */}
-        {isCheckpoint ? (
-          <form onSubmit={handleSolveCheckpoint} className="mt-5 space-y-4">
-            <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-4 dark:border-brand-900/40 dark:bg-brand-950/20">
-              <div className="flex items-center gap-2 text-brand-700 dark:text-brand-300 font-semibold text-sm">
-                <Lock className="size-4" />
-                <span>Verificacion de Dos Pasos Requerida (2FA)</span>
+    <>
+      <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="relative w-full max-w-xl rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
+          {/* Header Superior Común Idéntico a B2B */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex items-center gap-3">
+              {modalStep === 2 && !initialAccount ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalStep(1);
+                    setAuthError(null);
+                  }}
+                  className="p-1.5 -ml-1 rounded-xl text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  title="Volver al Paso 1"
+                >
+                  <ArrowLeft className="size-4" />
+                </button>
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg select-none">
+                  in
+                </div>
+              )}
+              <div>
+                <h3 className="font-bold text-base text-gray-900 dark:text-white leading-snug">
+                  {modalStep === 1
+                    ? (initialAccount ? "Editar Cuenta de LinkedIn" : "Configurar Cuenta de LinkedIn")
+                    : isCheckpoint
+                    ? "Verificación de Dos Pasos (2FA)"
+                    : "Conectar Cuenta de LinkedIn"}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {modalStep === 1
+                    ? "Paso 1 de 2: Parámetros y límites de prospección"
+                    : isCheckpoint
+                    ? "Ingresa el código de 6 dígitos enviado por LinkedIn"
+                    : "Paso 2 de 2: Autenticación y opciones avanzadas"}
+                </p>
               </div>
-              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                LinkedIn envio un codigo de verificacion a tu aplicacion autenticadora, correo electronico o telefono movil. Ingresalo para completar la conexion.
-              </p>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Codigo de Verificacion (6 digitos)
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={8}
-                value={checkpointCode}
-                onChange={(e) => setCheckpointCode(e.target.value)}
-                placeholder="Ej. 123456"
-                className="w-full tracking-widest text-center text-lg font-mono rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              title="Cerrar"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsCheckpoint(false)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-              >
-                Volver
-              </button>
-              <button
-                type="submit"
-                disabled={checkpointLoading}
-                className="flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-              >
-                {checkpointLoading && <Loader2 className="size-3.5 animate-spin" />}
-                Confirmar y Activar Cuenta
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="mt-5 space-y-4">
-            {/* Selector de Pestañas de Autenticación */}
-            <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
-              <button
-                type="button"
-                onClick={() => setActiveTab("hosted")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition ${
-                  activeTab === "hosted"
-                    ? "bg-white text-brand-600 shadow-xs dark:bg-gray-900 dark:text-brand-400"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                }`}
-              >
-                <ShieldCheck className="size-3.5" />
-                Hosted Auth (Oficial)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("native")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition ${
-                  activeTab === "native"
-                    ? "bg-white text-brand-600 shadow-xs dark:bg-gray-900 dark:text-brand-400"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                }`}
-              >
-                <Key className="size-3.5" />
-                Conexion Directa (Credenciales)
-              </button>
-            </div>
-
-            {/* Pestaña 1: Hosted Auth */}
-            {activeTab === "hosted" && (
-              <div className="space-y-4 pt-1">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-                  <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
-                    Metodo Recomendado: Flujo Oficial de Unipile
-                  </h4>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                    Abre una ventana segura gestionada por Unipile donde ingresas tu sesion de LinkedIn. No almacena contraseñas en texto plano y renueva tokens automaticamente.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Etiqueta o Nombre de la Cuenta (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="Ej. Roberto OrSe - Perfil Personal"
-                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-
-                {hostedUrl && (
-                  <div className="p-3 rounded-lg bg-gray-50 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-gray-600 dark:text-gray-300 truncate font-mono">
-                      {hostedUrl}
-                    </span>
-                    <a
-                      href={hostedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 flex items-center gap-1 rounded-md bg-brand-500 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-brand-600"
-                    >
-                      <ExternalLink className="size-3" />
-                      Abrir Enlace
-                    </a>
-                  </div>
-                )}
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGenerateHostedLink}
-                    disabled={hostedLoading}
-                    className="flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-                  >
-                    {hostedLoading ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <ExternalLink className="size-3.5" />
-                    )}
-                    Generar Enlace de Conexion
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Pestaña 2: Native Auth (Credenciales o Cookie li_at) */}
-            {activeTab === "native" && (
-              <form onSubmit={handleNativeConnect} className="space-y-3.5 pt-1">
-                {/* Selector de modo nativo */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNativeMode("credentials")}
-                    className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                      nativeMode === "credentials"
-                        ? "border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-950/40 dark:text-brand-300"
-                        : "border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400"
-                    }`}
-                  >
-                    Correo y Contraseña
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNativeMode("cookie")}
-                    className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                      nativeMode === "cookie"
-                        ? "border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-950/40 dark:text-brand-300"
-                        : "border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400"
-                    }`}
-                  >
-                    <Cookie className="inline size-3 mr-1" />
-                    Cookie li_at (Sin contraseña)
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Nombre o Titular de la Cuenta
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="Ej. Roberto OrSe"
-                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-
-                {nativeMode === "credentials" ? (
-                  <>
+          {/* Slider Container con transición horizontal de 2 pasos */}
+          <div className="relative overflow-hidden w-full">
+            <div
+              className="flex w-[200%] transition-transform duration-500 ease-in-out"
+              style={{ transform: modalStep === 1 ? "translateX(0%)" : "translateX(-50%)" }}
+            >
+              {/* ─── SLIDE 1: Formulario de Configuración y Límites ─── */}
+              <div className="w-1/2 shrink-0 flex flex-col justify-between">
+                <form onSubmit={handleProceedToStep2}>
+                  <div className="max-h-[500px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Correo o Telefono de LinkedIn
+                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                        Nombre para mostrar
+                      </label>
+                      <input
+                        type="text"
+                        className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                        placeholder="Ej. Roberto Orse LinkedIn"
+                        value={form.name}
+                        onChange={(e) => {
+                          setForm({ ...form, name: e.target.value });
+                          setAuthError(null);
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                        Correo de LinkedIn
                       </label>
                       <input
                         type="email"
+                        className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                        placeholder="tu-correo@linkedin.com"
+                        value={form.email}
+                        onChange={(e) => {
+                          setForm({ ...form, email: e.target.value });
+                          setAuthError(null);
+                        }}
                         required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu-correo@empresa.com"
-                        className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Contraseña de LinkedIn
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••••••"
-                        className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                      />
+                    {/* 3 Columnas de Límites Diarios (Máximo de seguridad 20) */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Conexiones/día
+                        </label>
+                        <input
+                          type="number"
+                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          value={form.daily_connection_limit}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setForm({ ...form, daily_connection_limit: Math.min(20, Math.max(1, val)) });
+                          }}
+                          min={1}
+                          max={20}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Mensajes/día
+                        </label>
+                        <input
+                          type="number"
+                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          value={form.daily_message_limit}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setForm({ ...form, daily_message_limit: Math.min(20, Math.max(1, val)) });
+                          }}
+                          min={1}
+                          max={20}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Visitas/día
+                        </label>
+                        <input
+                          type="number"
+                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          value={form.daily_visit_limit}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setForm({ ...form, daily_visit_limit: Math.min(20, Math.max(0, val)) });
+                          }}
+                          min={0}
+                          max={20}
+                        />
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Valor de la Cookie li_at de LinkedIn
-                    </label>
-                    <textarea
-                      required
-                      rows={3}
-                      value={cookieLiAt}
-                      onChange={(e) => setCookieLiAt(e.target.value)}
-                      placeholder="AQEDATk... (Copia el valor de la cookie li_at desde las herramientas de desarrollador)"
-                      className="w-full font-mono text-[11px] rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    />
+
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+                      🔒 Límite de seguridad recomendado: Máximo 20 acciones/día para proteger tu perfil de LinkedIn.
+                    </p>
+
+                    {/* Sección Horario de Prospección */}
+                    <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
+                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        Horario de Prospección
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                            Inicio
+                          </label>
+                          <select
+                            className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                            value={form.active_hours_start}
+                            onChange={(e) => setForm({ ...form, active_hours_start: Number(e.target.value) })}
+                          >
+                            {HOURS.map((h) => (
+                              <option key={h} value={h}>
+                                {fmtHour(h)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                            Fin
+                          </label>
+                          <select
+                            className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                            value={form.active_hours_end}
+                            onChange={(e) => setForm({ ...form, active_hours_end: Number(e.target.value) })}
+                          >
+                            {HOURS.map((h) => (
+                              <option key={h} value={h}>
+                                {fmtHour(h)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {form.active_hours_start >= form.active_hours_end ? (
+                        <p className="text-xs text-red-500 font-medium">
+                          La hora de inicio debe ser anterior a la de fin
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {fmtHour(form.active_hours_start)} – {fmtHour(form.active_hours_end)} (
+                          {form.active_hours_end - form.active_hours_start}h activas)
+                        </p>
+                      )}
+
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Zona Horaria
+                        </label>
+                        <select
+                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                          value={form.timezone}
+                          onChange={(e) => setForm({ ...form, timezone: e.target.value })}
+                        >
+                          {TIMEZONES.map((tz) => (
+                            <option key={tz.value} value={tz.value}>
+                              {tz.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Días Laborales
+                        </label>
+                        <div className="flex gap-1.5">
+                          {WEEKDAYS.map((day) => {
+                            const active = form.working_days.split(",").includes(String(day.iso));
+                            return (
+                              <button
+                                key={day.iso}
+                                type="button"
+                                onClick={() => {
+                                  const current = form.working_days.split(",").filter(Boolean);
+                                  const next = active
+                                    ? current.filter((d) => d !== String(day.iso))
+                                    : [...current, String(day.iso)];
+                                  if (next.length > 0) {
+                                    setForm({ ...form, working_days: next.sort().join(",") });
+                                  }
+                                }}
+                                className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                                  active
+                                    ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
+                                    : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                                }`}
+                              >
+                                {day.short}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {authError && (
+                      <p className="text-xs text-red-500 font-medium">{authError}</p>
+                    )}
                   </div>
-                )}
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Ubicacion Proxy (Pais)
-                    </label>
-                    <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  {/* Footer Slide 1 */}
+                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                      onClick={onClose}
                     >
-                      <option value="ES">España (ES)</option>
-                      <option value="MX">Mexico (MX)</option>
-                      <option value="US">Estados Unidos (US)</option>
-                      <option value="CO">Colombia (CO)</option>
-                      <option value="AR">Argentina (AR)</option>
-                      <option value="CL">Chile (CL)</option>
-                      <option value="BR">Brasil (BR)</option>
-                    </select>
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer"
+                    >
+                      <span>Añadir y Conectar</span>
+                      <ArrowRight className="size-4" />
+                    </button>
                   </div>
+                </form>
+              </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Proxy Dedicado (Opcional)
-                    </label>
-                    <input
-                      type="text"
-                      value={proxy}
-                      onChange={(e) => setProxy(e.target.value)}
-                      placeholder="host:port:user:pass"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
+              {/* ─── SLIDE 2: Autenticación Nativa y Checkpoint 2FA ─── */}
+              <div className="w-1/2 shrink-0 flex flex-col justify-between">
+                {!isCheckpoint ? (
+                  <form onSubmit={handleNativeLogin}>
+                    <div className="max-h-[500px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
+                      {/* Selector de Método: Credenciales vs Cookies */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                          Método de Conexión
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("credentials");
+                              setAuthError(null);
+                            }}
+                            className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                              authMode === "credentials"
+                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
+                                : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                            }`}
+                          >
+                            Credenciales (Correo y Clave)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("cookie");
+                              setAuthError(null);
+                            }}
+                            className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                              authMode === "cookie"
+                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
+                                : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                            }`}
+                          >
+                            Cookie de Sesión (li_at)
+                          </button>
+                        </div>
+                      </div>
 
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={nativeLoading}
-                    className="flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-                  >
-                    {nativeLoading && <Loader2 className="size-3.5 animate-spin" />}
-                    Conectar con Unipile
-                  </button>
-                </div>
-              </form>
-            )}
+                      {authMode === "credentials" ? (
+                        <>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              Correo o teléfono de LinkedIn
+                            </label>
+                            <input
+                              type="text"
+                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              placeholder="ejemplo@empresa.com"
+                              value={authEmail}
+                              onChange={(e) => {
+                                setAuthEmail(e.target.value);
+                                setAuthError(null);
+                              }}
+                              disabled={authLoading}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              Contraseña de LinkedIn
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showAuthPassword ? "text" : "password"}
+                                className="h-9 w-full pr-9 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                placeholder="••••••••••••"
+                                value={authPassword}
+                                onChange={(e) => {
+                                  setAuthPassword(e.target.value);
+                                  setAuthError(null);
+                                }}
+                                disabled={authLoading}
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowAuthPassword(!showAuthPassword)}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                                tabIndex={-1}
+                              >
+                                {showAuthPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              Cookie li_at (Obligatoria)
+                            </label>
+                            <input
+                              type="password"
+                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              placeholder="AQEDAQ..."
+                              value={authCookieLiAt}
+                              onChange={(e) => {
+                                setAuthCookieLiAt(e.target.value);
+                                setAuthError(null);
+                              }}
+                              disabled={authLoading}
+                              required
+                            />
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                              Copia el valor de la cookie <code>li_at</code> desde la consola o inspector de cookies de tu navegador.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              Cookie li_a (Opcional - Sales Navigator / Recruiter)
+                            </label>
+                            <input
+                              type="password"
+                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              placeholder="AQEDAQ... (opcional)"
+                              value={authCookieLiA}
+                              onChange={(e) => setAuthCookieLiA(e.target.value)}
+                              disabled={authLoading}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Opciones Avanzadas: Proxy y País */}
+                      <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
+                        <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Opciones Avanzadas (Proxy y País)
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              País del Proxy
+                            </label>
+                            <select
+                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                              value={authCountry}
+                              onChange={(e) => setAuthCountry(e.target.value)}
+                              disabled={authLoading}
+                            >
+                              <option value="">Automático (Según tu IP)</option>
+                              <option value="ES">España (ES)</option>
+                              <option value="US">Estados Unidos (US)</option>
+                              <option value="MX">México (MX)</option>
+                              <option value="CO">Colombia (CO)</option>
+                              <option value="AR">Argentina (AR)</option>
+                              <option value="CL">Chile (CL)</option>
+                              <option value="PE">Perú (PE)</option>
+                              <option value="BR">Brasil (BR)</option>
+                              <option value="GB">Reino Unido (GB)</option>
+                              <option value="FR">Francia (FR)</option>
+                              <option value="DE">Alemania (DE)</option>
+                              <option value="IT">Italia (IT)</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                              Proxy Personalizado (Opcional)
+                            </label>
+                            <input
+                              type="text"
+                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              placeholder="host:port:user:pass"
+                              value={authCustomProxy}
+                              onChange={(e) => setAuthCustomProxy(e.target.value)}
+                              disabled={authLoading}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+                          Si no defines un proxy propio, se asignará automáticamente un proxy de alta reputación según el país seleccionado.
+                        </p>
+                      </div>
+
+                      {authError && (
+                        <p className="text-xs text-red-500 font-medium">{authError}</p>
+                      )}
+                    </div>
+
+                    {/* Footer Slide 2 */}
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalStep(1);
+                          setAuthError(null);
+                        }}
+                        className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        disabled={authLoading}
+                      >
+                        Volver
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={authLoading}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {authLoading ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" />
+                            <span>Conectando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Conectar Cuenta</span>
+                            <ArrowRight className="size-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  // ── Sub-vista 2FA Checkpoint ──
+                  <form onSubmit={handleSolveCheckpoint}>
+                    <div className="max-h-[500px] overflow-y-auto px-6 py-6 flex flex-col gap-4">
+                      <div>
+                        <label className="text-sm font-bold text-gray-900 dark:text-white pb-1 block">
+                          Verificación de Dos Pasos (2FA)
+                        </label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                          LinkedIn ha solicitado verificar tu identidad. Ingresa el código recibido por SMS o en tu aplicación autenticadora.
+                        </p>
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          className="h-12 w-full text-center text-xl font-mono font-bold tracking-widest rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          placeholder="123456"
+                          value={checkpointCode}
+                          onChange={(e) => {
+                            setCheckpointCode(e.target.value);
+                            setAuthError(null);
+                          }}
+                          disabled={checkpointLoading}
+                          autoFocus
+                          required
+                        />
+                      </div>
+
+                      {authError && (
+                        <p className="text-xs text-red-500 font-medium">{authError}</p>
+                      )}
+
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCheckpoint(false);
+                            setAuthError(null);
+                            setCheckpointCode("");
+                          }}
+                          className="text-xs text-brand-600 dark:text-brand-400 hover:underline cursor-pointer"
+                          disabled={checkpointLoading}
+                        >
+                          ← Volver a ingresar datos
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Footer 2FA */}
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        disabled={checkpointLoading}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={checkpointLoading}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {checkpointLoading ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" />
+                            <span>Verificando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Verificar y Conectar</span>
+                            <Check className="size-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+
+      {/* ── Modal Elegante de Recomendación para Estabilidad (Idéntico a B2B) ── */}
+      {showSuccessAdviceModal && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+            <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+              🚀
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              ¡Cuenta Conectada con Éxito!
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+              Tu espacio de trabajo ya está sincronizado con LinkedIn y listo para ejecutar campañas de Social Selling.
+            </p>
+
+            <div className="bg-brand-500/10 border border-brand-500/20 rounded-2xl p-4 mb-6 text-left">
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0">💡</span>
+                <div>
+                  <h4 className="text-xs font-bold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
+                    Buenas Prácticas de Automatización
+                  </h4>
+                  <p className="text-xs text-gray-700 dark:text-gray-200 leading-relaxed">
+                    Tus acciones se ejecutarán de forma inteligente en segundo plano. Para proyectar un comportamiento humano y seguro ante LinkedIn, te sugerimos no realizar envíos masivos manuales mientras las secuencias automáticas estén trabajando.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleFinishAll}
+              className="w-full py-3 px-6 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition-all duration-200 cursor-pointer"
+            >
+              Entendido, ¡a interactuar!
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
