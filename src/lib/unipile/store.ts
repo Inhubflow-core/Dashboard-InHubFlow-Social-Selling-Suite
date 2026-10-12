@@ -1,5 +1,6 @@
 import type { ConnectedLinkedInAccount } from "./types";
 import type { SaaSUser } from "../saas/types";
+import { getStoredTeamMembers } from "../saas/store";
 
 const STORAGE_KEY = "inhubflow_linkedin_accounts";
 const ACTIVE_ACCOUNT_KEY = "inhubflow_active_linkedin_account_id";
@@ -58,27 +59,75 @@ export function saveStoredAccounts(accounts: ConnectedLinkedInAccount[]): void {
 
 /**
  * Filtra las cuentas según el rol y permisos del usuario (exactamente como inhubflow-b2b):
- * 1. Super Admin: Ve TODAS las cuentas de toda la plataforma.
- * 2. Admin de Cuenta / Workspace Owner: Ve su propia cuenta y las de TODOS los miembros de su equipo.
- * 3. Miembro del Equipo (Operador SDR): SOLO puede ver su PROPIA cuenta asignada.
+ * 1. Super Admin: Ve TODAS las cuentas de toda la plataforma (Roberto OrSe).
+ * 2. Admin de Cuenta / Workspace Owner: Ve su propia cuenta y las de TODOS los miembros de su equipo (Team).
+ * 3. Miembro del Equipo (Operador SDR / Team): SOLO puede ver su PROPIO slot asignado.
  */
 export function getVisibleAccountsForUser(user: SaaSUser): ConnectedLinkedInAccount[] {
   const accounts = getStoredAccounts();
 
+  // 1. Super Admin: Roberto ve todas las cuentas globales de la plataforma
   if (user.role === "super_admin" || user.email.toLowerCase() === "inhubflow@gmail.com") {
     return accounts;
   }
 
+  // 2. Miembro del Equipo (Team / Member): SOLO puede ver su PROPIO slot asignado
   if (user.role === "member" || (user.ownerId && user.ownerId !== user.id)) {
     return accounts.filter((a) => {
-      const matchesAssignedUser = a.assignedUserId === user.id;
-      const matchesAssignedAccount = user.assignedAccountId && a.id === user.assignedAccountId;
-      const matchesEmail = a.email && a.email.toLowerCase() === user.email.toLowerCase();
+      const matchesAssignedUser = Boolean(a.assignedUserId && a.assignedUserId === user.id);
+      const matchesAssignedAccount = Boolean(user.assignedAccountId && a.id === user.assignedAccountId);
+      const matchesEmail = Boolean(a.email && a.email.toLowerCase() === user.email.toLowerCase());
       return matchesAssignedUser || matchesAssignedAccount || matchesEmail;
     });
   }
 
-  return accounts.filter((a) => a.ownerId === user.id || a.assignedUserId === user.id || !a.ownerId);
+  // 3. Admin (Client Admin): Puede ver todas las cuentas de su workspace y de su equipo (Team)
+  const teamMembers = typeof window !== "undefined" ? getStoredTeamMembers(user.id) : [];
+  const teamMemberUserIds = new Set(teamMembers.map((m) => m.id));
+  const teamAssignedAccountIds = new Set(
+    teamMembers.map((m) => m.assignedAccountId).filter(Boolean) as string[]
+  );
+
+  return accounts
+    .filter((a) => {
+      // Cuenta propia del Admin
+      if (a.ownerId === user.id || a.assignedUserId === user.id) return true;
+      // Cuenta asignada a algún colaborador de su equipo
+      if (a.assignedUserId && teamMemberUserIds.has(a.assignedUserId)) return true;
+      if (teamAssignedAccountIds.has(a.id)) return true;
+      // Cuenta sin owner asignado (fallback para sandbox / demo)
+      if (!a.ownerId) return true;
+      return false;
+    })
+    .map((acc) => {
+      // Enriquecer el nombre del asignado si corresponde a un miembro de su equipo
+      const assignedMember = teamMembers.find((m) => m.assignedAccountId === acc.id || m.id === acc.assignedUserId);
+      if (assignedMember) {
+        return {
+          ...acc,
+          assignedUserName: `${assignedMember.name} (Team SDR)`,
+        };
+      }
+      if (acc.assignedUserId === user.id || acc.ownerId === user.id) {
+        return {
+          ...acc,
+          assignedUserName: acc.assignedUserName || `${user.name} (Admin Principal)`,
+        };
+      }
+      return acc;
+    });
+}
+
+/**
+ * Retorna la cuenta activa permitida para el usuario actual.
+ * Si es un miembro de equipo, garantiza que solo sea su propio slot asignado.
+ */
+export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccount | null {
+  const visible = getVisibleAccountsForUser(user);
+  if (visible.length === 0) return null;
+  const activeId = getActiveAccountId();
+  const found = visible.find((a) => a.id === activeId);
+  return found || visible[0];
 }
 
 export function getActiveAccountId(): string {

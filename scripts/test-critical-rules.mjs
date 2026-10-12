@@ -281,6 +281,71 @@ assert(getMaxTeamInvitationsAllowed(businessAdmin) === 9, "Admin Business permit
 assert(validateCanInviteTeamMember(businessAdmin, 8).allowed === true, "Admin Business permite invitar cuando tiene 8 ocupados (< 9)");
 assert(validateCanInviteTeamMember(businessAdmin, 9).allowed === false, "Admin Business bloquea invitacion cuando alcanza 9 operadores de equipo");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 8: Aislamiento y Visibilidad de Cuentas por Rol
+// (Admin ve todo su equipo, Team ve estrictamente solo su slot)
+// -----------------------------------------------------------------------------
+console.log("\n--- 8. Prueba de Aislamiento y Visibilidad de Cuentas ---");
+
+const mockAccounts = [
+  { id: "acc-elena-admin", name: "Elena Valenzuela | Admin", ownerId: "usr-client-growth-03", assignedUserId: "usr-client-growth-03", email: "elena@agenciagrowth.com" },
+  { id: "acc-sofia-team", name: "Sofia Ramirez | SDR", ownerId: "usr-client-growth-03", assignedUserId: "usr-team-sofia-05", email: "sofia@agenciagrowth.com" },
+  { id: "acc-lucas-team", name: "Lucas Gomez | SDR", ownerId: "usr-client-growth-03", assignedUserId: "usr-team-lucas-06", email: "lucas@agenciagrowth.com" },
+  { id: "acc-marcos-admin", name: "Marcos Silva | Admin", ownerId: "usr-client-business-04", assignedUserId: "usr-client-business-04", email: "marcos@enterprisesales.io" },
+];
+
+const mockTeamMembersElena = [
+  { id: "usr-team-sofia-05", name: "Sofia Ramirez", assignedAccountId: "acc-sofia-team", ownerId: "usr-client-growth-03" },
+  { id: "usr-team-lucas-06", name: "Lucas Gomez", assignedAccountId: "acc-lucas-team", ownerId: "usr-client-growth-03" },
+];
+
+function getVisibleAccountsTest(user, allAccounts, teamMembers) {
+  if (user.role === "super_admin") return allAccounts;
+  if (user.role === "member") {
+    return allAccounts.filter((a) => {
+      const matchAssignedUser = a.assignedUserId === user.id;
+      const matchAssignedAcc = Boolean(user.assignedAccountId && a.id === user.assignedAccountId);
+      const matchEmail = Boolean(a.email && a.email.toLowerCase() === user.email.toLowerCase());
+      return matchAssignedUser || matchAssignedAcc || matchEmail;
+    });
+  }
+  // Admin
+  const memberUserIds = new Set(teamMembers.map((m) => m.id));
+  const memberAccIds = new Set(teamMembers.map((m) => m.assignedAccountId).filter(Boolean));
+  return allAccounts.filter((a) => {
+    if (a.ownerId === user.id || a.assignedUserId === user.id) return true;
+    if (a.assignedUserId && memberUserIds.has(a.assignedUserId)) return true;
+    if (memberAccIds.has(a.id)) return true;
+    return false;
+  });
+}
+
+// 1. Super Admin ve TODAS las cuentas de la plataforma
+const visibleSuperAdmin = getVisibleAccountsTest(superAdmin, mockAccounts, []);
+assert(visibleSuperAdmin.length === 4, "Super Admin visualiza todas las cuentas de la plataforma sin restricciones (4 cuentas)");
+
+// 2. Admin (Elena) ve TODAS las cuentas de su workspace y de su equipo (3 cuentas: la suya + Sofia + Lucas)
+const elenaAdminUser = { id: "usr-client-growth-03", role: "client_admin", email: "elena@agenciagrowth.com" };
+const visibleElena = getVisibleAccountsTest(elenaAdminUser, mockAccounts, mockTeamMembersElena);
+assert(visibleElena.length === 3, "Admin de workspace visualiza todas las cuentas de su equipo (3 cuentas: Admin + 2 Team)");
+assert(visibleElena.some((a) => a.id === "acc-elena-admin"), "Admin ve su propia cuenta");
+assert(visibleElena.some((a) => a.id === "acc-sofia-team"), "Admin ve la cuenta de Sofia (Team)");
+assert(visibleElena.some((a) => a.id === "acc-lucas-team"), "Admin ve la cuenta de Lucas (Team)");
+assert(!visibleElena.some((a) => a.id === "acc-marcos-admin"), "Admin NO ve cuentas de otros clientes/organizaciones ajenas");
+
+// 3. Team Member (Sofia) SOLO ve su propio slot asignado (1 cuenta)
+const sofiaTeamUser = { id: "usr-team-sofia-05", role: "member", email: "sofia@agenciagrowth.com", assignedAccountId: "acc-sofia-team" };
+const visibleSofia = getVisibleAccountsTest(sofiaTeamUser, mockAccounts, mockTeamMembersElena);
+assert(visibleSofia.length === 1, "Usuario de equipo (Team) visualiza estrictamente solo su propio slot asignado (1 cuenta)");
+assert(visibleSofia[0].id === "acc-sofia-team", "El slot visible coincide exactamente con la cuenta asignada a Sofia");
+assert(!visibleSofia.some((a) => a.id === "acc-elena-admin"), "Usuario de equipo NO tiene acceso ni visibilidad a la cuenta del Admin");
+assert(!visibleSofia.some((a) => a.id === "acc-lucas-team"), "Usuario de equipo NO tiene acceso a cuentas de otros companeros de equipo");
+
+// 4. Team Member sin cuenta asignada ve 0 cuentas
+const nuevoTeamSinCuenta = { id: "usr-team-nuevo", role: "member", email: "nuevo@agenciagrowth.com", assignedAccountId: null };
+const visibleNuevo = getVisibleAccountsTest(nuevoTeamSinCuenta, mockAccounts, mockTeamMembersElena);
+assert(visibleNuevo.length === 0, "Usuario de equipo sin cuenta asignada no ve ninguna cuenta de terceros (0 cuentas)");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

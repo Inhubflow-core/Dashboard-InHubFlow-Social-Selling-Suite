@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { getStoredAccounts, getActiveAccountId } from "@/lib/unipile/store";
+import { getActiveAccountForUser } from "@/lib/unipile/store";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LinkedInHeaderBadge() {
+  const { currentUser } = useAuth();
   const [activeAccount, setActiveAccount] = useState<ConnectedLinkedInAccount | null>(null);
   const t = useTranslations("header.linkedin");
 
   useEffect(() => {
     const updateAccount = () => {
-      const accounts = getStoredAccounts();
-      const activeId = getActiveAccountId();
-      const found = accounts.find((a) => a.id === activeId) || accounts[0] || null;
+      const found = getActiveAccountForUser(currentUser);
       setActiveAccount(found);
     };
 
@@ -24,7 +24,7 @@ export default function LinkedInHeaderBadge() {
     // Escuchar cambios de storage para reactividad
     window.addEventListener("storage", updateAccount);
     return () => window.removeEventListener("storage", updateAccount);
-  }, []);
+  }, [currentUser]);
 
   if (!activeAccount) {
     return (
