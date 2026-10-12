@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
       reconnect_account: reconnectAccountId,
       providers: ['LINKEDIN'],
       name: name || undefined,
-      success_redirect_url: successUrl || `${baseUrl}/linkedin-accounts?status=success`,
-      failure_redirect_url: failureUrl || `${baseUrl}/linkedin-accounts?status=error`,
+      success_redirect_url: successUrl || `${baseUrl}/auth/linkedin-callback?status=success`,
+      failure_redirect_url: failureUrl || `${baseUrl}/auth/linkedin-callback?status=error`,
+      notify_url: `${baseUrl}/api/unipile/webhook`,
     });
 
     return NextResponse.json({

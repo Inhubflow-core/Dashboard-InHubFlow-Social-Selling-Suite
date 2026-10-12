@@ -13,6 +13,7 @@ import {
   getVisibleAccountsForUser,
   getActiveAccountId,
   setActiveAccountId,
+  addStoredAccount,
   removeStoredAccount,
   updateStoredAccountStatus,
 } from "@/lib/unipile/store";
@@ -51,7 +52,7 @@ export default function LinkedInAccountsPage() {
   const isTeamMember = currentUser.role === "member";
   const isClientAdmin = currentUser.role === "client_admin" || isSuperAdmin;
 
-  // Cargar cuentas filtradas según el rol del usuario actual
+  // Cargar cuentas filtradas según el rol del usuario actual y sincronizar con Unipile
   useEffect(() => {
     const loadedAccounts = getVisibleAccountsForUser(currentUser);
     setAccounts(loadedAccounts);
@@ -68,6 +69,37 @@ export default function LinkedInAccountsPage() {
       .catch(() => {
         setUnipileStatus({ configured: false, mode: "demo" });
       });
+
+    // Sincronización automática silenciosa al montar la página
+    fetch("/api/unipile/accounts")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+          data.accounts.forEach((remoteAcc: ConnectedLinkedInAccount) => {
+            addStoredAccount(remoteAcc);
+          });
+          const refreshed = getVisibleAccountsForUser(currentUser);
+          setAccounts(refreshed);
+          const currentActive = getActiveAccountId();
+          const targetActive = refreshed.find((a) => a.id === currentActive) || refreshed[0];
+          if (targetActive) {
+            setActiveId(targetActive.id);
+            setActiveAccountId(targetActive.id);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn("[linkedin-accounts] Sincronización inicial silenciosa:", err);
+      });
+
+    // Escuchar evento postMessage cuando el usuario termine la autenticación en ventana emergente
+    const handleCallbackMessage = (event: MessageEvent) => {
+      if (event.data?.type === "LINKEDIN_AUTH_SUCCESS") {
+        handleSyncAll();
+      }
+    };
+    window.addEventListener("message", handleCallbackMessage);
+    return () => window.removeEventListener("message", handleCallbackMessage);
   }, [currentUser]);
 
   const handleSelectActive = (id: string) => {
@@ -103,16 +135,24 @@ export default function LinkedInAccountsPage() {
       const res = await fetch("/api/unipile/accounts");
       const data = await res.json();
       if (data.accounts && Array.isArray(data.accounts)) {
-        // Enriquecer o sincronizar
-        setNotice("Cuentas de LinkedIn sincronizadas exitosamente.");
+        data.accounts.forEach((remoteAcc: ConnectedLinkedInAccount) => {
+          addStoredAccount(remoteAcc);
+        });
+        const visible = getVisibleAccountsForUser(currentUser);
+        setAccounts(visible);
+        if (visible.length > 0 && (!activeId || !visible.some((a) => a.id === activeId))) {
+          setActiveId(visible[0].id);
+          setActiveAccountId(visible[0].id);
+        }
+        setNotice(`Sincronización completada: ${data.accounts.length} cuenta(s) verificada(s) en Unipile.`);
       } else {
-        setNotice("Sincronizacion completada en modo seguro.");
+        setNotice("Sincronización completada en modo seguro.");
       }
     } catch {
-      setNotice("Verificacion completada.");
+      setNotice("Verificación completada.");
     } finally {
       setIsSyncing(false);
-      setTimeout(() => setNotice(null), 3000);
+      setTimeout(() => setNotice(null), 4000);
     }
   };
 
@@ -125,9 +165,11 @@ export default function LinkedInAccountsPage() {
   };
 
   const handleAccountConnected = (newAcc: ConnectedLinkedInAccount) => {
-    const loaded = getStoredAccounts();
-    setAccounts(loaded);
+    addStoredAccount(newAcc);
+    const visible = getVisibleAccountsForUser(currentUser);
+    setAccounts(visible);
     setActiveId(newAcc.id);
+    setActiveAccountId(newAcc.id);
     refreshUserData();
     setNotice(`Cuenta ${newAcc.name} vinculada exitosamente.`);
     setTimeout(() => setNotice(null), 4000);

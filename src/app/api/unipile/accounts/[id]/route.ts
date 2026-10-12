@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const rawId = (await params).id;
+    const id = rawId.startsWith('acc-li-') ? rawId.replace('acc-li-', '') : rawId;
     if (!unipile.isConfigured()) {
       return NextResponse.json({ id, status: 'OK', mock: true });
     }
@@ -29,7 +30,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const rawId = (await params).id;
+    const id = rawId.startsWith('acc-li-') ? rawId.replace('acc-li-', '') : rawId;
     if (!unipile.isConfigured()) {
       return NextResponse.json({ success: true, mock: true });
     }

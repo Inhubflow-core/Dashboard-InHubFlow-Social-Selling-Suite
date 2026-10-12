@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   ExternalLink,
   Key,
@@ -15,6 +15,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
+import { addStoredAccount } from "@/lib/unipile/store";
 
 interface ConnectLinkedInModalProps {
   isOpen: boolean;
@@ -53,6 +54,41 @@ export default function ConnectLinkedInModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
+  // Sincronizar la última cuenta conectada desde Unipile
+  const syncLatestAccount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/unipile/accounts");
+      const data = await res.json();
+      if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+        const latest: ConnectedLinkedInAccount = data.accounts[0];
+        addStoredAccount(latest);
+        onAccountConnected(latest);
+        onClose();
+        return true;
+      }
+    } catch (err) {
+      console.error("Error sincronizando cuentas en modal:", err);
+    }
+    return false;
+  }, [onAccountConnected, onClose]);
+
+  // Escuchar mensaje postMessage desde ventana emergente (hosted auth callback)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === "LINKEDIN_AUTH_SUCCESS") {
+        setSuccessNotice("¡Cuenta autorizada en LinkedIn con éxito! Sincronizando...");
+        await syncLatestAccount();
+      } else if (event.data?.type === "LINKEDIN_AUTH_ERROR") {
+        setErrorMsg("La conexión con LinkedIn no pudo completarse.");
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [isOpen, syncLatestAccount]);
+
   if (!isOpen) return null;
 
   // Generar enlace Hosted Auth (Método recomendado)
@@ -80,12 +116,25 @@ export default function ConnectLinkedInModal({
       setHostedUrl(data.url);
 
       if (data.url) {
-        window.open(data.url, "_blank", "width=600,height=750");
+        const popup = window.open(data.url, "_blank", "width=600,height=750");
         setSuccessNotice(
           data.mock
             ? "Enlace simulado abierto. No se ha conectado ninguna cuenta real."
-            : "Ventana de conexion abierta. La cuenta aparecera despues de completar la autorizacion y sincronizarla."
+            : "Ventana de conexión abierta. Completa la autorización en LinkedIn; la cuenta se sincronizará automáticamente."
         );
+
+        if (popup) {
+          const pollTimer = setInterval(async () => {
+            try {
+              if (popup.closed) {
+                clearInterval(pollTimer);
+                await syncLatestAccount();
+              }
+            } catch {
+              clearInterval(pollTimer);
+            }
+          }, 1500);
+        }
       } else {
         setErrorMsg("Unipile no devolvio un enlace de autenticacion valido.");
       }
@@ -141,11 +190,11 @@ export default function ConnectLinkedInModal({
 
       // Conexión exitosa
       const newAcc: ConnectedLinkedInAccount = {
-        id: `acc-li-${Date.now()}`,
+        id: `acc-li-${data.remoteAccountId || Date.now()}`,
         unipileAccountId: data.remoteAccountId || `up_acc_${Date.now()}`,
         name: accountName.trim() || email.split("@")[0] || "Cuenta LinkedIn",
         headline: "Perfil autenticado mediante transporte nativo de Unipile",
-        profilePictureUrl: "/images/user/user-01.jpg",
+        profilePictureUrl: "/images/user/owner.png",
         status: "OK",
         authMode: nativeMode,
         connectedAt: new Date().toISOString(),
@@ -157,6 +206,7 @@ export default function ConnectLinkedInModal({
         },
       };
 
+      addStoredAccount(newAcc);
       onAccountConnected(newAcc);
       onClose();
     } catch (err: unknown) {
@@ -195,11 +245,11 @@ export default function ConnectLinkedInModal({
       }
 
       const newAcc: ConnectedLinkedInAccount = {
-        id: `acc-li-${Date.now()}`,
+        id: `acc-li-${checkpointAccountId}`,
         unipileAccountId: checkpointAccountId,
         name: accountName.trim() || email.split("@")[0] || "Cuenta LinkedIn Verificada",
         headline: "Perfil autenticado con verificacion 2FA exitosa",
-        profilePictureUrl: "/images/user/user-01.jpg",
+        profilePictureUrl: "/images/user/owner.png",
         status: "OK",
         authMode: nativeMode,
         connectedAt: new Date().toISOString(),
@@ -211,6 +261,7 @@ export default function ConnectLinkedInModal({
         },
       };
 
+      addStoredAccount(newAcc);
       onAccountConnected(newAcc);
       onClose();
     } catch (err: unknown) {
