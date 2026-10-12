@@ -7,6 +7,7 @@ export async function GET() {
       return NextResponse.json({
         configured: false,
         items: [],
+        accounts: [],
       });
     }
 
@@ -18,6 +19,7 @@ export async function GET() {
     return NextResponse.json({
       configured: true,
       items: linkedinAccounts,
+      accounts: linkedinAccounts,
     });
   } catch (error: unknown) {
     console.error('[api/unipile/accounts] Error listando cuentas:', error);

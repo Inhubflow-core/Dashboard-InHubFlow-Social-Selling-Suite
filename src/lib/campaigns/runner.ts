@@ -100,7 +100,7 @@ export async function executeCampaignStepForLead(params: {
   log: CampaignExecutionLog;
 }> {
   const { workflow, leadState } = params;
-  const accountId = params.accountId || "up_acc_roberto_orse_main";
+  const accountId = params.accountId || "5X_l6hknTW62DqQtKJNNHA";
 
   let nodes: Node[] = [];
   let edges: Edge[] = [];
