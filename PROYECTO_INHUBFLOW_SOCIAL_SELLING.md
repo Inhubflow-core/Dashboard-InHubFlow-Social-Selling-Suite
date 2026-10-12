@@ -71,172 +71,33 @@ Para garantizar que toda nueva funcionalidad se diseñe y ejecute bajo la óptic
 ## 3. Mapa de Módulos del Sistema
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 INHUBFLOW SOCIAL SELLING SUITE                                  │
-├───────────────────┬───────────────────┬───────────────────┬───────────────────┬─────────────────┤
-│ 1. VIRAL POST     │ 2. SIGNAL RADAR   │ 3. CAMPAÑAS (n8n) │ 4. LEADS & INBOX  │ 5. PIPELINE CRM │
-│ - Radar Viral     │ - Nivel 1: Mis    │ - Canvas de Nodos │ - Listas por      │ - Kanban Sales  │
-│   (Top 12 posts)  │   Posts (ManyChat)│   (React Flow)    │   Señal           │   Pipeline      │
-│ - Modelador IA    │ - Nivel 2: Posts  │ - Triggers &      │ - Perfiles 360    │ - Calendario de │
-│   (Texto/Img/PDF) │   Competencia     │   Acciones        │ - Inbox sin ruido │   Reuniones     │
-│ - Calendario Drag │ - Nivel 3: Posts  │ - Delays y Pacing │ - Detección de    │ - Métricas de   │
-│   and Drop        │   Globales        │   Humano          │   Respuestas      │   Conversión    │
-└───────────────────┴───────────────────┴───────────────────┴───────────────────┴─────────────────┘
-```
-
----
-
-## 4. Especificación Detallada de Módulos
-
-### MÓDULO 1: VIRAL POST (Generación & Programación de Contenido)
-
-El objetivo de este módulo es posicionar la autoridad del perfil y generar el tráfico orgánico que alimenta los monitores de señales.
-
-#### 1.1 Radar Viral
-* **Búsqueda Inteligente**: El usuario ingresa un tema o palabra clave (ej. "Prospección con IA", "Social Selling B2B", "Outreach en LinkedIn").
-* **Extracción de Top 12 Posts Virales**: Mediante búsquedas curadas e indexadas en LinkedIn, el sistema extrae las 12 publicaciones con mayor tracción reciente (ordenadas por volumen de Likes, Comentarios y Ratio de Interacción).
-* **Vista en Cuadrícula de Tarjetas**:
-  * Muestra autor, foto, titular, fecha y métricas de impacto (Likes, Comentarios, Compartidos).
-  * Resumen del gancho (Hook) y primeras 3 líneas.
-  * Modal de Lectura Completa: Permite visualizar el post íntegro, el formato original y la imagen/carrusel adjunto.
-  * Botón de Acción Principal: "Modelar con IA" (acento en `#0099ff`).
-
-#### 1.2 Modelador de Contenido con IA (Modal de Creación)
-Al hacer clic en "Modelar con IA", se abre un configurador interactivo donde el usuario elige entre 3 Formatos:
-
-1. **Formato "Solo Texto"**:
-   * La IA analiza la estructura ganadora del post original (hook, storytelling, desarrollo, llamada a la acción) y reescribe un post original adaptado al tono de voz y oferta del usuario.
-   * Editor de texto enriquecido con contador de caracteres y previsualización exacta de LinkedIn.
-   * Botones: "Publicar Ahora" o "Programar".
-
-2. **Formato "Texto + Imagen"**:
-   * Genera el copy del post optimizado para acompañar un recurso visual.
-   * Generador de Prompt Visual: La IA crea un prompt detallado optimizado para generadores de imágenes (Midjourney, Flux, DALL-E) que representa conceptualmente el mensaje del post.
-   * Controles:
-     * Botón "Copiar Prompt para IA".
-     * Botón "Subir Imagen" (drag & drop con recorte y compresión).
-     * Botones: "Publicar Ahora" o "Programar".
-
-3. **Formato "Carrusel de Diapositivas (PDF para LinkedIn)"**:
-   * **Generador de Diapositivas**: La IA desglosa el contenido en 5 a 10 diapositivas estructuradas:
-     * Slide 1 (Portada): Titular magnético, gancho visual y autor.
-     * Slides 2 a N-1 (Cuerpo): Puntos clave, diagramas explicativos, listas accionables o frameworks.
-     * Slide Final (CTA): Llamada a la acción clara (ej. "Comenta SISTEMA para recibir la plantilla completa").
-   * **Personalizador de Estilo Visual**:
-     * Selección de paleta de colores corporativos con énfasis en `#0099ff`.
-     * Tipografías de alto impacto (Nordique Pro, Inter, Montserrat).
-     * Inclusión automática de logo, foto del autor y handle de LinkedIn (@tuperfil).
-   * **Renderizador PDF Automático**: El sistema genera el archivo .pdf optimizado en vector/canvas listo para descargarse o para adjuntarse directamente a la publicación mediante la API de Unipile.
-
-#### 1.3 Lista de Posts Creados (Vista de Gestión)
-* Lista horizontal moderna con tarjetas a lo ancho:
-  * Estado visual: Borrador | Programado | Publicado | Error.
-  * Vista previa del formato (badge de Texto, Imagen o Carrusel).
-  * Métricas post-publicación si ya fue emitido (Likes, Comentarios, Impresiones).
-  * Acciones: Editar, Reprogramar, Publicar Inmediato, Eliminar.
-
-#### 1.4 Calendario Editorial Drag & Drop
-* Vista interactiva mensual, semanal y diaria (basada en el componente de calendario de `nextjs-admin-dashboard-main`).
-* Indicadores de Horarios Óptimos de LinkedIn (franjas con mayor pico de actividad en la audiencia B2B).
-* Capacidad de arrastrar (drag & drop) cualquier post entre días y horas para reprogramarlo al instante.
-
----
-
-### MÓDULO 2: SIGNAL RADAR (Monitoreo de Intención de Compra)
-
-El Radar de Señales convierte las interacciones pasivas de LinkedIn en prospectos listos para entrar al embudo de ventas.
-
-```
-┌────────────────────────────────────────────────────────────────────────────────┐
-│                           ARQUITECTURA SIGNAL RADAR                            │
-├─────────────────────┬───────────────────────────┬──────────────────────────────┤
-│ NIVEL 1: MIS POSTS  │ NIVEL 2: COMPETENCIA      │ NIVEL 3: LINKEDIN GLOBAL     │
-│ (Lead Magnet /      │ (Auditoría de Cuentas     │ (Monitoreo de Tendencias y   │
-│ Flujo ManyChat)     │ Rivales)                  │ Palabras Clave)              │
-├─────────────────────┼───────────────────────────┼──────────────────────────────┤
-│ - Disparador:       │ - Disparador:             │ - Disparador:                │
-│   Palabra Clave en  │   Likes / Comentarios en  │   Likes / Comentarios en     │
-│   comentarios (ej.  │   posts de perfiles de    │   publicaciones virales de   │
-│   "SISTEMA")        │   competidores            │   LinkedIn con keywords      │
-│ - Intención:        │ - Intención:              │ - Intención:                 │
-│   Muy Alta (Pide el │   Media-Alta (Interesados │   Media (Audiencia activa    │
-│   recurso directo)  │   en soluciones rivales)  │   en la temática)            │
-│ - Flujo:            │ - Flujo:                  │ - Flujo:                     │
-│   Conectar + DM     │   Visitar -> Conectar con │   Visita -> Validación ICP ->│
-│   con PDF adjunto   │   contexto de la temática │   Conectar con enfoque suave │
-└─────────────────────┴───────────────────────────┴──────────────────────────────┘
-```
-
-#### Nivel 01: Mis Posts (Lead Magnet / Automatización ManyChat)
-* **Objetivo**: Captura instantánea de leads a partir de posts propios con incentivos (Lead Magnets).
-* **Mecánica**:
-  1. El usuario publica un post o carrusel con un llamado a la acción: *"Comenta la palabra SISTEMA y te envío por privado la Guía en PDF"*.
-  2. El monitor escucha periódicamente los comentarios de esa publicación.
-  3. Al detectar la palabra clave configurada (SISTEMA, GUIA, PLANTILLA, etc.):
-     * Paso A (Impulso Algorítmico): Da Like al comentario del usuario y responde un mensaje público: *"Te lo acabo de enviar por privado, revisa tus mensajes"*.
-     * Paso B (Validación de Conexión):
-       * Si ya es contacto de 1er grado: Envía de inmediato el DM con el archivo PDF adjunto.
-       * Si no están conectados: Envía solicitud de conexión con nota personalizada contextual:
-         > "Hola {{first_name}}, vi que comentaste 'SISTEMA' en mi post. Te envío la invitación para poder entregarte la guía por mensaje privado. Saludos."
-       * Una vez que acepta la conexión: El sistema detecta el cambio de estado y dispara el mensaje directo con el PDF.
-
-#### Nivel 02: Posts de la Competencia
-* **Objetivo**: Prospectar a las personas que interactúan activamente con competidores directos.
-* **Mecánica**:
-  1. Configuración de cuentas objetivo (ej. perfiles de fundadores, agencias o empresas rivales como Adapta IA).
-  2. Filtrado por palabra clave en el contenido del post (ej. "Prospección B2B", "Agentes IA").
-  3. Extracción de los perfiles que dejaron Like o Comentario.
-  4. Disparo de secuencia relacional:
-     > "Hola {{first_name}}, vi tu interacción en el post de [Competidor] sobre {{tema}}. Me pareció muy interesante tu punto de vista sobre... ¿cómo lo están abordando en {{company}}?"
-
-#### Nivel 03: Posts Globales de LinkedIn
-* **Objetivo**: Captar interacciones sobre tópicos específicos en cualquier publicación de la red.
-* **Mecánica**:
-  1. Búsqueda de posts populares con base en términos de búsqueda clave.
-  2. Escaneo de interacciones (Likes/Comentarios) filtrando perfiles según criterios de ICP (Cargo y Ubicación).
-  3. Entrada automática al embudo de prospección.
-
----
-
-### MÓDULO 3: CAMPAÑAS (Constructor Visual de Secuencias Estilo n8n)
-
-Este es el núcleo operativo de la plataforma. La construcción de secuencias se realiza a través de un **Lienzo Basado en Nodos (Node Graph Canvas)** utilizando **React Flow (`@xyflow/react`)**.
-
-```
   [ TRIGGER: Monitor Nivel 1 ("SISTEMA") ]
                       │
                       ▼
-            [ ACCION: Visitar Perfil ]
+            [ AC-01: Visitar Perfil ]
                       │
                       ▼
-         [ ACCION: Dar Like y Comentar Último Post ]
+         [ AC-02: Dar Like y Comentar Post ]
                       │
                       ▼
-         [ CONDICION: ¿Es Contacto de 1er Grado? ]
-             ├── SI ──────────────────────────────────────┐
-             │                                            │
-             └── NO ──► [ ACCION: Seguir y Conectar ]     │
-                                    │                     │
-                                    ▼                     │
-                     [ DELAY: Esperar Aceptación ]        │
-                            (Máximo 5 días)               │
-                                    │                     │
-                                    ▼                     │
-                     [ CONDICION: ¿Aceptó? ]              │
-                         ├── SI ◄─────────────────────────┘
-                         │       │
-                         │       ▼
-                         │  [ ACCION: Enviar DM + Adjuntar PDF Lead Magnet ]
-                         │       │
-                         │       ▼
-                         │  [ DELAY: Esperar 48 Horas ]
-                         │       │
-                         │       ▼
-                         │  [ CONDICION: ¿Respondió al Mensaje? ]
-                         │       ├── SI ──► [ DETENER SECUENCIA & ATENCION MANUAL (Stop on Reply) ]
-                         │       └── NO ──► [ ACCION: Enviar Follow-up o Audio ]
-                         │
-                         └── NO ──► [ ACCION ALTERNATIVA: Enviar Sales Nav InMail (Opcional) ]
+            [ AC-03: Seguir y Conectar ]
+    (Se omite automáticamente si ya están conectados)
+                      │
+                      ▼
+         [ LG-01: Delay Esperar Aceptación ]
+                      │
+                      ▼
+      [ AC-04: Enviar DM + PDF Lead Magnet ]
+                      │
+                      ▼
+            [ LG-01: Delay 48 Horas ]
+                      │
+                      ▼
+         [ AC-05: Enviar Follow-up de Valor ]
+                      │
+                      ▼
+           [ CT-01: Fin de Secuencia ]
+       (Stop on Reply activo en todo el flujo)
 ```
 
 #### 3.1 Catálogo de Nodos Disponibles
@@ -251,7 +112,6 @@ Este es el núcleo operativo de la plataforma. La construcción de secuencias se
 | **ACTION** | AC-04 | **Enviar Mensaje (DM)** | Envía DM en LinkedIn. Soporta texto, notas de voz (audio) y adjuntos (PDFs o imágenes). |
 | **ACTION** | AC-05 | **InMail Sales Navigator** | Para cuentas con Sales Nav; envía InMail a prospectos fuera de red sin consumir conexión. |
 | **LOGIC** | LG-01 | **Delay / Retardo** | Configura tiempo de espera (ej. 24h, 3 días) y ventana de horario laboral (L-V de 09:00 a 18:00). |
-| **LOGIC** | LG-02 | **Condición Lógica** | Evalúa ramas: ¿Es contacto?, ¿Aceptó en X tiempo?, ¿Respondió al mensaje? |
 | **CONTROL** | CT-01 | **Finalizar Flujo** | Concluye la secuencia para el prospecto. |
 
 #### 3.2 Motor de Seguridad y Pacing Humano

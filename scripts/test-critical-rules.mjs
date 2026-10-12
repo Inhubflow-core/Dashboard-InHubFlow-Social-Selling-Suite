@@ -198,12 +198,11 @@ assert(canPerformAction(80, "visit") === false, "Bloquea visita de perfil cuando
 // -----------------------------------------------------------------------------
 console.log("\n--- 6. Prueba de Secuencias Unificadas (Like+Comentar, Seguir+Conectar) ---");
 
-// Simular validación de tipos de nodos de plantilla
+// Simular validación de tipos de nodos de plantilla lineal
 const mockTemplateNodeTypes = [
   "trigger_signal",
   "action_visit",
   "action_like_comment",
-  "logic_condition",
   "action_follow_connect",
   "logic_delay",
   "action_dm",
@@ -225,6 +224,10 @@ assert(
 assert(
   !mockTemplateNodeTypes.includes("crm_stage"),
   "El paso de CRM ha sido eliminado del flujo activo simplificado"
+);
+assert(
+  !mockTemplateNodeTypes.includes("logic_condition"),
+  "El nodo de Condicion Logica ha sido eliminado en favor de secuencias lineales estilo Outreach B2B"
 );
 
 // Limpieza de base de datos de test

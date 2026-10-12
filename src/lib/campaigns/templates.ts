@@ -18,7 +18,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-ac-01",
     type: "actionNode",
-    position: { x: 340, y: 170 },
+    position: { x: 340, y: 160 },
     data: {
       label: "AC-01: Visitar Perfil",
       category: "action",
@@ -29,7 +29,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-ac-02",
     type: "actionNode",
-    position: { x: 340, y: 310 },
+    position: { x: 340, y: 290 },
     data: {
       label: "AC-02: Dar Like y Comentar",
       category: "action",
@@ -40,26 +40,14 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-cond-01",
-    type: "conditionNode",
-    position: { x: 330, y: 450 },
-    data: {
-      label: "LG-02: ¿Es Contacto de 1er Grado?",
-      category: "logic",
-      nodeType: "logic_condition",
-      description: "Valida si ya existe conexion activa en LinkedIn",
-      conditionType: "is_1st_degree",
-    } as NodeConfigData,
-  },
-  {
     id: "node-ac-03",
     type: "actionNode",
-    position: { x: 100, y: 620 },
+    position: { x: 340, y: 420 },
     data: {
       label: "AC-03: Seguir y Conectar",
       category: "action",
       nodeType: "action_follow_connect",
-      description: "Sigue el perfil en LinkedIn y envia solicitud de conexion con nota",
+      description: "Sigue el perfil en LinkedIn y envia solicitud de conexion con nota (se omite si ya estan conectados)",
       hasNote: true,
       noteText: "Hola {{first_name}}, vi tu comentario en mi post y te sigo por aqui. Te invito a conectar para entregarte la guia por privado.",
     } as NodeConfigData,
@@ -67,7 +55,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-delay-01",
     type: "delayNode",
-    position: { x: 110, y: 770 },
+    position: { x: 340, y: 550 },
     data: {
       label: "LG-01: Delay Esperar Aceptacion",
       category: "logic",
@@ -78,21 +66,9 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-cond-02",
-    type: "conditionNode",
-    position: { x: 100, y: 910 },
-    data: {
-      label: "LG-02: ¿Acepto la Invitacion?",
-      category: "logic",
-      nodeType: "logic_condition",
-      description: "Verifica si el decisor aprobo la conexion",
-      conditionType: "accepted_invite",
-    } as NodeConfigData,
-  },
-  {
     id: "node-ac-04",
     type: "actionNode",
-    position: { x: 580, y: 620 },
+    position: { x: 340, y: 680 },
     data: {
       label: "AC-04: Enviar DM + Adjuntar PDF",
       category: "action",
@@ -105,49 +81,37 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-delay-02",
     type: "delayNode",
-    position: { x: 590, y: 770 },
+    position: { x: 340, y: 810 },
     data: {
       label: "LG-01: Delay 48 Horas",
       category: "logic",
       nodeType: "logic_delay",
-      description: "Pausa de seguimiento antes de evaluar respuesta",
+      description: "Pausa de seguimiento antes de enviar recordatorio",
       delayHours: 48,
       workingHoursOnly: true,
     } as NodeConfigData,
   },
   {
-    id: "node-cond-03",
-    type: "conditionNode",
-    position: { x: 575, y: 910 },
+    id: "node-ac-05",
+    type: "actionNode",
+    position: { x: 340, y: 940 },
     data: {
-      label: "LG-02: ¿Respondio al DM?",
-      category: "logic",
-      nodeType: "logic_condition",
-      description: "Deteccion automatica de interaccion en el chat",
-      conditionType: "replied_to_dm",
+      label: "AC-05: Enviar Follow-up de Valor",
+      category: "action",
+      nodeType: "action_dm",
+      description: "Seguimiento consultivo de valor agregado",
+      dmText: "¿Pudiste revisar el framework {{first_name}}? Te comparto un caso practico...",
     } as NodeConfigData,
   },
   {
     id: "node-end-01",
     type: "controlNode",
-    position: { x: 740, y: 1080 },
+    position: { x: 340, y: 1070 },
     data: {
       label: "CT-01: Finalizar Secuencia",
       category: "control",
       nodeType: "control_end",
-      description: "Prospecto respondio al DM. Secuencia finalizada para atencion manual personalizada.",
-    } as NodeConfigData,
-  },
-  {
-    id: "node-ac-05",
-    type: "actionNode",
-    position: { x: 440, y: 1080 },
-    data: {
-      label: "AC-05: Enviar Follow-up de Valor",
-      category: "action",
-      nodeType: "action_dm",
-      description: "Seguimiento consultivo sin sonar insistente",
-      dmText: "¿Pudiste revisar el framework {{first_name}}? Te comparto un caso practico...",
+      description: "Secuencia finalizada exitosamente para este contacto",
     } as NodeConfigData,
   },
 ];
@@ -155,16 +119,12 @@ export const defaultCampaignNodes: Node[] = [
 export const defaultCampaignEdges: Edge[] = [
   { id: "e-tr-ac1", source: "node-tr-01", target: "node-ac-01", animated: true },
   { id: "e-ac1-ac2", source: "node-ac-01", target: "node-ac-02" },
-  { id: "e-ac2-cond1", source: "node-ac-02", target: "node-cond-01" },
-  { id: "e-cond1-no", source: "node-cond-01", sourceHandle: "no", target: "node-ac-03", label: "NO" },
-  { id: "e-cond1-yes", source: "node-cond-01", sourceHandle: "yes", target: "node-ac-04", label: "SI" },
+  { id: "e-ac2-ac3", source: "node-ac-02", target: "node-ac-03" },
   { id: "e-ac3-delay1", source: "node-ac-03", target: "node-delay-01" },
-  { id: "e-delay1-cond2", source: "node-delay-01", target: "node-cond-02" },
-  { id: "e-cond2-yes", source: "node-cond-02", sourceHandle: "yes", target: "node-ac-04", label: "SI" },
+  { id: "e-delay1-ac4", source: "node-delay-01", target: "node-ac-04" },
   { id: "e-ac4-delay2", source: "node-ac-04", target: "node-delay-02" },
-  { id: "e-delay2-cond3", source: "node-delay-02", target: "node-cond-03" },
-  { id: "e-cond3-yes", source: "node-cond-03", sourceHandle: "yes", target: "node-end-01", label: "SI (Respondio)" },
-  { id: "e-cond3-no", source: "node-cond-03", sourceHandle: "no", target: "node-ac-05", label: "NO (Sin respuesta)" },
+  { id: "e-delay2-ac5", source: "node-delay-02", target: "node-ac-05" },
+  { id: "e-ac5-end", source: "node-ac-05", target: "node-end-01" },
 ];
 
 export const availablePaletteNodes = [
@@ -209,13 +169,6 @@ export const availablePaletteNodes = [
     category: "logic" as const,
     nodeType: "logic_delay" as const,
     description: "Pausa en dias u horas con ventana de horario laboral",
-  },
-  {
-    type: "conditionNode",
-    label: "LG-02: Condicion Logica",
-    category: "logic" as const,
-    nodeType: "logic_condition" as const,
-    description: "Bifurca el flujo segun conexion o respuesta",
   },
   {
     type: "controlNode",

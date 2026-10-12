@@ -322,6 +322,37 @@ export async function executeCampaignStepForLead(params: {
     }
 
     case "action_follow_connect": {
+      // Si ya es contacto de 1er grado, omitir el paso de conexión y avanzar directamente al siguiente
+      if (leadState.connectionDegree === "1st") {
+        const nextEdge = edges.find((e) => e.source === currentNode.id);
+        const nextNodeId = nextEdge ? nextEdge.target : null;
+
+        const log: CampaignExecutionLog = {
+          id: `log-run-${Date.now()}`,
+          campaignId: workflow.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentNode.id,
+          nodeLabel: nodeData.label,
+          nodeType: nodeData.nodeType,
+          timestamp: new Date().toISOString(),
+          status: "success",
+          message: `${leadState.leadName} ya es contacto de 1er grado en LinkedIn. Se omite la invitacion y la secuencia avanza de inmediato.`,
+        };
+        recordExecutionLog(log);
+
+        return {
+          success: true,
+          newState: {
+            ...leadState,
+            currentNodeId: nextNodeId || currentNode.id,
+            state: nextNodeId ? "in_progress" : "completed",
+            history: [...leadState.history, currentNode.id],
+          },
+          log,
+        };
+      }
+
       // Pacing check estricto: no superar límite diario de invitaciones
       if (pacing.invitationsSent >= workflow.dailyInvitationLimit) {
         const log: CampaignExecutionLog = {
@@ -495,6 +526,28 @@ export async function executeCampaignStepForLead(params: {
     }
 
     case "action_dm": {
+      // Si el contacto aún no es de 1er grado ni ha aceptado, esperar aceptación antes de emitir DM
+      if (leadState.connectionDegree !== "1st" && !leadState.hasAcceptedInvite) {
+        const log: CampaignExecutionLog = {
+          id: `log-run-${Date.now()}`,
+          campaignId: workflow.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentNode.id,
+          nodeLabel: nodeData.label,
+          nodeType: nodeData.nodeType,
+          timestamp: new Date().toISOString(),
+          status: "delayed",
+          message: `El prospecto ${leadState.leadName} aun no ha aceptado la invitacion de conexion. El envio de DM queda en espera de aceptacion.`,
+        };
+        recordExecutionLog(log);
+        return {
+          success: true,
+          newState: { ...leadState, state: "waiting_delay" },
+          log,
+        };
+      }
+
       // Pacing check: DMs diarios (ej. 40/día)
       if (pacing.dmsSent >= workflow.dailyDmLimit) {
         const log: CampaignExecutionLog = {
