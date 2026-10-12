@@ -23,8 +23,8 @@ export const languages: Language[] = [
   },
   {
     id: "pt-BR",
-    name: "Português (Brasil)",
-    shortName: "PT-BR",
+    name: "Português",
+    shortName: "PT",
     dir: "ltr",
   },
 ];
