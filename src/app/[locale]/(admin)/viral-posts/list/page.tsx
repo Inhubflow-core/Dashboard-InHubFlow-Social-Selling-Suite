@@ -10,6 +10,8 @@ export default function PostsListPage() {
   const { posts, isLoaded, updatePost, deletePost } = useCreatedPosts();
   const [filterStatus, setFilterStatus] = useState<"all" | PostStatus>("all");
   const [filterFormat, setFilterFormat] = useState<"all" | PostFormat>("all");
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ id: string; type: "success" | "error"; message: string } | null>(null);
 
   const filteredPosts = posts.filter((p) => {
     const matchesStatus = filterStatus === "all" || p.status === filterStatus;
@@ -41,17 +43,54 @@ export default function PostsListPage() {
     }
   };
 
-  const handlePublishNow = (post: CreatedPost) => {
-    updatePost(post.id, {
-      status: "published",
-      publishedAt: new Date().toISOString(),
-      metrics: { likes: 0, comments: 0, impressions: 0, leadsCaptured: 0 },
-    });
+  const handlePublishNow = async (post: CreatedPost) => {
+    setPublishingId(post.id);
+    setFeedback(null);
+
+    try {
+      const res = await fetch("/api/unipile/posts/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          account_id: post.targetAccountId,
+          text: post.content,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo despachar el post a LinkedIn.");
+      }
+
+      updatePost(post.id, {
+        status: "published",
+        publishedAt: new Date().toISOString(),
+        linkedinPostId: data.postId,
+        metrics: { likes: 0, comments: 0, impressions: 0, leadsCaptured: 0 },
+      });
+
+      setFeedback({
+        id: post.id,
+        type: "success",
+        message: "¡Publicado en LinkedIn con éxito!",
+      });
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error("[Publish Now Error]:", err);
+      setFeedback({
+        id: post.id,
+        type: "error",
+        message: err.message || "Error al conectar con la red de LinkedIn.",
+      });
+    } finally {
+      setPublishingId(null);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="Gestion de Publicaciones" />
+      <PageBreadcrumb pageTitle="Gestión de Publicaciones" />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -59,14 +98,14 @@ export default function PostsListPage() {
             Cola Editorial y Contenido Emitido
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Control central de publicaciones programadas, borradores y metricas de impacto en LinkedIn.
+            Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
           </p>
         </div>
         <a
           href="/viral-posts/create"
-          className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+          className="rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
         >
-          Crear Nueva Publicacion
+          + Crear Nueva Publicación
         </a>
       </div>
 
@@ -123,22 +162,35 @@ export default function PostsListPage() {
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando publicaciones...</p>
         ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               No hay publicaciones que coincidan con los filtros seleccionados.
             </p>
-            <a
-              href="/viral-posts/create"
-              className="mt-3 inline-block rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white"
-            >
-              Crear una ahora
-            </a>
+            <p className="text-xs text-gray-400 mt-1">
+              Modela una publicación viral desde el radar o redacta una nueva con IA.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <a
+                href="/viral-posts/radar"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                Explorar Radar Viral
+              </a>
+              <a
+                href="/viral-posts/create"
+                className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+              >
+                Crear con IA
+              </a>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredPosts.map((post) => {
               const formatBadge = getFormatBadge(post.format);
               const statusBadge = getStatusBadge(post.status);
+              const isCurrentlyPublishing = publishingId === post.id;
+              const postFeedback = feedback?.id === post.id ? feedback : null;
 
               return (
                 <div
@@ -162,6 +214,8 @@ export default function PostsListPage() {
                         <span className="text-[11px] text-gray-400">
                           {post.scheduledAt
                             ? `Programado: ${new Date(post.scheduledAt).toLocaleDateString()} ${new Date(post.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                            : post.publishedAt
+                            ? `Publicado: ${new Date(post.publishedAt).toLocaleDateString()}`
                             : `Creado: ${new Date(post.createdAt).toLocaleDateString()}`}
                         </span>
                       </div>
@@ -170,9 +224,21 @@ export default function PostsListPage() {
                         {post.title}
                       </h4>
 
-                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 font-mono">
+                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3 font-mono leading-relaxed whitespace-pre-wrap">
                         {post.content}
                       </p>
+
+                      {postFeedback && (
+                        <div
+                          className={`mt-2 p-2 rounded-lg text-xs font-medium border ${
+                            postFeedback.type === "success"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+                              : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300"
+                          }`}
+                        >
+                          {postFeedback.message}
+                        </div>
+                      )}
 
                       {post.status === "published" && post.metrics && (
                         <div className="flex items-center gap-5 pt-2 text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800">
@@ -188,6 +254,11 @@ export default function PostsListPage() {
                           <span className="text-brand-600 font-semibold dark:text-brand-400">
                             {post.metrics.leadsCaptured} Leads Captados
                           </span>
+                          {post.linkedinPostId && (
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              ID: {post.linkedinPostId}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -196,22 +267,30 @@ export default function PostsListPage() {
                       {post.status !== "published" && (
                         <button
                           type="button"
+                          disabled={isCurrentlyPublishing}
                           onClick={() => handlePublishNow(post)}
-                          className="w-full rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                          className="w-full rounded-xl bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          Publicar Inmediato
+                          {isCurrentlyPublishing ? (
+                            <>
+                              <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                              Publicando...
+                            </>
+                          ) : (
+                            "Publicar Inmediato"
+                          )}
                         </button>
                       )}
                       <a
                         href="/viral-posts/calendar"
-                        className="w-full text-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                        className="w-full text-center rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                       >
                         Ver en Calendario
                       </a>
                       <button
                         type="button"
                         onClick={() => deletePost(post.id)}
-                        className="w-full rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400"
+                        className="w-full rounded-xl border border-red-200 px-3.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400"
                       >
                         Eliminar
                       </button>

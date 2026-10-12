@@ -27,6 +27,10 @@ export interface ViralPostTemplate {
   comments: number;
   shares: number;
   engagementRatio: string;
+  isLive?: boolean;
+  socialId?: string;
+  linkedinUrl?: string;
+  publicIdentifier?: string;
 }
 
 export interface CreatedPost {
@@ -48,6 +52,8 @@ export interface CreatedPost {
   scheduledAt?: string;
   createdAt: string;
   publishedAt?: string;
+  linkedinPostId?: string;
+  targetAccountId?: string;
   metrics?: {
     likes: number;
     comments: number;

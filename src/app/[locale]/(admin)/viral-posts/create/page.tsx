@@ -2,6 +2,8 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { getStoredAccounts } from "@/lib/unipile/store";
+import type { UnipileAccount } from "@/lib/unipile/types";
 import { exportCarouselToPdf } from "@/lib/viral-posts/carousel-exporter";
 import {
   getSelectedTemplateForModeling,
@@ -16,41 +18,56 @@ export default function CreateViralPostPage() {
   const router = useRouter();
   const { addPost } = useCreatedPosts();
 
+  // Cuentas de LinkedIn disponibles
+  const [accounts, setAccounts] = useState<UnipileAccount[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+
   const [format, setFormat] = useState<PostFormat>("text");
   const [topic, setTopic] = useState("Social Selling B2B");
   const [leadMagnetKeyword, setLeadMagnetKeyword] = useState("SISTEMA");
+  const [tone, setTone] = useState("Autoridad B2B con llamada a la acción");
   const [content, setContent] = useState("");
   const [imagePrompt, setImagePrompt] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Referencia original si vino de Radar Viral
+  const [referenceHook, setReferenceHook] = useState("");
+  const [referenceContent, setReferenceContent] = useState("");
+  const [referenceAuthor, setReferenceAuthor] = useState("");
+
+  // Estados de IA y Publicación
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Carrusel slides state
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [carouselTheme, setCarouselTheme] = useState({
     primaryColor: "#0099ff",
     fontFamily: "Outfit",
-    authorName: "Roberto | InHubFlow",
-    authorHandle: "@inhubflow",
+    authorName: "Linn Martinson",
+    authorHandle: "@linnmartinson",
   });
 
   const [slides, setSlides] = useState<CarouselSlide[]>([
     {
       slideNumber: 1,
       isCover: true,
-      title: "Como Convertir Comentarios en Clientes B2B",
+      title: "Cómo Convertir Comentarios en Clientes B2B",
       subtitle: "Framework Inbound de 4 Pasos para LinkedIn",
-      content: ["InHubFlow Social Selling", "Por Roberto"],
-      footerText: "@inhubflow",
+      content: ["InHubFlow Social Selling", "Por Linn Martinson"],
+      footerText: "@linnmartinson",
     },
     {
       slideNumber: 2,
-      title: "El Problema del Mensaje en Frio",
+      title: "El Problema del Mensaje en Frío",
       content: [
         "El decisor percibe spam antes de entender tu propuesta.",
-        "Tasa de respuesta inferior al 3% en frio tradicional.",
+        "Tasa de respuesta inferior al 3% en frío tradicional.",
         "Bloqueo comercial de tu perfil personal.",
       ],
-      footerText: "Paso 1: Diagnostico",
+      footerText: "Paso 1: Diagnóstico",
     },
     {
       slideNumber: 3,
@@ -58,19 +75,19 @@ export default function CreateViralPostPage() {
       content: [
         "Crea un activo de valor concreto (Plantilla o Playbook).",
         "Publica mostrando los resultados tangibles.",
-        "Pide una palabra clave de activacion en los comentarios.",
+        "Pide una palabra clave de activación en los comentarios.",
       ],
-      footerText: "Paso 2: Activacion",
+      footerText: "Paso 2: Activación",
     },
     {
       slideNumber: 4,
-      title: "Entrega Instantanea en DM",
+      title: "Entrega Instantánea en DM",
       content: [
         "El monitor detecta el comentario con la palabra clave.",
-        "Valida el estado de conexion en LinkedIn.",
+        "Valida el estado de conexión en LinkedIn.",
         "Despacha el PDF directamente al chat privado.",
       ],
-      footerText: "Paso 3: Automatizacion",
+      footerText: "Paso 3: Automatización",
     },
     {
       slideNumber: 5,
@@ -78,19 +95,37 @@ export default function CreateViralPostPage() {
       title: "¿Quieres Implementar Este Sistema?",
       subtitle: "Recibe el documento de trabajo completo en PDF",
       content: [
-        "Comenta SISTEMA en esta publicacion",
-        "Te envio la guia por mensaje privado hoy mismo.",
+        "Comenta SISTEMA en esta publicación",
+        "Te envío la guía por mensaje privado hoy mismo.",
       ],
       footerText: "InHubFlow Social Selling",
     },
   ]);
+
+  // Cargar cuentas de LinkedIn conectadas
+  useEffect(() => {
+    const accs = getStoredAccounts();
+    setAccounts(accs);
+    const active = accs.find((a) => a.status === "OK") || accs[0];
+    if (active) {
+      setSelectedAccountId(active.id);
+      setCarouselTheme((prev) => ({
+        ...prev,
+        authorName: active.name || "InHubFlow Creator",
+        authorHandle: `@${(active.name || "inhubflow").toLowerCase().replace(/\s+/g, "")}`,
+      }));
+    }
+  }, []);
 
   // Al cargar, verificar si venimos con un post seleccionado del Radar Viral
   useEffect(() => {
     const selected = getSelectedTemplateForModeling();
     if (selected) {
       setFormat(selected.format);
-      setTopic(selected.topic);
+      setTopic(selected.topic || "Social Selling B2B");
+      setReferenceHook(selected.hook || "");
+      setReferenceContent(selected.fullContent || "");
+      setReferenceAuthor(selected.author || "");
 
       if (selected.format === "text") {
         setContent(`Construir autoridad en LinkedIn requiere consistencia y un gancho probado:
@@ -98,22 +133,22 @@ export default function CreateViralPostPage() {
 ${selected.hook}
 
 1. Entiende el dolor antes de proponer tu oferta.
-2. Comparte frameworks accionables en cada publicacion.
-3. Genera conversacion genuina con preguntas directas.
+2. Comparte frameworks accionables en cada publicación.
+3. Genera conversación genuina con preguntas directas.
 
 Comenta "${leadMagnetKeyword}" abajo si deseas recibir nuestro playbook completo.`);
       } else if (selected.format === "image") {
-        setContent(`La claridad en tu propuesta comercial es la mejor inversion que puedes hacer este mes:
+        setContent(`La claridad en tu propuesta comercial es la mejor inversión que puedes hacer este mes:
 
 ${selected.hook}
 
-Revisa los puntos clave en la imagen adjunta y aplicalos hoy.`);
+Revisa los puntos clave en la imagen adjunta y aplícalos hoy.`);
         setImagePrompt(
           selected.imagePrompt ||
             "Minimalist executive desk setup with laptop showing pipeline growth chart, warm ambient corporate blue tones, hyper-realistic 8k."
         );
       } else if (selected.format === "carousel") {
-        setContent(`Desliza el carrusel completo para ver la guia detallada:
+        setContent(`Desliza el carrusel completo para ver la guía detallada:
 
 ${selected.hook}
 
@@ -123,21 +158,76 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
         }
       }
     } else {
-      setContent(`Construir un embudo inbound en LinkedIn solia tomar semanas.
+      setContent(`Construir un embudo inbound en LinkedIn solía tomar semanas.
 
-Hoy, la combinacion de contenido relevante y automatizacion relacional permite cerrar reuniones comerciales mientras duermes.
+Hoy, la combinación de contenido relevante y automatización relacional permite cerrar reuniones comerciales mientras duermes.
 
-A continuacion te comparto los 3 pasos esenciales:
-1. Publica contenido con llamados a la accion basados en activos de alto valor.
+A continuación te comparto los 3 pasos esenciales:
+1. Publica contenido con llamados a la acción basados en activos de alto valor.
 2. Monitorea los comentarios con palabras clave activadoras.
 3. Entrega el recurso de forma inmediata en mensaje privado.
 
-Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin costo.`);
+Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF sin costo.`);
       setImagePrompt(
         "Modern corporate laptop showing analytics dashboard on glass desk, subtle blue backlighting, photorealistic style, 8k resolution."
       );
     }
   }, [leadMagnetKeyword]);
+
+  // Modelar / Re-generar con IA (Gemini 3.6 Flash)
+  const handleGenerateAi = async () => {
+    setIsGeneratingAi(true);
+    setPublishFeedback(null);
+
+    try {
+      const res = await fetch("/api/ai/model-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hook: referenceHook,
+          originalContent: referenceContent || content,
+          topic,
+          format,
+          leadMagnetKeyword,
+          tone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo generar el contenido con IA.");
+      }
+
+      const generated = data.result;
+
+      if (generated.content) {
+        setContent(generated.content);
+      }
+
+      if (format === "image" && generated.imagePrompt) {
+        setImagePrompt(generated.imagePrompt);
+      }
+
+      if (format === "carousel" && Array.isArray(generated.slides) && generated.slides.length > 0) {
+        setSlides(generated.slides);
+      }
+
+      setPublishFeedback({
+        type: "success",
+        message: "Publicación modelada con éxito utilizando Gemini 3.6 Flash.",
+      });
+      setTimeout(() => setPublishFeedback(null), 5000);
+    } catch (err: any) {
+      console.error("[Generate AI Error]:", err);
+      setPublishFeedback({
+        type: "error",
+        message: err.message || "Error al conectar con el motor de Inteligencia Artificial.",
+      });
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
 
   const handleCopyPrompt = () => {
     if (navigator?.clipboard) {
@@ -156,7 +246,45 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
     });
   };
 
-  const handleSavePost = (status: "draft" | "scheduled" | "published") => {
+  // Guardar post (Borrador, Programado o Publicación Real)
+  const handleSavePost = async (status: "draft" | "scheduled" | "published") => {
+    setPublishFeedback(null);
+
+    let linkedinPostId: string | undefined = undefined;
+
+    // Si es publicación inmediata, llamar a la API de Unipile
+    if (status === "published") {
+      setIsPublishing(true);
+      try {
+        const res = await fetch("/api/unipile/posts/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            account_id: selectedAccountId,
+            text: content,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Error al publicar en LinkedIn a través de Unipile.");
+        }
+
+        linkedinPostId = data.postId;
+      } catch (err: any) {
+        console.error("[Publish Post Error]:", err);
+        setPublishFeedback({
+          type: "error",
+          message: err.message || "No se pudo emitir el post en LinkedIn. Revisa el estado de la cuenta.",
+        });
+        setIsPublishing(false);
+        return;
+      } finally {
+        setIsPublishing(false);
+      }
+    }
+
     const newPost: CreatedPost = {
       id: `post-${Date.now()}`,
       title: content.split("\n")[0].substring(0, 70) || `Post sobre ${topic}`,
@@ -168,6 +296,8 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
       carouselTheme: format === "carousel" ? carouselTheme : undefined,
       leadMagnetKeyword,
       status,
+      targetAccountId: selectedAccountId,
+      linkedinPostId,
       scheduledAt:
         status === "scheduled" ? new Date(Date.now() + 86400000).toISOString() : undefined,
       publishedAt: status === "published" ? new Date().toISOString() : undefined,
@@ -184,19 +314,90 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
   };
 
   const currentSlide = slides[currentSlideIndex] || slides[0];
+  const activeAccObj = accounts.find((a) => a.id === selectedAccountId);
 
   return (
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="Modelador de Contenido con IA" />
 
+      {/* Banner de Referencia si viene de Radar Viral */}
+      {referenceAuthor && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
+          <div className="space-y-0.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
+              Modelando desde Radar Viral:
+            </span>
+            <p className="text-xs font-semibold text-gray-800 dark:text-white">
+              Publicación original de {referenceAuthor}: &quot;{referenceHook.slice(0, 80)}...&quot;
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerateAi}
+            disabled={isGeneratingAi}
+            className="rounded-xl bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            {isGeneratingAi ? (
+              <>
+                <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                Reescribiendo con Gemini...
+              </>
+            ) : (
+              "Reescribir con IA (Gemini 3.6 Flash)"
+            )}
+          </button>
+        </div>
+      )}
+
+      {publishFeedback && (
+        <div
+          className={`p-3.5 rounded-xl text-xs font-medium border ${
+            publishFeedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900/50 dark:text-emerald-300"
+              : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-300"
+          }`}
+        >
+          {publishFeedback.message}
+        </div>
+      )}
+
       <div className="grid grid-cols-12 gap-6">
         {/* Panel Izquierdo: Editor y Controles */}
         <div className="col-span-12 xl:col-span-7 space-y-6">
           <ComponentCard
-            title="Configurador de Publicacion"
-            desc="Adapta la estructura y selecciona el formato de entrega para alimentar los monitores de señales."
+            title="Configurador de Publicación"
+            desc="Personaliza la estructura y utiliza la IA para generar el copy perfecto antes de publicar en LinkedIn."
           >
             <div className="space-y-5">
+              {/* Selector de Cuenta de LinkedIn Conectada */}
+              {accounts.length > 0 && (
+                <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="block text-[11px] font-semibold text-gray-500 uppercase">
+                        Cuenta de LinkedIn para Publicar:
+                      </span>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
+                        {activeAccObj ? activeAccObj.name : "Seleccionar cuenta"}
+                      </p>
+                    </div>
+                    {accounts.length > 1 && (
+                      <select
+                        value={selectedAccountId}
+                        onChange={(e) => setSelectedAccountId(e.target.value)}
+                        className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                      >
+                        {accounts.map((acc) => (
+                          <option key={acc.id} value={acc.id}>
+                            {acc.name} ({acc.status})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Selector de 3 Formatos */}
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -256,8 +457,8 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                 </div>
               </div>
 
-              {/* Tema y Palabra Clave de Lead Magnet */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Tema, Palabra Clave y Tono */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                     Tema del Post
@@ -272,7 +473,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
-                    Palabra Clave (Lead Magnet Nivel 1)
+                    Palabra Clave (Lead Magnet)
                   </label>
                   <input
                     type="text"
@@ -282,6 +483,48 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                     className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-mono font-semibold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                   />
                 </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                    Tono del Copy
+                  </label>
+                  <select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  >
+                    <option value="Autoridad B2B con llamada a la acción">Autoridad B2B</option>
+                    <option value="Storytelling personal y de aprendizaje">Storytelling</option>
+                    <option value="Educativo directo paso a paso">Educativo Paso a Paso</option>
+                    <option value="Provocador y debate constructivo">Provocador / Debate</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Botón de Generación / Mejora con Gemini */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
+                <div>
+                  <span className="text-xs font-bold text-gray-900 dark:text-white block">
+                    Generador de Copy B2B con Gemini 3.6 Flash
+                  </span>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Adapta el gancho, el desarrollo y la llamada a la acción para optimizar la conversión.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={isGeneratingAi}
+                  onClick={handleGenerateAi}
+                  className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-2 shrink-0 disabled:opacity-50"
+                >
+                  {isGeneratingAi ? (
+                    <>
+                      <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                      Generando...
+                    </>
+                  ) : (
+                    "Generar con IA"
+                  )}
+                </button>
               </div>
 
               {/* Formato 2: Generador de Prompt Visual */}
@@ -392,7 +635,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                     {currentSlide.subtitle !== undefined && (
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
-                          Subtitulo
+                          Subtítulo
                         </label>
                         <input
                           type="text"
@@ -409,7 +652,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
 
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
-                        Puntos de Contenido (1 por linea)
+                        Puntos de Contenido (1 por línea)
                       </label>
                       <textarea
                         rows={3}
@@ -459,14 +702,22 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                     onClick={() => handleSavePost("scheduled")}
                     className="rounded-lg border border-brand-500 px-4 py-2.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20"
                   >
-                    Programar Publicacion
+                    Programar Publicación
                   </button>
                   <button
                     type="button"
+                    disabled={isPublishing}
                     onClick={() => handleSavePost("published")}
-                    className="rounded-lg bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                    className="rounded-lg bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition flex items-center gap-2"
                   >
-                    Publicar Ahora en LinkedIn
+                    {isPublishing ? (
+                      <>
+                        <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        Publicando en LinkedIn...
+                      </>
+                    ) : (
+                      "Publicar Ahora en LinkedIn"
+                    )}
                   </button>
                 </div>
               </div>
@@ -477,23 +728,30 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
         {/* Panel Derecho: Previsualización Fiel a LinkedIn */}
         <div className="col-span-12 xl:col-span-5 space-y-6">
           <ComponentCard
-            title="Previsualizacion Exacta en LinkedIn"
-            desc="Visualizacion exacta de escritorio con encuadre de imagen y carrusel."
+            title="Previsualización Exacta en LinkedIn"
+            desc="Visualización exacta con formato de escritorio y encuadre del contenido."
           >
             <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               {/* Cabecera de perfil */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
-                  IF
+                  {activeAccObj?.name
+                    ? activeAccObj.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "LM"}
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                    Roberto | InHubFlow
+                    {activeAccObj ? activeAccObj.name : "Linn Martinson"}
                   </h4>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                    B2B Growth & Lead Gen Specialist • 1er
+                    {activeAccObj ? "Perfil de LinkedIn Conectado • 1er" : "B2B Growth & Lead Gen Specialist • 1er"}
                   </p>
-                  <p className="text-[10px] text-gray-400">Ahora • Publico</p>
+                  <p className="text-[10px] text-gray-400">Ahora • Público</p>
                 </div>
               </div>
 
@@ -552,7 +810,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envio el framework completo en PDF sin
                           {currentSlide.isCover
                             ? "Portada"
                             : currentSlide.isCta
-                            ? "Llamado a la Accion"
+                            ? "Llamado a la Acción"
                             : `Slide ${currentSlide.slideNumber}`}
                         </span>
                         <span
