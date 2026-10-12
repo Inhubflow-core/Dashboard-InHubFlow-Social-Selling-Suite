@@ -7,7 +7,7 @@ import type {
   PlanTier,
   SubscriptionStatus,
 } from "./types";
-import { getPlanConfig } from "./plans";
+import { getPlanConfig, getMaxTeamInvitationsAllowed } from "./plans";
 
 const USERS_STORAGE_KEY = "inhubflow_saas_users";
 const CURRENT_USER_ID_KEY = "inhubflow_current_user_id";
@@ -326,12 +326,28 @@ export function getUserCapacity(userId?: string): UserCapacity {
   const isAtCapacity = user.role !== "super_admin" && usedSlots >= totalSlots;
   const usagePercentage = Math.min(100, Math.round((usedSlots / totalSlots) * 100));
 
+  // Cálculo estricto de cupos para Miembros de Equipo (Team):
+  // Super Admin: 999 slots ilimitados
+  // Starter (1 slot): 0 slots de equipo (monousuario, 1 slot de Admin)
+  // Growth (5 slots): 4 slots de equipo (1 Admin + 4 Team = 5)
+  // Business (10 slots): 9 slots de equipo (1 Admin + 9 Team = 10)
+  const teamSlotsTotal = getMaxTeamInvitationsAllowed(user);
+  const members = getStoredTeamMembers(user.id);
+  const pendingInvites = getStoredTeamInvitations(user.id).filter((i) => i.status === "pending");
+  const teamSlotsUsed = members.length + pendingInvites.length;
+  const teamSlotsAvailable = user.role === "super_admin" ? 999 : Math.max(0, teamSlotsTotal - teamSlotsUsed);
+  const isTeamAtCapacity = user.role !== "super_admin" && (teamSlotsTotal === 0 || teamSlotsUsed >= teamSlotsTotal);
+
   return {
     totalSlots,
     usedSlots,
     availableSlots,
     isAtCapacity,
     usagePercentage,
+    teamSlotsTotal,
+    teamSlotsUsed,
+    teamSlotsAvailable,
+    isTeamAtCapacity,
   };
 }
 
@@ -429,6 +445,26 @@ export function addTeamMember(data: {
   accountName?: string | null;
 }): TeamMember {
   const current = getCurrentUser();
+  const maxAllowed = getMaxTeamInvitationsAllowed(current);
+
+  if (current.role !== "super_admin") {
+    const existingMembers = getStoredTeamMembers(current.id);
+    const existingInvites = getStoredTeamInvitations(current.id).filter((i) => i.status === "pending");
+    const used = existingMembers.length + existingInvites.length;
+
+    if (maxAllowed === 0) {
+      throw new Error(
+        "El Plan Starter es monousuario (1 slot exclusivo para el Administrador). Actualiza al Plan Growth (1 Admin + 4 miembros Team) para sumar colaboradores."
+      );
+    }
+
+    if (used >= maxAllowed) {
+      throw new Error(
+        `Límite alcanzado: tu plan actual permite un máximo de ${maxAllowed} colaboradores de equipo.`
+      );
+    }
+  }
+
   const allMembers = typeof window !== "undefined" && localStorage.getItem(TEAM_MEMBERS_KEY)
     ? JSON.parse(localStorage.getItem(TEAM_MEMBERS_KEY) || "[]")
     : initialTeamMembers;
@@ -492,6 +528,26 @@ export function createTeamInvitation(data: {
   assignedAccountId?: string | null;
 }): TeamInvitation {
   const current = getCurrentUser();
+  const maxAllowed = getMaxTeamInvitationsAllowed(current);
+
+  if (current.role !== "super_admin") {
+    const existingMembers = getStoredTeamMembers(current.id);
+    const existingInvites = getStoredTeamInvitations(current.id).filter((i) => i.status === "pending");
+    const used = existingMembers.length + existingInvites.length;
+
+    if (maxAllowed === 0) {
+      throw new Error(
+        "El Plan Starter es monousuario (1 slot exclusivo para el Administrador). Para invitar a miembros de equipo, actualiza al Plan Growth (1 Admin + 4 miembros Team)."
+      );
+    }
+
+    if (used >= maxAllowed) {
+      throw new Error(
+        `Has alcanzado el límite de ${maxAllowed} cupos de equipo en tu plan actual. Para habilitar más operadores, actualiza al siguiente plan superior.`
+      );
+    }
+  }
+
   const allInvites = typeof window !== "undefined" && localStorage.getItem(TEAM_INVITATIONS_KEY)
     ? JSON.parse(localStorage.getItem(TEAM_INVITATIONS_KEY) || "[]")
     : initialTeamInvitations;

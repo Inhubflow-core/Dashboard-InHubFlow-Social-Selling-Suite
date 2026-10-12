@@ -16,7 +16,7 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     monthlyPrice: 49,
     annualPrice: 39,
     features: [
-      { text: "1 cuenta de LinkedIn conectada (1 Slot)", included: true, highlight: true },
+      { text: "1 cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)", included: true, highlight: true },
       { text: "Viral Post Engine: Generador de texto, imagen y carruseles PDF", included: true },
       { text: "Calendario Editorial con reprogramacion Drag & Drop", included: true },
       { text: "Signal Radar Nivel 1: Automatizacion de comentarios y Lead Magnet", included: true },
@@ -25,7 +25,7 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
       { text: "Lanza hasta 3 campanas simultaneas", included: true },
       { text: "CRM Pipeline y Tablero Kanban comercial", included: true },
       { text: "Bandeja Inbox unificada sin ruido", included: true },
-      { text: "Gestion de equipo y operadores secundarios", included: false },
+      { text: "Gestion de equipo: 0 invitaciones adicionales (Plan Monousuario)", included: false },
       { text: "Soporte prioritario 24/7 y SLA garantizado", included: false },
     ],
     limits: {
@@ -46,10 +46,10 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     annualPrice: 119,
     popular: true,
     features: [
-      { text: "5 cuentas de LinkedIn conectadas (5 Slots)", included: true, highlight: true },
+      { text: "5 cuentas de LinkedIn conectadas (5 Slots en total)", included: true, highlight: true },
+      { text: "Estructura de equipo: 1 Administrador + hasta 4 miembros Team", included: true, highlight: true },
       { text: "Todo lo incluido en el Plan Starter", included: true },
-      { text: "Gestion de equipo: 1 Admin + hasta 5 operadores", included: true, highlight: true },
-      { text: "Asignacion de cuentas de LinkedIn por miembro del equipo", included: true },
+      { text: "Asignacion individual de cuentas de LinkedIn por operador Team", included: true },
       { text: "Viral Post Engine sin limite de publicaciones", included: true },
       { text: "Campanas ilimitadas con pacing humano y anti-deteccion", included: true },
       { text: "Signal Radar con monitoreo continuo en tiempo real", included: true },
@@ -74,9 +74,9 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     monthlyPrice: 279,
     annualPrice: 229,
     features: [
-      { text: "10 cuentas de LinkedIn conectadas (10 Slots)", included: true, highlight: true },
+      { text: "10 cuentas de LinkedIn conectadas (10 Slots en total)", included: true, highlight: true },
+      { text: "Estructura de equipo: 1 Administrador + hasta 9 miembros Team", included: true, highlight: true },
       { text: "Todo lo incluido en el Plan Growth", included: true },
-      { text: "Gestion multi-operador para 10 miembros con roles avanzados", included: true },
       { text: "Capacidad para escalar outreach a gran escala (hasta 200 invitaciones/dia en total)", included: true, highlight: true },
       { text: "Monitores de senales de intencion ilimitados (Nivel 1, 2 y 3)", included: true },
       { text: "SDR Co-Pilot con sugerencias de respuesta en tiempo real", included: true },
@@ -97,13 +97,15 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
   custom: {
     id: "custom",
     name: "Plan Super Admin / Enterprise",
-    tagline: "Licencia maestra de plataforma con acceso ilimitado",
+    tagline: "Licencia maestra de plataforma con acceso y slots ilimitados",
     slots: 999,
     monthlyPrice: 0,
     annualPrice: 0,
     features: [
       { text: "Slots ilimitados (999 cuentas de LinkedIn)", included: true, highlight: true },
-      { text: "Panel de control maestro de suscriptores y licencias SaaS", included: true, highlight: true },
+      { text: "Acceso exclusivo: Solo Roberto (Super Admin maestro)", included: true, highlight: true },
+      { text: "Invitaciones ilimitadas para todo el equipo y clientes", included: true, highlight: true },
+      { text: "Panel de control maestro de suscriptores y licencias SaaS", included: true },
       { text: "Capacidad para crear, modificar y suspender cuentas de clientes", included: true },
       { text: "Acceso y auditoria a todos los workspaces del ecosistema", included: true },
       { text: "Monitoreo global de infraestructura Unipile y proxies", included: true },
@@ -135,6 +137,19 @@ export function getPlanBySlots(slots: number): SaaSPlanConfig {
   if (slots >= 10) return SAAS_PLANS.business;
   if (slots >= 5) return SAAS_PLANS.growth;
   return SAAS_PLANS.starter;
+}
+
+/**
+ * Retorna el máximo de miembros de equipo (Team) que un usuario puede invitar:
+ * - Super Admin: 999 (Ilimitado)
+ * - Admin Starter (1 slot): 0 miembros de equipo (monousuario)
+ * - Admin Growth (5 slots): 4 miembros de equipo (1 Admin + 4 Team = 5 slots)
+ * - Admin Business (10 slots): 9 miembros de equipo (1 Admin + 9 Team = 10 slots)
+ */
+export function getMaxTeamInvitationsAllowed(user: { role?: string; slotsLimit?: number }): number {
+  if (user.role === "super_admin") return 999;
+  const slots = user.slotsLimit ?? 1;
+  return Math.max(0, slots - 1);
 }
 
 export function formatPlanBadge(tier: PlanTier): { label: string; slots: number } {

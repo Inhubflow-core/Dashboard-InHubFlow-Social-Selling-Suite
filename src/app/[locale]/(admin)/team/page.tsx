@@ -25,6 +25,7 @@ import {
   removeTeamMember,
   createTeamInvitation,
 } from "@/lib/saas/store";
+import { getMaxTeamInvitationsAllowed, getPlanConfig } from "@/lib/saas/plans";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { TeamMember, TeamInvitation } from "@/lib/saas/types";
 import SlotsCapacityCard from "@/components/saas/SlotsCapacityCard";
@@ -49,6 +50,13 @@ export default function TeamManagementPage() {
 
   const accounts = typeof window !== "undefined" ? getStoredAccounts() : [];
 
+  const maxTeamAllowed = getMaxTeamInvitationsAllowed(currentUser);
+  const isStarterPlan = !isSuperAdmin && currentUser.planTier === "starter";
+  const pendingInvites = invitations.filter((i) => i.status === "pending");
+  const usedTeamSlots = members.length + pendingInvites.length;
+  const availableTeamSlots = isSuperAdmin ? 999 : Math.max(0, maxTeamAllowed - usedTeamSlots);
+  const isTeamCapacityReached = !isSuperAdmin && (isStarterPlan || usedTeamSlots >= maxTeamAllowed);
+
   const loadTeamData = () => {
     setMembers(getStoredTeamMembers(currentUser.id));
     setInvitations(getStoredTeamInvitations(currentUser.id));
@@ -59,7 +67,7 @@ export default function TeamManagementPage() {
   }, [currentUser]);
 
   const handleOpenInvite = () => {
-    if (capacity.isAtCapacity && !isSuperAdmin) {
+    if (isStarterPlan || isTeamCapacityReached) {
       setIsUpgradeModalOpen(true);
       return;
     }
@@ -69,6 +77,16 @@ export default function TeamManagementPage() {
   const handleCreateInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
+
+    if (isStarterPlan) {
+      setFormError("El Plan Starter no permite invitar miembros adicionales. Actualiza al Plan Growth.");
+      return;
+    }
+
+    if (isTeamCapacityReached) {
+      setFormError(`Has alcanzado el límite de ${maxTeamAllowed} miembros de equipo permitidos en tu suscripción.`);
+      return;
+    }
 
     if (!inviteEmail) {
       setFormError("El correo electronico es obligatorio.");
@@ -84,7 +102,7 @@ export default function TeamManagementPage() {
         assignedAccountId: inviteAccountId || null,
       });
 
-      // Crear también el miembro para simulación inmediata si es demo
+      // Crear también el miembro para simulación inmediata
       addTeamMember({
         name: inviteEmail.split("@")[0],
         email: inviteEmail,
@@ -132,7 +150,7 @@ export default function TeamManagementPage() {
             Modulo Exclusivo para Administradores
           </h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-gray-500 dark:text-gray-400">
-            La administracion de colaboradores y asignacion de cupos de cuentas de LinkedIn solo esta disponible para el Administrador del espacio de trabajo.
+            Tu rol es Operador Team. La administracion de colaboradores y asignacion de cupos de cuentas de LinkedIn solo esta disponible para el Administrador del espacio de trabajo.
           </p>
         </div>
       </div>
@@ -145,6 +163,34 @@ export default function TeamManagementPage() {
 
       {/* Capacidad del Plan */}
       <SlotsCapacityCard onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
+
+      {/* Alerta de Plan Starter monousuario */}
+      {isStarterPlan && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+                <ShieldAlert className="size-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                  Plan Starter Monousuario (1 Cuenta de Administrador · 0 Cupos de Equipo)
+                </h4>
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                  Tu suscripción actual incluye 1 slot exclusivo para tu cuenta de Administrador. Para invitar a colaboradores de equipo (1 Admin + hasta 4 miembros Team) y asignarles perfiles de LinkedIn independientes, actualiza al Plan Growth.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition"
+            >
+              <span>Actualizar a Plan Growth</span>
+              <ExternalLink className="size-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Notificación temporal */}
       {notice && (
@@ -163,17 +209,31 @@ export default function TeamManagementPage() {
             </h2>
           </div>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Invita a miembros de tu organizacion y asignales perfiles de LinkedIn de tus slots contratados.
+            {isSuperAdmin
+              ? "Panel maestro de Super Administrador con invitaciones ilimitadas para todo el equipo."
+              : isStarterPlan
+              ? "Plan Starter monousuario: 1 cuenta para el Administrador. Actualiza a Growth para sumar colaboradores."
+              : `Invita hasta a ${maxTeamAllowed} miembros Team para operar perfiles de LinkedIn dentro de tus slots.`}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={handleOpenInvite}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition ${
+              isStarterPlan || isTeamCapacityReached
+                ? "bg-amber-500 hover:bg-amber-600"
+                : "bg-[#0099ff] hover:bg-[#0088e6]"
+            }`}
           >
             <UserPlus className="size-4" />
-            <span>Invitar Miembro</span>
+            <span>
+              {isStarterPlan
+                ? "Habilitar Equipo (Growth)"
+                : isTeamCapacityReached
+                ? "Ampliar Cupos de Equipo"
+                : "Invitar Miembro"}
+            </span>
           </button>
         </div>
       </div>
@@ -183,51 +243,63 @@ export default function TeamManagementPage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-              Slots del Plan
+              Slots Totales del Plan
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
               <Layers className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {isSuperAdmin ? "999 (Ilimitado)" : capacity.totalSlots}
+            {isSuperAdmin ? "999 (Ilimitado)" : `${currentUser.slotsLimit} ${currentUser.slotsLimit === 1 ? "Slot" : "Slots"}`}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Capacidad maxima de perfiles asignables
+            {isSuperAdmin
+              ? "Slots y perfiles ilimitados para Super Admin"
+              : isStarterPlan
+              ? "1 Slot exclusivo de Administrador (Monousuario)"
+              : currentUser.slotsLimit === 5
+              ? "1 Admin + hasta 4 miembros Team (5 slots)"
+              : "1 Admin + hasta 9 miembros Team (10 slots)"}
           </p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-              Miembros Activos
+              Miembros de Equipo (Team)
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
               <Users className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {members.length + 1}
+            {members.length} / {isSuperAdmin ? "∞" : maxTeamAllowed}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            1 Admin + {members.length} colaboradores
+            {isStarterPlan
+              ? "0 colaboradores permitidos en Plan Starter"
+              : `1 Admin principal + ${members.length} miembros activos (${pendingInvites.length} pendientes)`}
           </p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
-              Slots Disponibles
+              Cupos de Equipo Disponibles
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
               <ShieldCheck className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {isSuperAdmin ? "Ilimitados" : capacity.availableSlots}
+            {isSuperAdmin ? "Ilimitados" : availableTeamSlots}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Ranuras libres para invitar nuevos operadores
+            {isStarterPlan
+              ? "Actualiza al Plan Growth para 4 cupos"
+              : availableTeamSlots === 0
+              ? "Límite del plan alcanzado"
+              : `${availableTeamSlots} vacantes para nuevos operadores`}
           </p>
         </div>
       </div>
@@ -290,13 +362,17 @@ export default function TeamManagementPage() {
                   </div>
                 </td>
                 <td className="px-5 py-4">
-                  <span className="rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-purple-600 dark:text-purple-400">
-                    Propietario / Admin
+                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    isSuperAdmin
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                  }`}>
+                    {isSuperAdmin ? "Super Admin (Maestro)" : "Admin (Propietario · 1 Slot)"}
                   </span>
                 </td>
                 <td className="px-5 py-4">
                   <span className="font-medium text-gray-900 dark:text-white">
-                    Todas las cuentas (Acceso Maestro)
+                    {isSuperAdmin ? "Todas las cuentas (Acceso Maestro Global)" : "Cuenta de Administrador (Slot #1)"}
                   </span>
                 </td>
                 <td className="px-5 py-4">
@@ -309,7 +385,7 @@ export default function TeamManagementPage() {
                 </td>
               </tr>
 
-              {/* Miembros delegados */}
+              {/* Miembros delegados (Rol Team) */}
               {members.map((m) => (
                 <tr key={m.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40">
                   <td className="px-5 py-4">
@@ -329,7 +405,7 @@ export default function TeamManagementPage() {
                   </td>
                   <td className="px-5 py-4">
                     <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
-                      {m.role === "admin" ? "Co-Admin" : "Operador SDR"}
+                      Team · {m.role === "admin" ? "Co-Admin" : "Operador SDR"}
                     </span>
                   </td>
                   <td className="px-5 py-4">
@@ -339,7 +415,7 @@ export default function TeamManagementPage() {
                         {m.accountName}
                       </span>
                     ) : (
-                      <span className="text-gray-400">Sin cuenta asignada</span>
+                      <span className="text-gray-400">Sin cuenta asignada (Slot libre)</span>
                     )}
                   </td>
                   <td className="px-5 py-4">
@@ -391,7 +467,7 @@ export default function TeamManagementPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600">
-                        {inv.role}
+                        Team · {inv.role === "admin" ? "Co-Admin" : "Operador"}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -435,12 +511,21 @@ export default function TeamManagementPage() {
               <X className="size-5" />
             </button>
 
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Invitar Miembro al Equipo
-            </h3>
+            <div className="flex items-center justify-between pr-8">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                Invitar Miembro al Equipo (Team)
+              </h3>
+            </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Asigna a un colaborador para operar tus cuentas de LinkedIn dentro de tu cuota de slots.
+              Asigna a un colaborador para operar tus cuentas de LinkedIn dentro de tu cuota contratada.
             </p>
+
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-gray-50 p-2.5 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/60">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Cupos libres de equipo:</span>
+              <span className="text-xs font-bold text-[#0099ff]">
+                {isSuperAdmin ? "Ilimitados" : `${availableTeamSlots} de ${maxTeamAllowed} disponibles`}
+              </span>
+            </div>
 
             {formError && (
               <div className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-500">
@@ -472,8 +557,8 @@ export default function TeamManagementPage() {
                   onChange={(e) => setInviteRole(e.target.value as any)}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="member">Operador SDR (Acceso a su bandeja asignada)</option>
-                  <option value="admin">Co-Administrador (Gestion de campanas y equipo)</option>
+                  <option value="member">Team · Operador SDR (Acceso a su bandeja asignada)</option>
+                  <option value="admin">Team · Co-Administrador (Gestion de campanas y equipo)</option>
                 </select>
               </div>
 

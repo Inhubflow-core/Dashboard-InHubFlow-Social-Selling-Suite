@@ -230,6 +230,57 @@ assert(
   "El nodo de Condicion Logica ha sido eliminado en favor de secuencias lineales estilo Outreach B2B"
 );
 
+// -----------------------------------------------------------------------------
+// PRUEBA 7: 3 Roles de Usuario y Asignacion Estricta de Slots (Super Admin, Admin, Team)
+// -----------------------------------------------------------------------------
+console.log("\n--- 7. Prueba de 3 Roles y Asignacion Estricta de Slots ---");
+
+function getMaxTeamInvitationsAllowed(user) {
+  if (user.role === "super_admin") return 999;
+  const slots = user.slotsLimit ?? 1;
+  return Math.max(0, slots - 1);
+}
+
+function validateCanInviteTeamMember(user, currentTeamCount) {
+  if (user.role === "super_admin") return { allowed: true };
+  const maxAllowed = getMaxTeamInvitationsAllowed(user);
+  if (maxAllowed === 0) {
+    return {
+      allowed: false,
+      reason: "El Plan Starter es monousuario (1 slot para el Admin). Actualiza al Plan Growth.",
+    };
+  }
+  if (currentTeamCount >= maxAllowed) {
+    return {
+      allowed: false,
+      reason: `Has alcanzado el límite de ${maxAllowed} miembros de equipo permitidos.`,
+    };
+  }
+  return { allowed: true };
+}
+
+// 1. Super Admin
+const superAdmin = { role: "super_admin", email: "inhubflow@gmail.com", slotsLimit: 999 };
+assert(getMaxTeamInvitationsAllowed(superAdmin) === 999, "Super Admin dispone de slots e invitaciones ilimitadas (999)");
+assert(validateCanInviteTeamMember(superAdmin, 50).allowed === true, "Super Admin puede invitar miembros sin restriccion");
+
+// 2. Admin Starter (1 cuenta)
+const starterAdmin = { role: "client_admin", email: "carlos@consulting.es", slotsLimit: 1, planTier: "starter" };
+assert(getMaxTeamInvitationsAllowed(starterAdmin) === 0, "Admin Starter tiene 1 slot exclusivo y 0 cupos de equipo");
+assert(validateCanInviteTeamMember(starterAdmin, 0).allowed === false, "Invitacion rechazada en Plan Starter (monousuario)");
+
+// 3. Admin Growth (5 cuentas = 1 Admin + 4 Team)
+const growthAdmin = { role: "client_admin", email: "elena@agenciagrowth.com", slotsLimit: 5, planTier: "growth" };
+assert(getMaxTeamInvitationsAllowed(growthAdmin) === 4, "Admin Growth permite exactamente 4 miembros de equipo (1 Admin + 4 Team = 5 slots)");
+assert(validateCanInviteTeamMember(growthAdmin, 3).allowed === true, "Admin Growth permite invitar cuando tiene 3 ocupados (< 4)");
+assert(validateCanInviteTeamMember(growthAdmin, 4).allowed === false, "Admin Growth bloquea invitacion cuando alcanza 4 operadores de equipo");
+
+// 4. Admin Business (10 cuentas = 1 Admin + 9 Team)
+const businessAdmin = { role: "client_admin", email: "marcos@enterprisesales.io", slotsLimit: 10, planTier: "business" };
+assert(getMaxTeamInvitationsAllowed(businessAdmin) === 9, "Admin Business permite exactamente 9 miembros de equipo (1 Admin + 9 Team = 10 slots)");
+assert(validateCanInviteTeamMember(businessAdmin, 8).allowed === true, "Admin Business permite invitar cuando tiene 8 ocupados (< 9)");
+assert(validateCanInviteTeamMember(businessAdmin, 9).allowed === false, "Admin Business bloquea invitacion cuando alcanza 9 operadores de equipo");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

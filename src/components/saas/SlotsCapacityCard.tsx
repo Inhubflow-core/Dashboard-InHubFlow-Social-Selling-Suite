@@ -99,8 +99,12 @@ export default function SlotsCapacityCard({
                 )}
               </div>
               <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                {capacity.usedSlots} de {capacity.totalSlots} cuentas conectadas en uso
-                {capacity.availableSlots > 0 ? ` · ${capacity.availableSlots} slots libres disponibles` : ""}
+                {plan.slots === 1
+                  ? `${capacity.usedSlots} de 1 cuenta activa (1 Slot para Admin · Monousuario)`
+                  : plan.slots === 5
+                  ? `${capacity.usedSlots} de 5 cuentas activas (1 Admin + hasta 4 miembros Team)`
+                  : `${capacity.usedSlots} de 10 cuentas activas (1 Admin + hasta 9 miembros Team)`}
+                {capacity.availableSlots > 0 ? ` · ${capacity.availableSlots} slots libres` : ""}
               </p>
             </div>
           </div>

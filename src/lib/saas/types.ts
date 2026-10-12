@@ -77,6 +77,10 @@ export interface UserCapacity {
   availableSlots: number;
   isAtCapacity: boolean;
   usagePercentage: number;
+  teamSlotsTotal?: number;
+  teamSlotsUsed?: number;
+  teamSlotsAvailable?: number;
+  isTeamAtCapacity?: boolean;
 }
 
 export interface GlobalSaaSStats {

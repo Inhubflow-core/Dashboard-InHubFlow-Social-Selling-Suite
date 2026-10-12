@@ -143,7 +143,11 @@ export default function PlansPricingPage() {
                     {plan.slots} {plan.slots === 1 ? "Cuenta" : "Cuentas"}
                   </div>
                   <div className="mt-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {plan.slots === 1 ? "1 Slot simultaneo de LinkedIn" : `${plan.slots} Slots simultaneos de LinkedIn`}
+                    {plan.slots === 1
+                      ? "1 Slot · Solo Administrador (Monousuario)"
+                      : plan.slots === 5
+                      ? "5 Slots · 1 Admin + hasta 4 miembros Team"
+                      : "10 Slots · 1 Admin + hasta 9 miembros Team"}
                   </div>
                 </div>
 
@@ -261,10 +265,10 @@ export default function PlansPricingPage() {
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-              Como funciona la administracion multi-operador?
+              Como funciona la administracion multi-operador y los 3 roles?
             </h4>
             <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-              En los Planes Growth (5 slots) y Business (10 slots), el Administrador de la cuenta puede invitar a miembros de su equipo y asignarles perfiles especificos para que cada operador trabaje en su respectiva bandeja.
+              La plataforma maneja 3 roles: Super Admin (Roberto OrSe), Admin (el titular que suscribe el workspace) y Team (operadores invitados). En el Plan Starter (1 slot) el uso es exclusivo para el Admin (0 cupos de equipo). En el Plan Growth (5 slots), el Admin puede invitar a hasta 4 operadores Team (1 Admin + 4 Team = 5 slots). En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores Team (1 Admin + 9 Team = 10 slots).
             </p>
           </div>
         </div>
