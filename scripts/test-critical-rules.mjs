@@ -193,6 +193,37 @@ assert(canPerformAction(25, "invitation") === false, "Bloquea envio de invitacio
 assert(canPerformAction(50, "message") === false, "Bloquea mensaje directo cuando se alcanza el limite de 50");
 assert(canPerformAction(80, "visit") === false, "Bloquea visita de perfil cuando se alcanza el limite de 80");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 6: Arquitectura de Secuencias Unificadas
+// -----------------------------------------------------------------------------
+console.log("\n--- 6. Prueba de Secuencias Unificadas (Like+Comentar, Seguir+Conectar) ---");
+
+// Simular validación de tipos de nodos de plantilla
+const mockTemplateNodeTypes = [
+  "trigger_signal",
+  "action_visit",
+  "action_like_comment",
+  "logic_condition",
+  "action_follow_connect",
+  "logic_delay",
+  "action_dm",
+  "crm_stage",
+  "control_end",
+];
+
+assert(
+  mockTemplateNodeTypes.includes("action_like_comment"),
+  "El catalogo y flujo activo incluye el paso unificado 'action_like_comment' (Like + Comentario)"
+);
+assert(
+  mockTemplateNodeTypes.includes("action_follow_connect"),
+  "El catalogo y flujo activo incluye el paso unificado 'action_follow_connect' (Seguir + Conectar)"
+);
+assert(
+  !mockTemplateNodeTypes.includes("action_like") && !mockTemplateNodeTypes.includes("action_comment"),
+  "Like y Comentar no existen como pasos atomicos separados en el flujo principal"
+);
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

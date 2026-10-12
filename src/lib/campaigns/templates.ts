@@ -27,9 +27,22 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
+    id: "node-ac-02",
+    type: "actionNode",
+    position: { x: 340, y: 310 },
+    data: {
+      label: "AC-02: Dar Like y Comentar",
+      category: "action",
+      nodeType: "action_like_comment",
+      description: "Reacciona con Like y publica comentario contextual en el post del prospecto",
+      commentText: "¡Excelente perspectiva {{first_name}}! Totalmente de acuerdo.",
+      useAiComment: true,
+    } as NodeConfigData,
+  },
+  {
     id: "node-cond-01",
     type: "conditionNode",
-    position: { x: 330, y: 310 },
+    position: { x: 330, y: 450 },
     data: {
       label: "LG-02: ¿Es Contacto de 1er Grado?",
       category: "logic",
@@ -39,22 +52,22 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-ac-04",
+    id: "node-ac-03",
     type: "actionNode",
-    position: { x: 100, y: 480 },
+    position: { x: 100, y: 620 },
     data: {
-      label: "AC-04: Enviar Invitacion con Nota",
+      label: "AC-03: Seguir y Conectar",
       category: "action",
-      nodeType: "action_invite",
-      description: "Nota: Hola {{first_name}}, vi tu comentario en mi post...",
+      nodeType: "action_follow_connect",
+      description: "Sigue el perfil en LinkedIn y envia solicitud de conexion con nota",
       hasNote: true,
-      noteText: "Hola {{first_name}}, te envio invitacion para compartirte la guia por privado.",
+      noteText: "Hola {{first_name}}, vi tu comentario en mi post y te sigo por aqui. Te invito a conectar para entregarte la guia por privado.",
     } as NodeConfigData,
   },
   {
     id: "node-delay-01",
     type: "delayNode",
-    position: { x: 110, y: 620 },
+    position: { x: 110, y: 770 },
     data: {
       label: "LG-01: Delay Esperar Aceptacion",
       category: "logic",
@@ -67,7 +80,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-cond-02",
     type: "conditionNode",
-    position: { x: 100, y: 760 },
+    position: { x: 100, y: 910 },
     data: {
       label: "LG-02: ¿Acepto la Invitacion?",
       category: "logic",
@@ -77,11 +90,11 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-ac-05",
+    id: "node-ac-04",
     type: "actionNode",
-    position: { x: 580, y: 480 },
+    position: { x: 580, y: 620 },
     data: {
-      label: "AC-05: Enviar DM + Adjuntar PDF",
+      label: "AC-04: Enviar DM + Adjuntar PDF",
       category: "action",
       nodeType: "action_dm",
       description: "Entrega directa del Lead Magnet con archivo adjunto",
@@ -92,7 +105,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-delay-02",
     type: "delayNode",
-    position: { x: 590, y: 630 },
+    position: { x: 590, y: 770 },
     data: {
       label: "LG-01: Delay 48 Horas",
       category: "logic",
@@ -105,7 +118,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-cond-03",
     type: "conditionNode",
-    position: { x: 575, y: 770 },
+    position: { x: 575, y: 910 },
     data: {
       label: "LG-02: ¿Respondio al DM?",
       category: "logic",
@@ -117,7 +130,7 @@ export const defaultCampaignNodes: Node[] = [
   {
     id: "node-crm-01",
     type: "crmNode",
-    position: { x: 740, y: 940 },
+    position: { x: 740, y: 1080 },
     data: {
       label: "CR-01: Mover a 'Conversacion Activa'",
       category: "crm",
@@ -127,9 +140,9 @@ export const defaultCampaignNodes: Node[] = [
     } as NodeConfigData,
   },
   {
-    id: "node-ac-06",
+    id: "node-ac-05",
     type: "actionNode",
-    position: { x: 440, y: 940 },
+    position: { x: 440, y: 1080 },
     data: {
       label: "AC-05: Enviar Follow-up de Valor",
       category: "action",
@@ -142,16 +155,17 @@ export const defaultCampaignNodes: Node[] = [
 
 export const defaultCampaignEdges: Edge[] = [
   { id: "e-tr-ac1", source: "node-tr-01", target: "node-ac-01", animated: true },
-  { id: "e-ac1-cond1", source: "node-ac-01", target: "node-cond-01" },
-  { id: "e-cond1-no", source: "node-cond-01", sourceHandle: "no", target: "node-ac-04", label: "NO" },
-  { id: "e-cond1-yes", source: "node-cond-01", sourceHandle: "yes", target: "node-ac-05", label: "SI" },
-  { id: "e-ac4-delay1", source: "node-ac-04", target: "node-delay-01" },
+  { id: "e-ac1-ac2", source: "node-ac-01", target: "node-ac-02" },
+  { id: "e-ac2-cond1", source: "node-ac-02", target: "node-cond-01" },
+  { id: "e-cond1-no", source: "node-cond-01", sourceHandle: "no", target: "node-ac-03", label: "NO" },
+  { id: "e-cond1-yes", source: "node-cond-01", sourceHandle: "yes", target: "node-ac-04", label: "SI" },
+  { id: "e-ac3-delay1", source: "node-ac-03", target: "node-delay-01" },
   { id: "e-delay1-cond2", source: "node-delay-01", target: "node-cond-02" },
-  { id: "e-cond2-yes", source: "node-cond-02", sourceHandle: "yes", target: "node-ac-05", label: "SI" },
-  { id: "e-ac5-delay2", source: "node-ac-05", target: "node-delay-02" },
+  { id: "e-cond2-yes", source: "node-cond-02", sourceHandle: "yes", target: "node-ac-04", label: "SI" },
+  { id: "e-ac4-delay2", source: "node-ac-04", target: "node-delay-02" },
   { id: "e-delay2-cond3", source: "node-delay-02", target: "node-cond-03" },
   { id: "e-cond3-yes", source: "node-cond-03", sourceHandle: "yes", target: "node-crm-01", label: "SI (Respondio)" },
-  { id: "e-cond3-no", source: "node-cond-03", sourceHandle: "no", target: "node-ac-06", label: "NO (Sin respuesta)" },
+  { id: "e-cond3-no", source: "node-cond-03", sourceHandle: "no", target: "node-ac-05", label: "NO (Sin respuesta)" },
 ];
 
 export const availablePaletteNodes = [
@@ -164,38 +178,31 @@ export const availablePaletteNodes = [
   },
   {
     type: "actionNode",
-    label: "AC-02: Like a Ultimo Post",
+    label: "AC-02: Dar Like y Comentar",
     category: "action" as const,
-    nodeType: "action_like" as const,
-    description: "Reacciona positivamente a la publicacion mas reciente",
+    nodeType: "action_like_comment" as const,
+    description: "Reacciona con Like y publica un comentario en el post en un solo paso",
   },
   {
     type: "actionNode",
-    label: "AC-03: Comentar con IA",
+    label: "AC-03: Seguir y Conectar",
     category: "action" as const,
-    nodeType: "action_comment" as const,
-    description: "Deja un comentario contextual y positivo en su post",
+    nodeType: "action_follow_connect" as const,
+    description: "Sigue el perfil y envia solicitud de conexion con nota opcional en un solo paso",
   },
   {
     type: "actionNode",
-    label: "AC-04: Enviar Invitacion",
-    category: "action" as const,
-    nodeType: "action_invite" as const,
-    description: "Solicita conexion con nota personalizada opcional",
-  },
-  {
-    type: "actionNode",
-    label: "AC-05: Enviar DM + Adjunto",
+    label: "AC-04: Enviar DM + Adjunto",
     category: "action" as const,
     nodeType: "action_dm" as const,
     description: "Envia mensaje directo con documento PDF o enlace",
   },
   {
     type: "actionNode",
-    label: "AC-06: InMail Sales Nav",
+    label: "AC-05: InMail Sales Nav",
     category: "action" as const,
     nodeType: "action_inmail" as const,
-    description: "Envia InMail a prospectos fuera de red",
+    description: "Envia InMail a prospectos fuera de red sin consumir conexion",
   },
   {
     type: "delayNode",

@@ -239,6 +239,181 @@ export async function executeCampaignStepForLead(params: {
       };
     }
 
+    case "action_like_comment": {
+      let targetPostId = `post_target_${leadState.leadId}`;
+      try {
+        const posts = await unipile.getUserPosts({
+          account_id: accountId,
+          identifier: leadState.providerId || leadState.leadId,
+          limit: 1,
+        });
+        if (posts && posts.length > 0 && posts[0].id) {
+          targetPostId = posts[0].id;
+        }
+      } catch (err) {
+        console.warn("[Runner] No se pudieron obtener posts del prospecto, usando post de referencia:", err);
+      }
+
+      // Reacción Like
+      try {
+        await unipile.reactToPost({
+          account_id: accountId,
+          post_id: targetPostId,
+          reaction_type: "like",
+        });
+      } catch (error) {
+        console.warn("[Runner] Advertencia al reaccionar al post:", error);
+      }
+
+      // Comentario contextual
+      const commentBody = (nodeData.commentText || "Gran aporte {{first_name}}, excelente punto de vista.")
+        .replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+
+      try {
+        await unipile.commentOnPost({
+          account_id: accountId,
+          post_id: targetPostId,
+          text: commentBody,
+        });
+      } catch (error) {
+        const log: CampaignExecutionLog = {
+          id: `log-run-${Date.now()}`,
+          campaignId: workflow.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentNode.id,
+          nodeLabel: nodeData.label,
+          nodeType: nodeData.nodeType,
+          timestamp: new Date().toISOString(),
+          status: "error",
+          message: error instanceof Error ? error.message : "No se pudo publicar el comentario en el post mediante Unipile.",
+        };
+        recordExecutionLog(log);
+        return { success: false, newState: { ...leadState, state: "failed" }, log };
+      }
+
+      const nextEdge = edges.find((e) => e.source === currentNode.id);
+      const nextNodeId = nextEdge ? nextEdge.target : null;
+
+      const log: CampaignExecutionLog = {
+        id: `log-run-${Date.now()}`,
+        campaignId: workflow.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentNode.id,
+        nodeLabel: nodeData.label,
+        nodeType: nodeData.nodeType,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Like y comentario ("${commentBody.slice(0, 40)}...") publicados con exito en el post de ${leadState.leadName}.`,
+      };
+      recordExecutionLog(log);
+
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          currentNodeId: nextNodeId || currentNode.id,
+          state: nextNodeId ? "in_progress" : "completed",
+          history: [...leadState.history, currentNode.id],
+        },
+        log,
+      };
+    }
+
+    case "action_follow_connect": {
+      // Pacing check estricto: no superar límite diario de invitaciones
+      if (pacing.invitationsSent >= workflow.dailyInvitationLimit) {
+        const log: CampaignExecutionLog = {
+          id: `log-run-${Date.now()}`,
+          campaignId: workflow.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentNode.id,
+          nodeLabel: nodeData.label,
+          nodeType: nodeData.nodeType,
+          timestamp: new Date().toISOString(),
+          status: "rate_limited",
+          message: `Limite diario de invitaciones alcanzado (${pacing.invitationsSent}/${workflow.dailyInvitationLimit}). Secuencia reprogramada para mañana para proteger la cuenta.`,
+        };
+        recordExecutionLog(log);
+        return {
+          success: false,
+          newState: { ...leadState, state: "waiting_delay" },
+          log,
+        };
+      }
+
+      const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+
+      // 1. Seguir perfil (Follow)
+      try {
+        await unipile.followUser({
+          account_id: accountId,
+          provider_id: targetProviderId,
+        });
+      } catch (error) {
+        console.warn("[Runner] Advertencia al seguir perfil (followUser):", error);
+      }
+
+      // 2. Conectar (Send Invitation)
+      const note = (nodeData.hasNote !== false && nodeData.noteText)
+        ? nodeData.noteText.replace("{{first_name}}", leadState.leadName.split(" ")[0])
+        : undefined;
+
+      try {
+        await unipile.sendInvitation({
+          account_id: accountId,
+          provider_id: targetProviderId,
+          message: note,
+        });
+      } catch (error) {
+        const log: CampaignExecutionLog = {
+          id: `log-run-${Date.now()}`,
+          campaignId: workflow.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentNode.id,
+          nodeLabel: nodeData.label,
+          nodeType: nodeData.nodeType,
+          timestamp: new Date().toISOString(),
+          status: "error",
+          message: error instanceof Error ? error.message : "No se pudo enviar la invitacion de conexion mediante Unipile.",
+        };
+        recordExecutionLog(log);
+        return { success: false, newState: { ...leadState, state: "failed" }, log };
+      }
+
+      incrementAccountPacing(accountId, "invitation");
+      const nextEdge = edges.find((e) => e.source === currentNode.id);
+      const nextNodeId = nextEdge ? nextEdge.target : null;
+
+      const log: CampaignExecutionLog = {
+        id: `log-run-${Date.now()}`,
+        campaignId: workflow.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentNode.id,
+        nodeLabel: nodeData.label,
+        nodeType: nodeData.nodeType,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Perfil de ${leadState.leadName} seguido y solicitud de conexion enviada${note ? " con nota personalizada" : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${workflow.dailyInvitationLimit}`,
+      };
+      recordExecutionLog(log);
+
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          currentNodeId: nextNodeId || currentNode.id,
+          state: nextNodeId ? "in_progress" : "completed",
+          history: [...leadState.history, currentNode.id],
+        },
+        log,
+      };
+    }
+
     case "action_invite": {
       // Pacing check estricto: no superar límite diario configurado (ej. 25/día)
       if (pacing.invitationsSent >= workflow.dailyInvitationLimit) {

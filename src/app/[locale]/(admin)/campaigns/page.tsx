@@ -116,8 +116,10 @@ export default function CampaignsPage() {
         category: paletteItem.category,
         nodeType: paletteItem.nodeType,
         description: paletteItem.description,
-        hasNote: paletteItem.nodeType === "action_invite",
+        hasNote: paletteItem.nodeType === "action_invite" || paletteItem.nodeType === "action_follow_connect",
         noteText: "Hola {{first_name}}, vi tu interaccion y queria conectar.",
+        commentText: "Gran aporte {{first_name}}, totalmente alineado con esta vision.",
+        useAiComment: false,
         dmText: "Hola {{first_name}}, te comparto este recurso de valor.",
         delayHours: 24,
       } as NodeConfigData,
@@ -388,6 +390,92 @@ export default function CampaignsPage() {
                     onChange={(e) => updateSelectedNodeData({ keyword: e.target.value.toUpperCase() })}
                     className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-mono font-bold text-brand-600 dark:border-gray-700 dark:bg-gray-800"
                   />
+                </div>
+              )}
+
+              {/* Parámetros de Acción Unificada: Like + Comentario */}
+              {selectedNodeData.nodeType === "action_like_comment" && (
+                <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-semibold text-gray-500 uppercase">
+                      Like + Comentario
+                    </label>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold dark:bg-blue-900/50 dark:text-blue-300">
+                      Paso Unificado
+                    </span>
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedNodeData.useAiComment ?? false}
+                      onChange={(e) => updateSelectedNodeData({ useAiComment: e.target.checked })}
+                      className="rounded border-gray-300 text-brand-500"
+                    />
+                    <span>Generar comentario con IA segun el post</span>
+                  </label>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      {selectedNodeData.useAiComment ? "Texto de Respaldo / Plantilla Base" : "Texto del Comentario"}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={selectedNodeData.commentText || ""}
+                      onChange={(e) => updateSelectedNodeData({ commentText: e.target.value })}
+                      placeholder="Gran aporte {{first_name}}, totalmente alineado con esta vision..."
+                      className="w-full rounded-md border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    />
+                    <span className="text-[10px] text-gray-400">
+                      Variables: &#123;&#123;first_name&#125;&#125;
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Parámetros de Acción Unificada: Seguir + Conectar */}
+              {selectedNodeData.nodeType === "action_follow_connect" && (
+                <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-semibold text-gray-500 uppercase">
+                      Seguir y Conectar
+                    </label>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold dark:bg-blue-900/50 dark:text-blue-300">
+                      Paso Unificado
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Sigue automaticamente el perfil del prospecto y despues envia la solicitud de conexion.
+                  </p>
+
+                  <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedNodeData.hasNote ?? true}
+                      onChange={(e) => updateSelectedNodeData({ hasNote: e.target.checked })}
+                      className="rounded border-gray-300 text-brand-500"
+                    />
+                    <span>Incluir nota personalizada al conectar</span>
+                  </label>
+
+                  {selectedNodeData.hasNote !== false && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Nota de Conexion
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={selectedNodeData.noteText || ""}
+                        onChange={(e) => updateSelectedNodeData({ noteText: e.target.value })}
+                        placeholder="Hola {{first_name}}, vi tu interaccion y me gustaria conectar..."
+                        className="w-full rounded-md border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                      />
+                      <span className="text-[10px] text-gray-400">
+                        Variables: &#123;&#123;first_name&#125;&#125;, &#123;&#123;company&#125;&#125;
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -4,6 +4,8 @@ export type CampaignNodeType =
   | "trigger_signal"
   | "trigger_list"
   | "action_visit"
+  | "action_like_comment"
+  | "action_follow_connect"
   | "action_like"
   | "action_comment"
   | "action_invite"
@@ -24,6 +26,8 @@ export interface NodeConfigData extends Record<string, unknown> {
   keyword?: string;
   noteText?: string;
   hasNote?: boolean;
+  commentText?: string;
+  useAiComment?: boolean;
   dmText?: string;
   attachedResource?: string;
   delayHours?: number;

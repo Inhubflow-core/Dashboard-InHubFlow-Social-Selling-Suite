@@ -209,10 +209,13 @@ Este es el núcleo operativo de la plataforma. La construcción de secuencias se
             [ ACCION: Visitar Perfil ]
                       │
                       ▼
+         [ ACCION: Dar Like y Comentar Último Post ]
+                      │
+                      ▼
          [ CONDICION: ¿Es Contacto de 1er Grado? ]
              ├── SI ──────────────────────────────────────┐
              │                                            │
-             └── NO ──► [ ACCION: Enviar Invitación ]     │
+             └── NO ──► [ ACCION: Seguir y Conectar ]     │
                                     │                     │
                                     ▼                     │
                      [ DELAY: Esperar Aceptación ]        │
@@ -243,11 +246,10 @@ Este es el núcleo operativo de la plataforma. La construcción de secuencias se
 | **TRIGGER** | TR-01 | **Signal Monitor Trigger** | Selecciona el Monitor fuente (Nivel 1, Nivel 2 o Nivel 3) y la regla de activación. |
 | **TRIGGER** | TR-02 | **Lead List Trigger** | Dispara el flujo para una lista importada de contactos (CSV o búsqueda). |
 | **ACTION** | AC-01 | **Visitar Perfil** | Ejecuta visita mediante Unipile para figurar en las notificaciones del prospecto. |
-| **ACTION** | AC-02 | **Like a Último Post** | Reacciona al post más reciente del prospecto (Likes humanos). |
-| **ACTION** | AC-03 | **Comentar con IA** | Genera y publica un comentario contextual positivo en el último post del lead. |
-| **ACTION** | AC-04 | **Enviar Invitación** | Solicita conexión. Configurable: Sin nota o Con nota personalizada (`{{first_name}}`, `{{company}}`). |
-| **ACTION** | AC-05 | **Enviar Mensaje (DM)** | Envía DM en LinkedIn. Soporta texto, notas de voz (audio) y adjuntos (PDFs o imágenes). |
-| **ACTION** | AC-06 | **InMail Sales Navigator** | Para cuentas con Sales Nav; envía InMail a prospectos fuera de red sin consumir conexión. |
+| **ACTION** | AC-02 | **Dar Like y Comentar** | Paso unificado: Reacciona con Like y publica comentario contextual/IA en el último post del lead. |
+| **ACTION** | AC-03 | **Seguir y Conectar** | Paso unificado: Sigue automáticamente el perfil del lead y envía solicitud de conexión con o sin nota personalizada. |
+| **ACTION** | AC-04 | **Enviar Mensaje (DM)** | Envía DM en LinkedIn. Soporta texto, notas de voz (audio) y adjuntos (PDFs o imágenes). |
+| **ACTION** | AC-05 | **InMail Sales Navigator** | Para cuentas con Sales Nav; envía InMail a prospectos fuera de red sin consumir conexión. |
 | **LOGIC** | LG-01 | **Delay / Retardo** | Configura tiempo de espera (ej. 24h, 3 días) y ventana de horario laboral (L-V de 09:00 a 18:00). |
 | **LOGIC** | LG-02 | **Condición Lógica** | Evalúa ramas: ¿Es contacto?, ¿Aceptó en X tiempo?, ¿Respondió al mensaje? |
 | **CRM** | CR-01 | **Actualizar Etapa CRM** | Mueve automáticamente la tarjeta del prospecto en el Kanban del Pipeline. |
