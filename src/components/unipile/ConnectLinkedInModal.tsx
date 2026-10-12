@@ -204,6 +204,13 @@ export default function ConnectLinkedInModal({
           messagesSent: 0,
           profilesVisited: 0,
         },
+        daily_connection_limit: 20,
+        daily_message_limit: 20,
+        daily_visit_limit: 20,
+        active_hours_start: 9,
+        active_hours_end: 18,
+        timezone: "Europe/Madrid",
+        working_days: "1,2,3,4,5",
       };
 
       addStoredAccount(newAcc);
@@ -259,6 +266,13 @@ export default function ConnectLinkedInModal({
           messagesSent: 0,
           profilesVisited: 0,
         },
+        daily_connection_limit: 20,
+        daily_message_limit: 20,
+        daily_visit_limit: 20,
+        active_hours_start: 9,
+        active_hours_end: 18,
+        timezone: "Europe/Madrid",
+        working_days: "1,2,3,4,5",
       };
 
       addStoredAccount(newAcc);

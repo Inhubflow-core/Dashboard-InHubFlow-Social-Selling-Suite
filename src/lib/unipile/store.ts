@@ -108,10 +108,37 @@ export function addStoredAccount(newAccount: ConnectedLinkedInAccount): Connecte
   const accounts = getStoredAccounts();
   const exists = accounts.find((a) => a.unipileAccountId === newAccount.unipileAccountId || a.id === newAccount.id);
   const updated = exists
-    ? accounts.map((a) => (a.id === exists.id ? { ...a, ...newAccount } : a))
-    : [newAccount, ...accounts];
+    ? accounts.map((a) => (a.id === exists.id ? {
+        ...a,
+        ...newAccount,
+        // Mantener límites configurados por el usuario si ya existían
+        daily_connection_limit: a.daily_connection_limit ?? newAccount.daily_connection_limit ?? 20,
+        daily_message_limit: a.daily_message_limit ?? newAccount.daily_message_limit ?? 20,
+        daily_visit_limit: a.daily_visit_limit ?? newAccount.daily_visit_limit ?? 20,
+        active_hours_start: a.active_hours_start ?? newAccount.active_hours_start ?? 9,
+        active_hours_end: a.active_hours_end ?? newAccount.active_hours_end ?? 18,
+        timezone: a.timezone ?? newAccount.timezone ?? "Europe/Madrid",
+        working_days: a.working_days ?? newAccount.working_days ?? "1,2,3,4,5",
+      } : a))
+    : [{
+        daily_connection_limit: 20,
+        daily_message_limit: 20,
+        daily_visit_limit: 20,
+        active_hours_start: 9,
+        active_hours_end: 18,
+        timezone: "Europe/Madrid",
+        working_days: "1,2,3,4,5",
+        ...newAccount,
+      }, ...accounts];
   saveStoredAccounts(updated);
   setActiveAccountId(newAccount.id);
+  return updated;
+}
+
+export function updateStoredAccount(id: string, updates: Partial<ConnectedLinkedInAccount>): ConnectedLinkedInAccount[] {
+  const accounts = getStoredAccounts();
+  const updated = accounts.map((a) => (a.id === id || a.unipileAccountId === id ? { ...a, ...updates } : a));
+  saveStoredAccounts(updated);
   return updated;
 }
 

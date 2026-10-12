@@ -470,4 +470,13 @@ export interface ConnectedLinkedInAccount {
     messagesSent: number;
     profilesVisited: number;
   };
+  // Límites diarios de seguridad y pacing humano (Estilo B2B: tope máximo recomendado 20)
+  daily_connection_limit?: number;
+  daily_message_limit?: number;
+  daily_visit_limit?: number;
+  active_hours_start?: number;
+  active_hours_end?: number;
+  timezone?: string;
+  working_days?: string;
 }
+
