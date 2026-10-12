@@ -1,14 +1,9 @@
 "use client";
 
-import { useClickOutside } from "@/hooks/useClickOutside";
-import { getLanguage, languages } from "@/i18n/languages";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
 import { ChevronDownIcon } from "@/icons";
-import { cn } from "@/utils";
-import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useState } from "react"
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
@@ -18,46 +13,23 @@ import {
   Layers,
   Users,
   CreditCard,
-  UserCheck,
   Check,
   LogOut,
   Building,
 } from "lucide-react";
 
 export default function UserDropdown() {
-  const t = useTranslations("common");
-  const locale = useLocale() as Locale;
-  const router = useRouter();
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSubDropdownOpen, setIsSubDropdownOpen] = useState(false);
-  const subDropdownRef = useRef<HTMLLIElement>(null);
 
   const { currentUser, isSuperAdmin, capacity, allUsers, switchUser } = useAuth();
   const plan = getPlanConfig(currentUser.planTier);
 
-  const currentLang = getLanguage(locale);
-  const CurrentFlagIcon = currentLang.FlagIcon;
-
-  useClickOutside(subDropdownRef, () => {
-    setIsSubDropdownOpen(false);
-  });
-
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
-    if (isOpen) {
-      setIsSubDropdownOpen(false);
-    }
   };
 
   const closeDropdown = () => {
     setIsOpen(false);
-    setIsSubDropdownOpen(false);
-  };
-
-  const handleSelectLanguage = (id: Locale) => {
-    router.replace(pathname, { locale: id });
-    setIsSubDropdownOpen(false);
   };
 
   const handleSwitchUser = (userId: string) => {
@@ -222,30 +194,6 @@ export default function UserDropdown() {
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
-          <div className="px-2.5 mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-            {t("language")}
-          </div>
-          <div className="flex gap-1">
-            {languages.map((language) => (
-              <button
-                key={language.id}
-                type="button"
-                onClick={() => handleSelectLanguage(language.id)}
-                aria-pressed={locale === language.id}
-                className={cn(
-                  "flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0099ff]",
-                  locale === language.id
-                    ? "bg-[#0099ff]/10 text-[#0099ff]"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5",
-                )}
-              >
-                {language.shortName}
-              </button>
-            ))}
           </div>
         </div>
 
