@@ -116,7 +116,7 @@ export default function CampaignsPage() {
         category: paletteItem.category,
         nodeType: paletteItem.nodeType,
         description: paletteItem.description,
-        hasNote: paletteItem.nodeType === "action_invite" || paletteItem.nodeType === "action_follow_connect",
+        hasNote: paletteItem.nodeType === "action_follow_connect",
         noteText: "Hola {{first_name}}, vi tu interaccion y queria conectar.",
         commentText: "Gran aporte {{first_name}}, totalmente alineado con esta vision.",
         useAiComment: false,
