@@ -4,56 +4,56 @@
     "home": "Home",
     "edit": "Edit",
     "close": "Close",
-    "saveChanges": "Save Changes",
-    "viewMore": "View More",
+    "saveChanges": "Save changes",
+    "viewMore": "View more",
     "delete": "Delete",
     "filter": "Filter",
     "seeAll": "See all"
   },
   "sidebar": {
     "groups": {
-      "menu": "Menu",
-      "saas": "Administración SaaS",
-      "settings": "Configuración",
-      "support": "Soporte, Ayuda & Recursos"
+      "menu": "Navigation",
+      "saas": "SaaS Administration",
+      "settings": "Settings",
+      "support": "Support, Help & Resources"
     },
     "badges": {
       "new": "new",
       "pro": "pro"
     },
     "items": {
-      "settings": "Configuración",
-      "workspaceSettings": "Ajustes del Workspace",
-      "securitySettings": "API Keys & Seguridad",
-      "support": "Soporte & Ayuda",
-      "helpCenter": "Centro de Ayuda & Guías",
-      "tickets": "Tickets de Soporte",
-      "docs": "Documentación & APIs",
-      "systemStatus": "Estado del Sistema",
-      "dashboard": "Panel de Control",
+      "settings": "Settings",
+      "workspaceSettings": "Workspace Settings",
+      "securitySettings": "API Keys & Security",
+      "support": "Support & Help",
+      "helpCenter": "Help Center & Guides",
+      "tickets": "Support Tickets",
+      "docs": "Documentation & APIs",
+      "systemStatus": "System Status",
+      "dashboard": "Dashboard",
       "viralPosts": "Viral Post Engine",
-      "viralRadar": "Radar Viral",
-      "createPost": "Modelador IA",
-      "postList": "Publicaciones",
-      "editorialCalendar": "Calendario Editorial",
+      "viralRadar": "Viral Radar",
+      "createPost": "AI Post Modeler",
+      "postList": "Publications",
+      "editorialCalendar": "Editorial Calendar",
       "signalRadar": "Signal Radar",
-      "myPosts": "Nivel 1: Mis Posts (Lead Magnet)",
-      "competitorPosts": "Nivel 2: Competencia",
-      "globalPosts": "Nivel 3: LinkedIn Global",
-      "campaigns": "Campañas (Workflow)",
+      "myPosts": "Level 1: My Posts (Lead Magnet)",
+      "competitorPosts": "Level 2: Competitors",
+      "globalPosts": "Level 3: Global LinkedIn",
+      "campaigns": "Campaigns (Workflow)",
       "leads": "Leads & CRM",
-      "leadsDirectory": "Directorio de Leads",
-      "leadsLists": "Listas por Señal",
-      "inbox": "Inbox Unificado",
-      "sdrAgent": "Asistente SDR IA",
-      "pipeline": "Pipeline CRM",
-      "pipelineKanban": "Kanban Comercial",
-      "pipelineCalendar": "Calendario de Citas",
-      "linkedinAccounts": "Cuentas de LinkedIn",
-      "plans": "Planes & Slots",
-      "team": "Equipo & Miembros",
-      "saasAdmin": "Administración SaaS",
-      "saasSubscribers": "Suscriptores & Multislots",
+      "leadsDirectory": "Leads Directory",
+      "leadsLists": "Signal Lists",
+      "inbox": "Unified Inbox",
+      "sdrAgent": "AI SDR Assistant",
+      "pipeline": "CRM Pipeline",
+      "pipelineKanban": "Sales Kanban",
+      "pipelineCalendar": "Meeting Calendar",
+      "linkedinAccounts": "LinkedIn Accounts",
+      "plans": "Plans & Slots",
+      "team": "Team & Members",
+      "saasAdmin": "SaaS Administration",
+      "saasSubscribers": "Subscribers & Multi-slots",
       "ecommerceHome": "Ecommerce",
       "analytics": "Analytics",
       "marketing": "Marketing",
@@ -152,25 +152,32 @@
       "supportList": "Support List",
       "supportReply": "Support Reply",
       "email": "Email",
-      "inbox": "Inbox",
       "inboxDetails": "Details"
     },
     "widget": {
-      "title": "Conexion LinkedIn",
-      "description": "LinkedIn sincronizado. Pacing de seguridad activo.",
-      "purchasePlan": "Gestionar Cuentas"
+      "title": "LinkedIn Connection",
+      "description": "LinkedIn synchronized. Safety pacing active.",
+      "purchasePlan": "Manage Accounts"
     }
   },
   "header": {
-    "searchPlaceholder": "Search or type command...",
-    "toggleSidebar": "Toggle Sidebar",
+    "searchPlaceholder": "Search or type a command...",
+    "toggleSidebar": "Toggle sidebar",
     "notifications": {
-      "title": "Notification",
+      "title": "Notifications",
       "requestsPermission": "requests permission to change",
       "project": "Project",
       "minAgo": "{count} min ago",
       "hrAgo": "{count} hr ago",
-      "viewAll": "View All Notifications"
+      "viewAll": "View all notifications"
+    },
+    "linkedin": {
+      "connect": "Connect LinkedIn",
+      "connected": "LinkedIn Connected",
+      "activeAccount": "Active LinkedIn Account"
+    },
+    "plan": {
+      "viewCapacity": "View capacity and plan upgrade options"
     }
   },
   "userDropdown": {
@@ -178,7 +185,15 @@
     "accountSettings": "Account settings",
     "support": "Support",
     "language": "Language",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "superAdmin": "Super Admin",
+    "unlimitedSlots": "Unlimited Slots",
+    "slots": "Slots",
+    "adminPanel": "Super Admin Panel (Subscribers)",
+    "plans": "Plans & Subscription",
+    "team": "Team & Operators",
+    "linkedinAccounts": "LinkedIn Accounts",
+    "switchAccount": "Switch Account / Workspace"
   },
   "ecommerce": {
     "title": "E-commerce Dashboard",
@@ -303,7 +318,7 @@
     }
   },
   "notFound": {
-    "error": "ERROR",
+    "error": "ERROR 404",
     "message": "We can’t seem to find the page you are looking for!",
     "backHome": "Back to Home Page"
   },
@@ -895,5 +910,3 @@
     }
   }
 }
-
-

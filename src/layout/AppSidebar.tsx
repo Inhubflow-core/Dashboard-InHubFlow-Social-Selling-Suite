@@ -450,7 +450,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "NAVEGACIÓN"
+                  t("groups.menu")
                 ) : (
                   <HorizontaLDots />
                 )}

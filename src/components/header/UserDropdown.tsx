@@ -3,11 +3,12 @@
 import { Link } from "@/i18n/navigation";
 import { ChevronDownIcon } from "@/icons";
 import Image from "next/image";
-import { useState } from "react"
+import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
 import { getPlanConfig } from "@/lib/saas/plans";
+import { useTranslations } from "next-intl";
 import {
   ShieldCheck,
   Layers,
@@ -20,6 +21,7 @@ import {
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("userDropdown");
 
   const { currentUser, isSuperAdmin, capacity, allUsers, switchUser } = useAuth();
   const plan = getPlanConfig(currentUser.planTier);
@@ -58,7 +60,7 @@ export default function UserDropdown() {
             {currentUser.name}
           </span>
           <span className="block text-[10px] text-gray-500 dark:text-gray-400">
-            {isSuperAdmin ? "Super Admin" : plan.name}
+            {isSuperAdmin ? t("superAdmin") : plan.name}
           </span>
         </div>
 
@@ -96,7 +98,7 @@ export default function UserDropdown() {
               {isSuperAdmin ? (
                 <>
                   <ShieldCheck className="size-3.5 text-[#0099ff]" />
-                  <span>Super Admin</span>
+                  <span>{t("superAdmin")}</span>
                 </>
               ) : (
                 <>
@@ -106,7 +108,7 @@ export default function UserDropdown() {
               )}
             </div>
             <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-[10px] font-bold text-[#0099ff]">
-              {isSuperAdmin ? "Slots Ilimitados" : `${capacity.usedSlots}/${capacity.totalSlots} Slots`}
+              {isSuperAdmin ? t("unlimitedSlots") : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}
             </span>
           </div>
         </div>
@@ -122,7 +124,7 @@ export default function UserDropdown() {
                 className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#0099ff] hover:bg-[#0099ff]/10"
               >
                 <ShieldCheck className="size-4" />
-                <span>Panel Super Admin (Suscriptores)</span>
+                <span>{t("adminPanel")}</span>
               </DropdownItem>
             </li>
           )}
@@ -135,7 +137,7 @@ export default function UserDropdown() {
               className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
             >
               <CreditCard className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>Planes & Suscripcion</span>
+              <span>{t("plans")}</span>
             </DropdownItem>
           </li>
 
@@ -147,7 +149,7 @@ export default function UserDropdown() {
               className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
             >
               <Users className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>Equipo & Operadores</span>
+              <span>{t("team")}</span>
             </DropdownItem>
           </li>
 
@@ -159,15 +161,15 @@ export default function UserDropdown() {
               className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
             >
               <Layers className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>Cuentas de LinkedIn</span>
+              <span>{t("linkedinAccounts")}</span>
             </DropdownItem>
           </li>
         </ul>
 
-        {/* Selector de Cuentas / Workspace (Auditoría y Simulación SaaS) */}
+        {/* Selector de Cuentas / Workspace */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
           <div className="px-2.5 mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-            Conmutar Cuenta / Workspace
+            {t("switchAccount")}
           </div>
           <div className="space-y-1">
             {allUsers.map((u) => {
@@ -187,7 +189,7 @@ export default function UserDropdown() {
                   <div className="truncate">
                     <span className="block truncate">{u.name}</span>
                     <span className="block text-[10px] text-gray-400 dark:text-gray-500">
-                      {u.role === "super_admin" ? "Super Admin" : `${uPlan.name} (${u.slotsLimit} slots)`}
+                      {u.role === "super_admin" ? t("superAdmin") : `${uPlan.name} (${u.slotsLimit} ${t("slots")})`}
                     </span>
                   </div>
                   {isSelected && <Check className="size-3.5 shrink-0 text-[#0099ff]" />}
@@ -203,7 +205,7 @@ export default function UserDropdown() {
           className="group mt-2 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5"
         >
           <LogOut className="size-3.5" />
-          <span>Cerrar Sesion</span>
+          <span>{t("signOut")}</span>
         </Link>
       </Dropdown>
     </div>

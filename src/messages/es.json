@@ -12,7 +12,7 @@
   },
   "sidebar": {
     "groups": {
-      "menu": "Menú",
+      "menu": "Navegación",
       "saas": "Administración SaaS",
       "settings": "Configuración",
       "support": "Soporte, Ayuda & Recursos"
@@ -44,7 +44,7 @@
       "leads": "Leads & CRM",
       "leadsDirectory": "Directorio de Leads",
       "leadsLists": "Listas por Señal",
-      "inbox": "Inbox",
+      "inbox": "Inbox Unificado",
       "sdrAgent": "Asistente SDR IA",
       "pipeline": "Pipeline CRM",
       "pipelineKanban": "Kanban Comercial",
@@ -155,7 +155,7 @@
       "inboxDetails": "Details"
     },
     "widget": {
-      "title": "Conexion LinkedIn",
+      "title": "Conexión LinkedIn",
       "description": "LinkedIn sincronizado. Pacing de seguridad activo.",
       "purchasePlan": "Gestionar Cuentas"
     }
@@ -164,12 +164,20 @@
     "searchPlaceholder": "Buscar o escribir comando...",
     "toggleSidebar": "Mostrar u ocultar barra lateral",
     "notifications": {
-      "title": "Notificación",
-      "requestsPermission": "requests permission to change",
-      "project": "Project",
-      "minAgo": "{count} min ago",
-      "hrAgo": "{count} hr ago",
+      "title": "Notificaciones",
+      "requestsPermission": "solicita permiso para cambiar",
+      "project": "Proyecto",
+      "minAgo": "hace {count} min",
+      "hrAgo": "hace {count} h",
       "viewAll": "Ver todas las notificaciones"
+    },
+    "linkedin": {
+      "connect": "Conectar LinkedIn",
+      "connected": "LinkedIn Conectado",
+      "activeAccount": "Cuenta LinkedIn Activa"
+    },
+    "plan": {
+      "viewCapacity": "Ver capacidad y opciones de upgrade de plan"
     }
   },
   "userDropdown": {
@@ -177,7 +185,15 @@
     "accountSettings": "Ajustes de cuenta",
     "support": "Soporte",
     "language": "Idioma",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "superAdmin": "Super Admin",
+    "unlimitedSlots": "Slots Ilimitados",
+    "slots": "Slots",
+    "adminPanel": "Panel Super Admin (Suscriptores)",
+    "plans": "Planes & Suscripción",
+    "team": "Equipo & Operadores",
+    "linkedinAccounts": "Cuentas de LinkedIn",
+    "switchAccount": "Conmutar Cuenta / Workspace"
   },
   "ecommerce": {
     "title": "E-commerce Dashboard",
@@ -302,9 +318,9 @@
     }
   },
   "notFound": {
-    "error": "ERROR",
-    "message": "We can’t seem to find the page you are looking for!",
-    "backHome": "Back to Home Page"
+    "error": "ERROR 404",
+    "message": "¡No pudimos encontrar la página que estás buscando!",
+    "backHome": "Volver al inicio"
   },
   "marketing": {
     "metrics": {

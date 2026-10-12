@@ -1,5 +1,3 @@
-import { EsFlagIcon, UsFlagIcon } from "@/icons";
-
 import type { Locale } from "./routing";
 
 export interface Language {
@@ -7,7 +5,6 @@ export interface Language {
   name: string;
   shortName: string;
   dir: "ltr" | "rtl";
-  FlagIcon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   badge?: string;
 }
 
@@ -17,21 +14,18 @@ export const languages: Language[] = [
     name: "Español",
     shortName: "ES",
     dir: "ltr",
-    FlagIcon: EsFlagIcon,
   },
   {
     id: "en",
     name: "English",
     shortName: "EN",
     dir: "ltr",
-    FlagIcon: UsFlagIcon,
   },
   {
     id: "pt-BR",
     name: "Português (Brasil)",
     shortName: "PT-BR",
     dir: "ltr",
-    FlagIcon: EsFlagIcon,
   },
 ];
 

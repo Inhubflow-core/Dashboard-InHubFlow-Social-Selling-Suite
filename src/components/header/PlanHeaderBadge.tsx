@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { Layers, ShieldCheck, Zap } from "lucide-react";
+import { Layers } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getPlanConfig } from "@/lib/saas/plans";
 import PlanUpgradeModal from "@/components/saas/PlanUpgradeModal";
+import { useTranslations } from "next-intl";
 
 export default function PlanHeaderBadge() {
   const { currentUser, capacity, isSuperAdmin } = useAuth();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const plan = getPlanConfig(currentUser.planTier);
+  const t = useTranslations("header.plan");
 
   if (isSuperAdmin) {
     return null;
@@ -25,7 +26,7 @@ export default function PlanHeaderBadge() {
             ? "border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white"
             : "border-[#0099ff]/30 bg-[#0099ff]/10 text-[#0099ff] hover:bg-[#0099ff] hover:text-white"
         }`}
-        title="Ver capacidad y opciones de upgrade de plan"
+        title={t("viewCapacity")}
       >
         <Layers className="size-3.5" />
         <span>
