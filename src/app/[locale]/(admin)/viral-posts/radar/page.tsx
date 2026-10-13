@@ -680,14 +680,14 @@ export default function ViralRadarPage() {
                   {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-100 py-2.5 text-center dark:border-gray-800">
                     <div>
-                      <span className="block text-[10px] text-gray-400 uppercase font-medium">👍 Likes</span>
+                      <span className="block text-[10px] text-gray-400 uppercase font-medium">Likes</span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.likes.toLocaleString()}
                       </span>
                     </div>
                     <div className="rounded-lg bg-brand-50/50 py-0.5 dark:bg-brand-950/20">
                       <span className="block text-[10px] text-brand-600 dark:text-brand-400 uppercase font-bold">
-                        💬 Comentarios
+                        Comentarios
                       </span>
                       <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
                         {post.comments.toLocaleString()}
@@ -695,7 +695,7 @@ export default function ViralRadarPage() {
                     </div>
                     <div>
                       <span className="block text-[10px] text-gray-400 uppercase font-medium">
-                        🔁 Reposts
+                        Reposts
                       </span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.shares.toLocaleString()}
@@ -779,15 +779,15 @@ export default function ViralRadarPage() {
             <div className="my-5 space-y-4">
               <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40 text-center text-xs">
                 <div>
-                  <span className="text-[10px] text-gray-400 uppercase block font-medium">👍 Likes</span>
+                  <span className="text-[10px] text-gray-400 uppercase block font-medium">Likes</span>
                   <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.likes.toLocaleString()}</span>
                 </div>
                 <div className="font-bold text-brand-600 dark:text-brand-400">
-                  <span className="text-[10px] text-brand-600 dark:text-brand-400 uppercase block font-bold">💬 Comentarios</span>
+                  <span className="text-[10px] text-brand-600 dark:text-brand-400 uppercase block font-bold">Comentarios</span>
                   <span>{selectedPostForModal.comments.toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-400 uppercase block font-medium">🔁 Reposts</span>
+                  <span className="text-[10px] text-gray-400 uppercase block font-medium">Reposts</span>
                   <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.shares.toLocaleString()}</span>
                 </div>
               </div>
