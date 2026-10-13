@@ -30,9 +30,7 @@ export default function ViralRadarPage() {
 
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
-  const [filterZeroEngagement, setFilterZeroEngagement] = useState<boolean>(true);
   const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "discussed">("all");
-  const [filteredZeroCount, setFilteredZeroCount] = useState<number>(0);
 
   // Filtros generales
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
@@ -71,20 +69,18 @@ export default function ViralRadarPage() {
       });
   }, []);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile con algoritmo de viralidad
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando siempre publicaciones sin interacción)
   const handleLiveSearch = useCallback(
     async (
       keywordToSearch?: string,
       accountIdOverride?: string,
-      dateOverride?: string,
-      filterZeroOverride?: boolean
+      dateOverride?: string
     ) => {
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
 
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
-      const targetFilterZero = filterZeroOverride !== undefined ? filterZeroOverride : filterZeroEngagement;
 
       setIsSearchingLive(true);
       setSearchError(null);
@@ -98,7 +94,7 @@ export default function ViralRadarPage() {
             account_id: targetId,
             limit: 35,
             date_posted: targetDate,
-            filter_zero: targetFilterZero,
+            filter_zero: true,
             sort_by: "RELEVANCE",
           }),
         });
@@ -110,7 +106,6 @@ export default function ViralRadarPage() {
         }
 
         setLivePosts(data.items || []);
-        setFilteredZeroCount(data.filteredOutZeroCount || 0);
         setHasSearchedOnce(true);
 
         if (data.accountName) {
@@ -123,7 +118,7 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted, filterZeroEngagement]
+    [searchKeyword, activeAccount?.id, datePosted]
   );
 
   // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
@@ -191,30 +186,6 @@ export default function ViralRadarPage() {
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="Radar Viral (Top Posts de LinkedIn)" />
 
-      {/* Banner Explicativo de Viralidad B2B & Social Selling */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-brand-500/10 via-purple-500/10 to-transparent border border-brand-500/20 dark:from-brand-500/5 dark:via-purple-500/5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-md">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-              Métricas Públicas de LinkedIn & Algoritmo de Tracción Real
-            </h4>
-            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
-              LinkedIn únicamente expone de forma pública tres métricas en las publicaciones: <strong>Reacciones / Likes (x1)</strong>, <strong>Comentarios (x3.5)</strong> y <strong>Compartidos / Reposts (x5)</strong> (las visualizaciones son privadas del autor). Ponderamos estas tres métricas y descartamos publicaciones con 0 interacciones para garantizar que solo modelos contenido con tracción real.
-            </p>
-          </div>
-        </div>
-
-        {filteredZeroCount > 0 && viewMode === "live" && (
-          <div className="shrink-0 rounded-xl bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-            🛡️ {filteredZeroCount} posts de 0 interacciones descartados
-          </div>
-        )}
-      </div>
 
       {/* Selector Principal de Modo: Live LinkedIn vs Plantillas Maestras */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
@@ -357,8 +328,8 @@ export default function ViralRadarPage() {
                 ))}
               </div>
 
-              {/* Controles Avanzados de Búsqueda: Temporalidad & Anti-Cero */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+              {/* Controles de Búsqueda: Temporalidad */}
+              <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
                   <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
@@ -386,22 +357,6 @@ export default function ViralRadarPage() {
                     ))}
                   </div>
                 </div>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={filterZeroEngagement}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setFilterZeroEngagement(val);
-                      handleLiveSearch(searchKeyword, undefined, undefined, val);
-                    }}
-                    className="rounded border-gray-300 text-brand-500 focus:ring-brand-500 h-3.5 w-3.5"
-                  />
-                  <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">
-                    Ocultar publicaciones con 0 likes/comentarios
-                  </span>
-                </label>
               </div>
             </div>
           ) : (
@@ -546,7 +501,7 @@ export default function ViralRadarPage() {
                     onClick={() => {
                       setViralityTierFilter("all");
                       setDatePosted("PAST_MONTH");
-                      handleLiveSearch(searchKeyword, undefined, "PAST_MONTH", false);
+                      handleLiveSearch(searchKeyword, undefined, "PAST_MONTH");
                     }}
                     className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                   >
