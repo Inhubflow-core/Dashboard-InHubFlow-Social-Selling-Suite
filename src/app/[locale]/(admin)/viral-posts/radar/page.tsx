@@ -199,10 +199,10 @@ export default function ViralRadarPage() {
           </div>
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-              Algoritmo de Viralidad & Tracción Real
+              Métricas Públicas de LinkedIn & Algoritmo de Tracción Real
             </h4>
             <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
-              Un post viral es aquel con impacto y conversación comprobada. Ponderamos <strong>Likes (x1)</strong>, <strong>Comentarios (x3.5)</strong> y <strong>Reposts (x5)</strong>, descartando publicaciones con 0 interacciones para que formules ganchos ganadores.
+              LinkedIn únicamente expone de forma pública tres métricas en las publicaciones: <strong>Reacciones / Likes (x1)</strong>, <strong>Comentarios (x3.5)</strong> y <strong>Compartidos / Reposts (x5)</strong> (las visualizaciones son privadas del autor). Ponderamos estas tres métricas y descartamos publicaciones con 0 interacciones para garantizar que solo modelos contenido con tracción real.
             </p>
           </div>
         </div>
@@ -626,10 +626,10 @@ export default function ViralRadarPage() {
                     <p className="italic leading-relaxed line-clamp-3">{post.hook}</p>
                   </div>
 
-                  {/* Métricas: Likes, Comentarios (Destacados), Reposts */}
+                  {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-100 py-2.5 text-center dark:border-gray-800">
                     <div>
-                      <span className="block text-[10px] text-gray-400 uppercase font-medium">Likes</span>
+                      <span className="block text-[10px] text-gray-400 uppercase font-medium">👍 Likes</span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.likes.toLocaleString()}
                       </span>
@@ -644,10 +644,10 @@ export default function ViralRadarPage() {
                     </div>
                     <div>
                       <span className="block text-[10px] text-gray-400 uppercase font-medium">
-                        {post.isLive ? "Reposts" : "Ratio"}
+                        🔁 Reposts
                       </span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
-                        {post.isLive ? post.shares.toLocaleString() : post.engagementRatio}
+                        {post.shares.toLocaleString()}
                       </span>
                     </div>
                   </div>
