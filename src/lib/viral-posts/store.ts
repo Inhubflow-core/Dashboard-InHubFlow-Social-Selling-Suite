@@ -27,11 +27,17 @@ function enrichTemplateWithVirality(t: ViralPostTemplate): ViralPostTemplate {
     viralityBadge = "⭐ En Tendencia";
   }
 
+  const baseTemplate = initialViralTemplates.find((x) => x.id === t.id);
+  const mediaUrl = t.mediaUrl || baseTemplate?.mediaUrl;
+  const hasMedia = Boolean(t.hasMedia || mediaUrl || t.format === "image" || t.format === "carousel");
+
   return {
     ...t,
     viralityScore,
     viralityTier,
     viralityBadge,
+    mediaUrl,
+    hasMedia,
   };
 }
 

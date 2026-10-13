@@ -112,14 +112,56 @@ export async function POST(req: Request) {
       const lines = text.split("\n").map((l: string) => l.trim()).filter(Boolean);
       const hook = lines[0] || "Publicación destacada en LinkedIn";
 
+      // Extraer imagen o adjunto multimedia si existe
+      let mediaUrl: string | null = null;
+      if (Array.isArray(item.attachments) && item.attachments.length > 0) {
+        for (const att of item.attachments) {
+          if (typeof att === "string" && att.startsWith("http")) {
+            mediaUrl = att;
+            break;
+          } else if (att && typeof att === "object") {
+            const found =
+              att.url ||
+              att.preview_url ||
+              att.image_url ||
+              att.media_url ||
+              att.thumbnail_url ||
+              att.file_url ||
+              att.picture_url ||
+              att.src ||
+              null;
+            if (found && typeof found === "string" && found.startsWith("http")) {
+              mediaUrl = found;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!mediaUrl) {
+        const directMedia =
+          item.image_url ||
+          item.media_url ||
+          item.thumbnail_url ||
+          item.article?.thumbnail_url ||
+          item.article?.image_url ||
+          item.media?.url ||
+          null;
+        if (directMedia && typeof directMedia === "string" && directMedia.startsWith("http")) {
+          mediaUrl = directMedia;
+        }
+      }
+
       // Detectar formato
       const lower = text.toLowerCase();
       let format: "text" | "image" | "carousel" = "text";
       if (lower.includes("desliza") || lower.includes("carrusel") || lower.includes("slide") || lower.includes("pdf")) {
         format = "carousel";
-      } else if (item.attachments?.length > 0 || lower.includes("imagen") || lower.includes("infografía") || lower.includes("foto")) {
+      } else if (mediaUrl || item.attachments?.length > 0 || lower.includes("imagen") || lower.includes("infografía") || lower.includes("foto")) {
         format = "image";
       }
+
+      const hasMedia = Boolean(mediaUrl || (item.attachments && item.attachments.length > 0) || format === "image" || format === "carousel");
 
       const likes = item.reaction_counter ?? 0;
       const comments = item.comment_counter ?? 0;
@@ -173,6 +215,8 @@ export async function POST(req: Request) {
         viralityScore,
         viralityBadge,
         viralityTier,
+        mediaUrl: mediaUrl || undefined,
+        hasMedia,
         socialId: item.social_id || null,
         linkedinUrl: item.social_id ? `https://www.linkedin.com/feed/update/${item.social_id}` : null,
         isLive: true,

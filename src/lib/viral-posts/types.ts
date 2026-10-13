@@ -34,6 +34,8 @@ export interface ViralPostTemplate {
   viralityScore?: number;
   viralityBadge?: string;
   viralityTier?: "mega" | "high" | "discussed" | "growing" | "emerging";
+  mediaUrl?: string;
+  hasMedia?: boolean;
 }
 
 export interface CreatedPost {
