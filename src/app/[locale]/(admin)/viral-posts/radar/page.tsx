@@ -6,11 +6,13 @@ import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { getStoredViralTemplates, setSelectedTemplateForModeling } from "@/lib/viral-posts/store";
 import type { PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function ViralRadarPage() {
   const router = useRouter();
+  const locale = useLocale();
   const masterTemplates = useMemo(() => getStoredViralTemplates(), []);
 
   // Cuentas de LinkedIn
@@ -32,10 +34,15 @@ export default function ViralRadarPage() {
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
   const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "trending">("all");
 
-  // Filtros generales
+  // Filtros generales y Modal
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
   const [filterTerm, setFilterTerm] = useState("");
   const [selectedPostForModal, setSelectedPostForModal] = useState<ViralPostTemplate | null>(null);
+
+  // Estados de Traducción de la Publicación (estilo LinkedIn)
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
+  const [isShowingTranslation, setIsShowingTranslation] = useState(false);
 
   // Cargar cuentas en vivo desde la API de Unipile
   useEffect(() => {
@@ -185,6 +192,54 @@ export default function ViralRadarPage() {
         return "Texto + Video";
       case "carousel":
         return "Carrusel";
+    }
+  };
+
+  const handleOpenPostModal = (post: ViralPostTemplate) => {
+    setSelectedPostForModal(post);
+    setTranslatedContent(null);
+    setIsShowingTranslation(false);
+  };
+
+  const handleClosePostModal = () => {
+    setSelectedPostForModal(null);
+    setTranslatedContent(null);
+    setIsShowingTranslation(false);
+  };
+
+  const handleToggleTranslation = async () => {
+    if (!selectedPostForModal) return;
+
+    if (isShowingTranslation) {
+      setIsShowingTranslation(false);
+      return;
+    }
+
+    if (translatedContent) {
+      setIsShowingTranslation(true);
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const res = await fetch("/api/ai/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: selectedPostForModal.fullContent,
+          targetLanguage: locale || "es",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.translatedText) {
+        setTranslatedContent(data.translatedText);
+        setIsShowingTranslation(true);
+      }
+    } catch (err) {
+      console.warn("[Translate Error]:", err);
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -719,7 +774,7 @@ export default function ViralRadarPage() {
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                   <button
                     type="button"
-                    onClick={() => setSelectedPostForModal(post)}
+                    onClick={() => handleOpenPostModal(post)}
                     className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
                   >
                     Lectura Completa
@@ -774,7 +829,7 @@ export default function ViralRadarPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedPostForModal(null)}
+                onClick={handleClosePostModal}
                 className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition shrink-0"
               >
                 ✕ Cerrar
@@ -833,8 +888,60 @@ export default function ViralRadarPage() {
               </div>
 
               {/* Texto de la Publicación (Primero el Texto, formato natural de LinkedIn) */}
-              <div className="px-4 pb-3 text-[14px] leading-relaxed text-gray-900 dark:text-gray-100 font-sans whitespace-pre-wrap select-text">
-                {selectedPostForModal.fullContent}
+              <div className="px-4 pb-3">
+                <div className="text-[14px] leading-relaxed text-gray-900 dark:text-gray-100 font-sans whitespace-pre-wrap select-text">
+                  {isShowingTranslation && translatedContent ? translatedContent : selectedPostForModal.fullContent}
+                </div>
+
+                {/* Enlace de Traducción interactivo estilo LinkedIn ("Traducir" / "Ver original") */}
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isTranslating}
+                    onClick={handleToggleTranslation}
+                    className="text-xs font-semibold text-[#0a66c2] hover:underline cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <span className="h-3 w-3 border-2 border-[#0a66c2]/40 border-t-[#0a66c2] rounded-full animate-spin"></span>
+                        <span>
+                          {locale === "pt-BR"
+                            ? "Traduzindo..."
+                            : locale === "en"
+                            ? "Translating..."
+                            : "Traduciendo..."}
+                        </span>
+                      </>
+                    ) : isShowingTranslation ? (
+                      <span>
+                        {locale === "pt-BR"
+                          ? "Ver original"
+                          : locale === "en"
+                          ? "See original"
+                          : "Ver original"}
+                      </span>
+                    ) : (
+                      <span>
+                        {locale === "pt-BR"
+                          ? "Traduzir"
+                          : locale === "en"
+                          ? "Translate"
+                          : "Traducir"}
+                      </span>
+                    )}
+                  </button>
+
+                  {isShowingTranslation && (
+                    <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                      •{" "}
+                      {locale === "pt-BR"
+                        ? "Traduzido para português"
+                        : locale === "en"
+                        ? "Translated to English"
+                        : "Traducido al español"}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Recurso Visual (Imagen o Carrusel - Justo debajo del Texto) */}
@@ -956,7 +1063,7 @@ export default function ViralRadarPage() {
             <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
               <button
                 type="button"
-                onClick={() => setSelectedPostForModal(null)}
+                onClick={handleClosePostModal}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
               >
                 Regresar
@@ -964,7 +1071,11 @@ export default function ViralRadarPage() {
               <button
                 type="button"
                 onClick={() => {
-                  handleModelWithAi(selectedPostForModal);
+                  const contentToModel =
+                    isShowingTranslation && translatedContent
+                      ? { ...selectedPostForModal, fullContent: translatedContent }
+                      : selectedPostForModal;
+                  handleModelWithAi(contentToModel);
                 }}
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
               >
