@@ -28,7 +28,13 @@ export default function ViralRadarPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasSearchedOnce, setHasSearchedOnce] = useState(false);
 
-  // Filtros
+  // Filtros de Viralidad y Temporalidad
+  const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
+  const [filterZeroEngagement, setFilterZeroEngagement] = useState<boolean>(true);
+  const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "discussed">("all");
+  const [filteredZeroCount, setFilteredZeroCount] = useState<number>(0);
+
+  // Filtros generales
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
   const [filterTerm, setFilterTerm] = useState("");
   const [selectedPostForModal, setSelectedPostForModal] = useState<ViralPostTemplate | null>(null);
@@ -41,7 +47,7 @@ export default function ViralRadarPage() {
         const liveItems = data.items || [];
         if (liveItems.length > 0) {
           setAvailableAccounts(liveItems);
-          // Priorizar cuenta con estado OK (como Linn Martinson)
+          // Priorizar cuenta con estado OK (como Linn Martinson o RobertoOrSe)
           const healthy = liveItems.find(
             (a: any) =>
               a.status === "OK" ||
@@ -65,13 +71,20 @@ export default function ViralRadarPage() {
       });
   }, []);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile con algoritmo de viralidad
   const handleLiveSearch = useCallback(
-    async (keywordToSearch?: string, accountIdOverride?: string) => {
+    async (
+      keywordToSearch?: string,
+      accountIdOverride?: string,
+      dateOverride?: string,
+      filterZeroOverride?: boolean
+    ) => {
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
 
       const targetId = accountIdOverride || activeAccount?.id;
+      const targetDate = dateOverride || datePosted;
+      const targetFilterZero = filterZeroOverride !== undefined ? filterZeroOverride : filterZeroEngagement;
 
       setIsSearchingLive(true);
       setSearchError(null);
@@ -83,7 +96,10 @@ export default function ViralRadarPage() {
           body: JSON.stringify({
             keywords: kw,
             account_id: targetId,
-            limit: 12,
+            limit: 35,
+            date_posted: targetDate,
+            filter_zero: targetFilterZero,
+            sort_by: "RELEVANCE",
           }),
         });
 
@@ -94,6 +110,7 @@ export default function ViralRadarPage() {
         }
 
         setLivePosts(data.items || []);
+        setFilteredZeroCount(data.filteredOutZeroCount || 0);
         setHasSearchedOnce(true);
 
         if (data.accountName) {
@@ -106,7 +123,7 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id]
+    [searchKeyword, activeAccount?.id, datePosted, filterZeroEngagement]
   );
 
   // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
@@ -119,7 +136,7 @@ export default function ViralRadarPage() {
   // Publicaciones según el modo activo
   const currentPostsPool = viewMode === "live" ? livePosts : masterTemplates;
 
-  // Filtrado reactivo por formato y término secundario
+  // Filtrado reactivo por formato, tier de viralidad y término secundario
   const filteredPosts = useMemo(() => {
     return currentPostsPool.filter((post) => {
       const matchesFilter =
@@ -131,9 +148,15 @@ export default function ViralRadarPage() {
 
       const matchesFormat = selectedFormat === "all" || post.format === selectedFormat;
 
-      return matchesFilter && matchesFormat;
+      const matchesTier =
+        viralityTierFilter === "all" ||
+        (viralityTierFilter === "mega" && (post.viralityTier === "mega" || (post.viralityScore ?? 0) >= 100)) ||
+        (viralityTierFilter === "high" && (post.viralityTier === "high" || post.viralityTier === "mega" || (post.viralityScore ?? 0) >= 35)) ||
+        (viralityTierFilter === "discussed" && (post.viralityTier === "discussed" || post.comments >= 8));
+
+      return matchesFilter && matchesFormat && matchesTier;
     });
-  }, [currentPostsPool, filterTerm, selectedFormat]);
+  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter]);
 
   const handleModelWithAi = (post: ViralPostTemplate) => {
     setSelectedTemplateForModeling(post);
@@ -166,6 +189,31 @@ export default function ViralRadarPage() {
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="Radar Viral (Top Posts de LinkedIn)" />
 
+      {/* Banner Explicativo de Viralidad B2B & Social Selling */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-brand-500/10 via-purple-500/10 to-transparent border border-brand-500/20 dark:from-brand-500/5 dark:via-purple-500/5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-md">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+              Algoritmo de Viralidad & Tracción Real
+            </h4>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
+              Un post viral es aquel con impacto y conversación comprobada. Ponderamos <strong>Likes (x1)</strong>, <strong>Comentarios (x3.5)</strong> y <strong>Reposts (x5)</strong>, descartando publicaciones con 0 interacciones para que formules ganchos ganadores.
+            </p>
+          </div>
+        </div>
+
+        {filteredZeroCount > 0 && viewMode === "live" && (
+          <div className="shrink-0 rounded-xl bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            🛡️ {filteredZeroCount} posts de 0 interacciones descartados
+          </div>
+        )}
+      </div>
+
       {/* Selector Principal de Modo: Live LinkedIn vs Plantillas Maestras */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
         <div>
@@ -174,7 +222,7 @@ export default function ViralRadarPage() {
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
-              ? "Búsqueda en tiempo real de publicaciones virales en LinkedIn para modelar ganchos y generar tracción."
+              ? "Búsqueda en tiempo real de publicaciones virales en LinkedIn ordenadas estrictamente por repercusión y debate."
               : "12 estructuras maestras de copywriting probadas (Carruseles, Ganchos y Prompts Visuales)."}
           </p>
         </div>
@@ -206,7 +254,7 @@ export default function ViralRadarPage() {
         </div>
       </div>
 
-      {/* Panel de Control de Búsqueda */}
+      {/* Panel de Control de Búsqueda y Parámetros */}
       <ComponentCard
         title={viewMode === "live" ? "Radar en Vivo en la Red de LinkedIn" : "Buscador de Plantillas Virales"}
         desc={
@@ -306,6 +354,53 @@ export default function ViralRadarPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Controles Avanzados de Búsqueda: Temporalidad & Anti-Cero */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
+                  <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
+                    {[
+                      { id: "PAST_MONTH", label: "Último Mes (Recomendado)" },
+                      { id: "PAST_WEEK", label: "Última Semana" },
+                      { id: "PAST_24H", label: "24h" },
+                      { id: "ANY", label: "Todo" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setDatePosted(opt.id as any);
+                          handleLiveSearch(searchKeyword, undefined, opt.id);
+                        }}
+                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
+                          datePosted === opt.id
+                            ? "bg-white text-brand-600 font-bold shadow-xs dark:bg-gray-800 dark:text-brand-400"
+                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={filterZeroEngagement}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      setFilterZeroEngagement(val);
+                      handleLiveSearch(searchKeyword, undefined, undefined, val);
+                    }}
+                    className="rounded border-gray-300 text-brand-500 focus:ring-brand-500 h-3.5 w-3.5"
+                  />
+                  <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">
+                    Ocultar publicaciones con 0 likes/comentarios
+                  </span>
+                </label>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -328,30 +423,59 @@ export default function ViralRadarPage() {
             </div>
           )}
 
-          {/* Filtro por Formato */}
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2">
-              Filtrar por Formato:
-            </span>
-            {[
-              { id: "all", label: `Todos (${filteredPosts.length})` },
-              { id: "text", label: "Solo Texto" },
-              { id: "image", label: "Texto + Imagen" },
-              { id: "carousel", label: "Carrusel PDF" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setSelectedFormat(f.id as "all" | PostFormat)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  selectedFormat === f.id
-                    ? "bg-brand-500 text-white"
-                    : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+          {/* Filtros por Nivel de Viralidad y Formato */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+            {/* Nivel de Viralidad */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">
+                Nivel de Viralidad:
+              </span>
+              {[
+                { id: "all", label: "Todos con Tracción" },
+                { id: "mega", label: "🚀 Solo Mega Virales (100+)" },
+                { id: "high", label: "🔥 Alta Tracción (35+)" },
+                { id: "discussed", label: "💬 Gran Debate (8+ comentarios)" },
+              ].map((tier) => (
+                <button
+                  key={tier.id}
+                  type="button"
+                  onClick={() => setViralityTierFilter(tier.id as any)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                    viralityTierFilter === tier.id
+                      ? "bg-brand-500 text-white shadow-xs"
+                      : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                  }`}
+                >
+                  {tier.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Formato */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">
+                Formato:
+              </span>
+              {[
+                { id: "all", label: `Todos (${filteredPosts.length})` },
+                { id: "text", label: "Solo Texto" },
+                { id: "image", label: "Texto + Imagen" },
+                { id: "carousel", label: "Carrusel PDF" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setSelectedFormat(f.id as "all" | PostFormat)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                    selectedFormat === f.id
+                      ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                      : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {searchError && (
@@ -383,12 +507,12 @@ export default function ViralRadarPage() {
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
             {viewMode === "live"
-              ? `Publicaciones Reales en LinkedIn (${filteredPosts.length} encontradas)`
+              ? `Publicaciones Reales en LinkedIn (${filteredPosts.length} virales encontradas)`
               : `Plantillas Maestras Disponibles (${filteredPosts.length})`}
           </h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
-              ? `Palabra clave: "${searchKeyword}"`
+              ? `Palabra clave: "${searchKeyword}" • Ordenado por Score de Impacto`
               : "Ordenadas por Ratio de Interacción probado"}
           </span>
         </div>
@@ -400,26 +524,39 @@ export default function ViralRadarPage() {
               Escaneando publicaciones en vivo en LinkedIn...
             </p>
             <p className="text-xs text-gray-400">
-              Consultando la red mediante Unipile con la cuenta {currentDisplayName}.
+              Filtrando publicaciones sin tracción y calculando score viral con la cuenta {currentDisplayName}.
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="py-16 text-center space-y-3 bg-white rounded-2xl border border-gray-200 dark:bg-gray-900 dark:border-gray-800 p-6">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              No se encontraron publicaciones para los filtros aplicados.
+              No se encontraron publicaciones virales para los filtros aplicados.
             </p>
             {viewMode === "live" && (
               <div className="space-y-2">
                 <p className="text-xs text-gray-400">
-                  Prueba buscando otra palabra clave o explora las 12 plantillas maestras virales.
+                  Prueba buscando otra palabra clave, ampliando la ventana temporal o explora las 12 plantillas maestras virales.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("templates")}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white"
-                >
-                  Abrir Plantillas Maestras
-                </button>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViralityTierFilter("all");
+                      setDatePosted("PAST_MONTH");
+                      handleLiveSearch(searchKeyword, undefined, "PAST_MONTH", false);
+                    }}
+                    className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                  >
+                    Mostrar Todo (Sin filtros)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("templates")}
+                    className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white"
+                  >
+                    Abrir Plantillas Maestras
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -431,7 +568,8 @@ export default function ViralRadarPage() {
                 className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500/60 transition dark:border-gray-800 dark:bg-gray-900/60"
               >
                 <div>
-                  <div className="mb-3 flex items-start justify-between gap-2">
+                  {/* Encabezado: Autor y Badges */}
+                  <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="pr-2">
                       <div className="flex items-center gap-1.5">
                         <h4 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">
@@ -450,11 +588,37 @@ export default function ViralRadarPage() {
                         {post.publishedDate} • {post.topic}
                       </span>
                     </div>
+
                     <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-600 dark:bg-brand-950 dark:text-brand-300 shrink-0">
                       {getFormatLabel(post.format)}
                     </span>
                   </div>
 
+                  {/* Fila de Viralidad: Badge & Score */}
+                  <div className="mb-3 flex items-center justify-between gap-1 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          post.viralityTier === "mega"
+                            ? "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
+                            : post.viralityTier === "high"
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
+                            : post.viralityTier === "discussed"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                        }`}
+                      >
+                        {post.viralityBadge || "🔥 Alta Tracción"}
+                      </span>
+                      {post.viralityScore !== undefined && (
+                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          Score: {post.viralityScore} pts
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Gancho Principal (Hook) */}
                   <div className="mb-4 rounded-xl bg-gray-50 p-3 text-xs text-gray-700 dark:bg-white/3 dark:text-gray-300">
                     <p className="font-semibold text-gray-900 dark:text-white mb-1">
                       Gancho Principal (Hook):
@@ -462,24 +626,27 @@ export default function ViralRadarPage() {
                     <p className="italic leading-relaxed line-clamp-3">{post.hook}</p>
                   </div>
 
+                  {/* Métricas: Likes, Comentarios (Destacados), Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-100 py-2.5 text-center dark:border-gray-800">
                     <div>
-                      <span className="block text-[10px] text-gray-400 uppercase">Likes</span>
+                      <span className="block text-[10px] text-gray-400 uppercase font-medium">Likes</span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.likes.toLocaleString()}
                       </span>
                     </div>
-                    <div>
-                      <span className="block text-[10px] text-gray-400 uppercase">Comentarios</span>
-                      <span className="text-xs font-bold text-gray-800 dark:text-white">
+                    <div className="rounded-lg bg-brand-50/50 py-0.5 dark:bg-brand-950/20">
+                      <span className="block text-[10px] text-brand-600 dark:text-brand-400 uppercase font-bold">
+                        💬 Comentarios
+                      </span>
+                      <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
                         {post.comments.toLocaleString()}
                       </span>
                     </div>
                     <div>
-                      <span className="block text-[10px] text-gray-400 uppercase">
+                      <span className="block text-[10px] text-gray-400 uppercase font-medium">
                         {post.isLive ? "Reposts" : "Ratio"}
                       </span>
-                      <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
+                      <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.isLive ? post.shares.toLocaleString() : post.engagementRatio}
                       </span>
                     </div>
@@ -514,10 +681,20 @@ export default function ViralRadarPage() {
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950 dark:text-brand-300">
                     {getFormatLabel(selectedPostForModal.format)}
                   </span>
+                  {selectedPostForModal.viralityBadge && (
+                    <span className="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/80 dark:text-purple-300">
+                      {selectedPostForModal.viralityBadge}
+                    </span>
+                  )}
+                  {selectedPostForModal.viralityScore !== undefined && (
+                    <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      Score: {selectedPostForModal.viralityScore} pts
+                    </span>
+                  )}
                   {selectedPostForModal.isLive && (
                     <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
                       LinkedIn en Vivo
@@ -541,6 +718,21 @@ export default function ViralRadarPage() {
             </div>
 
             <div className="my-5 space-y-4">
+              <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40 text-center text-xs">
+                <div>
+                  <span className="text-[10px] text-gray-400 uppercase block">Likes</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.likes.toLocaleString()}</span>
+                </div>
+                <div className="font-bold text-brand-600 dark:text-brand-400">
+                  <span className="text-[10px] text-brand-600 dark:text-brand-400 uppercase block">Comentarios</span>
+                  <span>{selectedPostForModal.comments.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-400 uppercase block">Reposts</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.shares.toLocaleString()}</span>
+                </div>
+              </div>
+
               <div className="rounded-xl bg-gray-50 p-4 text-xs font-mono text-gray-800 leading-relaxed whitespace-pre-wrap dark:bg-gray-800/50 dark:text-gray-200">
                 {selectedPostForModal.fullContent}
               </div>

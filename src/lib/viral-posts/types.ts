@@ -31,6 +31,9 @@ export interface ViralPostTemplate {
   socialId?: string;
   linkedinUrl?: string;
   publicIdentifier?: string;
+  viralityScore?: number;
+  viralityBadge?: string;
+  viralityTier?: "mega" | "high" | "discussed" | "growing" | "emerging";
 }
 
 export interface CreatedPost {

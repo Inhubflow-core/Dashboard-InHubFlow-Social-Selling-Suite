@@ -8,17 +8,46 @@ const TEMPLATES_KEY = "inhubflow_viral_templates";
 const CREATED_POSTS_KEY = "inhubflow_created_posts";
 const SELECTED_FOR_MODELING_KEY = "inhubflow_modeling_template";
 
+function enrichTemplateWithVirality(t: ViralPostTemplate): ViralPostTemplate {
+  const viralityScore = t.viralityScore ?? Math.round((t.likes * 1) + (t.comments * 3.5) + (t.shares * 5));
+  let viralityTier: "mega" | "high" | "discussed" | "growing" | "emerging" = t.viralityTier || "emerging";
+  let viralityBadge = t.viralityBadge || "📈 En Crecimiento";
+
+  if (viralityScore >= 100 || (t.likes >= 50 && t.comments >= 15)) {
+    viralityTier = "mega";
+    viralityBadge = "🚀 Mega Viral";
+  } else if (viralityScore >= 35 || (t.likes >= 20 && t.comments >= 5)) {
+    viralityTier = "high";
+    viralityBadge = "🔥 Alta Tracción";
+  } else if (t.comments >= 8) {
+    viralityTier = "discussed";
+    viralityBadge = "💬 Gran Debate";
+  } else if (viralityScore >= 10 || (t.likes + t.comments + t.shares) >= 4) {
+    viralityTier = "growing";
+    viralityBadge = "⭐ En Tendencia";
+  }
+
+  return {
+    ...t,
+    viralityScore,
+    viralityTier,
+    viralityBadge,
+  };
+}
+
 export function getStoredViralTemplates(): ViralPostTemplate[] {
-  if (typeof window === "undefined") return initialViralTemplates;
+  if (typeof window === "undefined") return initialViralTemplates.map(enrichTemplateWithVirality);
   try {
     const raw = localStorage.getItem(TEMPLATES_KEY);
     if (!raw) {
-      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(initialViralTemplates));
-      return initialViralTemplates;
+      const enriched = initialViralTemplates.map(enrichTemplateWithVirality);
+      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(enriched));
+      return enriched;
     }
-    return JSON.parse(raw);
+    const parsed: ViralPostTemplate[] = JSON.parse(raw);
+    return parsed.map(enrichTemplateWithVirality);
   } catch {
-    return initialViralTemplates;
+    return initialViralTemplates.map(enrichTemplateWithVirality);
   }
 }
 
