@@ -105,6 +105,18 @@ export async function POST(req: NextRequest) {
     const proxyConfig = parseProxyString(rawProxy);
     const userAgent = req.headers.get("user-agent") || undefined;
 
+    // Si el usuario seleccionó Automático (""), intentar resolver país real desde headers (Cloudflare, Vercel, etc.)
+    let resolvedCountry = country?.trim()?.toUpperCase() || undefined;
+    if (!resolvedCountry && !proxyConfig) {
+      const headerCountry =
+        req.headers.get("cf-ipcountry") ||
+        req.headers.get("x-vercel-ip-country") ||
+        req.headers.get("x-country-code");
+      if (headerCountry && headerCountry.length === 2 && headerCountry !== "XX") {
+        resolvedCountry = headerCountry.toUpperCase();
+      }
+    }
+
     const authRes = await unipile.startCredentialsAuth({
       name: name || undefined,
       ...(mode === "cookie"
@@ -117,7 +129,7 @@ export async function POST(req: NextRequest) {
             username: username.trim(),
             password,
           }),
-      ...(country?.trim() ? { country: country.trim().toUpperCase() } : {}),
+      ...(resolvedCountry ? { country: resolvedCountry } : {}),
       ...(proxyConfig ? { proxy: proxyConfig } : {}),
     });
 

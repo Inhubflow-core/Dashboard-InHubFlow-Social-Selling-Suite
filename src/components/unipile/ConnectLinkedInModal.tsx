@@ -109,7 +109,7 @@ export default function ConnectLinkedInModal({
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authCookieLiAt, setAuthCookieLiAt] = useState("");
   const [authCookieLiA, setAuthCookieLiA] = useState("");
-  const [authCountry, setAuthCountry] = useState("ES");
+  const [authCountry, setAuthCountry] = useState(""); // "" = Automático (Según tu IP)
   const [authCustomProxy, setAuthCustomProxy] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -157,7 +157,7 @@ export default function ConnectLinkedInModal({
       setShowAuthPassword(false);
       setAuthCookieLiAt("");
       setAuthCookieLiA("");
-      setAuthCountry("ES");
+      setAuthCountry(""); // Por defecto siempre Automático (Según tu IP)
       setAuthCustomProxy("");
       setAuthError(null);
       setCheckpointCode("");
@@ -751,6 +751,7 @@ export default function ConnectLinkedInModal({
                               disabled={authLoading}
                             >
                               <option value="">Automático (Según tu IP)</option>
+                              <option value="BR">Brasil (BR)</option>
                               <option value="ES">España (ES)</option>
                               <option value="US">Estados Unidos (US)</option>
                               <option value="MX">México (MX)</option>
@@ -758,11 +759,11 @@ export default function ConnectLinkedInModal({
                               <option value="AR">Argentina (AR)</option>
                               <option value="CL">Chile (CL)</option>
                               <option value="PE">Perú (PE)</option>
-                              <option value="BR">Brasil (BR)</option>
                               <option value="GB">Reino Unido (GB)</option>
                               <option value="FR">Francia (FR)</option>
                               <option value="DE">Alemania (DE)</option>
                               <option value="IT">Italia (IT)</option>
+                              <option value="PT">Portugal (PT)</option>
                             </select>
                           </div>
                           <div>
