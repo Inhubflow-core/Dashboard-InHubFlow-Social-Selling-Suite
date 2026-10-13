@@ -27,6 +27,10 @@ export default function PostsListPage() {
         return { label: "Texto + Imagen", color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
       case "carousel":
         return { label: "Carrusel PDF", color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
+      case "video":
+        return { label: "Video", color: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" };
+      default:
+        return { label: "Solo Texto", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
     }
   };
 

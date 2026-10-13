@@ -1,4 +1,4 @@
-export type PostFormat = "text" | "image" | "carousel";
+export type PostFormat = "text" | "image" | "carousel" | "video";
 export type PostStatus = "draft" | "scheduled" | "published" | "failed";
 
 export interface CarouselSlide {

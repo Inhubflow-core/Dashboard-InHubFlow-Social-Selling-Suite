@@ -152,16 +152,125 @@ export async function POST(req: Request) {
         }
       }
 
-      // Detectar formato
+      // Detectar formato técnico real (Carrusel / Imagen / Video / Solo Texto)
       const lower = text.toLowerCase();
-      let format: "text" | "image" | "carousel" = "text";
-      if (lower.includes("desliza") || lower.includes("carrusel") || lower.includes("slide") || lower.includes("pdf")) {
-        format = "carousel";
-      } else if (mediaUrl || item.attachments?.length > 0 || lower.includes("imagen") || lower.includes("infografía") || lower.includes("foto")) {
-        format = "image";
+      let format: "text" | "image" | "carousel" | "video" = "text";
+      let isCarousel = false;
+      let isVideo = false;
+      let isImage = false;
+
+      // A. Inspeccionar adjuntos de Unipile
+      const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+
+      // Si tiene múltiples adjuntos en LinkedIn -> Carrusel interactivo / Galería de slides
+      if (attachments.length > 1) {
+        isCarousel = true;
       }
 
-      const hasMedia = Boolean(mediaUrl || (item.attachments && item.attachments.length > 0) || format === "image" || format === "carousel");
+      // B. Inspeccionar tipos de adjunto y mimetypes de Unipile
+      for (const att of attachments) {
+        const attType = String(att?.type || "").toUpperCase();
+        const mime = String(att?.mimetype || att?.mime_type || "").toLowerCase();
+        const urlStr = String(att?.url || att?.file_url || "").toLowerCase();
+        const titleStr = String(att?.title || att?.name || "").toLowerCase();
+
+        // LinkedIn procesa los Carruseles nativamente como DOCUMENT (PDF o presentación de diapositivas)
+        if (
+          attType === "DOCUMENT" ||
+          attType === "CAROUSEL" ||
+          attType === "PRESENTATION" ||
+          mime.includes("pdf") ||
+          mime.includes("document") ||
+          mime.includes("presentation") ||
+          urlStr.endsWith(".pdf") ||
+          urlStr.includes("/pdf/") ||
+          titleStr.endsWith(".pdf") ||
+          titleStr.endsWith(".pptx") ||
+          titleStr.endsWith(".ppt") ||
+          (att?.page_count && Number(att.page_count) > 1) ||
+          (att?.pages && Number(att.pages) > 1)
+        ) {
+          isCarousel = true;
+          break;
+        }
+
+        // Detección de Video
+        if (
+          attType === "VIDEO" ||
+          mime.startsWith("video/") ||
+          urlStr.endsWith(".mp4") ||
+          urlStr.includes("/video/")
+        ) {
+          isVideo = true;
+        }
+
+        // Detección de Imagen
+        if (
+          attType === "IMAGE" ||
+          attType === "PHOTO" ||
+          mime.startsWith("image/") ||
+          att?.preview_url ||
+          att?.image_url
+        ) {
+          isImage = true;
+        }
+      }
+
+      // C. Inspeccionar propiedades directas en el objeto raíz de Unipile
+      const postType = String(item.post_type || item.media_type || item.type || "").toUpperCase();
+      if (
+        postType === "DOCUMENT" ||
+        postType === "CAROUSEL" ||
+        item.document ||
+        item.document_url ||
+        item.is_carousel ||
+        item.is_document
+      ) {
+        isCarousel = true;
+      } else if (postType === "VIDEO" || item.video_url || item.video) {
+        isVideo = true;
+      }
+
+      // D. Heurística lingüística multilingüe (Inglés, Español y Portugués)
+      // Los creadores de carruseles usan activadores para incitar a pasar diapositivas
+      const hasCarouselKeywords =
+        lower.includes("swipe") ||
+        lower.includes("carousel") ||
+        lower.includes("carrusel") ||
+        lower.includes("carrossel") ||
+        lower.includes("desliza") ||
+        lower.includes("deslize") ||
+        lower.includes("arraste") ||
+        lower.includes("slide") ||
+        lower.includes("slides") ||
+        lower.includes("diapositiva") ||
+        lower.includes("diapositivas") ||
+        lower.includes("pdf adjunto") ||
+        lower.includes("pdf below") ||
+        lower.includes("full pdf") ||
+        lower.includes("document below") ||
+        lower.includes("download the guide") ||
+        lower.includes("playbook");
+
+      if (hasCarouselKeywords && (attachments.length > 0 || mediaUrl || isImage)) {
+        isCarousel = true;
+      } else if (hasCarouselKeywords && !isCarousel && !isVideo) {
+        // Si no tiene adjunto extraído pero el texto es explícitamente un carrusel
+        isCarousel = true;
+      }
+
+      // E. Decisión final del Formato con jerarquía estricta
+      if (isCarousel) {
+        format = "carousel";
+      } else if (isVideo) {
+        format = "video";
+      } else if (isImage || mediaUrl || attachments.length > 0 || lower.includes("imagen") || lower.includes("infografía") || lower.includes("infographic") || lower.includes("photo")) {
+        format = "image";
+      } else {
+        format = "text";
+      }
+
+      const hasMedia = Boolean(mediaUrl || attachments.length > 0 || format !== "text");
 
       const likes = item.reaction_counter ?? 0;
       const comments = item.comment_counter ?? 0;

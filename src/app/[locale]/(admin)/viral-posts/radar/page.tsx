@@ -171,6 +171,8 @@ export default function ViralRadarPage() {
         return "Texto + Imagen";
       case "carousel":
         return "Carrusel PDF";
+      case "video":
+        return "Video";
     }
   };
 
@@ -458,9 +460,10 @@ export default function ViralRadarPage() {
               </span>
               {[
                 { id: "all", label: `Todos (${filteredPosts.length})` },
-                { id: "text", label: "Solo Texto" },
-                { id: "image", label: "Texto + Imagen" },
-                { id: "carousel", label: "Carrusel PDF" },
+                { id: "carousel", label: "📑 Carruseles PDF" },
+                { id: "image", label: "🖼️ Texto + Imagen" },
+                { id: "video", label: "🎬 Videos" },
+                { id: "text", label: "📝 Solo Texto" },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -468,7 +471,7 @@ export default function ViralRadarPage() {
                   onClick={() => setSelectedFormat(f.id as "all" | PostFormat)}
                   className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
                     selectedFormat === f.id
-                      ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                      ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-xs font-bold"
                       : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
                   }`}
                 >
@@ -589,7 +592,21 @@ export default function ViralRadarPage() {
                       </span>
                     </div>
 
-                    <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-600 dark:bg-brand-950 dark:text-brand-300 shrink-0">
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold shrink-0 border ${
+                        post.format === "carousel"
+                          ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800"
+                          : post.format === "video"
+                          ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800"
+                          : post.format === "image"
+                          ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800"
+                          : "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                      }`}
+                    >
+                      {post.format === "carousel" && "📑 "}
+                      {post.format === "image" && "🖼️ "}
+                      {post.format === "video" && "🎬 "}
+                      {post.format === "text" && "📝 "}
                       {getFormatLabel(post.format)}
                     </span>
                   </div>
