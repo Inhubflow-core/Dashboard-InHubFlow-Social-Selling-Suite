@@ -178,13 +178,13 @@ export default function ViralRadarPage() {
   const getFormatLabel = (fmt: PostFormat) => {
     switch (fmt) {
       case "text":
-        return "Solo Texto";
+        return "Texto";
       case "image":
         return "Texto + Imagen";
-      case "carousel":
-        return "Carrusel PDF";
       case "video":
-        return "Video";
+        return "Texto + Video";
+      case "carousel":
+        return "Carrusel";
     }
   };
 
@@ -432,10 +432,10 @@ export default function ViralRadarPage() {
               </span>
               {[
                 { id: "all", label: `Todos (${filteredPosts.length})` },
-                { id: "carousel", label: "📑 Carruseles PDF" },
-                { id: "image", label: "🖼️ Texto + Imagen" },
-                { id: "video", label: "🎬 Videos" },
-                { id: "text", label: "📝 Solo Texto" },
+                { id: "text", label: "Texto" },
+                { id: "image", label: "Texto + Imagen" },
+                { id: "video", label: "Texto + Video" },
+                { id: "carousel", label: "Carrusel" },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -576,10 +576,6 @@ export default function ViralRadarPage() {
                           : "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                       }`}
                     >
-                      {post.format === "carousel" && "📑 "}
-                      {post.format === "image" && "🖼️ "}
-                      {post.format === "video" && "🎬 "}
-                      {post.format === "text" && "📝 "}
                       {getFormatLabel(post.format)}
                     </span>
                   </div>
@@ -658,8 +654,8 @@ export default function ViralRadarPage() {
                         </div>
                         <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">
                           {post.format === "carousel"
-                            ? `Carrusel PDF (${post.carouselSlides?.length || "5"} slides)`
-                            : "Publicación con Imagen Visual"}
+                            ? `Carrusel (${post.carouselSlides?.length || "5"} diapositivas)`
+                            : "Publicación con Imagen"}
                         </span>
                         {post.imagePrompt && (
                           <span className="text-[9px] text-gray-400 line-clamp-1 mt-0.5 max-w-[90%]">
@@ -671,7 +667,7 @@ export default function ViralRadarPage() {
                       {/* Etiqueta flotante inferior para confirmar que tiene imagen o carrusel */}
                       <div className="absolute bottom-2 left-2 flex items-center gap-1.5 pointer-events-none">
                         <span className="inline-flex items-center gap-1 rounded-md bg-black/65 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white shadow-xs">
-                          {post.format === "carousel" ? "📑 Carrusel PDF" : "📷 Imagen adjunta"}
+                          {post.format === "carousel" ? "Carrusel" : "Imagen adjunta"}
                         </span>
                       </div>
                     </div>
