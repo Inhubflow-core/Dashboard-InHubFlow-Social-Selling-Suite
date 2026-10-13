@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  X,
-  Sliders,
-  ShieldCheck,
-  Clock,
-  UserCheck,
-  Send,
-  Eye,
-  CheckCircle2,
-  AlertTriangle,
-} from "lucide-react";
+import { X } from "lucide-react";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 
 interface ConfigureAccountLimitsModalProps {
@@ -19,6 +9,53 @@ interface ConfigureAccountLimitsModalProps {
   account: ConnectedLinkedInAccount | null;
   onClose: () => void;
   onSave: (updated: ConnectedLinkedInAccount) => void;
+}
+
+const TIMEZONES = [
+  { value: "Pacific/Midway", label: "UTC−11 — Midway Island" },
+  { value: "Pacific/Honolulu", label: "UTC−10 — Hawaii" },
+  { value: "America/Anchorage", label: "UTC−9  — Alaska" },
+  { value: "America/Los_Angeles", label: "UTC−8  — Pacific Time (US)" },
+  { value: "America/Denver", label: "UTC−7  — Mountain Time (US)" },
+  { value: "America/Chicago", label: "UTC−6  — Central Time (US)" },
+  { value: "America/New_York", label: "UTC−5  — Eastern Time (US)" },
+  { value: "America/Caracas", label: "UTC−4  — Caracas, La Paz" },
+  { value: "America/Sao_Paulo", label: "UTC−3  — São Paulo, Buenos Aires" },
+  { value: "America/Noronha", label: "UTC−2  — Mid-Atlantic" },
+  { value: "Atlantic/Azores", label: "UTC−1  — Azores" },
+  { value: "UTC", label: "UTC+0  — London (no DST)" },
+  { value: "Europe/London", label: "UTC+0/+1 — London (BST)" },
+  { value: "Europe/Madrid", label: "UTC+1/+2 — Madrid, París, Berlín" },
+  { value: "Europe/Helsinki", label: "UTC+2/+3 — Helsinki, Kyiv, Tallinn" },
+  { value: "Europe/Moscow", label: "UTC+3  — Moscow, Istanbul" },
+  { value: "Asia/Dubai", label: "UTC+4  — Dubai, Abu Dhabi" },
+  { value: "Asia/Karachi", label: "UTC+5  — Karachi, Islamabad" },
+  { value: "Asia/Kolkata", label: "UTC+5:30 — India" },
+  { value: "Asia/Dhaka", label: "UTC+6  — Dhaka, Almaty" },
+  { value: "Asia/Bangkok", label: "UTC+7  — Bangkok, Jakarta, Hanoi" },
+  { value: "Asia/Shanghai", label: "UTC+8  — Beijing, Singapore, HK" },
+  { value: "Asia/Tokyo", label: "UTC+9  — Tokyo, Seoul" },
+  { value: "Australia/Sydney", label: "UTC+10/+11 — Sydney" },
+  { value: "Pacific/Auckland", label: "UTC+12/+13 — Auckland" },
+];
+
+const WEEKDAYS = [
+  { iso: 1, short: "Lun" },
+  { iso: 2, short: "Mar" },
+  { iso: 3, short: "Mié" },
+  { iso: 4, short: "Jue" },
+  { iso: 5, short: "Vie" },
+  { iso: 6, short: "Sáb" },
+  { iso: 7, short: "Dom" },
+];
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+function fmtHour(h: number) {
+  if (h === 0) return "12 AM";
+  if (h < 12) return `${h} AM`;
+  if (h === 12) return "12 PM";
+  return `${h - 12} PM`;
 }
 
 export default function ConfigureAccountLimitsModal({
@@ -34,23 +71,22 @@ export default function ConfigureAccountLimitsModal({
   const [visitLimit, setVisitLimit] = useState(20);
   const [startHour, setStartHour] = useState(9);
   const [endHour, setEndHour] = useState(18);
-  const [timezone, setTimezone] = useState("Europe/Madrid");
+  const [timezone, setTimezone] = useState("America/Sao_Paulo");
   const [workingDays, setWorkingDays] = useState("1,2,3,4,5");
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (account) {
+    if (account && isOpen) {
       setName(account.name || "");
       setEmail(account.email || "");
-      setConnectionLimit(account.daily_connection_limit ?? 20);
-      setMessageLimit(account.daily_message_limit ?? 20);
-      setVisitLimit(account.daily_visit_limit ?? 20);
+      setConnectionLimit(Math.min(20, account.daily_connection_limit ?? 20));
+      setMessageLimit(Math.min(20, account.daily_message_limit ?? 20));
+      setVisitLimit(Math.min(20, account.daily_visit_limit ?? 20));
       setStartHour(account.active_hours_start ?? 9);
       setEndHour(account.active_hours_end ?? 18);
-      setTimezone(account.timezone || "Europe/Madrid");
+      setTimezone(account.timezone || "America/Sao_Paulo");
       setWorkingDays(account.working_days || "1,2,3,4,5");
-      setSavedSuccess(false);
+      setError(null);
     }
   }, [account, isOpen]);
 
@@ -58,15 +94,24 @@ export default function ConfigureAccountLimitsModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+
+    if (!name.trim() || !email.trim()) {
+      setError("Por favor ingresa un nombre y un correo de LinkedIn válido.");
+      return;
+    }
+
+    if (startHour >= endHour) {
+      setError("La hora de inicio debe ser anterior a la de fin en el horario de prospección.");
+      return;
+    }
 
     const updated: ConnectedLinkedInAccount = {
       ...account,
-      name: name.trim() || account.name,
-      email: email.trim() || account.email,
+      name: name.trim(),
+      email: email.trim(),
       daily_connection_limit: Math.min(20, Math.max(1, Number(connectionLimit))),
       daily_message_limit: Math.min(20, Math.max(1, Number(messageLimit))),
-      daily_visit_limit: Math.min(50, Math.max(1, Number(visitLimit))),
+      daily_visit_limit: Math.min(20, Math.max(0, Number(visitLimit))),
       active_hours_start: Number(startHour),
       active_hours_end: Number(endHour),
       timezone,
@@ -74,262 +119,254 @@ export default function ConfigureAccountLimitsModal({
     };
 
     onSave(updated);
-    setIsSaving(false);
-    setSavedSuccess(true);
-    setTimeout(() => {
-      onClose();
-    }, 800);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 sm:p-7 max-h-[90vh] overflow-y-auto my-8">
-        {/* Cabecera */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+      <div className="relative w-full max-w-xl rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
+        {/* Cabecera idéntica a #b2b */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
-              <Sliders className="size-5" />
+            <div className="w-9 h-9 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg select-none">
+              in
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
-                Límites y Seguridad de LinkedIn
+              <h3 className="font-bold text-base text-gray-900 dark:text-white leading-snug">
+                Editar Cuenta de LinkedIn
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Ajustes de pacing humano para {account.name}
+                Paso 1 de 2: Parámetros y límites de prospección
               </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            title="Cerrar"
           >
-            <X className="size-4" />
+            <X className="size-5" />
           </button>
         </div>
 
-        {/* Notificación de recomendación de LinkedIn */}
-        <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-blue-500/20 bg-blue-50/50 p-3.5 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-950/30 dark:text-blue-300">
-          <ShieldCheck className="size-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
-          <span>
-            <strong>Algoritmo de Seguridad B2B:</strong> El tope de seguridad recomendado para evitar alertas o bloqueos de LinkedIn es de <strong>máximo 20 solicitudes de conexión</strong> y <strong>20 mensajes directos al día</strong> con intervalos humanos aleatorios.
-          </span>
-        </div>
-
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          {/* Identificación */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* Formulario */}
+        <form onSubmit={handleSubmit}>
+          <div className="max-h-[520px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
+            {/* Nombre para mostrar */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
                 Nombre para mostrar
               </label>
               <input
                 type="text"
+                className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="Ej. Roberto Orse LinkedIn"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError(null);
+                }}
                 required
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 shadow-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-800 dark:bg-gray-800 dark:text-white"
               />
             </div>
+
+            {/* Correo de LinkedIn */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
                 Correo de LinkedIn
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 placeholder="tu-correo@linkedin.com"
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 shadow-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-800 dark:bg-gray-800 dark:text-white"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
+                required
               />
             </div>
-          </div>
 
-          {/* Límites Diarios */}
-          <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 dark:border-gray-800 dark:bg-gray-800/40 space-y-3.5">
-            <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-              Límites Diarios de Acciones (Tope Máx. 20)
-            </h4>
-
-            {/* Solicitudes de Conexión */}
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <UserCheck className="size-3.5 text-brand-500" />
-                  Solicitudes de Conexión / día:
-                </span>
-                <span className="font-bold text-brand-600 dark:text-brand-400">
-                  {connectionLimit} / 20 máx
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={connectionLimit}
-                  onChange={(e) => setConnectionLimit(Number(e.target.value))}
-                  className="w-full accent-[#0099ff]"
-                />
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={connectionLimit}
-                  onChange={(e) => setConnectionLimit(Math.min(20, Math.max(1, Number(e.target.value))))}
-                  className="w-16 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-xs font-bold dark:border-gray-700 dark:bg-gray-900"
-                />
-              </div>
-            </div>
-
-            {/* Mensajes Directos */}
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <Send className="size-3.5 text-blue-500" />
-                  Mensajes Directos (DMs) / día:
-                </span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">
-                  {messageLimit} / 20 máx
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={messageLimit}
-                  onChange={(e) => setMessageLimit(Number(e.target.value))}
-                  className="w-full accent-blue-500"
-                />
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={messageLimit}
-                  onChange={(e) => setMessageLimit(Math.min(20, Math.max(1, Number(e.target.value))))}
-                  className="w-16 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-xs font-bold dark:border-gray-700 dark:bg-gray-900"
-                />
-              </div>
-            </div>
-
-            {/* Visitas de Perfil */}
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <Eye className="size-3.5 text-indigo-500" />
-                  Visitas de Perfil / día:
-                </span>
-                <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                  {visitLimit} / 20 máx
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={visitLimit}
-                  onChange={(e) => setVisitLimit(Number(e.target.value))}
-                  className="w-full accent-indigo-500"
-                />
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={visitLimit}
-                  onChange={(e) => setVisitLimit(Math.min(20, Math.max(1, Number(e.target.value))))}
-                  className="w-16 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-xs font-bold dark:border-gray-700 dark:bg-gray-900"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Horario Comercial */}
-          <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 dark:border-gray-800 dark:bg-gray-800/40 space-y-3">
-            <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="size-3.5 text-gray-500" />
-              Ventana de Actividad Comercial
-            </h4>
-
-            <div className="grid grid-cols-2 gap-3">
+            {/* 3 Columnas de Límites Diarios (Máximo de seguridad 20) */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">
-                  Hora de inicio
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Conexiones/día
+                </label>
+                <input
+                  type="number"
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  value={connectionLimit}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setConnectionLimit(Math.min(20, Math.max(1, val)));
+                  }}
+                  min={1}
+                  max={20}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Mensajes/día
+                </label>
+                <input
+                  type="number"
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  value={messageLimit}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setMessageLimit(Math.min(20, Math.max(1, val)));
+                  }}
+                  min={1}
+                  max={20}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  InMail/día
+                </label>
+                <input
+                  type="number"
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  value={visitLimit}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setVisitLimit(Math.min(20, Math.max(0, val)));
+                  }}
+                  min={0}
+                  max={20}
+                />
+              </div>
+            </div>
+
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+              🔒 Límite de seguridad recomendado: Máximo 20 acciones/día para proteger tu perfil de LinkedIn.
+            </p>
+
+            {/* Sección Horario de Prospección */}
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
+              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                HORARIO DE PROSPECCIÓN
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                    Inicio
+                  </label>
+                  <select
+                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                    value={startHour}
+                    onChange={(e) => setStartHour(Number(e.target.value))}
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>
+                        {fmtHour(h)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                    Fin
+                  </label>
+                  <select
+                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                    value={endHour}
+                    onChange={(e) => setEndHour(Number(e.target.value))}
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>
+                        {fmtHour(h)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {startHour >= endHour ? (
+                <p className="text-xs text-red-500 font-medium">
+                  La hora de inicio debe ser anterior a la de fin
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {fmtHour(startHour)} – {fmtHour(endHour)} ({endHour - startHour}h activas)
+                </p>
+              )}
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Zona Horaria
                 </label>
                 <select
-                  value={startHour}
-                  onChange={(e) => setStartHour(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
                 >
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <option key={i} value={i}>
-                      {i.toString().padStart(2, "0")}:00
+                  {TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">
-                  Hora de finalización
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Días Laborales
                 </label>
-                <select
-                  value={endHour}
-                  onChange={(e) => setEndHour(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                >
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <option key={i} value={i}>
-                      {i.toString().padStart(2, "0")}:00
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-1.5">
+                  {WEEKDAYS.map((day) => {
+                    const active = workingDays.split(",").includes(String(day.iso));
+                    return (
+                      <button
+                        key={day.iso}
+                        type="button"
+                        onClick={() => {
+                          const current = workingDays.split(",").filter(Boolean);
+                          const next = active
+                            ? current.filter((d) => d !== String(day.iso))
+                            : [...current, String(day.iso)];
+                          if (next.length > 0) {
+                            setWorkingDays(next.sort().join(","));
+                          }
+                        }}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                          active
+                            ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
+                            : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                        }`}
+                      >
+                        {day.short}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-medium text-gray-500 mb-1">
-                Zona horaria
-              </label>
-              <select
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              >
-                <option value="Europe/Madrid">Europe/Madrid (CET / GMT+1)</option>
-                <option value="Europe/Berlin">Europe/Berlin (CET / GMT+1)</option>
-                <option value="America/Sao_Paulo">America/Sao_Paulo (BRT / GMT-3)</option>
-                <option value="America/Argentina/Buenos_Aires">America/Buenos_Aires (ART / GMT-3)</option>
-                <option value="America/Bogota">America/Bogota (COT / GMT-5)</option>
-                <option value="America/Mexico_City">America/Mexico_City (CST / GMT-6)</option>
-                <option value="America/New_York">America/New_York (EST / GMT-5)</option>
-                <option value="UTC">UTC Universal</option>
-              </select>
-            </div>
+            {error && (
+              <p className="text-xs text-red-500 font-medium">{error}</p>
+            )}
           </div>
 
-          {/* Acciones */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
             <button
               type="button"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
               onClick={onClose}
-              className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0088e6] disabled:opacity-50 transition"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-[#0066ff] hover:bg-[#0052cc] text-white transition-all shadow-md shadow-blue-500/20 cursor-pointer"
             >
-              {savedSuccess ? (
-                <>
-                  <CheckCircle2 className="size-3.5" />
-                  <span>¡Guardado!</span>
-                </>
-              ) : (
-                <span>Guardar Configuración</span>
-              )}
+              Guardar Cambios
             </button>
           </div>
         </form>
