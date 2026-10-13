@@ -26,9 +26,6 @@ import {
   RefreshCw,
   Server,
   Activity,
-  Send,
-  UserCheck,
-  Eye,
   CheckCircle2,
   AlertTriangle,
   Info,
@@ -213,14 +210,6 @@ export default function LinkedInAccountsPage() {
   }, [accounts, filterMode, currentUser]);
 
   const activeAccount = displayedAccounts.find((a: ConnectedLinkedInAccount) => a.id === activeId) || displayedAccounts[0];
-  const activeConnLimit = activeAccount?.daily_connection_limit || 20;
-  const activeMsgLimit = activeAccount?.daily_message_limit || 20;
-  const activeVisitLimit = activeAccount?.daily_visit_limit || 20;
-  const dailyActions = activeAccount?.dailyActionsCount || {
-    invitationsSent: 0,
-    messagesSent: 0,
-    profilesVisited: 0,
-  };
 
   return (
     <div className="space-y-6">
@@ -371,116 +360,7 @@ export default function LinkedInAccountsPage() {
         </div>
       </div>
 
-      {/* Pacing y Métricas del Día para la Cuenta Activa */}
-      {activeAccount && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Consumo Diario de Acciones (Pacing de Seguridad)
-                </h3>
-                <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-950/40 dark:text-brand-300">
-                  Tope Seguro: {activeConnLimit} / día
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Monitoreo en tiempo real de la cuenta activa: <strong>{activeAccount.name}</strong> ({activeAccount.email || "LinkedIn"})
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {!isTeamMember && (
-                <button
-                  type="button"
-                  onClick={() => handleOpenConfigureLimits(activeAccount)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 shadow-xs transition"
-                >
-                  <Sliders className="size-3.5 text-brand-500" />
-                  <span>Configurar Límites</span>
-                </button>
-              )}
-              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-gray-500">
-                <Activity className="size-3.5 text-green-500" />
-                Anti-restricciones activo
-              </span>
-            </div>
-          </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {/* Invitaciones */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800/80 dark:bg-gray-800/50">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <UserCheck className="size-3.5 text-brand-500" />
-                  Invitaciones
-                </span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {dailyActions.invitationsSent} / {activeConnLimit} al día
-                </span>
-              </div>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div
-                  className="h-full rounded-full bg-brand-500 transition-all duration-300"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (dailyActions.invitationsSent / activeConnLimit) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Mensajes Directos */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800/80 dark:bg-gray-800/50">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <Send className="size-3.5 text-blue-500" />
-                  Mensajes Directos
-                </span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {dailyActions.messagesSent} / {activeMsgLimit} al día
-                </span>
-              </div>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div
-                  className="h-full rounded-full bg-blue-500 transition-all duration-300"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (dailyActions.messagesSent / activeMsgLimit) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Visitas de Perfil */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800/80 dark:bg-gray-800/50">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <Eye className="size-3.5 text-indigo-500" />
-                  Visitas de Perfil
-                </span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {dailyActions.profilesVisited} / {activeVisitLimit} al día
-                </span>
-              </div>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div
-                  className="h-full rounded-full bg-indigo-500 transition-all duration-300"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (dailyActions.profilesVisited / activeVisitLimit) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Listado de Cuentas Conectadas */}
       <div className="space-y-4">
