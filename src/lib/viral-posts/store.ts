@@ -10,21 +10,18 @@ const SELECTED_FOR_MODELING_KEY = "inhubflow_modeling_template";
 
 function enrichTemplateWithVirality(t: ViralPostTemplate): ViralPostTemplate {
   const viralityScore = t.viralityScore ?? Math.round((t.likes * 1) + (t.comments * 3.5) + (t.shares * 5));
-  let viralityTier: "mega" | "high" | "discussed" | "growing" | "emerging" = t.viralityTier || "emerging";
-  let viralityBadge = t.viralityBadge || "📈 En Crecimiento";
+  let viralityTier: "mega" | "high" | "trending" = "trending";
+  let viralityBadge = "En Tendencia 🔥";
 
   if (viralityScore >= 100 || (t.likes >= 50 && t.comments >= 15)) {
     viralityTier = "mega";
-    viralityBadge = "🚀 Mega Viral";
-  } else if (viralityScore >= 35 || (t.likes >= 20 && t.comments >= 5)) {
+    viralityBadge = "Mega Viral 🔥🔥🔥";
+  } else if (viralityScore >= 35 || (t.likes >= 20 && t.comments >= 5) || t.comments >= 8) {
     viralityTier = "high";
-    viralityBadge = "🔥 Alta Tracción";
-  } else if (t.comments >= 8) {
-    viralityTier = "discussed";
-    viralityBadge = "💬 Gran Debate";
-  } else if (viralityScore >= 10 || (t.likes + t.comments + t.shares) >= 4) {
-    viralityTier = "growing";
-    viralityBadge = "⭐ En Tendencia";
+    viralityBadge = "Alta Tracción 🔥🔥";
+  } else {
+    viralityTier = "trending";
+    viralityBadge = "En Tendencia 🔥";
   }
 
   const baseTemplate = initialViralTemplates.find((x) => x.id === t.id);

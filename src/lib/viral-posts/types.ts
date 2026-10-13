@@ -33,7 +33,7 @@ export interface ViralPostTemplate {
   publicIdentifier?: string;
   viralityScore?: number;
   viralityBadge?: string;
-  viralityTier?: "mega" | "high" | "discussed" | "growing" | "emerging";
+  viralityTier?: "mega" | "high" | "trending";
   mediaUrl?: string;
   hasMedia?: boolean;
 }

@@ -282,22 +282,19 @@ export async function POST(req: Request) {
       // - Reposts (x5): Máxima amplificación orgánica y difusión externa
       const viralityScore = Math.round((likes * 1) + (comments * 3.5) + (shares * 5));
 
-      // Asignación de Tier y Badge de Viralidad
-      let viralityTier: "mega" | "high" | "discussed" | "growing" | "emerging" = "emerging";
-      let viralityBadge = "📈 En Crecimiento";
+      // Asignación de Tier y Badge de Viralidad (Estrictamente los 3 tipos oficiales requeridos)
+      let viralityTier: "mega" | "high" | "trending" = "trending";
+      let viralityBadge = "En Tendencia 🔥";
 
       if (viralityScore >= 100 || (likes >= 50 && comments >= 15)) {
         viralityTier = "mega";
-        viralityBadge = "🚀 Mega Viral";
-      } else if (viralityScore >= 35 || (likes >= 20 && comments >= 5)) {
+        viralityBadge = "Mega Viral 🔥🔥🔥";
+      } else if (viralityScore >= 35 || (likes >= 20 && comments >= 5) || comments >= 8) {
         viralityTier = "high";
-        viralityBadge = "🔥 Alta Tracción";
-      } else if (comments >= 8) {
-        viralityTier = "discussed";
-        viralityBadge = "💬 Gran Debate";
-      } else if (viralityScore >= 10 || (likes + comments + shares) >= 4) {
-        viralityTier = "growing";
-        viralityBadge = "⭐ En Tendencia";
+        viralityBadge = "Alta Tracción 🔥🔥";
+      } else {
+        viralityTier = "trending";
+        viralityBadge = "En Tendencia 🔥";
       }
 
       // Ratio de interacción calculado dinámicamente
@@ -362,15 +359,18 @@ export async function POST(req: Request) {
     // 3. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
     qualifiedPosts.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
 
+    // 4. Limitar estrictamente a los 9 mejores posts (Top 9)
+    const top9Posts = qualifiedPosts.slice(0, 9);
+
     return NextResponse.json({
       success: true,
       keywords,
       accountId: targetAccountId,
       accountName: selectedAccountObj?.name || "LinkedIn Account",
       totalFound: normalized.length,
-      count: qualifiedPosts.length,
+      count: top9Posts.length,
       filteredOutZeroCount: normalized.length - qualifiedPosts.length,
-      items: qualifiedPosts,
+      items: top9Posts,
     });
   } catch (error: any) {
     console.error("[Posts Search API] Error:", error);

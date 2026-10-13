@@ -30,7 +30,7 @@ export default function ViralRadarPage() {
 
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
-  const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "discussed">("all");
+  const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "trending">("all");
 
   // Filtros generales
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
@@ -69,7 +69,7 @@ export default function ViralRadarPage() {
       });
   }, []);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando siempre publicaciones sin interacción)
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando ceros y seleccionando el Top 9)
   const handleLiveSearch = useCallback(
     async (
       keywordToSearch?: string,
@@ -105,7 +105,13 @@ export default function ViralRadarPage() {
           throw new Error(data.error || "No se pudieron obtener resultados de LinkedIn.");
         }
 
-        setLivePosts(data.items || []);
+        const rawItems: ViralPostTemplate[] = data.items || [];
+        // Garantizar estrictamente los top 9 mejores posts ordenados por score
+        const top9 = rawItems
+          .sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0))
+          .slice(0, 9);
+
+        setLivePosts(top9);
         setHasSearchedOnce(true);
 
         if (data.accountName) {
@@ -131,9 +137,9 @@ export default function ViralRadarPage() {
   // Publicaciones según el modo activo
   const currentPostsPool = viewMode === "live" ? livePosts : masterTemplates;
 
-  // Filtrado reactivo por formato, tier de viralidad y término secundario
+  // Filtrado reactivo por formato, tier de viralidad (Mega Viral, Alta Tracción, En Tendencia) y término secundario
   const filteredPosts = useMemo(() => {
-    return currentPostsPool.filter((post) => {
+    const list = currentPostsPool.filter((post) => {
       const matchesFilter =
         !filterTerm ||
         post.topic.toLowerCase().includes(filterTerm.toLowerCase()) ||
@@ -145,13 +151,24 @@ export default function ViralRadarPage() {
 
       const matchesTier =
         viralityTierFilter === "all" ||
-        (viralityTierFilter === "mega" && (post.viralityTier === "mega" || (post.viralityScore ?? 0) >= 100)) ||
-        (viralityTierFilter === "high" && (post.viralityTier === "high" || post.viralityTier === "mega" || (post.viralityScore ?? 0) >= 35)) ||
-        (viralityTierFilter === "discussed" && (post.viralityTier === "discussed" || post.comments >= 8));
+        post.viralityTier === viralityTierFilter ||
+        (viralityTierFilter === "mega" && (post.viralityScore ?? 0) >= 100) ||
+        (viralityTierFilter === "high" && (post.viralityScore ?? 0) >= 35 && (post.viralityScore ?? 0) < 100) ||
+        (viralityTierFilter === "trending" && (post.viralityScore ?? 0) < 35);
 
       return matchesFilter && matchesFormat && matchesTier;
     });
-  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter]);
+
+    // Ordenar de forma descendente por Score de Viralidad (los mejores posts siempre al inicio)
+    const sorted = [...list].sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
+
+    // En modo Radar en Vivo (LinkedIn), mostrar estrictamente los 9 mejores resultados
+    if (viewMode === "live") {
+      return sorted.slice(0, 9);
+    }
+
+    return sorted;
+  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter, viewMode]);
 
   const handleModelWithAi = (post: ViralPostTemplate) => {
     setSelectedTemplateForModeling(post);
@@ -388,10 +405,10 @@ export default function ViralRadarPage() {
                 Nivel de Viralidad:
               </span>
               {[
-                { id: "all", label: "Todos con Tracción" },
-                { id: "mega", label: "🚀 Solo Mega Virales (100+)" },
-                { id: "high", label: "🔥 Alta Tracción (35+)" },
-                { id: "discussed", label: "💬 Gran Debate (8+ comentarios)" },
+                { id: "all", label: "Todos (Top 9)" },
+                { id: "mega", label: "Mega Viral 🔥🔥🔥" },
+                { id: "high", label: "Alta Tracción 🔥🔥" },
+                { id: "trending", label: "En Tendencia 🔥" },
               ].map((tier) => (
                 <button
                   key={tier.id}
@@ -399,7 +416,7 @@ export default function ViralRadarPage() {
                   onClick={() => setViralityTierFilter(tier.id as any)}
                   className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
                     viralityTierFilter === tier.id
-                      ? "bg-brand-500 text-white shadow-xs"
+                      ? "bg-brand-500 text-white shadow-xs font-semibold"
                       : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
                   }`}
                 >
@@ -465,12 +482,12 @@ export default function ViralRadarPage() {
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
             {viewMode === "live"
-              ? `Publicaciones Reales en LinkedIn (${filteredPosts.length} virales encontradas)`
+              ? `Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`
               : `Plantillas Maestras Disponibles (${filteredPosts.length})`}
           </h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
-              ? `Palabra clave: "${searchKeyword}" • Ordenado por Score de Impacto`
+              ? `Palabra clave: "${searchKeyword}" • Top 9 ordenados por Score de Impacto`
               : "Ordenadas por Ratio de Interacción probado"}
           </span>
         </div>
@@ -482,7 +499,7 @@ export default function ViralRadarPage() {
               Escaneando publicaciones en vivo en LinkedIn...
             </p>
             <p className="text-xs text-gray-400">
-              Filtrando publicaciones sin tracción y calculando score viral con la cuenta {currentDisplayName}.
+              Extrayendo el Top 9 con mayor impacto y descartando publicaciones sin tracción.
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
@@ -493,19 +510,20 @@ export default function ViralRadarPage() {
             {viewMode === "live" && (
               <div className="space-y-2">
                 <p className="text-xs text-gray-400">
-                  Prueba buscando otra palabra clave, ampliando la ventana temporal o explora las 12 plantillas maestras virales.
+                  Prueba buscando otra palabra clave, ampliando la ventana temporal o explora las plantillas maestras virales.
                 </p>
                 <div className="flex items-center justify-center gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => {
                       setViralityTierFilter("all");
+                      setSelectedFormat("all");
                       setDatePosted("PAST_MONTH");
                       handleLiveSearch(searchKeyword, undefined, "PAST_MONTH");
                     }}
                     className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                   >
-                    Mostrar Todo (Sin filtros)
+                    Mostrar Todo (Top 9)
                   </button>
                   <button
                     type="button"
@@ -575,12 +593,16 @@ export default function ViralRadarPage() {
                             ? "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
                             : post.viralityTier === "high"
                             ? "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
-                            : post.viralityTier === "discussed"
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
-                            : "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
                         }`}
                       >
-                        {post.viralityBadge || "🔥 Alta Tracción"}
+                        {post.viralityBadge || (
+                          post.viralityTier === "mega"
+                            ? "Mega Viral 🔥🔥🔥"
+                            : post.viralityTier === "high"
+                            ? "Alta Tracción 🔥🔥"
+                            : "En Tendencia 🔥"
+                        )}
                       </span>
                       {post.viralityScore !== undefined && (
                         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -715,7 +737,15 @@ export default function ViralRadarPage() {
                     {getFormatLabel(selectedPostForModal.format)}
                   </span>
                   {selectedPostForModal.viralityBadge && (
-                    <span className="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/80 dark:text-purple-300">
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-xs font-bold ${
+                        selectedPostForModal.viralityTier === "mega"
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
+                          : selectedPostForModal.viralityTier === "high"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
+                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
+                      }`}
+                    >
                       {selectedPostForModal.viralityBadge}
                     </span>
                   )}
