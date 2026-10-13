@@ -546,23 +546,39 @@ export default function ViralRadarPage() {
                 <div>
                   {/* Encabezado: Autor y Badges */}
                   <div className="mb-2 flex items-start justify-between gap-2">
-                    <div className="pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">
-                          {post.author}
-                        </h4>
-                        {post.isLive && (
-                          <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[9px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                            LIVE
-                          </span>
-                        )}
+                    <div className="flex items-start gap-2.5 min-w-0 pr-2">
+                      {post.authorAvatar ? (
+                        <img
+                          src={post.authorAvatar}
+                          alt={post.author}
+                          className="h-10 w-10 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-300 font-bold text-xs flex items-center justify-center shrink-0">
+                          {post.author.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                            {post.author}
+                          </h4>
+                          {post.isLive && (
+                            <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[9px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                              LIVE
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                          {post.authorHeadline}
+                        </p>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">
+                          {post.publishedDate} • {post.topic}
+                        </span>
                       </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
-                        {post.authorHeadline}
-                      </p>
-                      <span className="text-[10px] text-gray-400 block mt-0.5">
-                        {post.publishedDate} • {post.topic}
-                      </span>
                     </div>
 
                     <span
@@ -722,79 +738,112 @@ export default function ViralRadarPage() {
         )}
       </div>
 
-      {/* Modal de Lectura Completa */}
+      {/* Modal de Lectura Completa con Estructura Fiel a LinkedIn */}
       {selectedPostForModal && (
-        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950 dark:text-brand-300">
-                    {getFormatLabel(selectedPostForModal.format)}
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 shadow-theme-xl border border-gray-200 dark:border-gray-800">
+            {/* Barra Superior de Metadatos y Cierre */}
+            <div className="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 pb-3 mb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 shadow-xs">
+                  {getFormatLabel(selectedPostForModal.format)}
+                </span>
+                {selectedPostForModal.viralityBadge && (
+                  <span
+                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${
+                      selectedPostForModal.viralityTier === "mega"
+                        ? "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
+                        : selectedPostForModal.viralityTier === "high"
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
+                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
+                    }`}
+                  >
+                    {selectedPostForModal.viralityBadge}
                   </span>
-                  {selectedPostForModal.viralityBadge && (
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-xs font-bold ${
-                        selectedPostForModal.viralityTier === "mega"
-                          ? "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
-                          : selectedPostForModal.viralityTier === "high"
-                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
-                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
-                      }`}
-                    >
-                      {selectedPostForModal.viralityBadge}
-                    </span>
-                  )}
-                  {selectedPostForModal.viralityScore !== undefined && (
-                    <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                      Score: {selectedPostForModal.viralityScore} pts
-                    </span>
-                  )}
-                  {selectedPostForModal.isLive && (
-                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                      LinkedIn en Vivo
-                    </span>
-                  )}
-                </div>
-                <h3 className="mt-2 text-lg font-bold text-gray-900 dark:text-white">
-                  {selectedPostForModal.author}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {selectedPostForModal.authorHeadline} • {selectedPostForModal.publishedDate}
-                </p>
+                )}
+                {selectedPostForModal.viralityScore !== undefined && (
+                  <span className="rounded bg-gray-200/70 dark:bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    Score: {selectedPostForModal.viralityScore} pts
+                  </span>
+                )}
+                {selectedPostForModal.isLive && (
+                  <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
+                    LinkedIn en Vivo
+                  </span>
+                )}
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedPostForModal(null)}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-bold"
+                className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition shrink-0"
               >
-                Cerrar
+                ✕ Cerrar
               </button>
             </div>
 
-            <div className="my-5 space-y-4">
-              <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40 text-center text-xs">
-                <div>
-                  <span className="text-[10px] text-gray-400 uppercase block font-medium">Likes</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.likes.toLocaleString()}</span>
+            {/* Tarjeta con Estructura Fiel a una Publicación de LinkedIn */}
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden mb-4">
+              {/* Encabezado del Autor (Avatar + Nombre + Seguir + Titular + Tiempo) */}
+              <div className="p-4 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  {selectedPostForModal.authorAvatar ? (
+                    <img
+                      src={selectedPostForModal.authorAvatar}
+                      alt={selectedPostForModal.author}
+                      className="h-12 w-12 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                      {selectedPostForModal.author.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white hover:underline cursor-pointer">
+                        {selectedPostForModal.author}
+                      </h3>
+                      <span className="text-[#0a66c2] text-xs font-semibold hover:underline cursor-pointer flex items-center gap-0.5">
+                        + Seguir
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                      {selectedPostForModal.authorHeadline}
+                    </p>
+                    <div className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                      <span>{selectedPostForModal.publishedDate}</span>
+                      <span>•</span>
+                      <svg className="w-3 h-3 text-gray-400 fill-current inline" viewBox="0 0 16 16">
+                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM4.88 5.75A5.72 5.72 0 0 1 8 4.75c1.17 0 2.25.35 3.12 1L9.75 7.12A3.24 3.24 0 0 0 8 6.75c-.64 0-1.24.19-1.75.52L4.88 5.75Zm6.24 4.5A5.72 5.72 0 0 1 8 11.25a5.72 5.72 0 0 1-3.12-1l1.37-1.37c.51.33 1.11.52 1.75.52.64 0 1.24-.19 1.75-.52l1.37 1.37Z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <div className="font-bold text-brand-600 dark:text-brand-400">
-                  <span className="text-[10px] text-brand-600 dark:text-brand-400 uppercase block font-bold">Comentarios</span>
-                  <span>{selectedPostForModal.comments.toLocaleString()}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-gray-400 uppercase block font-medium">Reposts</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{selectedPostForModal.shares.toLocaleString()}</span>
+
+                <div className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-pointer">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="5" cy="12" r="2" />
+                    <circle cx="12" cy="12" r="2" />
+                    <circle cx="19" cy="12" r="2" />
+                  </svg>
                 </div>
               </div>
 
-              {/* Imagen o Recurso Visual Completo */}
+              {/* Texto de la Publicación (Primero el Texto, formato natural de LinkedIn) */}
+              <div className="px-4 pb-3 text-[14px] leading-relaxed text-gray-900 dark:text-gray-100 font-sans whitespace-pre-wrap select-text">
+                {selectedPostForModal.fullContent}
+              </div>
+
+              {/* Recurso Visual (Imagen o Carrusel - Justo debajo del Texto) */}
               {selectedPostForModal.mediaUrl && (
-                <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 max-h-80">
+                <div className="w-full overflow-hidden bg-black/5 dark:bg-black/50 border-y border-gray-100 dark:border-gray-800">
                   <img
                     src={selectedPostForModal.mediaUrl}
-                    alt="Recurso visual de la publicación"
-                    className="w-full h-auto max-h-80 object-cover"
+                    alt={selectedPostForModal.author}
+                    className="w-full h-auto max-h-[620px] object-contain mx-auto"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = "none";
                     }}
@@ -802,59 +851,113 @@ export default function ViralRadarPage() {
                 </div>
               )}
 
-              <div className="rounded-xl bg-gray-50 p-4 text-xs font-mono text-gray-800 leading-relaxed whitespace-pre-wrap dark:bg-gray-800/50 dark:text-gray-200">
-                {selectedPostForModal.fullContent}
+              {/* Barra de Reacciones y Contadores de LinkedIn (Likes, Comentarios, Compartidos) */}
+              <div className="flex items-center justify-between px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-1.5">
+                  <span className="flex items-center -space-x-1">
+                    <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#0a66c2] text-white shadow-xs">
+                      <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+                      </svg>
+                    </span>
+                    <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#df704d] text-white shadow-xs">
+                      <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                      </svg>
+                    </span>
+                  </span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                    {selectedPostForModal.likes.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span>{selectedPostForModal.comments.toLocaleString()} comentarios</span>
+                  <span>•</span>
+                  <span>{selectedPostForModal.shares.toLocaleString()} compartidos</span>
+                </div>
               </div>
 
-              {selectedPostForModal.linkedinUrl && (
-                <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900/40 text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">Publicación original en la red:</span>
-                  <a
-                    href={selectedPostForModal.linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-brand-600 hover:underline dark:text-brand-400"
-                  >
-                    Ver en LinkedIn &rarr;
-                  </a>
+              {/* Barra de Acciones del Feed de LinkedIn */}
+              <div className="grid grid-cols-4 py-1 px-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017a2 2 0 01-1.789-1.106l-3.5-7A2 2 0 017.747 10H10V4a2 2 0 012-2h1a2 2 0 012 2v6z" />
+                  </svg>
+                  <span className="hidden sm:inline">Reaccionar</span>
                 </div>
-              )}
-
-              {selectedPostForModal.format === "carousel" && selectedPostForModal.carouselSlides && (
-                <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-2">
-                    Estructura de Diapositivas ({selectedPostForModal.carouselSlides.length} slides):
-                  </h4>
-                  <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
-                    {selectedPostForModal.carouselSlides.map((s) => (
-                      <div key={s.slideNumber} className="flex gap-2">
-                        <span className="font-semibold text-gray-900 dark:text-white shrink-0">
-                          Slide {s.slideNumber}:
-                        </span>
-                        <span>{s.title}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span className="hidden sm:inline">Comentar</span>
                 </div>
-              )}
-
-              {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
-                <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-1">
-                    Prompt Visual para IA:
-                  </h4>
-                  <p className="text-xs font-mono text-gray-700 dark:text-gray-300">
-                    {selectedPostForModal.imagePrompt}
-                  </p>
+                <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="hidden sm:inline">Compartir</span>
                 </div>
-              )}
+                <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span className="hidden sm:inline">Enviar</span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+            {/* Enlace a publicación original en LinkedIn */}
+            {selectedPostForModal.linkedinUrl && (
+              <div className="mb-4 flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 text-xs">
+                <span className="text-gray-600 dark:text-gray-400 font-medium">Publicación original en la red:</span>
+                <a
+                  href={selectedPostForModal.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-brand-600 hover:underline dark:text-brand-400 flex items-center gap-1"
+                >
+                  Ver en LinkedIn &rarr;
+                </a>
+              </div>
+            )}
+
+            {/* Estructura de Diapositivas (si es Carrusel) */}
+            {selectedPostForModal.format === "carousel" && selectedPostForModal.carouselSlides && (
+              <div className="mb-4 rounded-xl border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-2">
+                  Estructura de Diapositivas ({selectedPostForModal.carouselSlides.length} diapositivas):
+                </h4>
+                <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
+                  {selectedPostForModal.carouselSlides.map((s) => (
+                    <div key={s.slideNumber} className="flex gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white shrink-0">
+                        Slide {s.slideNumber}:
+                      </span>
+                      <span>{s.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Prompt Visual para IA (si aplica) */}
+            {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
+              <div className="mb-4 rounded-xl border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-1">
+                  Prompt Visual para IA:
+                </h4>
+                <p className="text-xs font-mono text-gray-700 dark:text-gray-300">
+                  {selectedPostForModal.imagePrompt}
+                </p>
+              </div>
+            )}
+
+            {/* Botones de Acción */}
+            <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setSelectedPostForModal(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
               >
                 Regresar
               </button>
@@ -863,7 +966,7 @@ export default function ViralRadarPage() {
                 onClick={() => {
                   handleModelWithAi(selectedPostForModal);
                 }}
-                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
               >
                 Modelar esta Publicación con IA
               </button>
