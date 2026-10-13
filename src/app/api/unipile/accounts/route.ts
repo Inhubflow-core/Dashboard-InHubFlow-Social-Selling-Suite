@@ -85,10 +85,54 @@ export async function GET() {
       })
     );
 
+    // Deduplicación inteligente por identidad: Si Unipile reporta múltiples cuentas para la misma persona/perfil
+    // (por ejemplo, una sesión vieja caída en STOPPED/CREDENTIALS y una nueva reconectada en OK),
+    // priorizar la que esté en OK y descartar/purgar la zombi obsoleta.
+    const norm = (s?: string) => (s || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const deduplicatedAccounts: ConnectedLinkedInAccount[] = [];
+
+    for (const acc of mappedAccounts) {
+      const accEmail = acc.email?.trim().toLowerCase();
+      const accNormName = norm(acc.name);
+
+      const existingIndex = deduplicatedAccounts.findIndex((d) => {
+        const dEmail = d.email?.trim().toLowerCase();
+        const dNormName = norm(d.name);
+        if (accEmail && dEmail && accEmail === dEmail) return true;
+        if (accNormName && dNormName && accNormName === dNormName) return true;
+        return false;
+      });
+
+      if (existingIndex === -1) {
+        deduplicatedAccounts.push(acc);
+      } else {
+        const existing = deduplicatedAccounts[existingIndex];
+        // Si la nueva está OK y la existente no, reemplazarla y purgar la cuenta huérfana de Unipile
+        if (acc.status === 'OK' && existing.status !== 'OK') {
+          if (!existing.unipileAccountId.startsWith('demo-')) {
+            unipile.deleteAccount(existing.unipileAccountId).catch(() => {});
+          }
+          deduplicatedAccounts[existingIndex] = acc;
+        } else if (existing.status === 'OK' && acc.status !== 'OK') {
+          // La existente ya está OK, purgar la que llegó con error
+          if (!acc.unipileAccountId.startsWith('demo-')) {
+            unipile.deleteAccount(acc.unipileAccountId).catch(() => {});
+          }
+        } else {
+          // Si ambas tienen el mismo estado, conservar la más reciente
+          const accTime = new Date(acc.connectedAt).getTime() || 0;
+          const existTime = new Date(existing.connectedAt).getTime() || 0;
+          if (accTime >= existTime) {
+            deduplicatedAccounts[existingIndex] = acc;
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       configured: true,
       items: linkedinAccounts,
-      accounts: mappedAccounts,
+      accounts: deduplicatedAccounts,
     });
   } catch (error: unknown) {
     console.error('[api/unipile/accounts] Error listando cuentas:', error);

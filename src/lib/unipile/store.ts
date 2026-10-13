@@ -24,10 +24,64 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
         !a.unipileAccountId?.startsWith("demo-") &&
         !a.name?.toLowerCase().includes("(demo)")
     );
-    if (cleanAccounts.length !== parsed.length) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanAccounts));
+
+    // Deduplicación inteligente por identidad (email o nombre normalizado)
+    const norm = (s?: string) => (s || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const deduplicated: ConnectedLinkedInAccount[] = [];
+
+    for (const acc of cleanAccounts) {
+      const accEmail = acc.email?.trim().toLowerCase();
+      const accNorm = norm(acc.name);
+
+      const existingIndex = deduplicated.findIndex((d) => {
+        if (d.id === acc.id || d.unipileAccountId === acc.unipileAccountId) return true;
+        const dEmail = d.email?.trim().toLowerCase();
+        if (accEmail && dEmail && accEmail === dEmail) return true;
+        const dNorm = norm(d.name);
+        if (accNorm && dNorm && accNorm === dNorm) return true;
+        return false;
+      });
+
+      if (existingIndex === -1) {
+        deduplicated.push(acc);
+      } else {
+        const existing = deduplicated[existingIndex];
+        // Si el actual está conectado (OK) y el existente no, o el actual tiene email y foto, priorizar datos activos
+        const currentIsPreferred =
+          (acc.status === "OK" && existing.status !== "OK") ||
+          (Boolean(acc.email) && !existing.email) ||
+          (Boolean(acc.profilePictureUrl && acc.profilePictureUrl !== "/images/user/owner.png") &&
+            (!existing.profilePictureUrl || existing.profilePictureUrl === "/images/user/owner.png"));
+
+        const base = currentIsPreferred ? acc : existing;
+        const fallback = currentIsPreferred ? existing : acc;
+
+        deduplicated[existingIndex] = {
+          ...fallback,
+          ...base,
+          // Conservar siempre el id estable del slot
+          id: existing.id || acc.id,
+          // Unipile ID activo
+          unipileAccountId: base.unipileAccountId || fallback.unipileAccountId,
+          // Límites de seguridad preservados
+          daily_connection_limit: fallback.daily_connection_limit ?? base.daily_connection_limit ?? 20,
+          daily_message_limit: fallback.daily_message_limit ?? base.daily_message_limit ?? 20,
+          daily_visit_limit: fallback.daily_visit_limit ?? base.daily_visit_limit ?? 20,
+          active_hours_start: fallback.active_hours_start ?? base.active_hours_start ?? 9,
+          active_hours_end: fallback.active_hours_end ?? base.active_hours_end ?? 18,
+          timezone: fallback.timezone ?? base.timezone ?? "Europe/Madrid",
+          working_days: fallback.working_days ?? base.working_days ?? "1,2,3,4,5",
+          ownerId: base.ownerId || fallback.ownerId,
+          assignedUserId: base.assignedUserId || fallback.assignedUserId,
+          assignedUserName: base.assignedUserName || fallback.assignedUserName,
+        };
+      }
     }
-    return cleanAccounts;
+
+    if (deduplicated.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(deduplicated));
+    }
+    return deduplicated;
   } catch {
     return [];
   }
@@ -140,21 +194,61 @@ export function setActiveAccountId(id: string): void {
 
 export function addStoredAccount(newAccount: ConnectedLinkedInAccount): ConnectedLinkedInAccount[] {
   const accounts = getStoredAccounts();
-  const exists = accounts.find((a) => a.unipileAccountId === newAccount.unipileAccountId || a.id === newAccount.id);
-  const updated = exists
-    ? accounts.map((a) => (a.id === exists.id ? {
-        ...a,
-        ...newAccount,
-        // Mantener límites configurados por el usuario si ya existían
-        daily_connection_limit: a.daily_connection_limit ?? newAccount.daily_connection_limit ?? 20,
-        daily_message_limit: a.daily_message_limit ?? newAccount.daily_message_limit ?? 20,
-        daily_visit_limit: a.daily_visit_limit ?? newAccount.daily_visit_limit ?? 20,
-        active_hours_start: a.active_hours_start ?? newAccount.active_hours_start ?? 9,
-        active_hours_end: a.active_hours_end ?? newAccount.active_hours_end ?? 18,
-        timezone: a.timezone ?? newAccount.timezone ?? "Europe/Madrid",
-        working_days: a.working_days ?? newAccount.working_days ?? "1,2,3,4,5",
-      } : a))
-    : [{
+  const norm = (s?: string) => (s || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const newEmail = newAccount.email?.trim().toLowerCase();
+  const newNorm = norm(newAccount.name);
+
+  // Buscar coincidencia por id, unipileAccountId, email exacto o nombre normalizado
+  const exists = accounts.find((a) => {
+    if (a.id === newAccount.id || a.unipileAccountId === newAccount.unipileAccountId) return true;
+    const aEmail = a.email?.trim().toLowerCase();
+    if (newEmail && aEmail && newEmail === aEmail) return true;
+    const aNorm = norm(a.name);
+    if (newNorm && aNorm && newNorm === aNorm) return true;
+    return false;
+  });
+
+  let updated: ConnectedLinkedInAccount[];
+
+  if (exists) {
+    // Si ya existe (mismo ID o misma persona/email), actualizar su slot y descartar cualquier duplicado huérfano
+    updated = accounts
+      .filter((a) => {
+        if (a.id === exists.id) return true;
+        const aEmail = a.email?.trim().toLowerCase();
+        if (newEmail && aEmail && newEmail === aEmail) return false;
+        const aNorm = norm(a.name);
+        if (newNorm && aNorm && newNorm === aNorm) return false;
+        return true;
+      })
+      .map((a) =>
+        a.id === exists.id
+          ? {
+              ...a,
+              ...newAccount,
+              // Mantener id del slot existente
+              id: a.id,
+              // Unipile ID actualizado
+              unipileAccountId: newAccount.unipileAccountId || a.unipileAccountId,
+              // Estado actualizado
+              status: newAccount.status || a.status,
+              // Mantener límites configurados por el usuario si ya existían
+              daily_connection_limit: a.daily_connection_limit ?? newAccount.daily_connection_limit ?? 20,
+              daily_message_limit: a.daily_message_limit ?? newAccount.daily_message_limit ?? 20,
+              daily_visit_limit: a.daily_visit_limit ?? newAccount.daily_visit_limit ?? 20,
+              active_hours_start: a.active_hours_start ?? newAccount.active_hours_start ?? 9,
+              active_hours_end: a.active_hours_end ?? newAccount.active_hours_end ?? 18,
+              timezone: a.timezone ?? newAccount.timezone ?? "Europe/Madrid",
+              working_days: a.working_days ?? newAccount.working_days ?? "1,2,3,4,5",
+              ownerId: a.ownerId || newAccount.ownerId,
+              assignedUserId: a.assignedUserId || newAccount.assignedUserId,
+              assignedUserName: a.assignedUserName || newAccount.assignedUserName,
+            }
+          : a
+      );
+  } else {
+    updated = [
+      {
         daily_connection_limit: 20,
         daily_message_limit: 20,
         daily_visit_limit: 20,
@@ -163,9 +257,13 @@ export function addStoredAccount(newAccount: ConnectedLinkedInAccount): Connecte
         timezone: "Europe/Madrid",
         working_days: "1,2,3,4,5",
         ...newAccount,
-      }, ...accounts];
+      },
+      ...accounts,
+    ];
+  }
+
   saveStoredAccounts(updated);
-  setActiveAccountId(newAccount.id);
+  setActiveAccountId(exists ? exists.id : newAccount.id);
   return updated;
 }
 

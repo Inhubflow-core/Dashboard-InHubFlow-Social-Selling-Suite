@@ -71,6 +71,8 @@ export async function POST(req: NextRequest) {
       country,
       proxy: rawProxy,
       name,
+      accountId,
+      reconnectAccountId,
     } = body;
 
     if (mode === "cookie") {
@@ -91,12 +93,13 @@ export async function POST(req: NextRequest) {
 
     if (!unipile.isConfigured()) {
       // Modo demo / simulación
-      const mockId = `up_acc_${Date.now()}`;
+      const mockId = reconnectAccountId || `up_acc_${Date.now()}`;
       return NextResponse.json({
         success: true,
         checkpoint: false,
         status: "OK",
         remoteAccountId: mockId,
+        accountId: accountId || undefined,
         accountName: name || username?.split('@')[0] || "Cuenta LinkedIn",
         mock: true,
       });
@@ -119,6 +122,7 @@ export async function POST(req: NextRequest) {
 
     const authRes = await unipile.startCredentialsAuth({
       name: name || undefined,
+      reconnectAccountId: reconnectAccountId || undefined,
       ...(mode === "cookie"
         ? {
             accessToken: accessToken.trim(),
@@ -141,15 +145,32 @@ export async function POST(req: NextRequest) {
         checkpoint: true,
         checkpointType: authRes.checkpoint?.type || "2FA",
         remoteAccountId,
+        accountId: accountId || undefined,
       });
     }
 
     const remoteId = (authRes.id || authRes.account_id) as string;
+
+    // Si reconectamos y Unipile asignó un nuevo ID remoto diferente al anterior,
+    // limpiar silenciosamente la cuenta obsoleta previa en Unipile para no dejar sesiones zombi
+    if (
+      reconnectAccountId &&
+      remoteId &&
+      reconnectAccountId !== remoteId &&
+      !reconnectAccountId.startsWith("demo-") &&
+      !reconnectAccountId.startsWith("acc-")
+    ) {
+      unipile.deleteAccount(reconnectAccountId).catch((err) => {
+        console.warn(`[auth-native] No se pudo purgar cuenta previa obsoleta ${reconnectAccountId} en Unipile:`, err);
+      });
+    }
+
     return NextResponse.json({
       success: true,
       checkpoint: false,
       status: "OK",
       remoteAccountId: remoteId,
+      accountId: accountId || undefined,
     });
   } catch (error: unknown) {
     console.error("[api/unipile/auth-native] Error en conexion:", error);

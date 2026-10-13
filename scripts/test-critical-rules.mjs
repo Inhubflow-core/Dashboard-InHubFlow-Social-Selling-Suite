@@ -384,6 +384,83 @@ function validateBusinessHours(start, end) {
 assert(validateBusinessHours(9, 18) === true, "Horario laboral estándar 9 AM a 6 PM es válido");
 assert(validateBusinessHours(18, 9) === false, "Horario con inicio superior o igual a fin es rechazado");
 
+// --- 10. Prueba de Deduplicación y Reconexión en Mismo Slot ---
+console.log("\n--- 10. Prueba de Deduplicación y Reconexión en Mismo Slot ---");
+
+// Simulación de deduplicación de cuentas
+function deduplicateAccounts(accountsList) {
+  const norm = (s) => (s || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const result = [];
+  for (const acc of accountsList) {
+    const accEmail = acc.email?.trim().toLowerCase();
+    const accNorm = norm(acc.name);
+
+    const existingIndex = result.findIndex((d) => {
+      if (d.id === acc.id || d.unipileAccountId === acc.unipileAccountId) return true;
+      const dEmail = d.email?.trim().toLowerCase();
+      if (accEmail && dEmail && accEmail === dEmail) return true;
+      const dNorm = norm(d.name);
+      if (accNorm && dNorm && accNorm === dNorm) return true;
+      return false;
+    });
+
+    if (existingIndex === -1) {
+      result.push(acc);
+    } else {
+      const existing = result[existingIndex];
+      const currentIsPreferred =
+        (acc.status === "OK" && existing.status !== "OK") ||
+        (Boolean(acc.email) && !existing.email);
+      const base = currentIsPreferred ? acc : existing;
+      const fallback = currentIsPreferred ? existing : acc;
+
+      result[existingIndex] = {
+        ...fallback,
+        ...base,
+        id: existing.id || acc.id,
+        unipileAccountId: base.unipileAccountId || fallback.unipileAccountId,
+        daily_connection_limit: fallback.daily_connection_limit ?? base.daily_connection_limit ?? 20,
+      };
+    }
+  }
+  return result;
+}
+
+const mockStoredAccounts = [
+  {
+    id: "acc-1",
+    unipileAccountId: "up_old_disconnected",
+    name: "RobertoOrse Agencia",
+    status: "CREDENTIALS",
+    daily_connection_limit: 15,
+  },
+  {
+    id: "acc-li-up_new_connected",
+    unipileAccountId: "up_new_connected",
+    name: "RobertoOrse Agencia",
+    email: "robertoorse.agencia@gmail.com",
+    status: "OK",
+    daily_connection_limit: 20,
+  },
+  {
+    id: "acc-2",
+    unipileAccountId: "up_linn",
+    name: "Linn Martinson",
+    email: "linnmartinsson407@gmail.com",
+    status: "OK",
+    daily_connection_limit: 20,
+  },
+];
+
+const deduplicated = deduplicateAccounts(mockStoredAccounts);
+assert(deduplicated.length === 2, "La lista con duplicado de RobertoOrSe se reduce a exactamente 2 cuentas");
+const robertoAcc = deduplicated.find((a) => a.name === "RobertoOrse Agencia");
+assert(robertoAcc !== undefined, "Existe la cuenta única de RobertoOrse Agencia");
+assert(robertoAcc.status === "OK", "La cuenta resultante adopta el estado activo 'OK'");
+assert(robertoAcc.email === "robertoorse.agencia@gmail.com", "La cuenta resultante conserva el correo de sesión");
+assert(robertoAcc.unipileAccountId === "up_new_connected", "La cuenta resultante adopta el nuevo Unipile Account ID");
+assert(robertoAcc.daily_connection_limit === 15, "La cuenta resultante preserva los límites personalizados previos del usuario");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

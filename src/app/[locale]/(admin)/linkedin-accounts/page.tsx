@@ -118,8 +118,10 @@ export default function LinkedInAccountsPage() {
 
   const handleDisconnect = async (id: string) => {
     if (!confirm("Confirmas la desconexion de esta cuenta de LinkedIn?")) return;
+    const acc = accounts.find((a) => a.id === id);
+    const targetRemoteId = acc?.unipileAccountId || id;
     try {
-      await fetch(`/api/unipile/accounts/${id}`, { method: "DELETE" });
+      await fetch(`/api/unipile/accounts/${encodeURIComponent(targetRemoteId)}`, { method: "DELETE" });
     } catch {
       // Ignorar error si está en demo
     }

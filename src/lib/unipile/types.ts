@@ -55,6 +55,7 @@ export interface UnipileLinkedInAuthParams {
   proxy?: UnipileProxyConfig;
   userAgent?: string;
   name?: string;
+  reconnectAccountId?: string;
 }
 
 export interface UnipileSolveCheckpointResponse {

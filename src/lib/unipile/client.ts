@@ -188,6 +188,28 @@ export class UnipileClient {
       payload.password = params.password;
     }
 
+    // Si se proporciona una cuenta previa para reconexión, reautenticar esa sesión específica en Unipile
+    if (
+      params.reconnectAccountId &&
+      !params.reconnectAccountId.startsWith("demo-") &&
+      !params.reconnectAccountId.startsWith("acc-")
+    ) {
+      try {
+        return await this.request<UnipileCredentialsAuthResponse>(
+          `/api/v1/accounts/${encodeURIComponent(params.reconnectAccountId)}`,
+          {
+            method: "POST",
+            body: JSON.stringify(payload),
+          }
+        );
+      } catch (err: unknown) {
+        console.warn(
+          `[startCredentialsAuth] Re-autenticación en /api/v1/accounts/${params.reconnectAccountId} falló. Intentando vinculación estándar:`,
+          err
+        );
+      }
+    }
+
     return this.request<UnipileCredentialsAuthResponse>('/api/v1/accounts', {
       method: 'POST',
       body: JSON.stringify(payload),
