@@ -6,32 +6,48 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const keywords = (body.keywords || "Social Selling").trim();
-    let accountId = body.account_id;
+    let requestedAccountId = body.account_id;
 
-    // Si no se especifica cuenta, buscar la primera cuenta activa de Unipile
-    if (!accountId) {
-      try {
-        const liveAccounts = await unipile.listAccounts();
-        const activeAcc = liveAccounts.items?.find((a) => a.status === "OK");
-        if (activeAcc) {
-          accountId = activeAcc.id;
-        }
-      } catch (err) {
-        console.warn("[Posts Search] Error consultando cuentas activas en vivo:", err);
+    // 1. Obtener estado en vivo de las cuentas directamente de Unipile
+    let liveAccounts: any[] = [];
+    try {
+      const res = await unipile.listAccounts();
+      liveAccounts = res.items || [];
+    } catch (err) {
+      console.warn("[Posts Search] Error consultando cuentas Unipile:", err);
+    }
+
+    // Identificar cuenta activa y saludable (status === "OK" o fuente "OK")
+    const isAccountHealthy = (acc: any) => {
+      if (!acc) return false;
+      if (acc.status === "OK" || acc.status === "CONNECTED") return true;
+      if (Array.isArray(acc.sources) && acc.sources.some((s: any) => s.status === "OK")) return true;
+      return false;
+    };
+
+    let targetAccountId = requestedAccountId;
+    let selectedAccountObj = liveAccounts.find((a) => a.id === targetAccountId);
+
+    // Si la cuenta solicitada no existe en Unipile o no está saludable, buscar una alternativa saludable
+    if (!selectedAccountObj || !isAccountHealthy(selectedAccountObj)) {
+      const healthyLive = liveAccounts.find(isAccountHealthy);
+      if (healthyLive) {
+        targetAccountId = healthyLive.id;
+        selectedAccountObj = healthyLive;
       }
     }
 
-    // Fallback con cuentas almacenadas si sigue sin accountId
-    if (!accountId) {
+    // Fallback secundario con cuentas almacenadas localmente
+    if (!targetAccountId) {
       const stored = getStoredAccounts();
-      const active = stored.find((a) => a.status === "OK");
-      if (active) accountId = active.id;
+      const healthyStored = stored.find((a) => a.status === "OK");
+      if (healthyStored) targetAccountId = healthyStored.id;
     }
 
-    if (!accountId) {
+    if (!targetAccountId) {
       return NextResponse.json(
         {
-          error: "No hay cuentas de LinkedIn conectadas y activas para realizar la búsqueda.",
+          error: "No hay cuentas de LinkedIn conectadas y con sesión activa (OK) para realizar la búsqueda.",
           items: [],
         },
         { status: 400 }
@@ -40,14 +56,35 @@ export async function POST(req: Request) {
 
     const limit = Math.min(25, Math.max(1, body.limit || 12));
 
-    const response = await unipile.searchLinkedIn({
-      account_id: accountId,
-      category: "posts",
-      keywords,
-      limit,
-    });
+    // Ejecutar búsqueda con protección y reintento
+    let response;
+    try {
+      response = await unipile.searchLinkedIn({
+        account_id: targetAccountId,
+        category: "posts",
+        keywords,
+        limit,
+      });
+    } catch (err: any) {
+      console.warn(`[Posts Search] Error con cuenta ${targetAccountId}:`, err?.message || err);
+      // Si falló por cuenta no encontrada o desconectada, intentar con otra cuenta saludable de Unipile
+      const alternative = liveAccounts.find((a) => a.id !== targetAccountId && isAccountHealthy(a));
+      if (alternative) {
+        console.log(`[Posts Search] Reintentando con cuenta alternativa saludable: ${alternative.name} (${alternative.id})`);
+        targetAccountId = alternative.id;
+        selectedAccountObj = alternative;
+        response = await unipile.searchLinkedIn({
+          account_id: targetAccountId,
+          category: "posts",
+          keywords,
+          limit,
+        });
+      } else {
+        throw err;
+      }
+    }
 
-    const rawItems = response.items || [];
+    const rawItems = response?.items || [];
 
     // Normalizar items para el frontend del Radar Viral
     const normalized = rawItems.map((item: any, idx: number) => {
@@ -96,7 +133,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       keywords,
-      accountId,
+      accountId: targetAccountId,
+      accountName: selectedAccountObj?.name || "LinkedIn Account",
       count: normalized.length,
       items: normalized,
     });

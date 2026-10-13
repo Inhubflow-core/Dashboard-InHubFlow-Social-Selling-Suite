@@ -13,14 +13,16 @@ export default function ViralRadarPage() {
   const router = useRouter();
   const masterTemplates = useMemo(() => getStoredViralTemplates(), []);
 
-  // Cuentas de LinkedIn activas
+  // Cuentas de LinkedIn
+  const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
   const [activeAccount, setActiveAccount] = useState<UnipileAccount | null>(null);
+  const [activeAccountName, setActiveAccountName] = useState<string>("");
 
   // Modo de visualización: "live" (LinkedIn en Vivo) | "templates" (Plantillas Maestras)
   const [viewMode, setViewMode] = useState<"live" | "templates">("live");
 
   // Estados para Búsqueda en Vivo
-  const [searchKeyword, setSearchKeyword] = useState("Social Selling");
+  const [searchKeyword, setSearchKeyword] = useState("B2B Outbound");
   const [livePosts, setLivePosts] = useState<ViralPostTemplate[]>([]);
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -31,53 +33,86 @@ export default function ViralRadarPage() {
   const [filterTerm, setFilterTerm] = useState("");
   const [selectedPostForModal, setSelectedPostForModal] = useState<ViralPostTemplate | null>(null);
 
-  // Cargar cuenta activa al montar
+  // Cargar cuentas en vivo desde la API de Unipile
   useEffect(() => {
-    const accounts = getStoredAccounts();
-    const okAcc = accounts.find((a) => a.status === "OK") || accounts[0] || null;
-    setActiveAccount(okAcc);
+    fetch("/api/unipile/accounts")
+      .then((r) => r.json())
+      .then((data) => {
+        const liveItems = data.items || [];
+        if (liveItems.length > 0) {
+          setAvailableAccounts(liveItems);
+          // Priorizar cuenta con estado OK (como Linn Martinson)
+          const healthy = liveItems.find(
+            (a: any) =>
+              a.status === "OK" ||
+              a.status === "CONNECTED" ||
+              (Array.isArray(a.sources) && a.sources.some((s: any) => s.status === "OK"))
+          ) || liveItems[0];
+          setActiveAccount(healthy);
+          setActiveAccountName(healthy.name);
+        } else {
+          const stored = getStoredAccounts();
+          const healthyStored = stored.find((a) => a.status === "OK") || stored[0] || null;
+          setActiveAccount(healthyStored as any);
+          if (healthyStored) setActiveAccountName(healthyStored.name);
+        }
+      })
+      .catch(() => {
+        const stored = getStoredAccounts();
+        const healthyStored = stored.find((a) => a.status === "OK") || stored[0] || null;
+        setActiveAccount(healthyStored as any);
+        if (healthyStored) setActiveAccountName(healthyStored.name);
+      });
   }, []);
 
   // Función de búsqueda en vivo en LinkedIn a través de Unipile
-  const handleLiveSearch = useCallback(async (keywordToSearch?: string) => {
-    const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
-    if (!kw) return;
+  const handleLiveSearch = useCallback(
+    async (keywordToSearch?: string, accountIdOverride?: string) => {
+      const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
+      if (!kw) return;
 
-    setIsSearchingLive(true);
-    setSearchError(null);
+      const targetId = accountIdOverride || activeAccount?.id;
 
-    try {
-      const res = await fetch("/api/unipile/posts/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keywords: kw,
-          account_id: activeAccount?.id,
-          limit: 12,
-        }),
-      });
+      setIsSearchingLive(true);
+      setSearchError(null);
 
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/unipile/posts/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            keywords: kw,
+            account_id: targetId,
+            limit: 12,
+          }),
+        });
 
-      if (!res.ok) {
-        throw new Error(data.error || "No se pudieron obtener resultados de LinkedIn.");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "No se pudieron obtener resultados de LinkedIn.");
+        }
+
+        setLivePosts(data.items || []);
+        setHasSearchedOnce(true);
+
+        if (data.accountName) {
+          setActiveAccountName(data.accountName);
+        }
+      } catch (err: any) {
+        console.warn("[Radar Live Search Error]:", err);
+        setSearchError(err.message || "Error al conectar con el radar de LinkedIn.");
+      } finally {
+        setIsSearchingLive(false);
       }
+    },
+    [searchKeyword, activeAccount?.id]
+  );
 
-      setLivePosts(data.items || []);
-      setHasSearchedOnce(true);
-    } catch (err: any) {
-      console.warn("[Radar Live Search Error]:", err);
-      setSearchError(err.message || "Error al conectar con el radar de LinkedIn.");
-      // Fallback amigable: si falla, mantener posts o invitar a usar plantillas maestras
-    } finally {
-      setIsSearchingLive(false);
-    }
-  }, [searchKeyword, activeAccount?.id]);
-
-  // Ejecutar búsqueda inicial en vivo al tener cuenta activa
+  // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
   useEffect(() => {
     if (activeAccount && !hasSearchedOnce) {
-      handleLiveSearch("Social Selling");
+      handleLiveSearch("B2B Outbound");
     }
   }, [activeAccount, hasSearchedOnce, handleLiveSearch]);
 
@@ -124,6 +159,8 @@ export default function ViralRadarPage() {
     "SaaS Growth",
     "Cold Email",
   ];
+
+  const currentDisplayName = activeAccountName || activeAccount?.name || "Linn Martinson";
 
   return (
     <div className="space-y-6">
@@ -174,15 +211,52 @@ export default function ViralRadarPage() {
         title={viewMode === "live" ? "Radar en Vivo en la Red de LinkedIn" : "Buscador de Plantillas Virales"}
         desc={
           viewMode === "live"
-            ? `Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${
-                activeAccount ? activeAccount.name : "Conectando..."
-              }.`
+            ? `Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${currentDisplayName}.`
             : "Filtra por formato, temáticas y estructuras comprobadas de atracción."
         }
       >
         <div className="space-y-4">
           {viewMode === "live" ? (
             <div className="space-y-3">
+              {/* Selector de cuenta si hay varias */}
+              {availableAccounts.length > 1 && (
+                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-600 dark:text-gray-400">
+                      Cuenta conectada para indexar:
+                    </span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {currentDisplayName}
+                    </span>
+                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                      OK
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 text-[11px]">Cambiar cuenta:</span>
+                    <select
+                      value={activeAccount?.id || ""}
+                      onChange={(e) => {
+                        const selected = availableAccounts.find((a) => a.id === e.target.value);
+                        if (selected) {
+                          setActiveAccount(selected);
+                          setActiveAccountName(selected.name);
+                          handleLiveSearch(searchKeyword, selected.id);
+                        }
+                      }}
+                      className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                      {availableAccounts.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.status === "OK" ? "Conectada" : "Reconexión"})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="relative flex-1">
                   <input
@@ -283,13 +357,22 @@ export default function ViralRadarPage() {
           {searchError && (
             <div className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-300 flex items-center justify-between">
               <span>{searchError}</span>
-              <button
-                type="button"
-                onClick={() => setViewMode("templates")}
-                className="underline font-semibold hover:text-amber-900"
-              >
-                Ver Plantillas Maestras
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleLiveSearch(searchKeyword)}
+                  className="font-semibold text-brand-600 hover:underline"
+                >
+                  Reintentar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("templates")}
+                  className="underline font-semibold hover:text-amber-900"
+                >
+                  Ver Plantillas Maestras
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -317,7 +400,7 @@ export default function ViralRadarPage() {
               Escaneando publicaciones en vivo en LinkedIn...
             </p>
             <p className="text-xs text-gray-400">
-              Consultando la red mediante Unipile con la cuenta {activeAccount?.name || "activa"}.
+              Consultando la red mediante Unipile con la cuenta {currentDisplayName}.
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
