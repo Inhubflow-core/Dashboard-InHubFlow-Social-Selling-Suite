@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { exportCarouselToPdf } from "@/lib/viral-posts/carousel-exporter";
+import { getStoredKnowledgeSources } from "@/lib/sdr/store";
 import {
   getSelectedTemplateForModeling,
   setSelectedTemplateForModeling,
@@ -174,12 +175,16 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
     }
   }, [leadMagnetKeyword]);
 
-  // Modelar / Re-generar con IA (Gemini 3.6 Flash)
+  // Modelar / Re-generar con IA + Base de Conocimiento Aprobada (RAG)
   const handleGenerateAi = async () => {
     setIsGeneratingAi(true);
     setPublishFeedback(null);
 
     try {
+      const approvedKnowledge = getStoredKnowledgeSources().filter(
+        (k) => k.status === "approved"
+      );
+
       const res = await fetch("/api/ai/model-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -190,6 +195,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
           format,
           leadMagnetKeyword,
           tone,
+          knowledgeSources: approvedKnowledge,
         }),
       });
 
@@ -215,7 +221,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
       setPublishFeedback({
         type: "success",
-        message: "Publicación modelada con éxito utilizando Gemini 3.6 Flash.",
+        message: "Publicación modelada con éxito integrando tu Base de Conocimiento Aprobada (RAG).",
       });
       setTimeout(() => setPublishFeedback(null), 5000);
     } catch (err: any) {
@@ -500,26 +506,31 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 </div>
               </div>
 
-              {/* Botón de Generación / Mejora con Gemini */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
+              {/* Botón de Generación / Mejora con IA + Base de Conocimiento (RAG) */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
                 <div>
-                  <span className="text-xs font-bold text-gray-900 dark:text-white block">
-                    Generador de Copy B2B con Gemini 3.6 Flash
-                  </span>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                    Adapta el gancho, el desarrollo y la llamada a la acción para optimizar la conversión.
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-900 dark:text-white">
+                      Modelador de Copy B2B con IA & RAG
+                    </span>
+                    <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-[10px] font-bold dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      RAG Aprobado Activo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Modela el post integrando automáticamente la propuesta de valor y documentos aprobados del Asistente SDR IA.
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={isGeneratingAi}
                   onClick={handleGenerateAi}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-2 shrink-0 disabled:opacity-50"
+                  className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-2 shrink-0 disabled:opacity-50 shadow-xs"
                 >
                   {isGeneratingAi ? (
                     <>
                       <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                      Generando...
+                      Modelando con IA & RAG...
                     </>
                   ) : (
                     "Generar con IA"
