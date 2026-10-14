@@ -18,6 +18,112 @@ export type TargetMarket =
   | "only_us"
   | "global_west";
 
+export interface DetectedMarketInfo {
+  country: string;
+  market: TargetMarket;
+  label: string;
+  timezone: string;
+}
+
+export function detectUserMarket(): DetectedMarketInfo {
+  let timeZone = "";
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  } catch {
+    timeZone = "";
+  }
+
+  const lang = typeof navigator !== "undefined" ? (navigator.language || "").toLowerCase() : "";
+  const tzLower = timeZone.toLowerCase();
+
+  // 1. Brasil (Horarios de São Paulo, Recife, Belém, etc. o idioma portugués)
+  const brazilZones = [
+    "sao_paulo", "brazil", "recife", "belem", "fortaleza", "manaus",
+    "cuiaba", "porto_velho", "boa_vista", "maceio", "campo_grande",
+    "noronha", "araguaina", "rio_branco", "santarem"
+  ];
+  if (brazilZones.some((z) => tzLower.includes(z)) || lang.startsWith("pt")) {
+    return {
+      country: "Brasil",
+      market: "brazil_us",
+      label: "Brasil + EE.UU.",
+      timezone: timeZone,
+    };
+  }
+
+  // 2. España y Europa Occidental
+  const spainZones = ["madrid", "canary", "ceuta"];
+  if (spainZones.some((z) => tzLower.includes(z))) {
+    return {
+      country: "España",
+      market: "europe_us",
+      label: "España + EE.UU.",
+      timezone: timeZone,
+    };
+  }
+  if (tzLower.startsWith("europe/")) {
+    return {
+      country: "Europa Occidental",
+      market: "europe_us",
+      label: "Europa Occidental + EE.UU.",
+      timezone: timeZone,
+    };
+  }
+
+  // 3. Panamá y Centroamérica
+  const centralZones = ["panama", "costa_rica", "guatemala", "el_salvador", "managua", "tegucigalpa"];
+  if (centralZones.some((z) => tzLower.includes(z))) {
+    const isPanama = tzLower.includes("panama");
+    return {
+      country: isPanama ? "Panamá" : "Centroamérica",
+      market: "central_us",
+      label: isPanama ? "Panamá + EE.UU." : "Centroamérica + EE.UU.",
+      timezone: timeZone,
+    };
+  }
+
+  // 4. Estados Unidos / Canadá
+  const usZones = [
+    "new_york", "chicago", "los_angeles", "denver", "phoenix",
+    "anchorage", "honolulu", "detroit", "indiana", "boise"
+  ];
+  if (usZones.some((z) => tzLower.includes(z))) {
+    return {
+      country: "Estados Unidos",
+      market: "only_us",
+      label: "Solo EE.UU.",
+      timezone: timeZone,
+    };
+  }
+
+  // 5. Países de Hispanoamérica (México, Colombia, Argentina, Chile, Perú, etc.)
+  let latamCountry = "Hispanoamérica";
+  if (tzLower.includes("mexico") || tzLower.includes("monterrey") || tzLower.includes("cancun") || tzLower.includes("tijuana")) {
+    latamCountry = "México";
+  } else if (tzLower.includes("bogota")) {
+    latamCountry = "Colombia";
+  } else if (tzLower.includes("buenos_aires") || tzLower.includes("argentina") || tzLower.includes("cordoba")) {
+    latamCountry = "Argentina";
+  } else if (tzLower.includes("santiago")) {
+    latamCountry = "Chile";
+  } else if (tzLower.includes("lima")) {
+    latamCountry = "Perú";
+  } else if (tzLower.includes("montevideo")) {
+    latamCountry = "Uruguay";
+  } else if (tzLower.includes("caracas")) {
+    latamCountry = "Venezuela";
+  } else if (tzLower.includes("guayaquil") || tzLower.includes("quito")) {
+    latamCountry = "Ecuador";
+  }
+
+  return {
+    country: latamCountry,
+    market: "latam_us",
+    label: `${latamCountry} + EE.UU.`,
+    timezone: timeZone,
+  };
+}
+
 export default function ViralRadarPage() {
   const router = useRouter();
   const locale = useLocale();
@@ -38,8 +144,12 @@ export default function ViralRadarPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasSearchedOnce, setHasSearchedOnce] = useState(false);
 
-  // Segmentación Geográfica / Mercado Objetivo (Siempre incluye EE.UU. como referente de innovación)
-  const [targetMarket, setTargetMarket] = useState<TargetMarket>("latam_us");
+  // Detección 100% Automática de Ubicación y Mercado (Sin selección manual de botones)
+  const [detectedLocation, setDetectedLocation] = useState<DetectedMarketInfo>(() => detectUserMarket());
+
+  useEffect(() => {
+    setDetectedLocation(detectUserMarket());
+  }, []);
 
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
@@ -109,7 +219,7 @@ export default function ViralRadarPage() {
 
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
-      const targetMkt = marketOverride || targetMarket;
+      const targetMkt = marketOverride || detectedLocation.market;
 
       setIsSearchingLive(true);
       setSearchError(null);
@@ -124,6 +234,8 @@ export default function ViralRadarPage() {
             limit: 50,
             date_posted: targetDate,
             target_market: targetMkt,
+            user_timezone: detectedLocation.timezone,
+            user_country: detectedLocation.country,
             filter_zero: true,
             sort_by: "RELEVANCE",
           }),
@@ -176,15 +288,15 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted, targetMarket]
+    [searchKeyword, activeAccount?.id, datePosted, detectedLocation]
   );
 
   // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
   useEffect(() => {
     if (activeAccount && !hasSearchedOnce) {
-      handleLiveSearch("B2B Outbound");
+      handleLiveSearch("B2B Outbound", undefined, undefined, detectedLocation.market);
     }
-  }, [activeAccount, hasSearchedOnce, handleLiveSearch]);
+  }, [activeAccount, hasSearchedOnce, handleLiveSearch, detectedLocation.market]);
 
   // Publicaciones según el modo activo
   const currentPostsPool = viewMode === "live" ? livePosts : masterTemplates;
@@ -500,66 +612,10 @@ export default function ViralRadarPage() {
                 ))}
               </div>
 
-              {/* Controles de Búsqueda: Segmentación Geográfica & Mercado */}
-              <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
-                {/* Segmentación Geográfica / Mercado */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Mercado Objetivo / Región:
-                    </span>
-                    <span className="text-[11px] text-gray-400">
-                      Incluye siempre EE.UU. como referente de innovación global
-                    </span>
-                  </div>
-
-                  <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-900 flex-wrap gap-1">
-                    {[
-                      { id: "latam_us", label: "Hispanoamérica + EE.UU. (Recomendado)", desc: "LATAM + Hub Innovación EE.UU." },
-                      { id: "brazil_us", label: "Brasil + EE.UU.", desc: "Brasil (PT) + Hub Innovación EE.UU." },
-                      { id: "central_us", label: "Centroamérica & Panamá + EE.UU.", desc: "Panamá, Costa Rica y Centroamérica + EE.UU." },
-                      { id: "europe_us", label: "Europa Occidental + EE.UU.", desc: "España, Reino Unido y Europa + EE.UU." },
-                      { id: "only_us", label: "Solo EE.UU.", desc: "Exclusivo Silicon Valley y tendencias B2B líderes" },
-                      { id: "global_west", label: "Todo Occidente", desc: "Todos los mercados occidentales combinados" },
-                    ].map((mkt) => (
-                      <button
-                        key={mkt.id}
-                        type="button"
-                        onClick={() => {
-                          setTargetMarket(mkt.id as any);
-                          handleLiveSearch(searchKeyword, undefined, undefined, mkt.id as any);
-                        }}
-                        className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition ${
-                          targetMarket === mkt.id
-                            ? "bg-white text-brand-600 font-bold shadow-xs dark:bg-gray-800 dark:text-brand-400 border border-brand-200 dark:border-brand-800"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                        }`}
-                        title={mkt.desc}
-                      >
-                        {mkt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subtexto informativo de exclusión estricta */}
-                <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 bg-emerald-50/60 dark:bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    <span>
-                      Filtro activo: Exclusión estricta de contenidos en ruso/cirílico y alfabetos no occidentales. Ecosistema segmentado por mercado relevante.
-                    </span>
-                  </span>
-                  <span className="text-[10px] text-gray-400 hidden md:inline">
-                    Top 12 por Score de Impacto
-                  </span>
-                </div>
-
+              {/* Controles de Búsqueda: Temporalidad & Detección Automática de Mercado */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
                 {/* Ventana Temporal */}
-                <div className="flex items-center gap-2 flex-wrap pt-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
                   <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
                     {[
@@ -573,7 +629,7 @@ export default function ViralRadarPage() {
                         type="button"
                         onClick={() => {
                           setDatePosted(opt.id as any);
-                          handleLiveSearch(searchKeyword, undefined, opt.id, targetMarket);
+                          handleLiveSearch(searchKeyword, undefined, opt.id);
                         }}
                         className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
                           datePosted === opt.id
@@ -585,6 +641,17 @@ export default function ViralRadarPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Detección Automática de Mercado y Ubicación */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Mercado automático: {detectedLocation.label}</span>
+                  </div>
+                  <span className="text-[11px] text-gray-400 hidden sm:inline">
+                    • Detectado en {detectedLocation.country} + Hub de Innovación EE.UU.
+                  </span>
                 </div>
               </div>
             </div>

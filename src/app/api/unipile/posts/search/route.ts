@@ -129,6 +129,27 @@ function detectMarketOrigin(text: string, headline: string, lang: "pt" | "es" | 
   return "Occidente";
 }
 
+function resolveMarketFromTimezone(tz: string): string {
+  const tzLower = (tz || "").toLowerCase();
+  const brazilZones = [
+    "sao_paulo", "brazil", "recife", "belem", "fortaleza", "manaus",
+    "cuiaba", "porto_velho", "boa_vista", "maceio", "campo_grande",
+    "noronha", "araguaina", "rio_branco", "santarem"
+  ];
+  if (brazilZones.some((z) => tzLower.includes(z))) return "brazil_us";
+
+  const spainZones = ["madrid", "canary", "ceuta"];
+  if (spainZones.some((z) => tzLower.includes(z)) || tzLower.startsWith("europe/")) return "europe_us";
+
+  const centralZones = ["panama", "costa_rica", "guatemala", "el_salvador", "managua", "tegucigalpa"];
+  if (centralZones.some((z) => tzLower.includes(z))) return "central_us";
+
+  const usZones = ["new_york", "chicago", "los_angeles", "denver", "phoenix", "anchorage", "honolulu"];
+  if (usZones.some((z) => tzLower.includes(z))) return "only_us";
+
+  return "latam_us";
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -138,7 +159,13 @@ export async function POST(req: Request) {
     const sortBy = body.sort_by || "RELEVANCE";
     const datePosted = body.date_posted || "PAST_MONTH";
     const requestLimit = Math.min(50, Math.max(35, body.limit || 50));
-    const targetMarket = body.target_market || "latam_us";
+
+    // Detección 100% automática del mercado geográfico según la ubicación/zona horaria del usuario
+    const userTimezone = body.user_timezone || req.headers.get("x-timezone") || "";
+    let targetMarket = body.target_market;
+    if (!targetMarket || targetMarket === "auto") {
+      targetMarket = resolveMarketFromTimezone(userTimezone);
+    }
 
     // 1. Obtener estado en vivo de las cuentas directamente de Unipile
     let liveAccounts: any[] = [];
