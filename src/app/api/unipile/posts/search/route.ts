@@ -378,8 +378,8 @@ export async function POST(req: Request) {
     // 3. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
     qualifiedPosts.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
 
-    // 4. Limitar estrictamente a los 9 mejores posts (Top 9)
-    const top9Posts = qualifiedPosts.slice(0, 9);
+    // 4. Limitar estrictamente a los 12 mejores posts (Top 12)
+    const top12Posts = qualifiedPosts.slice(0, 12);
 
     return NextResponse.json({
       success: true,
@@ -387,9 +387,9 @@ export async function POST(req: Request) {
       accountId: targetAccountId,
       accountName: selectedAccountObj?.name || "LinkedIn Account",
       totalFound: normalized.length,
-      count: top9Posts.length,
+      count: top12Posts.length,
       filteredOutZeroCount: normalized.length - qualifiedPosts.length,
-      items: top9Posts,
+      items: top12Posts,
     });
   } catch (error: any) {
     console.error("[Posts Search API] Error:", error);

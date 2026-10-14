@@ -134,12 +134,12 @@ export default function ViralRadarPage() {
           );
         };
         const validItems = rawItems.filter((p) => !isExcluded(p));
-        // Garantizar estrictamente los top 9 mejores posts ordenados por score
-        const top9 = validItems
+        // Garantizar estrictamente los top 12 mejores posts ordenados por score
+        const top12 = validItems
           .sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0))
-          .slice(0, 9);
+          .slice(0, 12);
 
-        setLivePosts(top9);
+        setLivePosts(top12);
         setHasSearchedOnce(true);
 
         if (data.accountName) {
@@ -202,9 +202,9 @@ export default function ViralRadarPage() {
     // Ordenar de forma descendente por Score de Viralidad (los mejores posts siempre al inicio)
     const sorted = [...list].sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
 
-    // En modo Radar en Vivo (LinkedIn), mostrar estrictamente los 9 mejores resultados
+    // En modo Radar en Vivo (LinkedIn), mostrar estrictamente los 12 mejores resultados
     if (viewMode === "live") {
-      return sorted.slice(0, 9);
+      return sorted.slice(0, 12);
     }
 
     return sorted;
@@ -528,7 +528,7 @@ export default function ViralRadarPage() {
                 Nivel de Viralidad:
               </span>
               {[
-                { id: "all", label: "Todos (Top 9)" },
+                { id: "all", label: "Todos (Top 12)" },
                 { id: "mega", label: "Mega Viral 🔥🔥🔥" },
                 { id: "high", label: "Alta Tracción 🔥🔥" },
                 { id: "trending", label: "En Tendencia 🔥" },
@@ -610,7 +610,7 @@ export default function ViralRadarPage() {
           </h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
-              ? `Palabra clave: "${searchKeyword}" • Top 9 ordenados por Score de Impacto`
+              ? `Palabra clave: "${searchKeyword}" • Top 12 ordenados por Score de Impacto`
               : "Ordenadas por Ratio de Interacción probado"}
           </span>
         </div>
@@ -622,7 +622,7 @@ export default function ViralRadarPage() {
               Escaneando publicaciones en vivo en LinkedIn...
             </p>
             <p className="text-xs text-gray-400">
-              Extrayendo el Top 9 con mayor impacto y descartando publicaciones sin tracción.
+              Extrayendo el Top 12 con mayor impacto y descartando publicaciones sin tracción.
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
