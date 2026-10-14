@@ -329,10 +329,29 @@ export async function POST(req: Request) {
       };
     });
 
-    // 2. Filtro Anti-Cero y Calidad de Contenido
-    let qualifiedPosts = normalized;
+    // Lista de autores corporativos/institucionales a omitir de los resultados
+    const EXCLUDED_AUTHORS = [
+      "linkedin for marketing",
+      "linkedin marketing solutions",
+      "linkedin marketing",
+      "linkedin for business",
+      "linkedin business",
+    ];
+
+    const isExcludedAuthorPost = (item: any) => {
+      const authorLower = String(item.author || "").toLowerCase();
+      const publicIdLower = String(item.publicIdentifier || "").toLowerCase();
+      return EXCLUDED_AUTHORS.some(
+        (term) => authorLower.includes(term) || publicIdLower.includes(term)
+      );
+    };
+
+    // 2. Filtro de Exclusión de Cuentas Corporativas, Anti-Cero y Calidad de Contenido
+    let nonCorporatePosts = normalized.filter((item) => !isExcludedAuthorPost(item));
+    let qualifiedPosts = nonCorporatePosts;
+
     if (filterZero) {
-      qualifiedPosts = normalized.filter((item) => {
+      qualifiedPosts = nonCorporatePosts.filter((item) => {
         const total = item.likes + item.comments + item.shares;
         // Descartar publicaciones sin tracción (0 interacciones)
         if (total === 0) return false;
@@ -350,9 +369,9 @@ export async function POST(req: Request) {
         return true;
       });
 
-      // Si tras el filtro estricto la lista quedó vacía, mostrar los encontrados para no dejar la pantalla en blanco
-      if (qualifiedPosts.length === 0 && normalized.length > 0) {
-        qualifiedPosts = normalized;
+      // Si tras el filtro estricto la lista quedó vacía, mostrar los encontrados (respetando la exclusión)
+      if (qualifiedPosts.length === 0 && nonCorporatePosts.length > 0) {
+        qualifiedPosts = nonCorporatePosts;
       }
     }
 

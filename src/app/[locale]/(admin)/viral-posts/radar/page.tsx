@@ -122,8 +122,20 @@ export default function ViralRadarPage() {
         }
 
         const rawItems: ViralPostTemplate[] = data.items || [];
+        const isExcluded = (p: ViralPostTemplate) => {
+          const authorLower = (p.author || "").toLowerCase();
+          const publicIdLower = (p.publicIdentifier || "").toLowerCase();
+          return (
+            authorLower.includes("linkedin for marketing") ||
+            authorLower.includes("linkedin marketing solutions") ||
+            authorLower.includes("linkedin marketing") ||
+            authorLower.includes("linkedin business") ||
+            publicIdLower.includes("linkedin-for-marketing")
+          );
+        };
+        const validItems = rawItems.filter((p) => !isExcluded(p));
         // Garantizar estrictamente los top 9 mejores posts ordenados por score
-        const top9 = rawItems
+        const top9 = validItems
           .sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0))
           .slice(0, 9);
 
@@ -156,6 +168,18 @@ export default function ViralRadarPage() {
   // Filtrado reactivo por formato, tier de viralidad (Mega Viral, Alta Tracción, En Tendencia) y término secundario
   const filteredPosts = useMemo(() => {
     const list = currentPostsPool.filter((post) => {
+      const authorLower = (post.author || "").toLowerCase();
+      const publicIdLower = (post.publicIdentifier || "").toLowerCase();
+      if (
+        authorLower.includes("linkedin for marketing") ||
+        authorLower.includes("linkedin marketing solutions") ||
+        authorLower.includes("linkedin marketing") ||
+        authorLower.includes("linkedin business") ||
+        publicIdLower.includes("linkedin-for-marketing")
+      ) {
+        return false;
+      }
+
       const matchesFilter =
         !filterTerm ||
         post.topic.toLowerCase().includes(filterTerm.toLowerCase()) ||
