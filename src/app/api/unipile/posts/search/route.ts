@@ -2,6 +2,133 @@ import { unipile } from "@/lib/unipile/client";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import { NextResponse } from "next/server";
 
+// Detección estricta de alfabetos no occidentales (Cirílico / Ruso / Ucraniano, Georgiano, Asiático, Árabe, Hebreo)
+const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
+const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
+
+function isNonWestern(text: string) {
+  return CYRILLIC_REGEX.test(text) || NON_WESTERN_REGEX.test(text);
+}
+
+function detectPostLanguage(text: string): "pt" | "es" | "en" | "other" {
+  const lower = " " + text.toLowerCase().replace(/[^a-záéíóúüñãõçâêîôûàèìòù]/g, " ") + " ";
+
+  const ptWords = [
+    " o ", " a ", " os ", " as ", " de ", " do ", " da ", " dos ", " das ", " em ", " no ", " na ",
+    " nos ", " nas ", " por ", " para ", " com ", " como ", " você ", " voce ", " não ", " nao ",
+    " mais ", " que ", " se ", " um ", " uma ", " sua ", " seu ", " muito ", " vendas ", " clientes ",
+    " prospecção ", " equipe ", " mercado "
+  ];
+  const esWords = [
+    " el ", " la ", " los ", " las ", " de ", " del ", " en ", " por ", " para ", " con ", " como ",
+    " que ", " se ", " un ", " una ", " unos ", " unas ", " su ", " sus ", " más ", " mas ", " pero ",
+    " este ", " esta ", " estos ", " estas ", " ventas ", " clientes ", " prospección ", " equipo ", " empresa "
+  ];
+  const enWords = [
+    " the ", " and ", " to ", " of ", " in ", " for ", " is ", " on ", " that ", " by ", " this ",
+    " with ", " from ", " at ", " it ", " you ", " your ", " are ", " we ", " have ", " our ",
+    " be ", " will ", " can ", " sales ", " business ", " growth ", " team "
+  ];
+
+  let ptScore = 0;
+  for (const w of ptWords) {
+    if (lower.includes(w)) ptScore++;
+  }
+
+  let esScore = 0;
+  for (const w of esWords) {
+    if (lower.includes(w)) esScore++;
+  }
+
+  let enScore = 0;
+  for (const w of enWords) {
+    if (lower.includes(w)) enScore++;
+  }
+
+  if (ptScore > esScore && ptScore > enScore && ptScore >= 2) return "pt";
+  if (esScore > ptScore && esScore > enScore && esScore >= 2) return "es";
+  if (enScore > ptScore && enScore > esScore && enScore >= 2) return "en";
+  if (ptScore >= 2) return "pt";
+  if (esScore >= 2) return "es";
+  if (enScore >= 2) return "en";
+  return "en";
+}
+
+function detectMarketOrigin(text: string, headline: string, lang: "pt" | "es" | "en" | "other"): string {
+  const combined = (text + " " + headline).toLowerCase();
+
+  if (
+    combined.includes("brasil") ||
+    combined.includes("brazil") ||
+    combined.includes("são paulo") ||
+    combined.includes("rio de janeiro") ||
+    combined.includes("curitiba") ||
+    combined.includes("belo horizonte") ||
+    combined.includes("porto alegre")
+  ) {
+    return "Brasil";
+  }
+  if (
+    combined.includes("panamá") ||
+    combined.includes("panama") ||
+    combined.includes("costa rica") ||
+    combined.includes("guatemala") ||
+    combined.includes("centroamérica") ||
+    combined.includes("centroamerica")
+  ) {
+    return "Centroamérica / Panamá";
+  }
+  if (
+    combined.includes("méxico") ||
+    combined.includes("mexico") ||
+    combined.includes("colombia") ||
+    combined.includes("argentina") ||
+    combined.includes("chile") ||
+    combined.includes("perú") ||
+    combined.includes("peru") ||
+    combined.includes("latam") ||
+    combined.includes("uruguay") ||
+    combined.includes("ecuador")
+  ) {
+    return "LATAM";
+  }
+  if (
+    combined.includes("united states") ||
+    combined.includes("usa") ||
+    combined.includes("san francisco") ||
+    combined.includes("silicon valley") ||
+    combined.includes("new york") ||
+    combined.includes("austin") ||
+    combined.includes("california") ||
+    combined.includes("boston") ||
+    combined.includes("seattle") ||
+    combined.includes("florida") ||
+    combined.includes("texas")
+  ) {
+    return "EE.UU.";
+  }
+  if (
+    combined.includes("españa") ||
+    combined.includes("spain") ||
+    combined.includes("madrid") ||
+    combined.includes("barcelona") ||
+    combined.includes("united kingdom") ||
+    combined.includes("london") ||
+    combined.includes("france") ||
+    combined.includes("germany") ||
+    combined.includes("europe") ||
+    combined.includes("emea")
+  ) {
+    return "Europa Occidental";
+  }
+
+  // Fallback por idioma
+  if (lang === "pt") return "Brasil / Cono Sur";
+  if (lang === "es") return "LATAM / Hispanoamérica";
+  if (lang === "en") return "EE.UU. / Global";
+  return "Occidente";
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -10,7 +137,8 @@ export async function POST(req: Request) {
     const filterZero = body.filter_zero !== false;
     const sortBy = body.sort_by || "RELEVANCE";
     const datePosted = body.date_posted || "PAST_MONTH";
-    const requestLimit = Math.min(50, Math.max(25, body.limit || 35));
+    const requestLimit = Math.min(50, Math.max(35, body.limit || 50));
+    const targetMarket = body.target_market || "latam_us";
 
     // 1. Obtener estado en vivo de las cuentas directamente de Unipile
     let liveAccounts: any[] = [];
@@ -284,17 +412,17 @@ export async function POST(req: Request) {
 
       // Asignación de Tier y Badge de Viralidad (Estrictamente los 3 tipos oficiales requeridos)
       let viralityTier: "mega" | "high" | "trending" = "trending";
-      let viralityBadge = "En Tendencia 🔥";
+      let viralityBadge = "En Tendencia";
 
       if (viralityScore >= 100 || (likes >= 50 && comments >= 15)) {
         viralityTier = "mega";
-        viralityBadge = "Mega Viral 🔥🔥🔥";
+        viralityBadge = "Mega Viral";
       } else if (viralityScore >= 35 || (likes >= 20 && comments >= 5) || comments >= 8) {
         viralityTier = "high";
-        viralityBadge = "Alta Tracción 🔥🔥";
+        viralityBadge = "Alta Tracción";
       } else {
         viralityTier = "trending";
-        viralityBadge = "En Tendencia 🔥";
+        viralityBadge = "En Tendencia";
       }
 
       // Ratio de interacción calculado dinámicamente
@@ -302,6 +430,10 @@ export async function POST(req: Request) {
       const ratio = totalInteractions > 0
         ? `${Math.min(25, Math.max(1.2, parseFloat((4.0 + Math.log10(totalInteractions + 1) * 3.5).toFixed(1))))}%`
         : "0.0%";
+
+      // Detección de idioma y origen de mercado geográfico
+      const lang = detectPostLanguage(text);
+      const marketOrigin = detectMarketOrigin(text, item.author?.headline || "", lang);
 
       return {
         id: item.id || `live-post-${idx}`,
@@ -323,13 +455,22 @@ export async function POST(req: Request) {
         viralityTier,
         mediaUrl: mediaUrl || undefined,
         hasMedia,
+        marketOrigin,
+        detectedLanguage: lang,
         socialId: item.social_id || null,
         linkedinUrl: item.social_id ? `https://www.linkedin.com/feed/update/${item.social_id}` : null,
         isLive: true,
       };
     });
 
-    // Lista de autores corporativos/institucionales a omitir de los resultados
+    // 2. Filtro Estricto Anti-Cirílico / Anti-Ruso y Alfabetos No Occidentales
+    // Elimina publicaciones en ruso, ucraniano, búlgaro, kazajo o scripts asiáticos irrelevantes
+    const nonRussianPosts = normalized.filter((item) => {
+      const combined = `${item.author} ${item.authorHeadline} ${item.fullContent}`;
+      return !isNonWestern(combined);
+    });
+
+    // 3. Filtro de Exclusión de Cuentas Corporativas e Institucionales
     const EXCLUDED_AUTHORS = [
       "linkedin for marketing",
       "linkedin marketing solutions",
@@ -346,8 +487,9 @@ export async function POST(req: Request) {
       );
     };
 
-    // 2. Filtro de Exclusión de Cuentas Corporativas, Anti-Cero y Calidad de Contenido
-    let nonCorporatePosts = normalized.filter((item) => !isExcludedAuthorPost(item));
+    const nonCorporatePosts = nonRussianPosts.filter((item) => !isExcludedAuthorPost(item));
+
+    // 4. Filtro de Calidad Anti-Cero y Ofertas de Empleo sin tracción
     let qualifiedPosts = nonCorporatePosts;
 
     if (filterZero) {
@@ -369,24 +511,68 @@ export async function POST(req: Request) {
         return true;
       });
 
-      // Si tras el filtro estricto la lista quedó vacía, mostrar los encontrados (respetando la exclusión)
+      // Si tras el filtro estricto la lista quedó vacía, mostrar los occidentales calificados
       if (qualifiedPosts.length === 0 && nonCorporatePosts.length > 0) {
         qualifiedPosts = nonCorporatePosts;
       }
     }
 
-    // 3. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
-    qualifiedPosts.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
+    // 5. Segmentación Regional Inteligente (targetMarket)
+    // Regla fija: Siempre incluye Estados Unidos (EE.UU.) como referente de innovación global
+    const matchesTargetMarket = (item: any) => {
+      const lang = item.detectedLanguage;
+      const origin = item.marketOrigin || "";
+      const isUS = lang === "en" || origin.includes("EE.UU.") || origin.includes("Global");
 
-    // 4. Limitar estrictamente a los 12 mejores posts (Top 12)
-    const top12Posts = qualifiedPosts.slice(0, 12);
+      switch (targetMarket) {
+        case "brazil_us":
+          // Brasil + EE.UU. (América del Sur y Hub de Innovación Norteamericano)
+          return lang === "pt" || isUS || origin.includes("Brasil");
+        case "central_us":
+          // Centroamérica & Panamá + EE.UU.
+          return (
+            (lang === "es" && (origin.includes("Centroamérica") || origin.includes("LATAM") || origin.includes("Panamá"))) ||
+            isUS
+          );
+        case "europe_us":
+          // Europa Occidental + EE.UU.
+          return origin.includes("Europa") || lang === "es" || isUS;
+        case "only_us":
+          // Exclusivo Estados Unidos (Innovación Global)
+          return isUS;
+        case "global_west":
+          // Todo Occidente (Sin ruso/cirílico)
+          return true;
+        case "latam_us":
+        default:
+          // Hispanoamérica + EE.UU. (Recomendado)
+          return lang === "es" || isUS || origin.includes("LATAM");
+      }
+    };
+
+    let marketMatchedPosts = qualifiedPosts.filter(matchesTargetMarket);
+
+    // Si la segmentación es muy específica y arroja menos de 6 resultados, complementar con los mejores posts occidentales
+    if (marketMatchedPosts.length < 6 && qualifiedPosts.length > 0) {
+      const existingIds = new Set(marketMatchedPosts.map((p) => p.id));
+      const remaining = qualifiedPosts.filter((p) => !existingIds.has(p.id));
+      marketMatchedPosts = [...marketMatchedPosts, ...remaining];
+    }
+
+    // 6. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
+    marketMatchedPosts.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
+
+    // 7. Limitar estrictamente a los 12 mejores posts (Top 12)
+    const top12Posts = marketMatchedPosts.slice(0, 12);
 
     return NextResponse.json({
       success: true,
       keywords,
+      targetMarket,
       accountId: targetAccountId,
       accountName: selectedAccountObj?.name || "LinkedIn Account",
       totalFound: normalized.length,
+      filteredCyrillicCount: normalized.length - nonRussianPosts.length,
       count: top12Posts.length,
       filteredOutZeroCount: normalized.length - qualifiedPosts.length,
       items: top12Posts,

@@ -10,6 +10,14 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+export type TargetMarket =
+  | "latam_us"
+  | "brazil_us"
+  | "central_us"
+  | "europe_us"
+  | "only_us"
+  | "global_west";
+
 export default function ViralRadarPage() {
   const router = useRouter();
   const locale = useLocale();
@@ -29,6 +37,9 @@ export default function ViralRadarPage() {
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasSearchedOnce, setHasSearchedOnce] = useState(false);
+
+  // Segmentación Geográfica / Mercado Objetivo (Siempre incluye EE.UU. como referente de innovación)
+  const [targetMarket, setTargetMarket] = useState<TargetMarket>("latam_us");
 
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
@@ -85,18 +96,20 @@ export default function ViralRadarPage() {
       });
   }, []);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando ceros y seleccionando el Top 9)
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico y seleccionando el Top 12)
   const handleLiveSearch = useCallback(
     async (
       keywordToSearch?: string,
       accountIdOverride?: string,
-      dateOverride?: string
+      dateOverride?: string,
+      marketOverride?: TargetMarket
     ) => {
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
 
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
+      const targetMkt = marketOverride || targetMarket;
 
       setIsSearchingLive(true);
       setSearchError(null);
@@ -108,8 +121,9 @@ export default function ViralRadarPage() {
           body: JSON.stringify({
             keywords: kw,
             account_id: targetId,
-            limit: 35,
+            limit: 50,
             date_posted: targetDate,
+            target_market: targetMkt,
             filter_zero: true,
             sort_by: "RELEVANCE",
           }),
@@ -122,9 +136,19 @@ export default function ViralRadarPage() {
         }
 
         const rawItems: ViralPostTemplate[] = data.items || [];
+        const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
+        const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
+
         const isExcluded = (p: ViralPostTemplate) => {
           const authorLower = (p.author || "").toLowerCase();
           const publicIdLower = (p.publicIdentifier || "").toLowerCase();
+          const combined = `${p.author || ""} ${p.authorHeadline || ""} ${p.fullContent || ""}`;
+
+          // Descartar posts en cirílico/ruso o alfabetos no occidentales
+          if (CYRILLIC_REGEX.test(combined) || NON_WESTERN_REGEX.test(combined)) {
+            return true;
+          }
+
           return (
             authorLower.includes("linkedin for marketing") ||
             authorLower.includes("linkedin marketing solutions") ||
@@ -152,7 +176,7 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted]
+    [searchKeyword, activeAccount?.id, datePosted, targetMarket]
   );
 
   // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
@@ -167,7 +191,15 @@ export default function ViralRadarPage() {
 
   // Filtrado reactivo por formato, tier de viralidad (Mega Viral, Alta Tracción, En Tendencia) y término secundario
   const filteredPosts = useMemo(() => {
+    const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
+    const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
+
     const list = currentPostsPool.filter((post) => {
+      const combined = `${post.author || ""} ${post.authorHeadline || ""} ${post.fullContent || ""}`;
+      if (CYRILLIC_REGEX.test(combined) || NON_WESTERN_REGEX.test(combined)) {
+        return false;
+      }
+
       const authorLower = (post.author || "").toLowerCase();
       const publicIdLower = (post.publicIdentifier || "").toLowerCase();
       if (
@@ -468,9 +500,66 @@ export default function ViralRadarPage() {
                 ))}
               </div>
 
-              {/* Controles de Búsqueda: Temporalidad */}
-              <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
-                <div className="flex items-center gap-2 flex-wrap">
+              {/* Controles de Búsqueda: Segmentación Geográfica & Mercado */}
+              <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+                {/* Segmentación Geográfica / Mercado */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Mercado Objetivo / Región:
+                    </span>
+                    <span className="text-[11px] text-gray-400">
+                      Incluye siempre EE.UU. como referente de innovación global
+                    </span>
+                  </div>
+
+                  <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-900 flex-wrap gap-1">
+                    {[
+                      { id: "latam_us", label: "Hispanoamérica + EE.UU. (Recomendado)", desc: "LATAM + Hub Innovación EE.UU." },
+                      { id: "brazil_us", label: "Brasil + EE.UU.", desc: "Brasil (PT) + Hub Innovación EE.UU." },
+                      { id: "central_us", label: "Centroamérica & Panamá + EE.UU.", desc: "Panamá, Costa Rica y Centroamérica + EE.UU." },
+                      { id: "europe_us", label: "Europa Occidental + EE.UU.", desc: "España, Reino Unido y Europa + EE.UU." },
+                      { id: "only_us", label: "Solo EE.UU.", desc: "Exclusivo Silicon Valley y tendencias B2B líderes" },
+                      { id: "global_west", label: "Todo Occidente", desc: "Todos los mercados occidentales combinados" },
+                    ].map((mkt) => (
+                      <button
+                        key={mkt.id}
+                        type="button"
+                        onClick={() => {
+                          setTargetMarket(mkt.id as any);
+                          handleLiveSearch(searchKeyword, undefined, undefined, mkt.id as any);
+                        }}
+                        className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition ${
+                          targetMarket === mkt.id
+                            ? "bg-white text-brand-600 font-bold shadow-xs dark:bg-gray-800 dark:text-brand-400 border border-brand-200 dark:border-brand-800"
+                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        }`}
+                        title={mkt.desc}
+                      >
+                        {mkt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Subtexto informativo de exclusión estricta */}
+                <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 bg-emerald-50/60 dark:bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    <span>
+                      Filtro activo: Exclusión estricta de contenidos en ruso/cirílico y alfabetos no occidentales. Ecosistema segmentado por mercado relevante.
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-gray-400 hidden md:inline">
+                    Top 12 por Score de Impacto
+                  </span>
+                </div>
+
+                {/* Ventana Temporal */}
+                <div className="flex items-center gap-2 flex-wrap pt-1">
                   <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
                   <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
                     {[
@@ -484,7 +573,7 @@ export default function ViralRadarPage() {
                         type="button"
                         onClick={() => {
                           setDatePosted(opt.id as any);
-                          handleLiveSearch(searchKeyword, undefined, opt.id);
+                          handleLiveSearch(searchKeyword, undefined, opt.id, targetMarket);
                         }}
                         className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
                           datePosted === opt.id
@@ -529,9 +618,9 @@ export default function ViralRadarPage() {
               </span>
               {[
                 { id: "all", label: "Todos (Top 12)" },
-                { id: "mega", label: "Mega Viral 🔥🔥🔥" },
-                { id: "high", label: "Alta Tracción 🔥🔥" },
-                { id: "trending", label: "En Tendencia 🔥" },
+                { id: "mega", label: "Mega Viral" },
+                { id: "high", label: "Alta Tracción" },
+                { id: "trending", label: "En Tendencia" },
               ].map((tier) => (
                 <button
                   key={tier.id}
@@ -719,9 +808,9 @@ export default function ViralRadarPage() {
                     </span>
                   </div>
 
-                  {/* Fila de Viralidad: Badge & Score */}
+                  {/* Fila de Viralidad: Badge & Score & Origen de Mercado */}
                   <div className="mb-3 flex items-center justify-between gap-1 flex-wrap">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${
                           post.viralityTier === "mega"
@@ -731,17 +820,26 @@ export default function ViralRadarPage() {
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
                         }`}
                       >
-                        {post.viralityBadge || (
+                        {post.viralityBadge?.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim() || (
                           post.viralityTier === "mega"
-                            ? "Mega Viral 🔥🔥🔥"
+                            ? "Mega Viral"
                             : post.viralityTier === "high"
-                            ? "Alta Tracción 🔥🔥"
-                            : "En Tendencia 🔥"
+                            ? "Alta Tracción"
+                            : "En Tendencia"
                         )}
                       </span>
                       {post.viralityScore !== undefined && (
                         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                           Score: {post.viralityScore} pts
+                        </span>
+                      )}
+                      {post.marketOrigin && (
+                        <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
+                          <svg className="w-2.5 h-2.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {post.marketOrigin}
                         </span>
                       )}
                     </div>
@@ -964,12 +1062,21 @@ export default function ViralRadarPage() {
                         : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
                     }`}
                   >
-                    {selectedPostForModal.viralityBadge}
+                    {selectedPostForModal.viralityBadge.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim()}
                   </span>
                 )}
                 {selectedPostForModal.viralityScore !== undefined && (
                   <span className="rounded bg-gray-200/70 dark:bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Score: {selectedPostForModal.viralityScore} pts
+                  </span>
+                )}
+                {selectedPostForModal.marketOrigin && (
+                  <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
+                    <svg className="w-3 h-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {selectedPostForModal.marketOrigin}
                   </span>
                 )}
                 {selectedPostForModal.isLive && (

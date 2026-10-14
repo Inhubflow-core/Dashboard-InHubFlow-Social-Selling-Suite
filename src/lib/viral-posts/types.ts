@@ -36,6 +36,8 @@ export interface ViralPostTemplate {
   viralityTier?: "mega" | "high" | "trending";
   mediaUrl?: string;
   hasMedia?: boolean;
+  marketOrigin?: string;
+  detectedLanguage?: "es" | "pt" | "en" | "other";
 }
 
 export interface CreatedPost {
