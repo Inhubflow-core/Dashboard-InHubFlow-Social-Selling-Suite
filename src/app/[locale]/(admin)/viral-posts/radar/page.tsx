@@ -39,10 +39,19 @@ export default function ViralRadarPage() {
   const [filterTerm, setFilterTerm] = useState("");
   const [selectedPostForModal, setSelectedPostForModal] = useState<ViralPostTemplate | null>(null);
 
-  // Estados de Traducción de la Publicación (estilo LinkedIn)
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [isShowingTranslation, setIsShowingTranslation] = useState(false);
+  // Estados de Traducción de la Publicación (estilo LinkedIn) tanto para Tarjetas del Grid como para Modal
+  const [translations, setTranslations] = useState<
+    Record<
+      string,
+      {
+        translatedText: string;
+        isShowing: boolean;
+        isTranslating: boolean;
+        error?: string;
+      }
+    >
+  >({});
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
 
   // Cargar cuentas en vivo desde la API de Unipile
   useEffect(() => {
@@ -197,49 +206,84 @@ export default function ViralRadarPage() {
 
   const handleOpenPostModal = (post: ViralPostTemplate) => {
     setSelectedPostForModal(post);
-    setTranslatedContent(null);
-    setIsShowingTranslation(false);
   };
 
   const handleClosePostModal = () => {
     setSelectedPostForModal(null);
-    setTranslatedContent(null);
-    setIsShowingTranslation(false);
   };
 
-  const handleToggleTranslation = async () => {
-    if (!selectedPostForModal) return;
+  const handleTogglePostTranslation = async (post: ViralPostTemplate) => {
+    if (!post) return;
+    const current = translations[post.id];
+    if (current?.isTranslating) return;
 
-    if (isShowingTranslation) {
-      setIsShowingTranslation(false);
+    if (current?.isShowing) {
+      setTranslations((prev) => ({
+        ...prev,
+        [post.id]: { ...prev[post.id], isShowing: false, error: undefined },
+      }));
       return;
     }
 
-    if (translatedContent) {
-      setIsShowingTranslation(true);
+    if (current?.translatedText) {
+      setTranslations((prev) => ({
+        ...prev,
+        [post.id]: { ...prev[post.id], isShowing: true, error: undefined },
+      }));
       return;
     }
 
-    setIsTranslating(true);
+    setTranslations((prev) => ({
+      ...prev,
+      [post.id]: {
+        translatedText: "",
+        isShowing: false,
+        isTranslating: true,
+        error: undefined,
+      },
+    }));
+
     try {
       const res = await fetch("/api/ai/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: selectedPostForModal.fullContent,
+          text: post.fullContent || post.hook,
           targetLanguage: locale || "es",
         }),
       });
 
       const data = await res.json();
-      if (data.translatedText) {
-        setTranslatedContent(data.translatedText);
-        setIsShowingTranslation(true);
+      if (res.ok && data.translatedText) {
+        setTranslations((prev) => ({
+          ...prev,
+          [post.id]: {
+            translatedText: data.translatedText,
+            isShowing: true,
+            isTranslating: false,
+          },
+        }));
+      } else {
+        setTranslations((prev) => ({
+          ...prev,
+          [post.id]: {
+            translatedText: "",
+            isShowing: false,
+            isTranslating: false,
+            error: data.error || "No se pudo traducir",
+          },
+        }));
       }
-    } catch (err) {
-      console.warn("[Translate Error]:", err);
-    } finally {
-      setIsTranslating(false);
+    } catch (err: any) {
+      setTranslations((prev) => ({
+        ...prev,
+        [post.id]: {
+          translatedText: "",
+          isShowing: false,
+          isTranslating: false,
+          error: err.message || "Error al conectar con el traductor",
+        },
+      }));
     }
   };
 
@@ -679,12 +723,89 @@ export default function ViralRadarPage() {
                     </div>
                   </div>
 
-                  {/* Gancho Principal (Hook) */}
-                  <div className="mb-3 rounded-xl bg-gray-50 p-3 text-xs text-gray-700 dark:bg-white/3 dark:text-gray-300">
-                    <p className="font-semibold text-gray-900 dark:text-white mb-1">
-                      Gancho Principal (Hook):
-                    </p>
-                    <p className="italic leading-relaxed line-clamp-3">{post.hook}</p>
+                  {/* Cuerpo del Post con formato fiel a LinkedIn y Enlace Traducir */}
+                  <div className="mb-3">
+                    <div className="text-[13px] leading-relaxed text-gray-800 dark:text-gray-200 font-sans whitespace-pre-wrap select-text">
+                      {translations[post.id]?.isShowing && translations[post.id]?.translatedText
+                        ? (expandedPosts[post.id]
+                            ? translations[post.id].translatedText
+                            : translations[post.id].translatedText.slice(0, 240) + (translations[post.id].translatedText.length > 240 ? "..." : ""))
+                        : (expandedPosts[post.id]
+                            ? (post.fullContent || post.hook)
+                            : (post.fullContent || post.hook).slice(0, 240) + ((post.fullContent || post.hook).length > 240 ? "..." : ""))}
+                    </div>
+
+                    {/* Botón ...ver más / ver menos si el texto es extenso */}
+                    {(post.fullContent || post.hook).length > 240 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedPosts((prev) => ({
+                            ...prev,
+                            [post.id]: !prev[post.id],
+                          }))
+                        }
+                        className="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 mt-1 cursor-pointer"
+                      >
+                        {expandedPosts[post.id] ? "ver menos" : "...ver más"}
+                      </button>
+                    )}
+
+                    {/* Enlace de Traducción interactivo estilo LinkedIn ("Traducir" / "Ver original") */}
+                    <div className="mt-2.5 flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={translations[post.id]?.isTranslating}
+                        onClick={() => handleTogglePostTranslation(post)}
+                        className="text-xs font-semibold text-[#0a66c2] hover:underline cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
+                      >
+                        {translations[post.id]?.isTranslating ? (
+                          <>
+                            <span className="h-3 w-3 border-2 border-[#0a66c2]/40 border-t-[#0a66c2] rounded-full animate-spin"></span>
+                            <span>
+                              {locale === "pt-BR"
+                                ? "Traduzindo..."
+                                : locale === "en"
+                                ? "Translating..."
+                                : "Traduciendo..."}
+                            </span>
+                          </>
+                        ) : translations[post.id]?.isShowing ? (
+                          <span>
+                            {locale === "pt-BR"
+                              ? "Ver original"
+                              : locale === "en"
+                              ? "See original"
+                              : "Ver original"}
+                          </span>
+                        ) : (
+                          <span>
+                            {locale === "pt-BR"
+                              ? "Traduzir"
+                              : locale === "en"
+                              ? "Translate"
+                              : "Traducir"}
+                          </span>
+                        )}
+                      </button>
+
+                      {translations[post.id]?.isShowing && (
+                        <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                          •{" "}
+                          {locale === "pt-BR"
+                            ? "Traduzido para português"
+                            : locale === "en"
+                            ? "Translated to English"
+                            : "Traducido al español"}
+                        </span>
+                      )}
+
+                      {translations[post.id]?.error && (
+                        <span className="text-[11px] text-rose-500">
+                          ({translations[post.id].error})
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Vista previa recortada de la imagen / recurso visual (para saber de un vistazo si incluye imagen) */}
@@ -781,8 +902,14 @@ export default function ViralRadarPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleModelWithAi(post)}
-                    className="flex-1 rounded-lg bg-brand-500 py-2 text-center text-xs font-semibold text-white hover:bg-brand-600 transition"
+                    onClick={() => {
+                      const contentToModel =
+                        translations[post.id]?.isShowing && translations[post.id]?.translatedText
+                          ? { ...post, fullContent: translations[post.id].translatedText }
+                          : post;
+                      handleModelWithAi(contentToModel);
+                    }}
+                    className="flex-1 rounded-lg bg-brand-500 py-2 text-center text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
                   >
                     Modelar con IA
                   </button>
@@ -890,18 +1017,21 @@ export default function ViralRadarPage() {
               {/* Texto de la Publicación (Primero el Texto, formato natural de LinkedIn) */}
               <div className="px-4 pb-3">
                 <div className="text-[14px] leading-relaxed text-gray-900 dark:text-gray-100 font-sans whitespace-pre-wrap select-text">
-                  {isShowingTranslation && translatedContent ? translatedContent : selectedPostForModal.fullContent}
+                  {translations[selectedPostForModal.id]?.isShowing &&
+                  translations[selectedPostForModal.id]?.translatedText
+                    ? translations[selectedPostForModal.id].translatedText
+                    : selectedPostForModal.fullContent}
                 </div>
 
                 {/* Enlace de Traducción interactivo estilo LinkedIn ("Traducir" / "Ver original") */}
                 <div className="mt-3 flex items-center gap-2">
                   <button
                     type="button"
-                    disabled={isTranslating}
-                    onClick={handleToggleTranslation}
+                    disabled={translations[selectedPostForModal.id]?.isTranslating}
+                    onClick={() => handleTogglePostTranslation(selectedPostForModal)}
                     className="text-xs font-semibold text-[#0a66c2] hover:underline cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
                   >
-                    {isTranslating ? (
+                    {translations[selectedPostForModal.id]?.isTranslating ? (
                       <>
                         <span className="h-3 w-3 border-2 border-[#0a66c2]/40 border-t-[#0a66c2] rounded-full animate-spin"></span>
                         <span>
@@ -912,7 +1042,7 @@ export default function ViralRadarPage() {
                             : "Traduciendo..."}
                         </span>
                       </>
-                    ) : isShowingTranslation ? (
+                    ) : translations[selectedPostForModal.id]?.isShowing ? (
                       <span>
                         {locale === "pt-BR"
                           ? "Ver original"
@@ -931,7 +1061,7 @@ export default function ViralRadarPage() {
                     )}
                   </button>
 
-                  {isShowingTranslation && (
+                  {translations[selectedPostForModal.id]?.isShowing && (
                     <span className="text-[11px] text-gray-400 dark:text-gray-500">
                       •{" "}
                       {locale === "pt-BR"
@@ -939,6 +1069,12 @@ export default function ViralRadarPage() {
                         : locale === "en"
                         ? "Translated to English"
                         : "Traducido al español"}
+                    </span>
+                  )}
+
+                  {translations[selectedPostForModal.id]?.error && (
+                    <span className="text-[11px] text-rose-500">
+                      ({translations[selectedPostForModal.id].error})
                     </span>
                   )}
                 </div>
@@ -1072,8 +1208,13 @@ export default function ViralRadarPage() {
                 type="button"
                 onClick={() => {
                   const contentToModel =
-                    isShowingTranslation && translatedContent
-                      ? { ...selectedPostForModal, fullContent: translatedContent }
+                    translations[selectedPostForModal.id]?.isShowing &&
+                    translations[selectedPostForModal.id]?.translatedText
+                      ? {
+                          ...selectedPostForModal,
+                          fullContent:
+                            translations[selectedPostForModal.id].translatedText,
+                        }
                       : selectedPostForModal;
                   handleModelWithAi(contentToModel);
                 }}
