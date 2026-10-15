@@ -267,6 +267,8 @@ export async function POST(req: Request) {
           throw innerErr;
         }
       }
+    }
+
     // 1. Recolección profunda multietapa (Deep Fetching) mediante Cursor
     // LinkedIn entrega entre 15 y 25 posts por página.
     // Iteramos hasta cosechar entre 60 y 80 posts brutos para que, tras aplicar los estrictos filtros
