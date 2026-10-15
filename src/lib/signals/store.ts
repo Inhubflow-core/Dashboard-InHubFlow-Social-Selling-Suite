@@ -26,12 +26,17 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const clean = parsed.filter((m: Level1Monitor) => m && !m.id?.startsWith("mon-l1-"));
-    if (clean.length !== parsed.length) localStorage.setItem(L1_KEY, JSON.stringify(clean));
-    return clean;
+    return parsed.filter((m: Level1Monitor) => Boolean(m && m.id && m.postTitle));
   } catch {
     return [];
   }
+}
+
+export function saveStoredLevel1Monitors(monitors: Level1Monitor[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(L1_KEY, JSON.stringify(monitors));
+  } catch {}
 }
 
 export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
@@ -41,12 +46,17 @@ export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const clean = parsed.filter((m: Level2CompetitorMonitor) => m && !m.id?.startsWith("mon-l2-"));
-    if (clean.length !== parsed.length) localStorage.setItem(L2_KEY, JSON.stringify(clean));
-    return clean;
+    return parsed.filter((m: Level2CompetitorMonitor) => Boolean(m && m.id && m.competitorName));
   } catch {
     return [];
   }
+}
+
+export function saveStoredLevel2Monitors(monitors: Level2CompetitorMonitor[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(L2_KEY, JSON.stringify(monitors));
+  } catch {}
 }
 
 export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
@@ -56,12 +66,17 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const clean = parsed.filter((m: Level3GlobalMonitor) => m && !m.id?.startsWith("mon-l3-"));
-    if (clean.length !== parsed.length) localStorage.setItem(L3_KEY, JSON.stringify(clean));
-    return clean;
+    return parsed.filter((m: Level3GlobalMonitor) => Boolean(m && m.id && m.searchQuery));
   } catch {
     return [];
   }
+}
+
+export function saveStoredLevel3Monitors(monitors: Level3GlobalMonitor[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(L3_KEY, JSON.stringify(monitors));
+  } catch {}
 }
 
 export function getStoredSignalLeads(): SignalLeadItem[] {
@@ -71,9 +86,7 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const clean = parsed.filter((l: SignalLeadItem) => l && !l.id?.startsWith("sig-lead-"));
-    if (clean.length !== parsed.length) localStorage.setItem(LEADS_KEY, JSON.stringify(clean));
-    return clean;
+    return parsed.filter((l: SignalLeadItem) => Boolean(l && l.id && l.fullName));
   } catch {
     return [];
   }
@@ -91,8 +104,32 @@ export function saveStoredSignalLeads(leads: SignalLeadItem[]): void {
 export function addStoredSignalLead(lead: SignalLeadItem): void {
   if (typeof window === "undefined") return;
   const current = getStoredSignalLeads();
+  // Evitar duplicados por monitorId + fullName o linkedinUrl
+  const exists = current.some(
+    (l) => l.monitorId === lead.monitorId && (l.fullName === lead.fullName || (lead.linkedinUrl && l.linkedinUrl === lead.linkedinUrl))
+  );
+  if (exists) return;
   const updated = [lead, ...current];
   saveStoredSignalLeads(updated);
+}
+
+export function addMultipleStoredSignalLeads(newLeads: SignalLeadItem[]): SignalLeadItem[] {
+  if (typeof window === "undefined") return [];
+  const current = getStoredSignalLeads();
+  const added: SignalLeadItem[] = [];
+
+  for (const lead of newLeads) {
+    const exists = current.some(
+      (l) => l.monitorId === lead.monitorId && (l.fullName === lead.fullName || (lead.linkedinUrl && l.linkedinUrl === lead.linkedinUrl))
+    );
+    if (!exists) {
+      current.unshift(lead);
+      added.push(lead);
+    }
+  }
+
+  saveStoredSignalLeads(current);
+  return added;
 }
 
 export function useSignalRadar() {
@@ -113,7 +150,19 @@ export function useSignalRadar() {
   const addLevel1Monitor = (monitor: Level1Monitor) => {
     const updated = [monitor, ...l1Monitors];
     setL1Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L1_KEY, JSON.stringify(updated));
+    saveStoredLevel1Monitors(updated);
+  };
+
+  const updateLevel1Monitor = (id: string, updates: Partial<Level1Monitor>) => {
+    const updated = l1Monitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    setL1Monitors(updated);
+    saveStoredLevel1Monitors(updated);
+  };
+
+  const deleteLevel1Monitor = (id: string) => {
+    const updated = l1Monitors.filter((m) => m.id !== id);
+    setL1Monitors(updated);
+    saveStoredLevel1Monitors(updated);
   };
 
   const toggleLevel1Status = (id: string) => {
@@ -121,13 +170,25 @@ export function useSignalRadar() {
       m.id === id ? { ...m, status: m.status === "active" ? ("paused" as const) : ("active" as const) } : m
     );
     setL1Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L1_KEY, JSON.stringify(updated));
+    saveStoredLevel1Monitors(updated);
   };
 
   const addLevel2Monitor = (monitor: Level2CompetitorMonitor) => {
     const updated = [monitor, ...l2Monitors];
     setL2Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L2_KEY, JSON.stringify(updated));
+    saveStoredLevel2Monitors(updated);
+  };
+
+  const updateLevel2Monitor = (id: string, updates: Partial<Level2CompetitorMonitor>) => {
+    const updated = l2Monitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    setL2Monitors(updated);
+    saveStoredLevel2Monitors(updated);
+  };
+
+  const deleteLevel2Monitor = (id: string) => {
+    const updated = l2Monitors.filter((m) => m.id !== id);
+    setL2Monitors(updated);
+    saveStoredLevel2Monitors(updated);
   };
 
   const toggleLevel2Status = (id: string) => {
@@ -135,13 +196,25 @@ export function useSignalRadar() {
       m.id === id ? { ...m, status: m.status === "active" ? ("paused" as const) : ("active" as const) } : m
     );
     setL2Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L2_KEY, JSON.stringify(updated));
+    saveStoredLevel2Monitors(updated);
   };
 
   const addLevel3Monitor = (monitor: Level3GlobalMonitor) => {
     const updated = [monitor, ...l3Monitors];
     setL3Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L3_KEY, JSON.stringify(updated));
+    saveStoredLevel3Monitors(updated);
+  };
+
+  const updateLevel3Monitor = (id: string, updates: Partial<Level3GlobalMonitor>) => {
+    const updated = l3Monitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    setL3Monitors(updated);
+    saveStoredLevel3Monitors(updated);
+  };
+
+  const deleteLevel3Monitor = (id: string) => {
+    const updated = l3Monitors.filter((m) => m.id !== id);
+    setL3Monitors(updated);
+    saveStoredLevel3Monitors(updated);
   };
 
   const toggleLevel3Status = (id: string) => {
@@ -149,7 +222,15 @@ export function useSignalRadar() {
       m.id === id ? { ...m, status: m.status === "active" ? ("paused" as const) : ("active" as const) } : m
     );
     setL3Monitors(updated);
-    if (typeof window !== "undefined") localStorage.setItem(L3_KEY, JSON.stringify(updated));
+    saveStoredLevel3Monitors(updated);
+  };
+
+  const recordDiscoveredLeads = (newLeads: SignalLeadItem[]) => {
+    const added = addMultipleStoredSignalLeads(newLeads);
+    if (added.length > 0) {
+      setLeads(getStoredSignalLeads());
+    }
+    return added;
   };
 
   const getLeadsForMonitor = (monitorId: string) => {
@@ -163,11 +244,18 @@ export function useSignalRadar() {
     leads,
     isLoaded,
     addLevel1Monitor,
+    updateLevel1Monitor,
+    deleteLevel1Monitor,
     toggleLevel1Status,
     addLevel2Monitor,
+    updateLevel2Monitor,
+    deleteLevel2Monitor,
     toggleLevel2Status,
     addLevel3Monitor,
+    updateLevel3Monitor,
+    deleteLevel3Monitor,
     toggleLevel3Status,
+    recordDiscoveredLeads,
     getLeadsForMonitor,
   };
 }

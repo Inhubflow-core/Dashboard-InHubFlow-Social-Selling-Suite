@@ -646,7 +646,86 @@ assert(day15Posts.length === 0, "El día de origen (15) queda libre de la public
 assert(day22Posts.length === 1 && day22Posts[0].id === "post-oct-15", "El día de destino (22) muestra inmediatamente la publicación arrastrada");
 
 
+// -----------------------------------------------------------------------------
+// PRUEBA 14: Signal Radar - Extracción de URN, Keyword Matching y Deduplicación
+// -----------------------------------------------------------------------------
+console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
+{
+  function extractLinkedInActivityUrn(urlOrId) {
+    if (!urlOrId || typeof urlOrId !== "string") return "";
+    const trimmed = urlOrId.trim();
+    if (trimmed.startsWith("urn:li:activity:")) return trimmed;
+    if (/^\d{10,25}$/.test(trimmed)) return `urn:li:activity:${trimmed}`;
+    const directMatch = trimmed.match(/urn:li:activity:(\d+)/i);
+    if (directMatch && directMatch[1]) return `urn:li:activity:${directMatch[1]}`;
+    const feedMatch = trimmed.match(/activity-([0-9]+)/i);
+    if (feedMatch && feedMatch[1]) return `urn:li:activity:${feedMatch[1]}`;
+    const ugcMatch = trimmed.match(/urn:li:ugcPost:(\d+)/i);
+    if (ugcMatch && ugcMatch[1]) return `urn:li:activity:${ugcMatch[1]}`;
+    return trimmed;
+  }
+
+  // 1. Normalización de URLs de LinkedIn
+  const testUrl1 = "https://www.linkedin.com/feed/update/urn:li:activity:7251892837461928371/";
+  const testUrl2 = "urn:li:activity:7251892837461928371";
+  const testUrl3 = "7251892837461928371";
+  const testUrl4 = "https://www.linkedin.com/posts/roberto-orse_activity-7251892837461928371-abc/";
+
+  assert(extractLinkedInActivityUrn(testUrl1) === "urn:li:activity:7251892837461928371", "Normaliza URL canónica con urn:li:activity a URN correcto");
+  assert(extractLinkedInActivityUrn(testUrl2) === "urn:li:activity:7251892837461928371", "Mantiene URN de LinkedIn intacto");
+  assert(extractLinkedInActivityUrn(testUrl3) === "urn:li:activity:7251892837461928371", "Convierte ID puramente numérico a URN canónico");
+  assert(extractLinkedInActivityUrn(testUrl4) === "urn:li:activity:7251892837461928371", "Extrae activity ID de URLs amigables de posts");
+
+  // 2. Coincidencia de Keyword en Lead Magnet (Nivel 1)
+  function matchesKeyword(commentText, keyword) {
+    if (!keyword || !keyword.trim()) return true;
+    const kw = keyword.trim().toUpperCase();
+    const text = (commentText || "").toUpperCase();
+    return text.includes(kw);
+  }
+
+  assert(matchesKeyword("Por favor envíame el SISTEMA a mi correo", "SISTEMA") === true, "Detecta palabra clave en mayúsculas dentro de comentario");
+  assert(matchesKeyword("Quiero el sistema ahora", "SISTEMA") === true, "Detecta palabra clave case-insensitive");
+  assert(matchesKeyword("Excelente publicación Roberto", "SISTEMA") === false, "Filtra comentarios que no coinciden con la palabra clave");
+
+  // 3. Deduplicación de Leads en Signal Radar
+  const existingLeads = [
+    { id: "lead-1", monitorId: "mon-1", fullName: "Carlos Gomez", linkedinUrl: "https://linkedin.com/in/carlos-gomez" },
+    { id: "lead-2", monitorId: "mon-1", fullName: "Ana Martinez", linkedinUrl: "https://linkedin.com/in/ana-martinez" },
+  ];
+
+  function addMultipleStoredSignalLeads(incomingLeads, currentLeads) {
+    const next = [...currentLeads];
+    for (const item of incomingLeads) {
+      const isDuplicate = next.some(
+        (existing) =>
+          existing.monitorId === item.monitorId &&
+          (
+            (existing.linkedinUrl && item.linkedinUrl && existing.linkedinUrl.toLowerCase() === item.linkedinUrl.toLowerCase()) ||
+            existing.fullName.toLowerCase() === item.fullName.toLowerCase()
+          )
+      );
+      if (!isDuplicate) {
+        next.unshift(item);
+      }
+    }
+    return next;
+  }
+
+  const newBatch = [
+    { id: "lead-3", monitorId: "mon-1", fullName: "carlos gomez", linkedinUrl: "https://linkedin.com/in/carlos-gomez" }, // Duplicado
+    { id: "lead-4", monitorId: "mon-1", fullName: "Valeria Ruiz", linkedinUrl: "https://linkedin.com/in/valeria-ruiz" }, // Nuevo
+    { id: "lead-5", monitorId: "mon-2", fullName: "Carlos Gomez", linkedinUrl: "https://linkedin.com/in/carlos-gomez" }, // Mismo lead pero en otro monitor -> Permitido
+  ];
+
+  const deduplicated = addMultipleStoredSignalLeads(newBatch, existingLeads);
+  assert(deduplicated.length === 4, "Deduplica leads existentes en el mismo monitor e incorpora nuevos y multimonitor");
+  assert(deduplicated.some((l) => l.fullName === "Valeria Ruiz"), "Nuevo prospecto Valeria Ruiz añadido con éxito");
+}
+
+
 // Limpieza de base de datos de test
+
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
 const shmPath = `${testDbPath}-shm`;

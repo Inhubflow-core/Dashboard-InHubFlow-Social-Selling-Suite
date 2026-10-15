@@ -4,13 +4,53 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { Level1Monitor, SignalLeadItem } from "@/lib/signals/types";
-import { useState } from "react";
+import { getStoredAccounts } from "@/lib/unipile/store";
+import type { UnipileAccount } from "@/lib/unipile/types";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function MyPostsSignalRadarPage() {
-  const { l1Monitors, leads, isLoaded, addLevel1Monitor, toggleLevel1Status } = useSignalRadar();
+  const {
+    l1Monitors,
+    leads,
+    isLoaded,
+    addLevel1Monitor,
+    updateLevel1Monitor,
+    deleteLevel1Monitor,
+    toggleLevel1Status,
+    recordDiscoveredLeads,
+  } = useSignalRadar();
+
+  // Cuentas de LinkedIn
+  const [availableAccounts, setAvailableAccounts] = useState<UnipileAccount[]>([]);
+  const [activeAccount, setActiveAccount] = useState<UnipileAccount | null>(null);
+
+  useEffect(() => {
+    fetch("/api/unipile/accounts")
+      .then((r) => r.json())
+      .then((data) => {
+        const liveItems = data.items || [];
+        if (liveItems.length > 0) {
+          setAvailableAccounts(liveItems);
+          const healthy = liveItems.find((a: any) => a.status === "OK" || a.status === "CONNECTED") || liveItems[0];
+          setActiveAccount(healthy);
+        } else {
+          const fallback = getStoredAccounts();
+          setAvailableAccounts(fallback);
+          if (fallback.length > 0) setActiveAccount(fallback[0]);
+        }
+      })
+      .catch(() => {
+        const fallback = getStoredAccounts();
+        setAvailableAccounts(fallback);
+        if (fallback.length > 0) setActiveAccount(fallback[0]);
+      });
+  }, []);
 
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false);
   const [selectedMonitorForLeads, setSelectedMonitorForLeads] = useState<Level1Monitor | null>(null);
+  const [isScanningId, setIsScanningId] = useState<string | null>(null);
+  const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Form states
   const [newPostTitle, setNewPostTitle] = useState("");
@@ -54,11 +94,112 @@ export default function MyPostsSignalRadarPage() {
     setIsCreatingMonitor(false);
     setNewPostTitle("");
     setNewPostUrl("");
+    setScanFeedback({
+      type: "success",
+      text: `Monitor para "${newMonitor.postTitle}" creado y escuchando la palabra clave "${newMonitor.keyword}".`,
+    });
+  };
+
+  const handleScanMonitor = async (mon: Level1Monitor) => {
+    setIsScanningId(mon.id);
+    setScanFeedback(null);
+    try {
+      const res = await fetch(
+        `/api/unipile/signals?postId=${encodeURIComponent(mon.postUrl)}&accountId=${activeAccount?.id || ""}`
+      );
+      const data = await res.json();
+      const rawComments = Array.isArray(data.comments) ? data.comments : [];
+
+      const kw = mon.keyword.toUpperCase();
+      const matchingComments = rawComments.filter((c: any) => {
+        const text = String(c.text || "").toUpperCase();
+        return text.includes(kw);
+      });
+
+      const newLeadsToAdd: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => ({
+        id: `sig-lead-${Date.now()}-${idx}`,
+        monitorId: mon.id,
+        fullName: c.author?.name || "Prospecto de LinkedIn",
+        headline: c.author?.headline || "Profesional B2B",
+        company: "Empresa detectada",
+        location: "España / Latam",
+        linkedinUrl: c.author?.public_identifier
+          ? `https://www.linkedin.com/in/${c.author.public_identifier}`
+          : "https://www.linkedin.com",
+        avatarUrl: c.author?.profile_picture_url,
+        connectionDegree: "2nd",
+        intentLevel: "very_high",
+        signalSnippet: `Comentó: "${c.text}"`,
+        detectedAt: new Date().toISOString(),
+        status: "dm_sent",
+        attachedResource: mon.attachedPdfName,
+      }));
+
+      const added = recordDiscoveredLeads(newLeadsToAdd);
+      const newTotalScanned = Math.max(mon.scannedCommentsCount, rawComments.length);
+      const newCapturedCount = mon.leadsCapturedCount + added.length;
+
+      updateLevel1Monitor(mon.id, {
+        scannedCommentsCount: newTotalScanned,
+        leadsCapturedCount: newCapturedCount,
+        lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      });
+
+      setScanFeedback({
+        type: "success",
+        text: `Escaneo completado: ${rawComments.length} comentarios analizados, ${added.length} nuevos leads captados con la palabra clave "${mon.keyword}".`,
+      });
+    } catch (err: any) {
+      setScanFeedback({
+        type: "error",
+        text: `Error al escanear publicación: ${err.message || "Verifica la conexión con LinkedIn"}`,
+      });
+    } finally {
+      setIsScanningId(null);
+    }
+  };
+
+  const handleSimulateCommentLead = (mon: Level1Monitor) => {
+    const sampleNames = [
+      { name: "Mariana Costa", headline: "Directora de Operaciones B2B en TechLatam", id: "mariana-costa-tech" },
+      { name: "Carlos Benitez", headline: "VP de Ventas & Expansión en FinScale", id: "carlos-benitez-sales" },
+      { name: "Lucía Fernández", headline: "Head of Growth en SaaS Studio", id: "lucia-fernandez-growth" },
+    ];
+    const pick = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+    const simulatedLead: SignalLeadItem = {
+      id: `sig-lead-${Date.now()}`,
+      monitorId: mon.id,
+      fullName: pick.name,
+      headline: pick.headline,
+      company: "Empresa B2B",
+      location: "Madrid, España",
+      linkedinUrl: `https://www.linkedin.com/in/${pick.id}`,
+      connectionDegree: "2nd",
+      intentLevel: "very_high",
+      signalSnippet: `Comentó: "${mon.keyword} por favor, me interesa mucho el framework!"`,
+      detectedAt: new Date().toISOString(),
+      status: "dm_sent",
+      attachedResource: mon.attachedPdfName,
+    };
+    const added = recordDiscoveredLeads([simulatedLead]);
+    if (added.length > 0) {
+      updateLevel1Monitor(mon.id, {
+        scannedCommentsCount: mon.scannedCommentsCount + 1,
+        leadsCapturedCount: mon.leadsCapturedCount + 1,
+        lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      });
+      setScanFeedback({
+        type: "success",
+        text: `Comentario simulado con éxito: ${simulatedLead.fullName} activó la entrega automática del recurso "${mon.attachedPdfName}".`,
+      });
+    }
   };
 
   const getMonitorLeads = (monitorId: string): SignalLeadItem[] => {
     return leads.filter((l) => l.monitorId === monitorId);
   };
+
+  const currentDisplayName = activeAccount?.name || "Cuenta Principal de LinkedIn";
 
   return (
     <div className="space-y-6">
@@ -255,10 +396,84 @@ export default function MyPostsSignalRadarPage() {
         </ComponentCard>
       )}
 
+      {/* Barra de Cuenta Conectada & Estado de Escucha */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-gray-600 dark:text-gray-400">
+            Cuenta de LinkedIn activa para captación:
+          </span>
+          <span className="font-bold text-gray-900 dark:text-white">
+            {currentDisplayName}
+          </span>
+          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+            {activeAccount?.status === "OK" ? "CONECTADA" : "ACTIVA"}
+          </span>
+        </div>
+
+        {availableAccounts.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500 text-[11px]">Cambiar cuenta:</span>
+            <select
+              value={activeAccount?.id || ""}
+              onChange={(e) => {
+                const sel = availableAccounts.find((a) => a.id === e.target.value);
+                if (sel) setActiveAccount(sel);
+              }}
+              className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            >
+              {availableAccounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Banner de Feedback de Escaneo o Acciones */}
+      {scanFeedback && (
+        <div
+          className={`rounded-xl p-3.5 text-xs border flex items-center justify-between ${
+            scanFeedback.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
+              : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-bold">{scanFeedback.type === "success" ? "✓" : "⚠"}</span>
+            <span>{scanFeedback.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setScanFeedback(null)}
+            className="text-xs font-bold hover:underline px-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Listado de Monitores Activos */}
       <ComponentCard title={`Monitores de Publicaciones Propias (${l1Monitors.length})`}>
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando monitores...</p>
+        ) : l1Monitors.length === 0 ? (
+          <div className="py-12 text-center space-y-3">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              No tienes publicaciones conectadas en Signal Radar Nivel 1.
+            </p>
+            <p className="text-xs text-gray-400 max-w-md mx-auto">
+              Conecta una publicación de LinkedIn donde ofrezcas una guía, plantilla o recurso a cambio de una palabra clave (ej. &quot;SISTEMA&quot;).
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsCreatingMonitor(true)}
+              className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+            >
+              + Conectar Primer Post
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -283,6 +498,9 @@ export default function MyPostsSignalRadarPage() {
                       <p className="text-[11px] text-gray-400 truncate">
                         Adjunto: {mon.attachedPdfName}
                       </p>
+                      <span className="text-[10px] text-brand-600 dark:text-brand-400 truncate block">
+                        {mon.postUrl}
+                      </span>
                     </td>
 
                     <td className="py-4">
@@ -317,20 +535,55 @@ export default function MyPostsSignalRadarPage() {
                       </button>
                     </td>
 
-                    <td className="py-4 text-right space-x-2">
+                    <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
+                      {/* Botón de Escaneo en Vivo */}
+                      <button
+                        type="button"
+                        disabled={isScanningId === mon.id}
+                        onClick={() => handleScanMonitor(mon)}
+                        className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
+                        title="Escanear comentarios de la publicación en LinkedIn"
+                      >
+                        {isScanningId === mon.id ? (
+                          <>
+                            <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                            Escaneando...
+                          </>
+                        ) : (
+                          "Escanear Ahora"
+                        )}
+                      </button>
+
+                      {/* Botón de Ver Leads */}
                       <button
                         type="button"
                         onClick={() => setSelectedMonitorForLeads(mon)}
-                        className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium"
+                        className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs"
                       >
                         Ver Leads ({getMonitorLeads(mon.id).length})
                       </button>
-                      <a
+
+                      {/* Enlace a Campañas */}
+                      <Link
                         href="/campaigns"
-                        className="rounded-md border border-gray-200 px-2.5 py-1 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                        className="rounded-md border border-gray-200 px-2.5 py-1 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 text-xs inline-block"
                       >
-                        Ver Secuencia
-                      </a>
+                        Secuencia
+                      </Link>
+
+                      {/* Botón Eliminar */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
+                            deleteLevel1Monitor(mon.id);
+                          }
+                        }}
+                        className="rounded-md border border-red-200 px-2 py-1 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 text-xs"
+                        title="Eliminar monitor"
+                      >
+                        ✕
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -353,7 +606,7 @@ export default function MyPostsSignalRadarPage() {
                   Leads Captados: {selectedMonitorForLeads.postTitle}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Prospectos que comentaron la palabra clave y activaron la secuencia automatica.
+                  Prospectos que comentaron la palabra clave y activaron la entrega del recurso &quot;{selectedMonitorForLeads.attachedPdfName}&quot;.
                 </p>
               </div>
               <button
@@ -367,9 +620,28 @@ export default function MyPostsSignalRadarPage() {
 
             <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
               {getMonitorLeads(selectedMonitorForLeads.id).length === 0 ? (
-                <p className="text-xs text-gray-500 py-6 text-center">
-                  Aun no hay interacciones registradas en este monitor.
-                </p>
+                <div className="py-8 text-center space-y-3">
+                  <p className="text-xs text-gray-500">
+                    Aún no hay comentarios detectados con la palabra clave &quot;{selectedMonitorForLeads.keyword}&quot; en esta publicación.
+                  </p>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      disabled={isScanningId === selectedMonitorForLeads.id}
+                      onClick={() => handleScanMonitor(selectedMonitorForLeads)}
+                      className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                    >
+                      {isScanningId === selectedMonitorForLeads.id ? "Escaneando..." : "Escanear Publicación Ahora"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSimulateCommentLead(selectedMonitorForLeads)}
+                      className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      + Simular Comentario de Prueba
+                    </button>
+                  </div>
+                </div>
               ) : (
                 getMonitorLeads(selectedMonitorForLeads.id).map((lead) => (
                   <div key={lead.id} className="py-3.5 flex items-center justify-between gap-4">
@@ -401,19 +673,26 @@ export default function MyPostsSignalRadarPage() {
                           ? "Conectado"
                           : "Invitacion Enviada"}
                       </span>
-                      <a
+                      <Link
                         href="/inbox"
                         className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                       >
                         Abrir Chat
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ))
               )}
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => handleSimulateCommentLead(selectedMonitorForLeads)}
+                className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+              >
+                + Simular Comentario de Prueba
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedMonitorForLeads(null)}
