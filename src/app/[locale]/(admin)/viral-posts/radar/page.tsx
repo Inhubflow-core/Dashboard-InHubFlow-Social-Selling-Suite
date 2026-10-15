@@ -4,6 +4,11 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
+import {
+  isExcludedCorporateAuthor,
+  isJobRelatedPost,
+  isNonWestern,
+} from "@/lib/viral-posts/filters";
 import { getStoredViralTemplates, setSelectedTemplateForModeling } from "@/lib/viral-posts/store";
 import type { PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
 import { useLocale } from "next-intl";
@@ -154,6 +159,7 @@ export default function ViralRadarPage() {
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
   const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "trending">("all");
+  const [excludeJobs, setExcludeJobs] = useState<boolean>(true);
 
   // Filtros generales y Modal
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
@@ -206,13 +212,14 @@ export default function ViralRadarPage() {
       });
   }, []);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico y seleccionando el Top 12)
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico, ofertas de empleo y seleccionando el Top 12)
   const handleLiveSearch = useCallback(
     async (
       keywordToSearch?: string,
       accountIdOverride?: string,
       dateOverride?: string,
-      marketOverride?: TargetMarket
+      marketOverride?: TargetMarket,
+      excludeJobsOverride?: boolean
     ) => {
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
@@ -220,6 +227,8 @@ export default function ViralRadarPage() {
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
       const targetMkt = marketOverride || detectedLocation.market;
+      const shouldExcludeJobs =
+        excludeJobsOverride !== undefined ? excludeJobsOverride : excludeJobs;
 
       setIsSearchingLive(true);
       setSearchError(null);
@@ -237,6 +246,7 @@ export default function ViralRadarPage() {
             user_timezone: detectedLocation.timezone,
             user_country: detectedLocation.country,
             filter_zero: true,
+            exclude_jobs: shouldExcludeJobs,
             sort_by: "RELEVANCE",
           }),
         });
@@ -248,27 +258,31 @@ export default function ViralRadarPage() {
         }
 
         const rawItems: ViralPostTemplate[] = data.items || [];
-        const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
-        const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
 
         const isExcluded = (p: ViralPostTemplate) => {
-          const authorLower = (p.author || "").toLowerCase();
-          const publicIdLower = (p.publicIdentifier || "").toLowerCase();
           const combined = `${p.author || ""} ${p.authorHeadline || ""} ${p.fullContent || ""}`;
 
           // Descartar posts en cirílico/ruso o alfabetos no occidentales
-          if (CYRILLIC_REGEX.test(combined) || NON_WESTERN_REGEX.test(combined)) {
+          if (isNonWestern(combined)) {
             return true;
           }
 
-          return (
-            authorLower.includes("linkedin for marketing") ||
-            authorLower.includes("linkedin marketing solutions") ||
-            authorLower.includes("linkedin marketing") ||
-            authorLower.includes("linkedin business") ||
-            publicIdLower.includes("linkedin-for-marketing")
-          );
+          // Descartar cuentas institucionales
+          if (isExcludedCorporateAuthor(p.author, p.publicIdentifier)) {
+            return true;
+          }
+
+          // Descartar ofertas y solicitudes de empleo si el filtro está activo
+          if (
+            shouldExcludeJobs &&
+            isJobRelatedPost(p.fullContent || p.hook || "", p.authorHeadline || "")
+          ) {
+            return true;
+          }
+
+          return false;
         };
+
         const validItems = rawItems.filter((p) => !isExcluded(p));
         // Garantizar estrictamente los top 12 mejores posts ordenados por score
         const top12 = validItems
@@ -288,7 +302,7 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted, detectedLocation]
+    [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs]
   );
 
   // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
@@ -303,23 +317,19 @@ export default function ViralRadarPage() {
 
   // Filtrado reactivo por formato, tier de viralidad (Mega Viral, Alta Tracción, En Tendencia) y término secundario
   const filteredPosts = useMemo(() => {
-    const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
-    const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
-
     const list = currentPostsPool.filter((post) => {
       const combined = `${post.author || ""} ${post.authorHeadline || ""} ${post.fullContent || ""}`;
-      if (CYRILLIC_REGEX.test(combined) || NON_WESTERN_REGEX.test(combined)) {
+      if (isNonWestern(combined)) {
         return false;
       }
 
-      const authorLower = (post.author || "").toLowerCase();
-      const publicIdLower = (post.publicIdentifier || "").toLowerCase();
+      if (isExcludedCorporateAuthor(post.author, post.publicIdentifier)) {
+        return false;
+      }
+
       if (
-        authorLower.includes("linkedin for marketing") ||
-        authorLower.includes("linkedin marketing solutions") ||
-        authorLower.includes("linkedin marketing") ||
-        authorLower.includes("linkedin business") ||
-        publicIdLower.includes("linkedin-for-marketing")
+        excludeJobs &&
+        isJobRelatedPost(post.fullContent || post.hook || "", post.authorHeadline || "")
       ) {
         return false;
       }
@@ -352,7 +362,7 @@ export default function ViralRadarPage() {
     }
 
     return sorted;
-  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter, viewMode]);
+  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter, viewMode, excludeJobs]);
 
   const handleModelWithAi = (post: ViralPostTemplate) => {
     setSelectedTemplateForModeling(post);
@@ -643,15 +653,39 @@ export default function ViralRadarPage() {
                   </div>
                 </div>
 
-                {/* Detección Automática de Mercado y Ubicación */}
+                {/* Detección Automática de Mercado, Ubicación y Filtro de Contenido */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Mercado automático: {detectedLocation.label}</span>
                   </div>
-                  <span className="text-[11px] text-gray-400 hidden sm:inline">
-                    • Detectado en {detectedLocation.country} + Hub de Innovación EE.UU.
-                  </span>
+
+                  {/* Filtro Anti-Empleo (#OpenToWork / Hiring) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !excludeJobs;
+                      setExcludeJobs(next);
+                      handleLiveSearch(searchKeyword, undefined, undefined, undefined, next);
+                    }}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition border ${
+                      excludeJobs
+                        ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs"
+                        : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+                    }`}
+                    title="Excluye publicaciones de contratación (#Hiring), ofertas de trabajo y búsqueda activa (#OpenToWork) para modelar solo contenido de alto impacto"
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        excludeJobs ? "bg-emerald-400" : "bg-gray-400"
+                      }`}
+                    ></span>
+                    <span>
+                      {excludeJobs
+                        ? "Filtro Empleo: Ofertas y #OpenToWork excluidos"
+                        : "Filtro Empleo: Inactivo (Mostrar todo)"}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -778,7 +812,7 @@ export default function ViralRadarPage() {
               Escaneando publicaciones en vivo en LinkedIn...
             </p>
             <p className="text-xs text-gray-400">
-              Extrayendo el Top 12 con mayor impacto y descartando publicaciones sin tracción.
+              Extrayendo el Top 12 con mayor impacto, descartando ofertas laborales (#Hiring), solicitudes (#OpenToWork) y publicaciones sin tracción.
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (

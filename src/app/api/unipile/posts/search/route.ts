@@ -1,14 +1,11 @@
 import { unipile } from "@/lib/unipile/client";
 import { getStoredAccounts } from "@/lib/unipile/store";
+import {
+  isExcludedCorporateAuthor,
+  isJobRelatedPost,
+  isNonWestern,
+} from "@/lib/viral-posts/filters";
 import { NextResponse } from "next/server";
-
-// Detección estricta de alfabetos no occidentales (Cirílico / Ruso / Ucraniano, Georgiano, Asiático, Árabe, Hebreo)
-const CYRILLIC_REGEX = /[\u0400-\u04FF]/;
-const NON_WESTERN_REGEX = /[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0600-\u06FF\u10A0-\u10FF\u0530-\u05FF\u0590-\u05FF]/;
-
-function isNonWestern(text: string) {
-  return CYRILLIC_REGEX.test(text) || NON_WESTERN_REGEX.test(text);
-}
 
 function detectPostLanguage(text: string): "pt" | "es" | "en" | "other" {
   const lower = " " + text.toLowerCase().replace(/[^a-záéíóúüñãõçâêîôûàèìòù]/g, " ") + " ";
@@ -156,6 +153,7 @@ export async function POST(req: Request) {
     const keywords = (body.keywords || "Social Selling").trim();
     let requestedAccountId = body.account_id;
     const filterZero = body.filter_zero !== false;
+    const excludeJobs = body.exclude_jobs !== false;
     const sortBy = body.sort_by || "RELEVANCE";
     const datePosted = body.date_posted || "PAST_MONTH";
     const requestLimit = Math.min(50, Math.max(35, body.limit || 50));
@@ -498,49 +496,32 @@ export async function POST(req: Request) {
     });
 
     // 3. Filtro de Exclusión de Cuentas Corporativas e Institucionales
-    const EXCLUDED_AUTHORS = [
-      "linkedin for marketing",
-      "linkedin marketing solutions",
-      "linkedin marketing",
-      "linkedin for business",
-      "linkedin business",
-    ];
+    const nonCorporatePosts = nonRussianPosts.filter(
+      (item) => !isExcludedCorporateAuthor(item.author, item.publicIdentifier)
+    );
 
-    const isExcludedAuthorPost = (item: any) => {
-      const authorLower = String(item.author || "").toLowerCase();
-      const publicIdLower = String(item.publicIdentifier || "").toLowerCase();
-      return EXCLUDED_AUTHORS.some(
-        (term) => authorLower.includes(term) || publicIdLower.includes(term)
+    // 4. Filtro Estricto Anti-Ofertas y Solicitudes de Empleo (#OpenToWork / Hiring)
+    let nonJobPosts = nonCorporatePosts;
+    let filteredJobsCount = 0;
+    if (excludeJobs) {
+      nonJobPosts = nonCorporatePosts.filter(
+        (item) => !isJobRelatedPost(item.fullContent, item.authorHeadline)
       );
-    };
+      filteredJobsCount = nonCorporatePosts.length - nonJobPosts.length;
+    }
 
-    const nonCorporatePosts = nonRussianPosts.filter((item) => !isExcludedAuthorPost(item));
-
-    // 4. Filtro de Calidad Anti-Cero y Ofertas de Empleo sin tracción
-    let qualifiedPosts = nonCorporatePosts;
+    // 5. Filtro de Calidad Anti-Cero (Descartar publicaciones sin tracción)
+    let qualifiedPosts = nonJobPosts;
 
     if (filterZero) {
-      qualifiedPosts = nonCorporatePosts.filter((item) => {
+      qualifiedPosts = nonJobPosts.filter((item) => {
         const total = item.likes + item.comments + item.shares;
-        // Descartar publicaciones sin tracción (0 interacciones)
-        if (total === 0) return false;
-
-        // Descartar ofertas de empleo que no aportan valor ni estructura viral
-        const lower = item.fullContent.toLowerCase();
-        const isJobOffer =
-          lower.startsWith("we're hiring") ||
-          lower.startsWith("hiring!") ||
-          lower.startsWith("estamos contratando") ||
-          lower.includes("we are looking for a") ||
-          lower.includes("oferta de empleo");
-        if (isJobOffer && total < 5) return false;
-
-        return true;
+        return total > 0;
       });
 
-      // Si tras el filtro estricto la lista quedó vacía, mostrar los occidentales calificados
-      if (qualifiedPosts.length === 0 && nonCorporatePosts.length > 0) {
-        qualifiedPosts = nonCorporatePosts;
+      // Si tras el filtro estricto la lista quedó vacía, mostrar los posts calificados sin empleo
+      if (qualifiedPosts.length === 0 && nonJobPosts.length > 0) {
+        qualifiedPosts = nonJobPosts;
       }
     }
 
@@ -600,6 +581,7 @@ export async function POST(req: Request) {
       accountName: selectedAccountObj?.name || "LinkedIn Account",
       totalFound: normalized.length,
       filteredCyrillicCount: normalized.length - nonRussianPosts.length,
+      filteredJobsCount,
       count: top12Posts.length,
       filteredOutZeroCount: normalized.length - qualifiedPosts.length,
       items: top12Posts,
