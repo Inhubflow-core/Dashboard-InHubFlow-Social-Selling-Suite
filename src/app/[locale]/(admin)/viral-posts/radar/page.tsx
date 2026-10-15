@@ -6,7 +6,9 @@ import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import {
   isExcludedCorporateAuthor,
+  isFreelanceOrServiceSpam,
   isJobRelatedPost,
+  isNonTargetGeography,
   isNonWestern,
 } from "@/lib/viral-posts/filters";
 import { getStoredViralTemplates, setSelectedTemplateForModeling } from "@/lib/viral-posts/store";
@@ -144,6 +146,7 @@ export default function ViralRadarPage() {
 
   // Estados para Búsqueda en Vivo
   const [searchKeyword, setSearchKeyword] = useState("B2B Outbound");
+  const [lastSuccessfulKeyword, setLastSuccessfulKeyword] = useState<string>("B2B Outbound");
   const [livePosts, setLivePosts] = useState<ViralPostTemplate[]>([]);
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -280,6 +283,16 @@ export default function ViralRadarPage() {
             return true;
           }
 
+          // Descartar spam de servicios freelance, diseñadores de banners y ofertas de cursos
+          if (isFreelanceOrServiceSpam(p.fullContent || p.hook || "", p.authorHeadline || "")) {
+            return true;
+          }
+
+          // Descartar publicaciones fuera de las geografías objetivo (India, Dubái/EAU, Pakistán, etc.)
+          if (isNonTargetGeography(p.fullContent || p.hook || "", p.authorHeadline || "")) {
+            return true;
+          }
+
           return false;
         };
 
@@ -291,13 +304,23 @@ export default function ViralRadarPage() {
 
         setLivePosts(top12);
         setHasSearchedOnce(true);
+        setLastSuccessfulKeyword(kw);
 
         if (data.accountName) {
           setActiveAccountName(data.accountName);
         }
       } catch (err: any) {
         console.warn("[Radar Live Search Error]:", err);
-        setSearchError(err.message || "Error al conectar con el radar de LinkedIn.");
+        let msg = err.message || "Error al conectar con el radar de LinkedIn.";
+        if (
+          msg.includes("504") ||
+          msg.includes("request_timeout") ||
+          msg.includes("Request Timeout") ||
+          msg.includes("timeout")
+        ) {
+          msg = "LinkedIn tardó demasiado en responder para esta búsqueda (Timeout temporal). Puedes reintentar ahora o explorar las plantillas maestras.";
+        }
+        setSearchError(msg);
       } finally {
         setIsSearchingLive(false);
       }
@@ -331,6 +354,14 @@ export default function ViralRadarPage() {
         excludeJobs &&
         isJobRelatedPost(post.fullContent || post.hook || "", post.authorHeadline || "")
       ) {
+        return false;
+      }
+
+      if (isFreelanceOrServiceSpam(post.fullContent || post.hook || "", post.authorHeadline || "")) {
+        return false;
+      }
+
+      if (isNonTargetGeography(post.fullContent || post.hook || "", post.authorHeadline || "")) {
         return false;
       }
 
@@ -800,7 +831,9 @@ export default function ViralRadarPage() {
           </h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
-              ? `Palabra clave: "${searchKeyword}" • Top 12 ordenados por Score de Impacto`
+              ? searchError && lastSuccessfulKeyword !== searchKeyword
+                ? `Mostrando resultados de "${lastSuccessfulKeyword}" • Reintento pendiente para "${searchKeyword}"`
+                : `Palabra clave: "${lastSuccessfulKeyword || searchKeyword}" • Top 12 ordenados por Score de Impacto`
               : "Ordenadas por Ratio de Interacción probado"}
           </span>
         </div>

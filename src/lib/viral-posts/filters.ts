@@ -236,3 +236,188 @@ export function isJobRelatedPost(text: string, headline: string = ""): boolean {
 
   return false;
 }
+
+/**
+ * Filtro estricto de spam promocional, servicios freelance, ofertas directas de diseño/banners
+ * y esquemas de "ganar dinero online" / cursos de freelance.
+ * Elimina flyers comerciales de baja calidad que no aportan estructuras de Social Selling B2B.
+ */
+export function isFreelanceOrServiceSpam(text: string, headline: string = ""): boolean {
+  const lower = (text + " " + headline).toLowerCase();
+
+  // 1. Detección de moneda de regiones de gig spam (Rupias indias) o esquemas de ingresos
+  if (
+    lower.includes("₹") ||
+    lower.includes("inr") ||
+    lower.includes("earning potential") ||
+    lower.includes("learnandearn") ||
+    lower.includes("#learnandearn") ||
+    lower.includes("#freelancelife") ||
+    lower.includes("earn money online") ||
+    lower.includes("make money online") ||
+    lower.includes("ganhar dinheiro online") ||
+    lower.includes("renda passiva online") ||
+    lower.includes("#digitalskills") ||
+    lower.includes("#upskilling")
+  ) {
+    return true;
+  }
+
+  // 2. Servicios de diseño gráfico, perfiles y banners freelance
+  const designServiceTerms = [
+    "banner designer",
+    "banner design",
+    "banners delivered",
+    "elite banner",
+    "profile banner",
+    "linkedin banner",
+    "banner para o linkedin",
+    "designer de banner",
+    "co-founder banner designer",
+    "profile design",
+    "profile makeover",
+    "profile redesign",
+    "thumbnail designer",
+    "carrossel designer",
+    "designer de carrossel",
+    "canva designer",
+    "designer gráfico freelance",
+    "designer grafico freelance",
+    "1x elite banner",
+    "1x banner",
+    "2x featured cards",
+    "branded pic",
+    "foto de perfil com marca",
+    "cards estratégicos em destaque",
+    "cards estrategicos",
+    "banner & pic",
+    "banner & profile",
+  ];
+
+  for (const term of designServiceTerms) {
+    if (lower.includes(term)) return true;
+  }
+
+  // 3. Ofertas de servicios con descuentos agresivos y escasez artificial (Promo Flyers)
+  const promoOfferPatterns = [
+    "exclusive offer",
+    "oferta exclusiva",
+    "limited offer",
+    "special offer",
+    "agora custa $",
+    "now costs $",
+    "now only $",
+    "now for only $",
+    "now $",
+    "de $393 por",
+    "spots left",
+    "spot left",
+    "5 spot left",
+    "7 spot left",
+    "slots left",
+    "slots each week",
+    "slot each week",
+    "7 slot each week",
+    "7 slots each week",
+    "vagas por semana para que eu possa",
+    "vagas por semana",
+    "vagas disponíveis para clientes",
+    "vagas disponiveis para clientes",
+    "dm to book",
+    "dm to claim",
+    "send a dm to order",
+    "order your banner",
+    "click link in featured",
+    "check featured section",
+    "pacote de geração de leads",
+    "pacote de geracao de leads",
+    "lead gen pack of $",
+    "lead generation pack of $",
+  ];
+
+  for (const pattern of promoOfferPatterns) {
+    if (lower.includes(pattern)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Detecta si una publicación o su autor provienen de regiones fuera del foco comercial
+ * (Asia del Sur, Medio Oriente, África Subsahariana, etc.) que suelen generar spam freelance y no corresponden
+ * al objetivo de prospección y Social Selling en América y Europa.
+ */
+export function isNonTargetGeography(text: string, headline: string = ""): boolean {
+  const lower = (text + " " + headline).toLowerCase();
+
+  // Monedas de regiones con alto volumen de gig spam
+  if (
+    lower.includes("₹") ||
+    lower.includes("inr") ||
+    lower.includes("aed") ||
+    lower.includes("pkr") ||
+    lower.includes("bdt")
+  ) {
+    return true;
+  }
+
+  // Países y ciudades de Asia del Sur, Medio Oriente y hubs de gig spam
+  const excludedLocations = [
+    // Medio Oriente
+    "dubai",
+    "emirados árabes",
+    "emirados arabes",
+    "united arab emirates",
+    "uae",
+    "abu dhabi",
+    "sharjah",
+    "saudi arabia",
+    "riyadh",
+    "jeddah",
+    "qatar",
+    "doha",
+    "kuwait",
+    "bahrain",
+    // India y principales ciudades
+    "india",
+    "delhi",
+    "new delhi",
+    "mumbai",
+    "bangalore",
+    "bengaluru",
+    "hyderabad",
+    "pune",
+    "chennai",
+    "noida",
+    "gurugram",
+    "gurgaon",
+    "ahmedabad",
+    "kolkata",
+    "jaipur",
+    "chandigarh",
+    // Pakistán y principales ciudades
+    "pakistan",
+    "lahore",
+    "karachi",
+    "islamabad",
+    "rawalpindi",
+    // Bangladesh
+    "bangladesh",
+    "dhaka",
+    // África Subsahariana / Otros
+    "nigeria",
+    "lagos",
+    "abuja",
+    "kenya",
+    "nairobi",
+    "philippines",
+  ];
+
+  for (const loc of excludedLocations) {
+    if (lower.includes(loc)) {
+      return true;
+    }
+  }
+
+  return false;
+}

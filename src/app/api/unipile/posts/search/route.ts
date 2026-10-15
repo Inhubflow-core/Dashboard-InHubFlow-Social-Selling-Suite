@@ -2,7 +2,9 @@ import { unipile } from "@/lib/unipile/client";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import {
   isExcludedCorporateAuthor,
+  isFreelanceOrServiceSpam,
   isJobRelatedPost,
+  isNonTargetGeography,
   isNonWestern,
 } from "@/lib/viral-posts/filters";
 import { NextResponse } from "next/server";
@@ -53,6 +55,11 @@ function detectPostLanguage(text: string): "pt" | "es" | "en" | "other" {
 
 function detectMarketOrigin(text: string, headline: string, lang: "pt" | "es" | "en" | "other"): string {
   const combined = (text + " " + headline).toLowerCase();
+
+  // Detección estricta de geografías fuera del objetivo comercial (Asia del Sur / Medio Oriente / África Subsahariana)
+  if (isNonTargetGeography(text, headline)) {
+    return "Asia del Sur / Medio Oriente";
+  }
 
   if (
     combined.includes("brasil") ||
@@ -119,10 +126,15 @@ function detectMarketOrigin(text: string, headline: string, lang: "pt" | "es" | 
     return "Europa Occidental";
   }
 
-  // Fallback por idioma
+  // Fallback por idioma (solo asigna EE.UU./Global si NO es de geografía excluida)
   if (lang === "pt") return "Brasil / Cono Sur";
   if (lang === "es") return "LATAM / Hispanoamérica";
-  if (lang === "en") return "EE.UU. / Global";
+  if (lang === "en") {
+    if (isNonTargetGeography(text, headline)) {
+      return "Asia del Sur / Medio Oriente";
+    }
+    return "EE.UU. / Global";
+  }
   return "Occidente";
 }
 
@@ -510,27 +522,46 @@ export async function POST(req: Request) {
       filteredJobsCount = nonCorporatePosts.length - nonJobPosts.length;
     }
 
+    // 4.1. Filtro Estricto Anti-Spam Freelance, Diseñadores de Banners y Flyers Promocionales
+    const nonSpamPosts = nonJobPosts.filter(
+      (item) => !isFreelanceOrServiceSpam(item.fullContent, item.authorHeadline)
+    );
+
     // 5. Filtro de Calidad Anti-Cero (Descartar publicaciones sin tracción)
-    let qualifiedPosts = nonJobPosts;
+    let qualifiedPosts = nonSpamPosts;
 
     if (filterZero) {
-      qualifiedPosts = nonJobPosts.filter((item) => {
+      qualifiedPosts = nonSpamPosts.filter((item) => {
         const total = item.likes + item.comments + item.shares;
         return total > 0;
       });
 
-      // Si tras el filtro estricto la lista quedó vacía, mostrar los posts calificados sin empleo
-      if (qualifiedPosts.length === 0 && nonJobPosts.length > 0) {
-        qualifiedPosts = nonJobPosts;
+      // Si tras el filtro estricto la lista quedó vacía, mostrar los posts calificados sin empleo/spam
+      if (qualifiedPosts.length === 0 && nonSpamPosts.length > 0) {
+        qualifiedPosts = nonSpamPosts;
       }
     }
 
-    // 5. Segmentación Regional Inteligente (targetMarket)
+    // 6. Segmentación Regional Inteligente (targetMarket)
     // Regla fija: Siempre incluye Estados Unidos (EE.UU.) como referente de innovación global
+    // Excluye tajantemente regiones de gig spam (Asia del Sur, Medio Oriente, África Subsahariana)
     const matchesTargetMarket = (item: any) => {
       const lang = item.detectedLanguage;
       const origin = item.marketOrigin || "";
-      const isUS = lang === "en" || origin.includes("EE.UU.") || origin.includes("Global");
+
+      // Exclusión tajante de regiones fuera del objetivo comercial
+      if (
+        origin.includes("Asia del Sur") ||
+        origin.includes("Medio Oriente") ||
+        isNonTargetGeography(item.fullContent, item.authorHeadline)
+      ) {
+        return false;
+      }
+
+      const isUS =
+        (lang === "en" || origin.includes("EE.UU.") || origin.includes("Global")) &&
+        !origin.includes("Asia del Sur") &&
+        !origin.includes("Medio Oriente");
 
       switch (targetMarket) {
         case "brazil_us":
@@ -560,17 +591,22 @@ export async function POST(req: Request) {
 
     let marketMatchedPosts = qualifiedPosts.filter(matchesTargetMarket);
 
-    // Si la segmentación es muy específica y arroja menos de 6 resultados, complementar con los mejores posts occidentales
+    // Si la segmentación es muy específica y arroja menos de 6 resultados, complementar solo con posts occidentales limpios
     if (marketMatchedPosts.length < 6 && qualifiedPosts.length > 0) {
       const existingIds = new Set(marketMatchedPosts.map((p) => p.id));
-      const remaining = qualifiedPosts.filter((p) => !existingIds.has(p.id));
-      marketMatchedPosts = [...marketMatchedPosts, ...remaining];
+      const cleanRemaining = qualifiedPosts.filter(
+        (p) =>
+          !existingIds.has(p.id) &&
+          !isNonTargetGeography(p.fullContent, p.authorHeadline) &&
+          !isFreelanceOrServiceSpam(p.fullContent, p.authorHeadline)
+      );
+      marketMatchedPosts = [...marketMatchedPosts, ...cleanRemaining];
     }
 
-    // 6. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
+    // 7. Ordenación Estricta Descendente por Score de Viralidad (Lo más viral siempre primero)
     marketMatchedPosts.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
 
-    // 7. Limitar estrictamente a los 12 mejores posts (Top 12)
+    // 8. Limitar estrictamente a los 12 mejores posts (Top 12)
     const top12Posts = marketMatchedPosts.slice(0, 12);
 
     return NextResponse.json({
@@ -588,9 +624,18 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("[Posts Search API] Error:", error);
+    let errorMessage = error.message || "Error al buscar publicaciones en LinkedIn";
+    if (
+      errorMessage.includes("504") ||
+      errorMessage.includes("request_timeout") ||
+      errorMessage.includes("Request Timeout")
+    ) {
+      errorMessage =
+        "LinkedIn tardó demasiado en responder para esta búsqueda (Timeout temporal). Por favor reintenta en unos instantes.";
+    }
     return NextResponse.json(
       {
-        error: error.message || "Error al buscar publicaciones en LinkedIn",
+        error: errorMessage,
         items: [],
       },
       { status: 500 }
