@@ -10,7 +10,9 @@ export default function EditorialCalendarPage() {
   const { posts, updatePost } = useCreatedPosts();
   const [viewMode, setViewMode] = useState<"month" | "week">("week");
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<CreatedPost | null>(null);
+  const [justRescheduledInfo, setJustRescheduledInfo] = useState<{ title: string; date: string } | null>(null);
 
   // Calcular dinámicamente los días de la semana actual (Lunes a Domingo)
   const currentWeekDays = useMemo(() => {
@@ -87,12 +89,26 @@ export default function EditorialCalendarPage() {
 
   const handleDropOnDay = (dateKey: string) => {
     if (!draggedPostId) return;
-    const newScheduledDate = `${dateKey}T09:30:00.000Z`;
+    const post = posts.find((p) => p.id === draggedPostId);
+    let timePart = "09:30:00.000Z";
+    if (post?.scheduledAt && post.scheduledAt.includes("T")) {
+      const parts = post.scheduledAt.split("T");
+      if (parts[1]) timePart = parts[1];
+    }
+    const newScheduledDate = `${dateKey}T${timePart}`;
     updatePost(draggedPostId, {
       scheduledAt: newScheduledDate,
       status: "scheduled",
     });
+    if (post) {
+      setJustRescheduledInfo({
+        title: post.title,
+        date: dateKey,
+      });
+      setTimeout(() => setJustRescheduledInfo(null), 4000);
+    }
     setDraggedPostId(null);
+    setDragOverDateKey(null);
   };
 
   return (
@@ -101,9 +117,29 @@ export default function EditorialCalendarPage() {
 
       <ComponentCard
         title="Planificación Editorial & Horarios Óptimos en LinkedIn"
-        desc="Arrastra cualquier publicación entre días de la semana para ajustar automáticamente su fecha y hora de emisión."
+        desc="Arrastra cualquier publicación entre días de la semana o del mes para ajustar automáticamente su fecha y hora de emisión."
       >
         <div className="space-y-4">
+          {/* Alerta de confirmación al reprogramar */}
+          {justRescheduledInfo && (
+            <div className="rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 flex items-center justify-between transition">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>
+                  Publicación <strong>"{justRescheduledInfo.title}"</strong> reprogramada exitosamente para el día{" "}
+                  <strong>{justRescheduledInfo.date}</strong>.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setJustRescheduledInfo(null)}
+                className="text-emerald-600 hover:text-emerald-900 font-bold ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
@@ -162,14 +198,30 @@ export default function EditorialCalendarPage() {
                   if (!p.scheduledAt) return false;
                   return p.scheduledAt.startsWith(day.dateKey);
                 });
+                const isDropTarget = dragOverDateKey === day.dateKey;
 
                 return (
                   <div
                     key={day.dateKey}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => handleDropOnDay(day.dateKey)}
-                    className={`flex flex-col min-h-[380px] rounded-2xl border p-3 transition ${
-                      day.isToday
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (draggedPostId && dragOverDateKey !== day.dateKey) {
+                        setDragOverDateKey(day.dateKey);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverDateKey === day.dateKey) {
+                        setDragOverDateKey(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      handleDropOnDay(day.dateKey);
+                    }}
+                    className={`flex flex-col min-h-[380px] rounded-2xl border p-3 transition-all duration-150 ${
+                      isDropTarget
+                        ? "border-2 border-brand-500 bg-brand-100/70 dark:bg-brand-950/60 dark:border-brand-400 ring-4 ring-brand-500/20 scale-[1.01] shadow-md z-10"
+                        : day.isToday
                         ? "border-brand-500 bg-brand-50/20 dark:border-brand-500/60 dark:bg-brand-950/30"
                         : day.isPeak
                         ? "border-brand-200 bg-brand-25/30 dark:border-brand-900/40 dark:bg-brand-950/10"
@@ -210,9 +262,21 @@ export default function EditorialCalendarPage() {
                         <div
                           key={post.id}
                           draggable
-                          onDragStart={() => handleDragStart(post.id)}
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(post.id);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedPostId(null);
+                            setDragOverDateKey(null);
+                          }}
                           onClick={() => setSelectedPostDetails(post)}
-                          className="cursor-grab active:cursor-grabbing rounded-xl border border-gray-200 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800"
+                          className={`cursor-grab active:cursor-grabbing rounded-xl border border-gray-200 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
+                            draggedPostId === post.id
+                              ? "opacity-30 scale-95 border-dashed border-brand-500"
+                              : ""
+                          }`}
+                          title={`Arrastra para reprogramar • Clic para ver detalles: ${post.title}`}
                         >
                           <div className="flex items-center justify-between gap-1 mb-1">
                             <span
@@ -256,8 +320,14 @@ export default function EditorialCalendarPage() {
                       ))}
 
                       {dayPosts.length === 0 && (
-                        <div className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-3 text-center text-[11px] text-gray-400 dark:border-gray-800">
-                          <span>Arrastra un post aquí</span>
+                        <div
+                          className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-3 text-center text-[11px] transition ${
+                            isDropTarget
+                              ? "border-brand-500 bg-brand-100/50 text-brand-700 font-bold dark:bg-brand-950/60 dark:text-brand-300"
+                              : "border-gray-200 text-gray-400 dark:border-gray-800"
+                          }`}
+                        >
+                          <span>{isDropTarget ? "Soltar publicación aquí" : "Arrastra un post aquí"}</span>
                         </div>
                       )}
                     </div>
@@ -266,21 +336,37 @@ export default function EditorialCalendarPage() {
               })}
             </div>
           ) : (
-            /* Vista Mensual */
+            /* Vista Mensual con Drag & Drop Completo */
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5 pt-2">
               {currentMonthDays.map((d) => {
                 const dayPosts = scheduledPosts.filter((p) => {
                   if (!p.scheduledAt) return false;
                   return p.scheduledAt.startsWith(d.dateKey);
                 });
+                const isDropTarget = dragOverDateKey === d.dateKey;
 
                 return (
                   <div
                     key={d.dateKey}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => handleDropOnDay(d.dateKey)}
-                    className={`min-h-[110px] p-2.5 rounded-xl border flex flex-col justify-between transition ${
-                      d.isToday
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (draggedPostId && dragOverDateKey !== d.dateKey) {
+                        setDragOverDateKey(d.dateKey);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverDateKey === d.dateKey) {
+                        setDragOverDateKey(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      handleDropOnDay(d.dateKey);
+                    }}
+                    className={`min-h-[115px] p-2.5 rounded-xl border flex flex-col justify-between transition-all duration-150 ${
+                      isDropTarget
+                        ? "border-2 border-brand-500 bg-brand-100/70 dark:bg-brand-950/60 dark:border-brand-400 ring-4 ring-brand-500/20 scale-[1.02] shadow-md z-10"
+                        : d.isToday
                         ? "border-brand-500 bg-brand-50/20 dark:border-brand-500 dark:bg-brand-950/20"
                         : d.isPeak
                         ? "border-brand-100 bg-brand-25/20 dark:border-brand-900/30 dark:bg-brand-950/10"
@@ -288,29 +374,67 @@ export default function EditorialCalendarPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800 dark:text-white">
-                        {d.dayNumber}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-gray-800 dark:text-white">
+                          {d.dayNumber}
+                        </span>
+                        {d.isToday && (
+                          <span className="rounded bg-brand-500 px-1 py-0.2 text-[8px] font-bold text-white uppercase">
+                            Hoy
+                          </span>
+                        )}
+                      </div>
                       {d.isPeak && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand-500" title="Día pico de interacción B2B"></span>
                       )}
                     </div>
 
-                    <div className="space-y-1 my-1">
+                    <div className="space-y-1.5 my-1.5 flex-1">
                       {dayPosts.map((p) => (
                         <div
                           key={p.id}
-                          onClick={() => setSelectedPostDetails(p)}
-                          className="text-[10px] bg-brand-50 text-brand-700 font-semibold p-1 rounded truncate cursor-pointer hover:bg-brand-100 dark:bg-brand-950 dark:text-brand-300"
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(p.id);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedPostId(null);
+                            setDragOverDateKey(null);
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPostDetails(p);
+                          }}
+                          className={`text-[10px] bg-brand-50 text-brand-700 font-semibold p-1.5 rounded-lg truncate cursor-grab active:cursor-grabbing border border-brand-200/70 hover:bg-brand-100 hover:border-brand-400 dark:bg-brand-950 dark:text-brand-300 dark:border-brand-800/80 transition shadow-2xs select-none ${
+                            draggedPostId === p.id
+                              ? "opacity-30 scale-95 border-dashed border-brand-500"
+                              : ""
+                          }`}
+                          title={`Arrastra para reprogramar • Clic para ver detalles: ${p.title}`}
                         >
-                          {p.title}
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                                p.status === "published" ? "bg-emerald-500" : "bg-brand-500"
+                              }`}
+                            ></span>
+                            <span className="truncate">{p.title}</span>
+                          </div>
                         </div>
                       ))}
+
+                      {isDropTarget && dayPosts.length === 0 && (
+                        <div className="h-full min-h-[45px] flex items-center justify-center border-2 border-dashed border-brand-400 rounded-lg text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                          Soltar aquí
+                        </div>
+                      )}
                     </div>
 
-                    <span className="text-[9px] text-gray-400">
-                      {dayPosts.length > 0 ? `${dayPosts.length} post(s)` : ""}
-                    </span>
+                    <div className="flex items-center justify-between text-[9px] text-gray-400 pt-1 border-t border-gray-100/60 dark:border-gray-800/60">
+                      <span>{dayPosts.length > 0 ? `${dayPosts.length} post(s)` : ""}</span>
+                      {d.isPeak && <span className="text-brand-500 font-medium text-[8px]">Pico B2B</span>}
+                    </div>
                   </div>
                 );
               })}

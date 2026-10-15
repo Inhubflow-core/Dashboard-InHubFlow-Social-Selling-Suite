@@ -601,6 +601,51 @@ const updatedState = mockGetRadar();
 assert(updatedState.searchKeyword === "Energia Solar Residencial", "Nueva búsqueda deliberada sobrescribe el caché de forma consistente");
 assert(updatedState.livePosts[0].topic === "Energia Solar", "Nuevos resultados de la búsqueda deliberada quedan inmediatamente cacheados");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 13: Reprogramación Drag & Drop en Calendario Mensual
+// -----------------------------------------------------------------------------
+console.log("\n--- 13. Prueba de Drag & Drop en Calendario Mensual ---");
+
+let testPosts = [
+  {
+    id: "post-oct-15",
+    title: "La prospección B2B tradicional está agotada",
+    scheduledAt: "2026-10-15T10:15:00.000Z",
+    status: "scheduled",
+  },
+  {
+    id: "post-oct-16",
+    title: "Tenía una introducción personalizada...",
+    scheduledAt: "2026-10-16T09:30:00.000Z",
+    status: "scheduled",
+  },
+];
+
+function simulateDrop(postId, targetDateKey) {
+  const targetPost = testPosts.find((p) => p.id === postId);
+  if (!targetPost) return;
+  let timePart = "09:30:00.000Z";
+  if (targetPost.scheduledAt && targetPost.scheduledAt.includes("T")) {
+    const parts = targetPost.scheduledAt.split("T");
+    if (parts[1]) timePart = parts[1];
+  }
+  targetPost.scheduledAt = `${targetDateKey}T${timePart}`;
+  targetPost.status = "scheduled";
+}
+
+// 1. Arrastrar post del día 15 al día 22 en la cuadrícula mensual
+simulateDrop("post-oct-15", "2026-10-22");
+const movedPost = testPosts.find((p) => p.id === "post-oct-15");
+assert(movedPost.scheduledAt.startsWith("2026-10-22"), "El post del día 15 se reprograma al día 22 correctamente mediante Drag & Drop");
+assert(movedPost.scheduledAt.endsWith("T10:15:00.000Z"), "La hora original del post (10:15) se preserva intacta al cambiar de día");
+
+// 2. Comprobar que en la celda del día 15 ya no figura y en el día 22 sí
+const day15Posts = testPosts.filter((p) => p.scheduledAt.startsWith("2026-10-15"));
+const day22Posts = testPosts.filter((p) => p.scheduledAt.startsWith("2026-10-22"));
+assert(day15Posts.length === 0, "El día de origen (15) queda libre de la publicación tras ser arrastrada");
+assert(day22Posts.length === 1 && day22Posts[0].id === "post-oct-15", "El día de destino (22) muestra inmediatamente la publicación arrastrada");
+
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
