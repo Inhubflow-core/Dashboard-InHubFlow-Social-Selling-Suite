@@ -14,103 +14,121 @@ export async function POST(req: Request) {
       knowledgeSources = null,
     } = body;
 
-    // 1. Integración de la Base de Conocimiento Aprobada (RAG)
-    const activeKnowledgeSources =
-      Array.isArray(knowledgeSources) && knowledgeSources.length > 0
-        ? knowledgeSources
-        : INITIAL_KNOWLEDGE_SOURCES.filter((k) => k.status === "approved");
+    // 1. Integración Inteligente de la Base de Conocimiento (RAG Multi-Tenant para SaaS)
+    const hasCustomKnowledge = Array.isArray(knowledgeSources) && knowledgeSources.length > 0;
+    let ragContext = "";
+    if (hasCustomKnowledge) {
+      ragContext = knowledgeSources
+        .map(
+          (k: any) =>
+            `### [DOCUMENTO ${k.category?.toUpperCase() || "OFICIAL"} DE LA EMPRESA]: ${k.title}\n${k.content}`
+        )
+        .join("\n\n");
+    } else if (topic.toLowerCase().includes("social selling") || topic.toLowerCase().includes("b2b outbound")) {
+      // Solo inyectar demo de InHubFlow si el tema es explícitamente Social Selling / Outreach B2B
+      ragContext = INITIAL_KNOWLEDGE_SOURCES.filter((k) => k.status === "approved")
+        .map(
+          (k: any) =>
+            `### [DOCUMENTO ${k.category?.toUpperCase() || "OFICIAL"}]: ${k.title}\n${k.content}`
+        )
+        .join("\n\n");
+    }
 
-    const ragContext = activeKnowledgeSources
-      .map(
-        (k: any) =>
-          `### [DOCUMENTO ${k.category?.toUpperCase() || "OFICIAL"}]: ${k.title}\n${k.content}`
-      )
-      .join("\n\n");
+    const cleanTopic = String(topic || "Tendencias y Negocios").trim();
+    const cleanTopicWords = cleanTopic.split(/\s+/).filter(Boolean);
+    const topicTag = cleanTopic.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
 
-    const systemPrompt = `Eres un Master Copywriter y Estratega de Social Selling en LinkedIn especializado en el mercado B2B de habla hispana.
-Tu misión es modelar y reescribir publicaciones virales para generar máxima interacción y leads calificados, integrando de forma natural la PROPUESTA DE VALOR Y METODOLOGÍA OFICIAL DE INHUBFLOW descrita en la Base de Conocimiento Aprobada (RAG).
+    const systemPrompt = `Eres un Master Copywriter y Creador de Contenido de Autoridad en LinkedIn para profesionales, directores y fundadores de empresa en cualquier industria.
+Tu misión es modelar y reescribir publicaciones virales para generar máxima interacción, credibilidad y prospectos calificados, adaptando el contenido al NICHO, INDUSTRIA Y TEMÁTICA DEL USUARIO: "${cleanTopic}".
 
-BASE DE CONOCIMIENTO APROBADA (RAG DE INHUBFLOW):
+${
+  ragContext
+    ? `BASE DE CONOCIMIENTO APROBADA DEL NEGOCIO / EMPRESA DEL USUARIO (RAG):
 ${ragContext}
 
-INSTRUCCIONES CLAVE DE MODELAJE CON BASE DE CONOCIMIENTO:
-1. Toma la estructura y el ángulo psicológico del post de referencia (el dolor, el gancho o la lección).
-2. Transfórmalo para resolver ese dolor utilizando los pilares de valor de InHubFlow (capturar leads 'tibios' con Signal Radar en vez de spam frío, secuencias de interacción con IA, flujos contextuales seguros sin riesgo de baneo, y asistente SDR IA con supervisión).
-3. No redactes un anuncio publicitario aburrido; redacta un post de contenido educativo de altísimo impacto que eduque al decisor B2B sobre cómo generar reuniones comerciales calificadas.
-4. El llamado a la acción (CTA) final debe invitar a comentar la palabra clave "${leadMagnetKeyword}" para recibir el recurso/PDF sin costo por mensaje privado.
+INSTRUCCIÓN CLAVE: Resuelve el dolor planteado en el post de referencia utilizando de forma natural la propuesta de valor, metodología, productos o servicios descritos en la Base de Conocimiento de la empresa.`
+    : `INSTRUCCIÓN CLAVE: El usuario opera en el sector de "${cleanTopic}". Transforma el post de referencia para resolver ese dolor específico con autoridad, datos clave, consejos prácticos y lecciones de alto valor aplicables para clientes y profesionales de este sector.`
+}
+
+REGLAS DE COPYWRITING UNIVERSALES PARA SAAS:
+1. Toma la estructura y el ángulo psicológico del post de referencia (el dolor, el gancho, el contraste o la lección).
+2. Desarrolla la lección con autoridad en el tema "${cleanTopic}".
+3. No redactes un anuncio publicitario aburrido; redacta contenido educativo y de alto valor que posicione al autor como un referente en "${cleanTopic}".
+4. El llamado a la acción (CTA) final debe invitar a comentar la palabra clave "${leadMagnetKeyword}" para recibir un recurso, guía o plantilla en PDF por mensaje privado.
 5. Tono: ${tone}.
-6. Idioma: Español profesional de negocios.
+6. Idioma: Español profesional y persuasivo adaptado al nicho de "${cleanTopic}".
+7. NUNCA menciones nombres de marcas o herramientas ajenas a menos que estén explícitamente en la Base de Conocimiento del usuario.
 
 RESPONDE EXCLUSIVAMENTE CON UN OBJETO JSON VÁLIDO (sin bloques de markdown ni texto extra alrededor) con la siguiente estructura según el formato solicitado:
 
 Si format == 'text':
 {
-  "title": "Titular representativo corto (máx 60 caracteres)",
+  "title": "Titular representativo corto sobre ${cleanTopic} (máx 60 caracteres)",
   "hook": "Gancho de las primeras 2 líneas que frena el scroll",
   "content": "Cuerpo completo del post en formato LinkedIn con saltos de línea y CTA final con la palabra clave ${leadMagnetKeyword}",
-  "suggestedHashtags": ["#SocialSelling", "#B2BGrowth", "#VentasB2B", "#InHubFlow"]
+  "suggestedHashtags": ["#${topicTag}", "#${cleanTopicWords[0] || 'Liderazgo'}", "#Innovacion", "#Estrategia"]
 }
 
 Si format == 'image':
 {
-  "title": "Titular representativo corto",
+  "title": "Titular representativo corto sobre ${cleanTopic}",
   "hook": "Gancho de las primeras 2 líneas",
   "content": "Cuerpo completo del post en formato LinkedIn haciendo referencia a la infografía o imagen adjunta y con CTA para comentar ${leadMagnetKeyword}",
-  "imagePrompt": "Prompt en inglés hiperdetallado para Midjourney/Flux: composición limpia de oficina ejecutiva, colores azul corporativo y grafito, laptop o panel de datos con métricas de prospección B2B, iluminación cinematográfica, 8k photorealistic.",
-  "suggestedHashtags": ["#SocialSelling", "#B2BGrowth", "#VentasB2B"]
+  "imagePrompt": "Prompt en inglés hiperdetallado para Midjourney/Flux describiendo una imagen conceptual y profesional 8k relacionada directamente con ${cleanTopic}",
+  "suggestedHashtags": ["#${topicTag}", "#${cleanTopicWords[0] || 'Tendencias'}", "#Estrategia"]
 }
 
 Si format == 'carousel':
 {
-  "title": "Titular del carrusel",
+  "title": "Titular del carrusel sobre ${cleanTopic}",
   "hook": "Gancho del post que invita a deslizar el carrusel",
   "content": "Copy de acompañamiento para el post de LinkedIn invitando a deslizar y a comentar ${leadMagnetKeyword}",
   "slides": [
     {
       "slideNumber": 1,
       "isCover": true,
-      "title": "Título de Portada de Alto Impacto",
-      "subtitle": "Subtítulo explicativo del carrusel",
-      "content": ["Guía paso a paso", "Por Roberto | InHubFlow"],
-      "footerText": "@inhubflow"
+      "title": "Título de Portada de Alto Impacto sobre ${cleanTopic}",
+      "subtitle": "Subtítulo explicativo con la promesa de valor",
+      "content": ["Guía práctica paso a paso", "Framework de Especialista"],
+      "footerText": "Desliza para continuar →"
     },
     {
       "slideNumber": 2,
-      "title": "El Error Común en Outreach",
-      "content": ["Punto 1 del dolor tradicional", "Punto 2 del spam frío", "Consecuencia en la reputación"],
+      "title": "El Error Común en ${cleanTopic}",
+      "content": ["Punto 1 del dolor frecuente", "Punto 2 de lo que la mayoría hace mal", "Consecuencia en resultados"],
       "footerText": "Paso 1: Diagnóstico"
     },
     {
       "slideNumber": 3,
-      "title": "La Solución con Signal Radar & IA",
-      "content": ["Pilar 1: Captura de intención", "Pilar 2: Interacción contextual", "Pilar 3: Asistente SDR IA"],
-      "footerText": "Paso 2: Metodología"
+      "title": "La Metodología Comprobada",
+      "content": ["Pilar 1: Diagnóstico preciso", "Pilar 2: Estrategia basada en datos", "Pilar 3: Implementación consistente"],
+      "footerText": "Paso 2: La Solución"
     },
     {
       "slideNumber": 4,
       "title": "Implementación Práctica",
-      "content": ["Acción concreta a ejecutar", "Automatización segura con Unipile", "Tasa de respuesta superior al 45%"],
+      "content": ["Acción concreta número 1", "Acción concreta número 2", "Resultado esperado comprobable"],
       "footerText": "Paso 3: Ejecución"
     },
     {
       "slideNumber": 5,
       "isCta": true,
-      "title": "¿Quieres la Plantilla Completa?",
-      "subtitle": "Descarga el recurso en PDF listo para aplicar",
-      "content": ["Comenta ${leadMagnetKeyword} abajo en este post", "Te lo enviamos por privado de inmediato"],
-      "footerText": "InHubFlow Social Selling"
+      "title": "¿Quieres la Guía Completa?",
+      "subtitle": "Recibe el documento de trabajo en PDF listo para aplicar",
+      "content": ["Comenta ${leadMagnetKeyword} abajo en este post", "Te lo comparto por mensaje privado"],
+      "footerText": "Guía de Especialista"
     }
   ]
 }`;
 
     const userPrompt = `FORMATO SOLICITADO: ${format}
-TEMA: ${topic}
+TEMA / NICHO DEL CLIENTE: ${cleanTopic}
 PALABRA CLAVE DE LEAD MAGNET: ${leadMagnetKeyword}
 GANCHO DE REFERENCIA A MODELAR (si existe): "${hook}"
 CONTENIDO ORIGINAL DE REFERENCIA:
 "${originalContent.slice(0, 2000)}"
 
-Genera ahora el contenido modelado en JSON según las instrucciones, integrando la propuesta de valor oficial de InHubFlow.`;
+Genera ahora el contenido modelado en JSON según las instrucciones, enfocado en el nicho de "${cleanTopic}".`;
 
     // 2. Ejecución con Failover Multi-Modelo de Google Gemini
     const apiKey = (process.env.GEMINI_API_KEY || "").trim();
@@ -219,7 +237,7 @@ Genera ahora el contenido modelado en JSON según las instrucciones, integrando 
 }
 
 /**
- * Generador sintético de contingencia con inyección de RAG de InHubFlow
+ * Generador sintético de contingencia universal adaptado a cualquier nicho/tema del SaaS
  */
 function generateRagFallbackPost(params: {
   format: string;
@@ -229,128 +247,126 @@ function generateRagFallbackPost(params: {
   originalContent?: string;
 }) {
   const { format, topic, leadMagnetKeyword, hook } = params;
+  const cleanTopic = (topic || "Innovación y Estrategia").trim();
+  const topicTag = cleanTopic.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
+  const words = cleanTopic.split(/\s+/).filter(Boolean);
   const cleanHook =
-    hook || "¿Sigues dependiendo de plantillas frías para conseguir clientes en LinkedIn?";
+    hook || `¿Cuál es el mayor error que comete la mayoría al trabajar en ${cleanTopic}?`;
 
   if (format === "carousel") {
     return {
-      title: "De Mensajes Fríos a Reuniones Calificadas: El Sistema de 4 Pilares",
+      title: `Guía Maestra de ${cleanTopic}: El Framework en 4 Pasos`,
       hook: cleanHook,
       content: `${cleanHook}
 
-El 88% de los mensajes directos en frío son ignorados porque se envían sin intención previa.
+La mayoría de los profesionales en ${cleanTopic} intentan resolver los problemas con métodos obsoletos que ya no funcionan hoy.
 
-En este carrusel te revelamos cómo transformar tu prospección en LinkedIn con una metodología predecible basada en datos y señales de compra.
+En este carrusel te revelamos el framework paso a paso para dominar ${cleanTopic} con una metodología clara, predecible y orientada a resultados reales.
 
-Desliza para ver la guía completa paso a paso.
+Desliza para ver la guía completa.
 
-Comenta "${leadMagnetKeyword}" y te envío la plantilla oficial en PDF por mensaje privado.`,
+Comenta "${leadMagnetKeyword}" abajo y te comparto el documento de trabajo completo en PDF por mensaje privado.`,
       slides: [
         {
           slideNumber: 1,
           isCover: true,
-          title: "El Sistema B2B Predictivo en LinkedIn",
-          subtitle: "De prospección a ciegas a reuniones calificadas cada semana",
-          content: ["Framework Oficial", "Por Roberto | InHubFlow"],
-          footerText: "@inhubflow",
+          title: `El Framework Definitivo de ${cleanTopic}`,
+          subtitle: "De la frustración a resultados predecibles y de alto impacto",
+          content: ["Guía paso a paso", "Metodología de Autoridad"],
+          footerText: "Desliza para continuar →",
         },
         {
           slideNumber: 2,
-          title: "El Gran Error del Outreach Frío",
+          title: `El Gran Error en ${cleanTopic}`,
           content: [
-            "Enviar plantillas masivas a listas desactualizadas",
-            "Quemar la reputación de tu perfil personal",
-            "Tasas de respuesta inferiores al 12%",
+            "Aplicar tácticas tradicionales desactualizadas",
+            "No medir métricas reales de impacto y retorno",
+            "Falta de consistencia y diferenciación en el mercado",
           ],
           footerText: "Paso 1: El Diagnóstico",
         },
         {
           slideNumber: 3,
-          title: "La Metodología Signal Radar",
+          title: "El Nuevo Enfoque Estratégico",
           content: [
-            "1. Detecta prospectos interactuando con tu nicho",
-            "2. Inicia contacto cuando la intención ya existe",
-            "3. Multiplica por 3x tu tasa de aceptación (>45%)",
+            "1. Diagnóstico preciso de la situación actual",
+            "2. Optimización basada en datos comprobados",
+            "3. Multiplicar resultados con procesos estandarizados",
           ],
-          footerText: "Paso 2: Captura de Señales",
+          footerText: "Paso 2: La Metodología",
         },
         {
           slideNumber: 4,
-          title: "Flujos Inteligentes & SDR IA",
+          title: "Implementación en 3 Fases",
           content: [
-            "Automatización multi-paso con pausas humanas",
-            "Asistente SDR IA que responde con conocimiento aprobado",
-            "Protección contra restricciones de cuenta",
+            "Fase 1: Auditoría y corrección de fricciones",
+            "Fase 2: Ejecución estructurada sin atajos",
+            "Fase 3: Escala predecible y retención a largo plazo",
           ],
-          footerText: "Paso 3: Escala Segura",
+          footerText: "Paso 3: Ejecución",
         },
         {
           slideNumber: 5,
           isCta: true,
-          title: "¿Quieres la Guía Paso a Paso?",
-          subtitle: "Recibe el documento de trabajo completo en PDF",
+          title: "¿Quieres la Guía Completa en PDF?",
+          subtitle: "Recibe la plantilla de trabajo lista para aplicar",
           content: [
             `Comenta "${leadMagnetKeyword}" en esta publicación`,
-            "Te lo enviamos directamente por mensaje privado",
+            "Te la enviamos directamente por mensaje privado",
           ],
-          footerText: "InHubFlow Social Selling",
+          footerText: "Recurso Exclusivo",
         },
       ],
-      suggestedHashtags: ["#SocialSelling", "#B2BGrowth", "#InHubFlow", "#Outbound"],
+      suggestedHashtags: [`#${topicTag}`, `#${words[0] || 'Estrategia'}`, "#Innovacion", "#Liderazgo"],
     };
   }
 
   if (format === "image") {
     return {
-      title: "El Nuevo Paradigma de Prospección B2B en LinkedIn",
+      title: `El Nuevo Paradigma en ${cleanTopic}`,
       hook: cleanHook,
       content: `${cleanHook}
 
-Tus prospectos no necesitan otro mensaje genérico en su bandeja de entrada; necesitan una razón real para conversar.
+En el sector de ${cleanTopic}, la diferencia entre quienes lideran el mercado y quienes se quedan atrás radica en tener un método comprobado:
 
-La diferencia entre el 12% y más del 45% de aceptación radica en contactar prospectos con intención validada:
+1. Claridad de objetivo: Identificar las palancas de mayor impacto en ${cleanTopic}.
+2. Ejecución consistente: Priorizar sistemas sobre la improvisación diaria.
+3. Resultados medibles: Ajustar con base en métricas reales de desempeño.
 
-1. Signal Radar: Detectar en tiempo real quién interactúa con temas de ${topic}.
-2. Conversación contextual: Iniciar con valor relevante antes de proponer tu solución.
-3. Asistente SDR IA supervisado: Responder dudas fundamentadas y agendar demostraciones comerciales.
-
-Revisa la infografía adjunta para aplicar este framework en tu pipeline.
+Revisa la infografía adjunta para aplicar este framework en tu día a día.
 
 Comenta "${leadMagnetKeyword}" abajo y te comparto el recurso completo en PDF sin costo.`,
-      imagePrompt:
-        "Modern minimalist executive desk with high-end laptop displaying an analytics growth dashboard, subtle dark slate and corporate blue ambient lighting, photorealistic 8k, cinematic depth of field.",
-      suggestedHashtags: ["#SocialSelling", "#B2BOutbound", "#InHubFlow"],
+      imagePrompt: `Clean, modern visual breakdown infographic about ${cleanTopic}, minimal executive palette, high-contrast typography, crisp lighting, 8k photorealistic.`,
+      suggestedHashtags: [`#${topicTag}`, `#${words[0] || 'Tendencias'}`, "#Estrategia"],
     };
   }
 
   // Format == 'text'
   return {
-    title: "El Sistema de 4 Pilares para Generar Reuniones en LinkedIn",
+    title: `Los 4 Pilares Fundamentales de ${cleanTopic}`,
     hook: cleanHook,
     content: `${cleanHook}
 
-La prospección tradicional a ciegas está rota:
-- Mensajes masivos sin contexto
-- Bloqueos de cuentas por actividad agresiva
-- Menos del 12% de tasa de respuesta
+Los viejos métodos para abordar ${cleanTopic} están dejando de funcionar:
+- Procesos manuales lentos y desarticulados
+- Pérdida de tiempo y recursos en acciones de bajo impacto
+- Resultados impredecibles
 
-Para generar reuniones comerciales predecibles en el mercado B2B, implementamos una secuencia basada en 4 pilares:
+Para construir un estándar de excelencia en ${cleanTopic}, aplicamos un enfoque de 4 pilares:
 
-1. Viral Post Engine: Crear contenido de alta tracción que atrae al tomador de decisiones ideal.
-2. Signal Radar: Monitorear interacciones en tiempo real para contactar solo cuando existe interés genuino (logrando más del 45% de respuesta).
-3. Campañas contextuales: Flujos multi-paso con pausas humanas seguras.
-4. Asistente SDR IA: Un agente entrenado en tu Base de Conocimiento oficial que clasifica respuestas y coordina llamadas comerciales.
+1. Diagnóstico objetivo: Analizar la situación con datos antes de actuar.
+2. Estrategia probada: Implementar solo aquello que genera tracción comprobada.
+3. Optimización continua: Refinar cada fase del proceso de forma sistemática.
+4. Escala sostenible: Construir sistemas duraderos que no dependan de la suerte.
 
-Deja de empujar ventas y empieza a construir relaciones de negocio.
-
-¿Quieres aplicar este framework en tu empresa?
-Comenta la palabra "${leadMagnetKeyword}" abajo y te envío el playbook completo en PDF sin costo por mensaje privado.`,
+¿Quieres aplicar este framework en tu actividad profesional o empresa?
+Comenta la palabra "${leadMagnetKeyword}" abajo y te envío la guía completa en PDF sin costo por mensaje privado.`,
     suggestedHashtags: [
-      "#SocialSelling",
-      "#B2BGrowth",
-      "#GeneracionDeLeads",
-      "#InHubFlow",
-      "#VentasB2B",
+      `#${topicTag}`,
+      `#${words[0] || 'Estrategia'}`,
+      "#Innovacion",
+      "#Liderazgo",
+      "#Excelencia",
     ],
   };
 }

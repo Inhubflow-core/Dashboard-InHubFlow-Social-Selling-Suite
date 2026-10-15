@@ -89,7 +89,6 @@ export function isJobRelatedPost(text: string, headline: string = ""): boolean {
     "job openings",
     "in this role, you will lead",
     "hiring for",
-    "are you a b2b",
     "qualifications:",
     "salary range:",
     "how to apply:",
@@ -124,7 +123,6 @@ export function isJobRelatedPost(text: string, headline: string = ""): boolean {
     // Portugués
     "vaga aberta",
     "vagas abertas",
-    "oportunidade comercial",
     "oportunidade de emprego",
     "oportunidade de trabalho",
     "venha fazer parte",
