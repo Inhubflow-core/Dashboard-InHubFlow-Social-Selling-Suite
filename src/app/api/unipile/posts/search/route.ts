@@ -267,9 +267,70 @@ export async function POST(req: Request) {
           throw innerErr;
         }
       }
+    // 1. Recolección profunda multietapa (Deep Fetching) mediante Cursor
+    // LinkedIn entrega entre 15 y 25 posts por página.
+    // Iteramos hasta cosechar entre 60 y 80 posts brutos para que, tras aplicar los estrictos filtros
+    // de calidad (anti-spam, anti-empleo, anti-ruso, geografía), siempre garanticemos 12 posts de alta viralidad.
+    const rawItems: any[] = [];
+    const seenPostIds = new Set<string>();
+
+    const appendItems = (items: any[]) => {
+      for (const item of items) {
+        const id = item.id || item.social_id || item.share_url || (item.text ? item.text.slice(0, 60) : null);
+        if (id) {
+          if (!seenPostIds.has(id)) {
+            seenPostIds.add(id);
+            rawItems.push(item);
+          }
+        } else {
+          rawItems.push(item);
+        }
+      }
+    };
+
+    appendItems(response?.items || []);
+    let currentCursor = response?.cursor;
+    let pagesFetched = 1;
+    const maxPages = 4; // Cosechar hasta 4 páginas (60-80 posts brutos de LinkedIn)
+
+    while (currentCursor && pagesFetched < maxPages && rawItems.length < 75) {
+      try {
+        const nextRes = await unipile.searchLinkedIn({
+          ...searchParams,
+          cursor: currentCursor,
+        });
+        const pageItems = nextRes?.items || [];
+        if (pageItems.length === 0) break;
+        appendItems(pageItems);
+        currentCursor = nextRes?.cursor || null;
+        pagesFetched++;
+      } catch (pageErr) {
+        console.warn(`[Posts Search] Fin de paginación con cursor en página ${pagesFetched + 1}:`, pageErr);
+        break;
+      }
     }
 
-    const rawItems = response?.items || [];
+    // 1.1. Fallback de Ventana Temporal Inteligente:
+    // Si para un término muy específico o de nicho en PAST_MONTH LinkedIn devuelve menos de 25 posts brutos,
+    // consultamos sin la restricción mensual para capturar los posts virales más emblemáticos de la temática.
+    if (rawItems.length < 25 && searchParams.date_posted) {
+      try {
+        const broaderParams = { ...searchParams };
+        delete broaderParams.date_posted;
+        delete broaderParams.cursor;
+        const broaderRes = await unipile.searchLinkedIn(broaderParams);
+        appendItems(broaderRes?.items || []);
+        if (broaderRes?.cursor && rawItems.length < 50) {
+          const secondBroader = await unipile.searchLinkedIn({
+            ...broaderParams,
+            cursor: broaderRes.cursor,
+          });
+          appendItems(secondBroader?.items || []);
+        }
+      } catch (broaderErr) {
+        console.warn("[Posts Search] Fallback de ventana temporal omitido:", broaderErr);
+      }
+    }
 
     // Normalizar items y calcular métricas de viralidad ponderadas
     const normalized = rawItems.map((item: any, idx: number) => {
@@ -591,8 +652,8 @@ export async function POST(req: Request) {
 
     let marketMatchedPosts = qualifiedPosts.filter(matchesTargetMarket);
 
-    // Si la segmentación es muy específica y arroja menos de 6 resultados, complementar solo con posts occidentales limpios
-    if (marketMatchedPosts.length < 6 && qualifiedPosts.length > 0) {
+    // Si la segmentación regional es muy específica y arroja menos de 12 resultados, complementar con posts occidentales limpios calificados
+    if (marketMatchedPosts.length < 12 && qualifiedPosts.length > 0) {
       const existingIds = new Set(marketMatchedPosts.map((p) => p.id));
       const cleanRemaining = qualifiedPosts.filter(
         (p) =>

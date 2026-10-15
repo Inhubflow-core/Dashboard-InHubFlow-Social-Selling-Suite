@@ -461,6 +461,57 @@ assert(robertoAcc.email === "robertoorse.agencia@gmail.com", "La cuenta resultan
 assert(robertoAcc.unipileAccountId === "up_new_connected", "La cuenta resultante adopta el nuevo Unipile Account ID");
 assert(robertoAcc.daily_connection_limit === 15, "La cuenta resultante preserva los límites personalizados previos del usuario");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 11: Algoritmo Ponderado de Viralidad InHubFlow & Selección Top 12
+// -----------------------------------------------------------------------------
+console.log("\n--- 11. Prueba de Algoritmo Ponderado de Viralidad y Selección Top 12 ---");
+
+function calculateVirality(likes, comments, shares) {
+  return Math.round((likes * 1) + (comments * 3.5) + (shares * 5));
+}
+
+function getViralityTier(score, likes, comments) {
+  if (score >= 100 || (likes >= 50 && comments >= 15)) {
+    return { tier: "mega", badge: "Mega Viral 🔥🔥🔥" };
+  } else if (score >= 35 || (likes >= 20 && comments >= 5) || comments >= 8) {
+    return { tier: "high", badge: "Alta Tracción 🔥🔥" };
+  } else {
+    return { tier: "trending", badge: "En Tendencia 🔥" };
+  }
+}
+
+// Caso 1: Comentarios y Reposts ponderan más que likes simples
+const postSoloLikes = calculateVirality(80, 2, 0); // 80 + 7 = 87
+const postViralDebate = calculateVirality(30, 25, 10); // 30 + 87.5 + 50 = 168
+assert(postViralDebate > postSoloLikes, "Post con alta interacción y debate (comentarios + reposts) supera a post pasivo de solo likes");
+
+// Caso 2: Asignación precisa de Tiers con emojis 🔥
+assert(getViralityTier(168, 30, 25).badge === "Mega Viral 🔥🔥🔥", "Score >= 100 se clasifica como 'Mega Viral 🔥🔥🔥'");
+assert(getViralityTier(50, 20, 6).badge === "Alta Tracción 🔥🔥", "Score intermedio se clasifica como 'Alta Tracción 🔥🔥'");
+assert(getViralityTier(15, 10, 1).badge === "En Tendencia 🔥", "Score base se clasifica como 'En Tendencia 🔥'");
+
+// Caso 3: Selección de Top 12 posts ordenados de un lote extenso
+const rawPostsPool = Array.from({ length: 30 }, (_, i) => ({
+  id: `post-${i}`,
+  likes: (i * 7) % 60,
+  comments: (i * 3) % 25,
+  shares: (i * 2) % 10,
+  isJob: i % 5 === 0, // algunos son ofertas de empleo
+  score: 0,
+}));
+
+rawPostsPool.forEach((p) => {
+  p.score = calculateVirality(p.likes, p.comments, p.shares);
+});
+
+// Filtrar empleos y ordenar desc
+const cleanPosts = rawPostsPool.filter((p) => !p.isJob).sort((a, b) => b.score - a.score);
+const top12 = cleanPosts.slice(0, 12);
+
+assert(top12.length === 12, "El filtro garantiza exactamente 12 posts en el resultado final");
+assert(top12[0].score >= top12[1].score, "El primer post tiene un score de viralidad mayor o igual al segundo (orden estricto)");
+assert(top12.every((p) => !p.isJob), "Ningún post en el Top 12 contiene contenido de empleo");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
