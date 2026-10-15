@@ -162,7 +162,7 @@ export default function ViralRadarPage() {
   // Filtros de Viralidad y Temporalidad
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
   const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "trending">("all");
-  const [excludeJobs, setExcludeJobs] = useState<boolean>(true);
+  const excludeJobs = true;
 
   // Filtros generales y Modal
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
@@ -684,40 +684,6 @@ export default function ViralRadarPage() {
                   </div>
                 </div>
 
-                {/* Detección Automática de Mercado, Ubicación y Filtro de Contenido */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Mercado automático: {detectedLocation.label}</span>
-                  </div>
-
-                  {/* Filtro Anti-Empleo (#OpenToWork / Hiring) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = !excludeJobs;
-                      setExcludeJobs(next);
-                      handleLiveSearch(searchKeyword, undefined, undefined, undefined, next);
-                    }}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition border ${
-                      excludeJobs
-                        ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs"
-                        : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
-                    }`}
-                    title="Excluye publicaciones de contratación (#Hiring), ofertas de trabajo y búsqueda activa (#OpenToWork) para modelar solo contenido de alto impacto"
-                  >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        excludeJobs ? "bg-emerald-400" : "bg-gray-400"
-                      }`}
-                    ></span>
-                    <span>
-                      {excludeJobs
-                        ? "Filtro Empleo: Ofertas y #OpenToWork excluidos"
-                        : "Filtro Empleo: Inactivo (Mostrar todo)"}
-                    </span>
-                  </button>
-                </div>
               </div>
             </div>
           ) : (
