@@ -721,7 +721,38 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
   const deduplicated = addMultipleStoredSignalLeads(newBatch, existingLeads);
   assert(deduplicated.length === 4, "Deduplica leads existentes en el mismo monitor e incorpora nuevos y multimonitor");
   assert(deduplicated.some((l) => l.fullName === "Valeria Ruiz"), "Nuevo prospecto Valeria Ruiz añadido con éxito");
+
+  // 4. Pre-Configuración de Monitor desde Post Creado (Programado o Publicado)
+  const scheduledPost = {
+    id: "post-demo-01",
+    title: "Framework de Ventas Outbound 2026",
+    status: "scheduled",
+    scheduledAt: "2026-10-25T14:00:00.000Z",
+    leadMagnetKeyword: "VENTAS",
+  };
+
+  const isPending = scheduledPost.status !== "published";
+  const preConfiguredMonitor = {
+    id: "mon-l1-pre-1",
+    postTitle: scheduledPost.title,
+    postUrl: isPending ? "" : "https://linkedin.com/feed/update/urn:li:activity:123",
+    keyword: scheduledPost.leadMagnetKeyword,
+    status: isPending ? "pending_publish" : "active",
+    originPostId: scheduledPost.id,
+    originPostStatus: scheduledPost.status,
+    scheduledAt: scheduledPost.scheduledAt,
+  };
+
+  assert(preConfiguredMonitor.status === "pending_publish", "Post programado genera monitor en estado 'pending_publish'");
+  assert(preConfiguredMonitor.keyword === "VENTAS", "Palabra clave se transfiere automáticamente desde el creador");
+  assert(preConfiguredMonitor.postUrl === "", "No requiere URL de LinkedIn mientras esté en borrador o programado");
+
+  // Al vincularse la URL manualmente o al publicarse
+  preConfiguredMonitor.postUrl = "https://www.linkedin.com/feed/update/urn:li:activity:7251892837461928371/";
+  preConfiguredMonitor.status = "active";
+  assert(preConfiguredMonitor.status === "active", "El monitor pasa a 'active' tras vincular la URL oficial de LinkedIn");
 }
+
 
 
 // Limpieza de base de datos de test

@@ -6,6 +6,8 @@ import { useSignalRadar } from "@/lib/signals/store";
 import type { Level1Monitor, SignalLeadItem } from "@/lib/signals/types";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
+import { useCreatedPosts } from "@/lib/viral-posts/store";
+import type { CreatedPost } from "@/lib/viral-posts/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -47,6 +49,12 @@ export default function MyPostsSignalRadarPage() {
       });
   }, []);
 
+  const { posts: createdPosts } = useCreatedPosts();
+  const [selectedCreatedPost, setSelectedCreatedPost] = useState<CreatedPost | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [linkingUrlModalMonitor, setLinkingUrlModalMonitor] = useState<Level1Monitor | null>(null);
+  const [manualLinkedInUrlInput, setManualLinkedInUrlInput] = useState("");
+
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false);
   const [selectedMonitorForLeads, setSelectedMonitorForLeads] = useState<Level1Monitor | null>(null);
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
@@ -69,35 +77,90 @@ export default function MyPostsSignalRadarPage() {
   const totalComments = l1Monitors.reduce((acc, m) => acc + m.scannedCommentsCount, 0);
   const totalLeadsCaptured = l1Monitors.reduce((acc, m) => acc + m.leadsCapturedCount, 0);
   const activeMonitorsCount = l1Monitors.filter((m) => m.status === "active").length;
+  const pendingMonitorsCount = l1Monitors.filter((m) => m.status === "pending_publish").length;
+
+  const isPostPendingPublish =
+    selectedCreatedPost !== null && selectedCreatedPost.status !== "published";
+
+  const handleSelectCreatedPost = (post: CreatedPost) => {
+    setSelectedCreatedPost(post);
+    setNewPostTitle(post.title);
+    setIsDropdownOpen(false);
+
+    if (post.leadMagnetKeyword && post.leadMagnetKeyword.trim()) {
+      setNewKeyword(post.leadMagnetKeyword.toUpperCase());
+    }
+
+    if (post.status === "published") {
+      if (post.linkedinPostId) {
+        const url = post.linkedinPostId.startsWith("http")
+          ? post.linkedinPostId
+          : `https://www.linkedin.com/feed/update/urn:li:activity:${post.linkedinPostId}`;
+        setNewPostUrl(url);
+      } else {
+        setNewPostUrl("");
+      }
+    } else {
+      setNewPostUrl("");
+    }
+  };
 
   const handleCreateMonitor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostTitle.trim()) return;
 
+    const isPending = isPostPendingPublish;
+
     const newMonitor: Level1Monitor = {
       id: `mon-l1-${Date.now()}`,
       postTitle: newPostTitle,
-      postUrl: newPostUrl || "https://www.linkedin.com/feed/update/urn:li:activity:custom",
+      postUrl: isPending
+        ? ""
+        : newPostUrl || "https://www.linkedin.com/feed/update/urn:li:activity:custom",
       keyword: newKeyword.toUpperCase(),
-      status: "active",
+      status: isPending ? "pending_publish" : "active",
       autoLikeComment: newAutoLike,
       publicReplyTemplate: newPublicReply,
       nonConnectedNoteTemplate: newConnectionNote,
       attachedPdfName: newAttachedPdf,
       scannedCommentsCount: 0,
       leadsCapturedCount: 0,
-      lastScanAt: "Recien creado",
+      lastScanAt: isPending ? "En espera de publicación" : "Recién creado",
       createdAt: new Date().toISOString(),
+      originPostId: selectedCreatedPost?.id,
+      originPostStatus: selectedCreatedPost?.status,
+      scheduledAt: selectedCreatedPost?.scheduledAt,
     };
 
     addLevel1Monitor(newMonitor);
     setIsCreatingMonitor(false);
+    setSelectedCreatedPost(null);
     setNewPostTitle("");
     setNewPostUrl("");
     setScanFeedback({
       type: "success",
-      text: `Monitor para "${newMonitor.postTitle}" creado y escuchando la palabra clave "${newMonitor.keyword}".`,
+      text: isPending
+        ? `Monitor pre-configurado para "${newMonitor.postTitle}". Se activará automáticamente cuando la publicación salga en LinkedIn.`
+        : `Monitor para "${newMonitor.postTitle}" creado y escuchando la palabra clave "${newMonitor.keyword}".`,
     });
+  };
+
+  const handleSaveManualUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!linkingUrlModalMonitor || !manualLinkedInUrlInput.trim()) return;
+
+    updateLevel1Monitor(linkingUrlModalMonitor.id, {
+      postUrl: manualLinkedInUrlInput.trim(),
+      status: "active",
+      lastScanAt: "Listo para escanear",
+    });
+
+    setScanFeedback({
+      type: "success",
+      text: `URL de LinkedIn vinculada con éxito. Monitor activado para "${linkingUrlModalMonitor.postTitle}".`,
+    });
+    setLinkingUrlModalMonitor(null);
+    setManualLinkedInUrlInput("");
   };
 
   const handleScanMonitor = async (mon: Level1Monitor) => {
@@ -209,13 +272,15 @@ export default function MyPostsSignalRadarPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Monitores Nivel 1 Activos
+            Monitores Nivel 1
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {activeMonitorsCount} Publicaciones
+            {activeMonitorsCount} Activos
           </p>
           <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
-            Escaneando comentarios cada 5 min
+            {pendingMonitorsCount > 0
+              ? `${pendingMonitorsCount} en espera de publicación`
+              : "Escaneando comentarios cada 5 min"}
           </span>
         </div>
 
@@ -268,7 +333,10 @@ export default function MyPostsSignalRadarPage() {
         </div>
         <button
           type="button"
-          onClick={() => setIsCreatingMonitor(!isCreatingMonitor)}
+          onClick={() => {
+            setIsCreatingMonitor(!isCreatingMonitor);
+            setIsDropdownOpen(false);
+          }}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
           {isCreatingMonitor ? "Cerrar Configurador" : "+ Conectar Nuevo Post"}
@@ -279,35 +347,175 @@ export default function MyPostsSignalRadarPage() {
       {isCreatingMonitor && (
         <ComponentCard
           title="Configurador de Monitor Nivel 1"
-          desc="Ingresa los datos de tu publicacion de LinkedIn para activar la escucha de comentarios y auto-respuesta."
+          desc="Ingresa los datos de tu publicacion o selecciona un post creado en la plataforma para autocompletar titulo, palabra clave y URL."
         >
           <form onSubmit={handleCreateMonitor} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Titulo Descriptivo del Post
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newPostTitle}
-                  onChange={(e) => setNewPostTitle(e.target.value)}
-                  placeholder="Ej. Carrusel sobre Prospeccion B2B con IA..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+              {/* Buscador Inteligente con Dropdown desde /viral-posts/list */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-gray-500">
+                    Titulo Descriptivo del Post
+                  </label>
+                  {createdPosts.length > 0 && (
+                    <span className="text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                      {createdPosts.length} posts disponibles
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={newPostTitle}
+                    onFocus={() => setIsDropdownOpen(true)}
+                    onChange={(e) => {
+                      setNewPostTitle(e.target.value);
+                      setIsDropdownOpen(true);
+                      if (selectedCreatedPost && e.target.value !== selectedCreatedPost.title) {
+                        setSelectedCreatedPost(null);
+                      }
+                    }}
+                    placeholder="Escribe o selecciona una publicación de tu lista..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
+                  />
+                  {selectedCreatedPost && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCreatedPost(null);
+                        setNewPostTitle("");
+                        setNewPostUrl("");
+                      }}
+                      className="absolute right-2.5 top-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      title="Desvincular post seleccionado"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Dropdown de Sugerencias de /viral-posts/list */}
+                {isDropdownOpen && createdPosts.length > 0 && (
+                  <div
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Publicaciones en tu Base de Datos (/viral-posts/list)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="text-[10px] text-gray-400 hover:text-gray-600 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {createdPosts
+                        .filter((p) =>
+                          p.title.toLowerCase().includes(newPostTitle.toLowerCase().trim())
+                        )
+                        .slice(0, 8)
+                        .map((post) => (
+                          <div
+                            key={post.id}
+                            onClick={() => handleSelectCreatedPost(post)}
+                            className="cursor-pointer rounded-lg p-2 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between gap-2 border border-transparent hover:border-brand-200 dark:hover:border-brand-800/40"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                {post.title}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400">
+                                <span className="capitalize">{post.format}</span>
+                                {post.leadMagnetKeyword && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-brand-600 dark:text-brand-400 font-mono font-bold">
+                                      Trigger: {post.leadMagnetKeyword}
+                                    </span>
+                                  </>
+                                )}
+                                {post.scheduledAt && post.status === "scheduled" && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{new Date(post.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short" })}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0 ${
+                                post.status === "published"
+                                  ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
+                                  : post.status === "scheduled"
+                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                              }`}
+                            >
+                              {post.status === "published"
+                                ? "Publicado"
+                                : post.status === "scheduled"
+                                ? "Programado"
+                                : "Borrador"}
+                            </span>
+                          </div>
+                        ))}
+
+                      {createdPosts.filter((p) =>
+                        p.title.toLowerCase().includes(newPostTitle.toLowerCase().trim())
+                      ).length === 0 && (
+                        <p className="p-2 text-center text-gray-400 text-xs">
+                          No hay publicaciones que coincidan con &quot;{newPostTitle}&quot;. Puedes ingresar un título libre.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {selectedCreatedPost && (
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                    <span>✓ Post vinculado:</span>
+                    <span className="font-bold truncate max-w-[200px]">{selectedCreatedPost.title}</span>
+                  </div>
+                )}
               </div>
 
+              {/* URL o Badge Inteligente si está Pendiente de Publicación */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   URL o URN del Post en LinkedIn
                 </label>
-                <input
-                  type="url"
-                  value={newPostUrl}
-                  onChange={(e) => setNewPostUrl(e.target.value)}
-                  placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+
+                {isPostPendingPublish ? (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 dark:border-amber-900/50 dark:bg-amber-950/20 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                      <span>⏳ Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
+                      {selectedCreatedPost?.scheduledAt && (
+                        <span className="font-normal text-[11px] text-amber-700 dark:text-amber-400">
+                          • Previsto para: {new Date(selectedCreatedPost.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                      Aún no tiene URL en LinkedIn. Se creará como <b>Monitor Pre-Configurado</b> y se activará automáticamente al publicarse.
+                    </p>
+                  </div>
+                ) : (
+                  <input
+                    type="url"
+                    value={newPostUrl}
+                    onChange={(e) => setNewPostUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  />
+                )}
               </div>
             </div>
 
@@ -380,21 +588,31 @@ export default function MyPostsSignalRadarPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setIsCreatingMonitor(false)}
+                onClick={() => {
+                  setIsCreatingMonitor(false);
+                  setIsDropdownOpen(false);
+                }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                className={`rounded-lg px-5 py-2 text-xs font-semibold text-white transition ${
+                  isPostPendingPublish
+                    ? "bg-amber-500 hover:bg-amber-600"
+                    : "bg-brand-500 hover:bg-brand-600"
+                }`}
               >
-                Activar Monitor en LinkedIn
+                {isPostPendingPublish
+                  ? "Pre-Configurar Monitor (En Espera)"
+                  : "Activar Monitor en LinkedIn"}
               </button>
             </div>
           </form>
         </ComponentCard>
       )}
+
 
       {/* Barra de Cuenta Conectada & Estado de Escucha */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs">
@@ -498,9 +716,18 @@ export default function MyPostsSignalRadarPage() {
                       <p className="text-[11px] text-gray-400 truncate">
                         Adjunto: {mon.attachedPdfName}
                       </p>
-                      <span className="text-[10px] text-brand-600 dark:text-brand-400 truncate block">
-                        {mon.postUrl}
-                      </span>
+                      {mon.status === "pending_publish" ? (
+                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                          <span>⏳ Pendiente de Publicación</span>
+                          {mon.scheduledAt && (
+                            <span>• {new Date(mon.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short" })}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-brand-600 dark:text-brand-400 truncate block">
+                          {mon.postUrl}
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-4">
@@ -522,37 +749,57 @@ export default function MyPostsSignalRadarPage() {
                     </td>
 
                     <td className="py-4">
-                      <button
-                        type="button"
-                        onClick={() => toggleLevel1Status(mon.id)}
-                        className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
-                          mon.status === "active"
-                            ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
-                        }`}
-                      >
-                        {mon.status === "active" ? "Activo (Escuchando)" : "Pausado"}
-                      </button>
+                      {mon.status === "pending_publish" ? (
+                        <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-[11px] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                          ⏳ En Espera
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggleLevel1Status(mon.id)}
+                          className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                            mon.status === "active"
+                              ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                          }`}
+                        >
+                          {mon.status === "active" ? "Activo (Escuchando)" : "Pausado"}
+                        </button>
+                      )}
                     </td>
 
                     <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
-                      {/* Botón de Escaneo en Vivo */}
-                      <button
-                        type="button"
-                        disabled={isScanningId === mon.id}
-                        onClick={() => handleScanMonitor(mon)}
-                        className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                        title="Escanear comentarios de la publicación en LinkedIn"
-                      >
-                        {isScanningId === mon.id ? (
-                          <>
-                            <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                            Escaneando...
-                          </>
-                        ) : (
-                          "Escanear Ahora"
-                        )}
-                      </button>
+                      {/* Botón de Escaneo o Vincular URL si está en espera */}
+                      {mon.status === "pending_publish" ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLinkingUrlModalMonitor(mon);
+                            setManualLinkedInUrlInput("");
+                          }}
+                          className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
+                          title="Vincular URL oficial de LinkedIn para activar este monitor"
+                        >
+                          🔗 Vincular URL
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isScanningId === mon.id}
+                          onClick={() => handleScanMonitor(mon)}
+                          className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
+                          title="Escanear comentarios de la publicación en LinkedIn"
+                        >
+                          {isScanningId === mon.id ? (
+                            <>
+                              <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                              Escaneando...
+                            </>
+                          ) : (
+                            "Escanear Ahora"
+                          )}
+                        </button>
+                      )}
 
                       {/* Botón de Ver Leads */}
                       <button
@@ -586,6 +833,7 @@ export default function MyPostsSignalRadarPage() {
                       </button>
                     </td>
                   </tr>
+
                 ))}
               </tbody>
             </table>
@@ -701,6 +949,66 @@ export default function MyPostsSignalRadarPage() {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Vincular URL de LinkedIn Manualmente */}
+      {linkingUrlModalMonitor && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <div className="flex items-start justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  Vincular Publicación de LinkedIn
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-sm">
+                  {linkingUrlModalMonitor.postTitle}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLinkingUrlModalMonitor(null)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveManualUrl} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Pega la URL o URN del post publicado en LinkedIn
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={manualLinkedInUrlInput}
+                  onChange={(e) => setManualLinkedInUrlInput(e.target.value)}
+                  placeholder="https://www.linkedin.com/feed/update/urn:li:activity:7251892837461928371/"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Al vincular la URL, el monitor pasará inmediatamente al estado Activo y comenzará a auditar los comentarios con la palabra clave &quot;{linkingUrlModalMonitor.keyword}&quot;.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setLinkingUrlModalMonitor(null)}
+                  className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                >
+                  Guardar y Activar Monitor
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

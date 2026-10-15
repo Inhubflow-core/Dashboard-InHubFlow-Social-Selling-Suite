@@ -1,7 +1,7 @@
 export type SignalLevel = "level_1" | "level_2" | "level_3";
 export type IntentLevel = "very_high" | "medium_high" | "medium";
 export type ConnectionDegree = "1st" | "2nd" | "3rd";
-export type MonitorStatus = "active" | "paused" | "completed";
+export type MonitorStatus = "active" | "paused" | "completed" | "pending_publish";
 
 export interface SignalLeadItem {
   id: string;
@@ -34,6 +34,9 @@ export interface Level1Monitor {
   leadsCapturedCount: number;
   lastScanAt: string;
   createdAt: string;
+  originPostId?: string;
+  originPostStatus?: "draft" | "scheduled" | "published" | "failed";
+  scheduledAt?: string;
 }
 
 export interface Level2CompetitorMonitor {
