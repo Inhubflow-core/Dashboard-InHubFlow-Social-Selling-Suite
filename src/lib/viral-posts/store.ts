@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { initialCreatedPosts, initialViralTemplates } from "./mock-data";
-import type { CreatedPost, ViralPostTemplate } from "./types";
+import type { CreatedPost, PostFormat, ViralPostTemplate } from "./types";
 
 const TEMPLATES_KEY = "inhubflow_viral_templates";
 const CREATED_POSTS_KEY = "inhubflow_created_posts";
@@ -92,6 +92,65 @@ export function getSelectedTemplateForModeling(): ViralPostTemplate | null {
     return null;
   }
 }
+
+export interface ViralRadarState {
+  searchKeyword: string;
+  lastSuccessfulKeyword: string;
+  livePosts: ViralPostTemplate[];
+  hasSearchedOnce: boolean;
+  datePosted: "PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY";
+  viralityTierFilter: "all" | "mega" | "high" | "trending";
+  selectedFormat: "all" | PostFormat;
+  viewMode: "live" | "templates";
+  updatedAt?: number;
+}
+
+const RADAR_CACHE_KEY = "inhubflow_viral_radar_cache";
+
+export function getStoredRadarState(): ViralRadarState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(RADAR_CACHE_KEY) || localStorage.getItem(RADAR_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function saveStoredRadarState(state: Partial<ViralRadarState>): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getStoredRadarState() || ({} as Partial<ViralRadarState>);
+    const updated: ViralRadarState = {
+      searchKeyword: state.searchKeyword ?? existing.searchKeyword ?? "B2B Outbound",
+      lastSuccessfulKeyword: state.lastSuccessfulKeyword ?? existing.lastSuccessfulKeyword ?? "B2B Outbound",
+      livePosts: state.livePosts ?? existing.livePosts ?? [],
+      hasSearchedOnce: state.hasSearchedOnce ?? existing.hasSearchedOnce ?? false,
+      datePosted: state.datePosted ?? existing.datePosted ?? "PAST_MONTH",
+      viralityTierFilter: state.viralityTierFilter ?? existing.viralityTierFilter ?? "all",
+      selectedFormat: state.selectedFormat ?? existing.selectedFormat ?? "all",
+      viewMode: state.viewMode ?? existing.viewMode ?? "live",
+      updatedAt: Date.now(),
+    };
+    const serialized = JSON.stringify(updated);
+    sessionStorage.setItem(RADAR_CACHE_KEY, serialized);
+    localStorage.setItem(RADAR_CACHE_KEY, serialized);
+  } catch (err) {
+    console.warn("[saveStoredRadarState] Failed to persist radar state:", err);
+  }
+}
+
+export function clearStoredRadarState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(RADAR_CACHE_KEY);
+    localStorage.removeItem(RADAR_CACHE_KEY);
+  } catch {}
+}
+
 
 export function useCreatedPosts() {
   const [posts, setPosts] = useState<CreatedPost[]>([]);

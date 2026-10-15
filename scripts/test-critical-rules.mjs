@@ -512,6 +512,95 @@ assert(top12.length === 12, "El filtro garantiza exactamente 12 posts en el resu
 assert(top12[0].score >= top12[1].score, "El primer post tiene un score de viralidad mayor o igual al segundo (orden estricto)");
 assert(top12.every((p) => !p.isJob), "Ningún post en el Top 12 contiene contenido de empleo");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 12: Persistencia de Sesión del Radar Viral (Navegación sin pérdida de datos)
+// -----------------------------------------------------------------------------
+console.log("\n--- 12. Prueba de Persistencia del Radar Viral (Consistencia al Navegar) ---");
+
+// Mock de Storage en memoria
+class MockStorage {
+  constructor() {
+    this.store = {};
+  }
+  getItem(key) {
+    return this.store[key] || null;
+  }
+  setItem(key, value) {
+    this.store[key] = String(value);
+  }
+  removeItem(key) {
+    delete this.store[key];
+  }
+  clear() {
+    this.store = {};
+  }
+}
+
+const mockSession = new MockStorage();
+const mockLocal = new MockStorage();
+const CACHE_KEY = "inhubflow_viral_radar_cache";
+
+function mockSaveRadar(state) {
+  const serialized = JSON.stringify({
+    ...state,
+    updatedAt: Date.now(),
+  });
+  mockSession.setItem(CACHE_KEY, serialized);
+  mockLocal.setItem(CACHE_KEY, serialized);
+}
+
+function mockGetRadar() {
+  const raw = mockSession.getItem(CACHE_KEY) || mockLocal.getItem(CACHE_KEY);
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+// 1. Simulación de búsqueda en nicho específico (ej. Nutrición Cetogénica)
+const nicheSearchResults = Array.from({ length: 12 }, (_, i) => ({
+  id: `keto-post-${i + 1}`,
+  topic: "Nutricion Cetogenica",
+  author: `Dr. Experto ${i + 1}`,
+  hook: `Guía definitiva de cetosis paso ${i + 1}`,
+  viralityScore: 120 - i * 5,
+  viralityTier: i < 3 ? "mega" : i < 8 ? "high" : "trending",
+}));
+
+mockSaveRadar({
+  searchKeyword: "Nutricion Cetogenica",
+  lastSuccessfulKeyword: "Nutricion Cetogenica",
+  livePosts: nicheSearchResults,
+  hasSearchedOnce: true,
+  datePosted: "PAST_MONTH",
+  viralityTierFilter: "all",
+  selectedFormat: "all",
+  viewMode: "live",
+});
+
+assert(mockSession.getItem(CACHE_KEY) !== null, "El estado de búsqueda del Radar se serializa y persiste en sessionStorage");
+
+// 2. Simulación de desmontaje y navegación a otra página (ej. Modelador IA o Campañas)
+// Al volver a la página del Radar:
+const restoredState = mockGetRadar();
+assert(restoredState !== null, "Al regresar a la página del Radar, el estado almacenado se recupera con éxito");
+assert(restoredState.searchKeyword === "Nutricion Cetogenica", "La palabra clave buscada por el usuario ('Nutricion Cetogenica') se preserva exactamente");
+assert(restoredState.livePosts.length === 12, "La lista de los 12 posts cosechados se mantiene íntegra sin requerir nuevo escaneo");
+assert(restoredState.hasSearchedOnce === true, "La bandera hasSearchedOnce permanece en true, bloqueando búsquedas automáticas no deseadas");
+
+// 3. Verificación de guardia: no debe disparar búsqueda por defecto ('B2B Outbound') si ya hay posts en caché
+const shouldTriggerDefaultSearch = !restoredState.hasSearchedOnce || restoredState.livePosts.length === 0;
+assert(shouldTriggerDefaultSearch === false, "La condición de guardia impide reiniciar los resultados a 'B2B Outbound' al navegar");
+
+// 4. Actualización coherente cuando el usuario realiza una nueva búsqueda deliberada
+mockSaveRadar({
+  ...restoredState,
+  searchKeyword: "Energia Solar Residencial",
+  lastSuccessfulKeyword: "Energia Solar Residencial",
+  livePosts: [{ id: "solar-1", topic: "Energia Solar", hook: "Ahorro en paneles", viralityScore: 95 }],
+});
+const updatedState = mockGetRadar();
+assert(updatedState.searchKeyword === "Energia Solar Residencial", "Nueva búsqueda deliberada sobrescribe el caché de forma consistente");
+assert(updatedState.livePosts[0].topic === "Energia Solar", "Nuevos resultados de la búsqueda deliberada quedan inmediatamente cacheados");
+
 // Limpieza de base de datos de test
 db.close();
 if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);

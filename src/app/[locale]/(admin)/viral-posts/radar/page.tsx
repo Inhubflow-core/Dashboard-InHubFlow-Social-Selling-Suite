@@ -11,7 +11,12 @@ import {
   isNonTargetGeography,
   isNonWestern,
 } from "@/lib/viral-posts/filters";
-import { getStoredViralTemplates, setSelectedTemplateForModeling } from "@/lib/viral-posts/store";
+import {
+  getStoredViralTemplates,
+  setSelectedTemplateForModeling,
+  getStoredRadarState,
+  saveStoredRadarState,
+} from "@/lib/viral-posts/store";
 import type { PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -144,6 +149,9 @@ export default function ViralRadarPage() {
   // Modo de visualización: "live" (LinkedIn en Vivo) | "templates" (Plantillas Maestras)
   const [viewMode, setViewMode] = useState<"live" | "templates">("live");
 
+  // Control de persistencia de sesión
+  const [isCacheRestored, setIsCacheRestored] = useState(false);
+
   // Estados para Búsqueda en Vivo
   const [searchKeyword, setSearchKeyword] = useState("B2B Outbound");
   const [lastSuccessfulKeyword, setLastSuccessfulKeyword] = useState<string>("B2B Outbound");
@@ -182,6 +190,49 @@ export default function ViralRadarPage() {
     >
   >({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+
+  // 1. Restaurar estado de búsqueda persistido en la sesión (sessionStorage / localStorage) al montar
+  useEffect(() => {
+    const cached = getStoredRadarState();
+    if (cached) {
+      if (Array.isArray(cached.livePosts) && cached.livePosts.length > 0) {
+        setLivePosts(cached.livePosts);
+        setHasSearchedOnce(true);
+      }
+      if (cached.searchKeyword) setSearchKeyword(cached.searchKeyword);
+      if (cached.lastSuccessfulKeyword) setLastSuccessfulKeyword(cached.lastSuccessfulKeyword);
+      if (cached.datePosted) setDatePosted(cached.datePosted);
+      if (cached.viralityTierFilter) setViralityTierFilter(cached.viralityTierFilter);
+      if (cached.selectedFormat) setSelectedFormat(cached.selectedFormat);
+      if (cached.viewMode) setViewMode(cached.viewMode);
+    }
+    setIsCacheRestored(true);
+  }, []);
+
+  // 2. Sincronizar automáticamente en sesión cada vez que cambien los estados clave
+  useEffect(() => {
+    if (!isCacheRestored) return;
+    saveStoredRadarState({
+      searchKeyword,
+      lastSuccessfulKeyword,
+      livePosts,
+      hasSearchedOnce,
+      datePosted,
+      viralityTierFilter,
+      selectedFormat,
+      viewMode,
+    });
+  }, [
+    isCacheRestored,
+    searchKeyword,
+    lastSuccessfulKeyword,
+    livePosts,
+    hasSearchedOnce,
+    datePosted,
+    viralityTierFilter,
+    selectedFormat,
+    viewMode,
+  ]);
 
   // Cargar cuentas en vivo desde la API de Unipile
   useEffect(() => {
@@ -306,6 +357,17 @@ export default function ViralRadarPage() {
         setHasSearchedOnce(true);
         setLastSuccessfulKeyword(kw);
 
+        saveStoredRadarState({
+          searchKeyword: kw,
+          lastSuccessfulKeyword: kw,
+          livePosts: top12,
+          hasSearchedOnce: true,
+          datePosted: targetDate as any,
+          viralityTierFilter,
+          selectedFormat,
+          viewMode: "live",
+        });
+
         if (data.accountName) {
           setActiveAccountName(data.accountName);
         }
@@ -325,15 +387,15 @@ export default function ViralRadarPage() {
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs]
+    [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs, viralityTierFilter, selectedFormat]
   );
 
-  // Ejecutar búsqueda inicial en vivo tan pronto tengamos cuenta activa
+  // Ejecutar búsqueda inicial en vivo SOLO si ya se verificó el caché Y no existía ninguna búsqueda previa guardada
   useEffect(() => {
-    if (activeAccount && !hasSearchedOnce) {
-      handleLiveSearch("B2B Outbound", undefined, undefined, detectedLocation.market);
+    if (isCacheRestored && activeAccount && !hasSearchedOnce && livePosts.length === 0) {
+      handleLiveSearch(searchKeyword || "B2B Outbound", undefined, undefined, detectedLocation.market);
     }
-  }, [activeAccount, hasSearchedOnce, handleLiveSearch, detectedLocation.market]);
+  }, [isCacheRestored, activeAccount, hasSearchedOnce, livePosts.length, handleLiveSearch, searchKeyword, detectedLocation.market]);
 
   // Publicaciones según el modo activo
   const currentPostsPool = viewMode === "live" ? livePosts : masterTemplates;
@@ -788,12 +850,38 @@ export default function ViralRadarPage() {
 
       {/* Listado de Tarjetas */}
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-            {viewMode === "live"
-              ? `Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`
-              : `Plantillas Maestras Disponibles (${filteredPosts.length})`}
-          </h3>
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+              {viewMode === "live"
+                ? `Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`
+                : `Plantillas Maestras Disponibles (${filteredPosts.length})`}
+            </h3>
+            {viewMode === "live" && livePosts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => handleLiveSearch(lastSuccessfulKeyword || searchKeyword)}
+                disabled={isSearchingLive}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition"
+                title="Volver a escanear LinkedIn con esta palabra clave"
+              >
+                <svg
+                  className={`w-3.5 h-3.5 ${isSearchingLive ? "animate-spin text-brand-500" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                {isSearchingLive ? "Actualizando..." : "Actualizar"}
+              </button>
+            )}
+          </div>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {viewMode === "live"
               ? searchError && lastSuccessfulKeyword !== searchKeyword
