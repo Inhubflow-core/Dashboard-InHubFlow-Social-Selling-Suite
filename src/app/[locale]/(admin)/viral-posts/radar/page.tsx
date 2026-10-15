@@ -12,7 +12,6 @@ import {
   isNonWestern,
 } from "@/lib/viral-posts/filters";
 import {
-  getStoredViralTemplates,
   setSelectedTemplateForModeling,
   getStoredRadarState,
   saveStoredRadarState,
@@ -139,15 +138,11 @@ export function detectUserMarket(): DetectedMarketInfo {
 export default function ViralRadarPage() {
   const router = useRouter();
   const locale = useLocale();
-  const masterTemplates = useMemo(() => getStoredViralTemplates(), []);
 
   // Cuentas de LinkedIn
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
   const [activeAccount, setActiveAccount] = useState<UnipileAccount | null>(null);
   const [activeAccountName, setActiveAccountName] = useState<string>("");
-
-  // Modo de visualización: "live" (LinkedIn en Vivo) | "templates" (Plantillas Maestras)
-  const [viewMode, setViewMode] = useState<"live" | "templates">("live");
 
   // Control de persistencia de sesión
   const [isCacheRestored, setIsCacheRestored] = useState(false);
@@ -174,7 +169,6 @@ export default function ViralRadarPage() {
 
   // Filtros generales y Modal
   const [selectedFormat, setSelectedFormat] = useState<"all" | PostFormat>("all");
-  const [filterTerm, setFilterTerm] = useState("");
   const [selectedPostForModal, setSelectedPostForModal] = useState<ViralPostTemplate | null>(null);
 
   // Estados de Traducción de la Publicación (estilo LinkedIn) tanto para Tarjetas del Grid como para Modal
@@ -204,7 +198,6 @@ export default function ViralRadarPage() {
       if (cached.datePosted) setDatePosted(cached.datePosted);
       if (cached.viralityTierFilter) setViralityTierFilter(cached.viralityTierFilter);
       if (cached.selectedFormat) setSelectedFormat(cached.selectedFormat);
-      if (cached.viewMode) setViewMode(cached.viewMode);
     }
     setIsCacheRestored(true);
   }, []);
@@ -220,7 +213,6 @@ export default function ViralRadarPage() {
       datePosted,
       viralityTierFilter,
       selectedFormat,
-      viewMode,
     });
   }, [
     isCacheRestored,
@@ -231,7 +223,6 @@ export default function ViralRadarPage() {
     datePosted,
     viralityTierFilter,
     selectedFormat,
-    viewMode,
   ]);
 
   // Cargar cuentas en vivo desde la API de Unipile
@@ -365,7 +356,6 @@ export default function ViralRadarPage() {
           datePosted: targetDate as any,
           viralityTierFilter,
           selectedFormat,
-          viewMode: "live",
         });
 
         if (data.accountName) {
@@ -380,7 +370,7 @@ export default function ViralRadarPage() {
           msg.includes("Request Timeout") ||
           msg.includes("timeout")
         ) {
-          msg = "LinkedIn tardó demasiado en responder para esta búsqueda (Timeout temporal). Puedes reintentar ahora o explorar las plantillas maestras.";
+          msg = "LinkedIn tardó demasiado en responder para esta búsqueda (Timeout temporal). Puedes reintentar ahora con otra palabra clave o ventana temporal.";
         }
         setSearchError(msg);
       } finally {
@@ -397,12 +387,9 @@ export default function ViralRadarPage() {
     }
   }, [isCacheRestored, activeAccount, hasSearchedOnce, livePosts.length, handleLiveSearch, searchKeyword, detectedLocation.market]);
 
-  // Publicaciones según el modo activo
-  const currentPostsPool = viewMode === "live" ? livePosts : masterTemplates;
-
-  // Filtrado reactivo por formato, tier de viralidad (Mega Viral, Alta Tracción, En Tendencia) y término secundario
+  // Filtrado reactivo por formato y tier de viralidad (Mega Viral, Alta Tracción, En Tendencia)
   const filteredPosts = useMemo(() => {
-    const list = currentPostsPool.filter((post) => {
+    const list = livePosts.filter((post) => {
       const combined = `${post.author || ""} ${post.authorHeadline || ""} ${post.fullContent || ""}`;
       if (isNonWestern(combined)) {
         return false;
@@ -427,13 +414,6 @@ export default function ViralRadarPage() {
         return false;
       }
 
-      const matchesFilter =
-        !filterTerm ||
-        post.topic.toLowerCase().includes(filterTerm.toLowerCase()) ||
-        post.hook.toLowerCase().includes(filterTerm.toLowerCase()) ||
-        post.author.toLowerCase().includes(filterTerm.toLowerCase()) ||
-        post.fullContent.toLowerCase().includes(filterTerm.toLowerCase());
-
       const matchesFormat = selectedFormat === "all" || post.format === selectedFormat;
 
       const matchesTier =
@@ -443,19 +423,15 @@ export default function ViralRadarPage() {
         (viralityTierFilter === "high" && (post.viralityScore ?? 0) >= 35 && (post.viralityScore ?? 0) < 100) ||
         (viralityTierFilter === "trending" && (post.viralityScore ?? 0) < 35);
 
-      return matchesFilter && matchesFormat && matchesTier;
+      return matchesFormat && matchesTier;
     });
 
     // Ordenar de forma descendente por Score de Viralidad (los mejores posts siempre al inicio)
     const sorted = [...list].sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
 
-    // En modo Radar en Vivo (LinkedIn), mostrar estrictamente los 12 mejores resultados
-    if (viewMode === "live") {
-      return sorted.slice(0, 12);
-    }
-
-    return sorted;
-  }, [currentPostsPool, filterTerm, selectedFormat, viralityTierFilter, viewMode, excludeJobs]);
+    // Mostrar estrictamente el Top 12 de resultados con mayor impacto
+    return sorted.slice(0, 12);
+  }, [livePosts, selectedFormat, viralityTierFilter, excludeJobs]);
 
   const handleModelWithAi = (post: ViralPostTemplate) => {
     setSelectedTemplateForModeling(post);
@@ -574,199 +550,134 @@ export default function ViralRadarPage() {
       <PageBreadcrumb pageTitle="Post Finder (Top Posts de LinkedIn)" />
 
 
-      {/* Selector Principal de Modo: Live LinkedIn vs Plantillas Maestras */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-        <div>
-          <h2 className="text-base font-bold text-gray-900 dark:text-white">
-            Explorador de Publicaciones de Alto Impacto
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {viewMode === "live"
-              ? "Búsqueda en tiempo real de publicaciones virales en LinkedIn ordenadas estrictamente por repercusión y debate."
-              : "12 estructuras maestras de copywriting probadas (Carruseles, Ganchos y Prompts Visuales)."}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setViewMode("live")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition ${
-              viewMode === "live"
-                ? "bg-brand-500 text-white shadow-theme-xs"
-                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Post Finder (LinkedIn)
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("templates")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition ${
-              viewMode === "templates"
-                ? "bg-brand-500 text-white shadow-theme-xs"
-                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-            }`}
-          >
-            Plantillas Maestras ({masterTemplates.length})
-          </button>
-        </div>
-      </div>
-
       {/* Panel de Control de Búsqueda y Parámetros */}
       <ComponentCard
-        title={viewMode === "live" ? "Post Finder en la Red de LinkedIn" : "Buscador de Plantillas Virales"}
-        desc={
-          viewMode === "live"
-            ? `Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${currentDisplayName}.`
-            : "Filtra por formato, temáticas y estructuras comprobadas de atracción."
-        }
+        title="Explorador de Publicaciones de Alto Impacto"
+        desc={`Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${currentDisplayName}.`}
       >
         <div className="space-y-4">
-          {viewMode === "live" ? (
-            <div className="space-y-3">
-              {/* Selector de cuenta si hay varias */}
-              {availableAccounts.length > 1 && (
-                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-600 dark:text-gray-400">
-                      Cuenta conectada para indexar:
-                    </span>
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      {currentDisplayName}
-                    </span>
-                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                      OK
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500 text-[11px]">Cambiar cuenta:</span>
-                    <select
-                      value={activeAccount?.id || ""}
-                      onChange={(e) => {
-                        const selected = availableAccounts.find((a) => a.id === e.target.value);
-                        if (selected) {
-                          setActiveAccount(selected);
-                          setActiveAccountName(selected.name);
-                          handleLiveSearch(searchKeyword, selected.id);
-                        }
-                      }}
-                      className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    >
-                      {availableAccounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} ({a.status === "OK" ? "Conectada" : "Reconexión"})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+          <div className="space-y-3">
+            {/* Selector de cuenta si hay varias */}
+            {availableAccounts.length > 1 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">
+                    Cuenta conectada para indexar:
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    {currentDisplayName}
+                  </span>
+                  <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                    OK
+                  </span>
                 </div>
-              )}
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleLiveSearch()}
-                    placeholder="Palabra clave, industria o dolor (ej. Social Selling, B2B SaaS, Agentes SDR)..."
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={isSearchingLive}
-                  onClick={() => handleLiveSearch()}
-                  className="rounded-xl bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition flex items-center justify-center gap-2 shrink-0"
-                >
-                  {isSearchingLive ? (
-                    <>
-                      <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                      Escaneando LinkedIn...
-                    </>
-                  ) : (
-                    "Escanear Tendencias"
-                  )}
-                </button>
-              </div>
-
-              {/* Tags de búsqueda rápida */}
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-xs font-medium text-gray-400 mr-1">Sugerencias:</span>
-                {quickSearchTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      setSearchKeyword(tag);
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-[11px]">Cambiar cuenta:</span>
+                  <select
+                    value={activeAccount?.id || ""}
+                    onChange={(e) => {
+                      const selected = availableAccounts.find((a) => a.id === e.target.value);
+                      if (selected) {
+                        setActiveAccount(selected);
+                        setActiveAccountName(selected.name);
+                        handleLiveSearch(searchKeyword, selected.id);
+                      }
                     }}
-                    className={`rounded-lg px-2.5 py-1 text-[11px] font-medium border transition ${
-                      searchKeyword === tag
-                        ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-                    }`}
+                    className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                   >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-
-              {/* Controles de Búsqueda: Temporalidad & Detección Automática de Mercado */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
-                {/* Ventana Temporal */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
-                  <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
-                    {[
-                      { id: "PAST_MONTH", label: "Último Mes (Recomendado)" },
-                      { id: "PAST_WEEK", label: "Última Semana" },
-                      { id: "PAST_24H", label: "24h" },
-                      { id: "ANY", label: "Todo" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => {
-                          setDatePosted(opt.id as any);
-                          handleLiveSearch(searchKeyword, undefined, opt.id);
-                        }}
-                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
-                          datePosted === opt.id
-                            ? "bg-white text-brand-600 font-bold shadow-xs dark:bg-gray-800 dark:text-brand-400"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
+                    {availableAccounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} ({a.status === "OK" ? "Conectada" : "Reconexión"})
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
-
               </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLiveSearch()}
+                  placeholder="Palabra clave, industria o dolor (ej. Social Selling, B2B SaaS, Agentes SDR)..."
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={isSearchingLive}
+                onClick={() => handleLiveSearch()}
+                className="rounded-xl bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition flex items-center justify-center gap-2 shrink-0"
+              >
+                {isSearchingLive ? (
+                  <>
+                    <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                    Escaneando LinkedIn...
+                  </>
+                ) : (
+                  "Escanear Tendencias"
+                )}
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <input
-                type="text"
-                value={filterTerm}
-                onChange={(e) => setFilterTerm(e.target.value)}
-                placeholder="Filtrar plantillas por tema, gancho o autor..."
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              />
-              {filterTerm && (
+
+            {/* Tags de búsqueda rápida */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-medium text-gray-400 mr-1">Sugerencias:</span>
+              {quickSearchTags.map((tag) => (
                 <button
+                  key={tag}
                   type="button"
-                  onClick={() => setFilterTerm("")}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 shrink-0"
+                  onClick={() => {
+                    setSearchKeyword(tag);
+                  }}
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-medium border transition ${
+                    searchKeyword === tag
+                      ? "border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                  }`}
                 >
-                  Limpiar
+                  {tag}
                 </button>
-              )}
+              ))}
             </div>
-          )}
+
+            {/* Controles de Búsqueda: Temporalidad & Detección Automática de Mercado */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+              {/* Ventana Temporal */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
+                <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
+                  {[
+                    { id: "PAST_MONTH", label: "Último Mes (Recomendado)" },
+                    { id: "PAST_WEEK", label: "Última Semana" },
+                    { id: "PAST_24H", label: "24h" },
+                    { id: "ANY", label: "Todo" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setDatePosted(opt.id as any);
+                        handleLiveSearch(searchKeyword, undefined, opt.id);
+                      }}
+                      className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
+                        datePosted === opt.id
+                          ? "bg-white text-brand-600 font-bold shadow-xs dark:bg-gray-800 dark:text-brand-400"
+                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
 
           {/* Filtros por Nivel de Viralidad y Formato */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
@@ -835,13 +746,6 @@ export default function ViralRadarPage() {
                 >
                   Reintentar
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("templates")}
-                  className="underline font-semibold hover:text-amber-900"
-                >
-                  Ver Plantillas Maestras
-                </button>
               </div>
             </div>
           )}
@@ -853,11 +757,9 @@ export default function ViralRadarPage() {
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-              {viewMode === "live"
-                ? `Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`
-                : `Plantillas Maestras Disponibles (${filteredPosts.length})`}
+              {`Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`}
             </h3>
-            {viewMode === "live" && livePosts.length > 0 && (
+            {livePosts.length > 0 && (
               <button
                 type="button"
                 onClick={() => handleLiveSearch(lastSuccessfulKeyword || searchKeyword)}
@@ -883,11 +785,9 @@ export default function ViralRadarPage() {
             )}
           </div>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {viewMode === "live"
-              ? searchError && lastSuccessfulKeyword !== searchKeyword
-                ? `Mostrando resultados de "${lastSuccessfulKeyword}" • Reintento pendiente para "${searchKeyword}"`
-                : `Palabra clave: "${lastSuccessfulKeyword || searchKeyword}" • Top 12 ordenados por Score de Impacto`
-              : "Ordenadas por Ratio de Interacción probado"}
+            {searchError && lastSuccessfulKeyword !== searchKeyword
+              ? `Mostrando resultados de "${lastSuccessfulKeyword}" • Reintento pendiente para "${searchKeyword}"`
+              : `Palabra clave: "${lastSuccessfulKeyword || searchKeyword}" • Top 12 ordenados por Score de Impacto`}
           </span>
         </div>
 
@@ -906,34 +806,25 @@ export default function ViralRadarPage() {
             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
               No se encontraron publicaciones virales para los filtros aplicados.
             </p>
-            {viewMode === "live" && (
-              <div className="space-y-2">
-                <p className="text-xs text-gray-400">
-                  Prueba buscando otra palabra clave, ampliando la ventana temporal o explora las plantillas maestras virales.
-                </p>
-                <div className="flex items-center justify-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setViralityTierFilter("all");
-                      setSelectedFormat("all");
-                      setDatePosted("PAST_MONTH");
-                      handleLiveSearch(searchKeyword, undefined, "PAST_MONTH");
-                    }}
-                    className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                  >
-                    Mostrar Todo (Top 9)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("templates")}
-                    className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white"
-                  >
-                    Abrir Plantillas Maestras
-                  </button>
-                </div>
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                Prueba buscando otra palabra clave o ampliando la ventana temporal.
+              </p>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViralityTierFilter("all");
+                    setSelectedFormat("all");
+                    setDatePosted("PAST_MONTH");
+                    handleLiveSearch(searchKeyword, undefined, "PAST_MONTH");
+                  }}
+                  className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  Restablecer Filtros (Top 12)
+                </button>
               </div>
-            )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
