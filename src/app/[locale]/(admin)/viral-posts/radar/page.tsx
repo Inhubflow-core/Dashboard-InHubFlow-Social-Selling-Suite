@@ -640,7 +640,6 @@ export default function ViralRadarPage() {
                     type="button"
                     onClick={() => {
                       setSearchKeyword(tag);
-                      handleLiveSearch(tag);
                     }}
                     className={`rounded-lg px-2.5 py-1 text-[11px] font-medium border transition ${
                       searchKeyword === tag
