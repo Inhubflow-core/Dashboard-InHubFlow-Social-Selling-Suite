@@ -159,6 +159,67 @@ function resolveMarketFromTimezone(tz: string): string {
   return "latam_us";
 }
 
+function generateQueryVariations(rawKeywords: string, targetMarket: string): string[] {
+  const kw = rawKeywords.trim();
+  const lower = kw.toLowerCase();
+  const variations: string[] = [kw];
+
+  if ((lower.includes("b2b") && lower.includes("outbound")) || lower === "b2b outbound" || lower === "outbound b2b") {
+    variations.push("Outbound B2B");
+    if (targetMarket === "brazil_us") {
+      variations.push("Prospecção Outbound");
+      variations.push("Prospecção B2B");
+    } else {
+      variations.push("Prospección B2B");
+      variations.push("Outbound Sales");
+    }
+  } else if (lower.includes("social selling")) {
+    variations.push("Social Selling B2B");
+    if (targetMarket === "brazil_us") {
+      variations.push("Social Selling Brasil");
+      variations.push("Vendas LinkedIn");
+    } else {
+      variations.push("Social Selling LinkedIn");
+      variations.push("Ventas B2B");
+    }
+  } else if (lower.includes("inteligencia artificial") || lower === "ia" || lower.includes("artificial intelligence")) {
+    variations.push("Artificial Intelligence");
+    variations.push("IA Generativa");
+    variations.push("Inteligência Artificial");
+  } else if (lower.includes("cold email") || lower.includes("email frio")) {
+    variations.push("Cold Outreach");
+    variations.push("Cold Email B2B");
+  } else if (lower.includes("lead generation") || lower.includes("generacion de leads") || lower.includes("geração de leads")) {
+    variations.push("Geração de Leads");
+    variations.push("B2B Lead Generation");
+    variations.push("Generación de Leads");
+  } else if (lower.includes("saas") || lower.includes("growth")) {
+    variations.push("B2B SaaS Growth");
+    variations.push("SaaS Marketing");
+  } else if (lower.includes("cetogenica") || lower.includes("keto")) {
+    variations.push("Keto Diet");
+    variations.push("Dieta Cetogênica");
+    variations.push("Nutrición Cetogénica");
+  } else if (lower.includes("energia solar") || lower.includes("solar")) {
+    variations.push("Solar Energy");
+    variations.push("Energia Solar Fotovoltaica");
+    variations.push("Energía Solar");
+  } else {
+    // Permutaciones dinámicas para palabras clave generales
+    const words = kw.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) {
+      const reversed = [...words].reverse().join(" ");
+      if (!variations.includes(reversed)) variations.push(reversed);
+      variations.push(`${kw} B2B`);
+    } else if (words.length === 1) {
+      variations.push(`${kw} B2B`);
+      variations.push(`${kw} LinkedIn`);
+    }
+  }
+
+  return Array.from(new Set(variations)).slice(0, 3);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -223,56 +284,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Preparar parámetros de búsqueda avanzada
-    const searchParams: any = {
-      account_id: targetAccountId,
-      category: "posts",
-      keywords,
-      limit: requestLimit,
-      sort_by: sortBy,
-    };
+    // 2. Cosecha Multi-Ángulo en Paralelo (Multi-Angle Expansion)
+    // Para superar la limitación fija de 24 posts por consulta de LinkedIn y garantizar holgadamente
+    // que tras los filtros de calidad queden al menos 12 posts virales, consultamos variantes complementarias en paralelo.
+    const queriesToRun = generateQueryVariations(keywords, targetMarket);
+    console.log(`[Posts Search] Ejecutando búsqueda multi-ángulo paralela (${queriesToRun.length} variantes):`, queriesToRun);
 
-    if (datePosted && datePosted !== "ANY") {
-      searchParams.date_posted = datePosted;
-    }
-
-    // Ejecutar búsqueda con protección y reintento resiliente
-    let response;
-    try {
-      response = await unipile.searchLinkedIn(searchParams);
-    } catch (err: any) {
-      console.warn(`[Posts Search] Intento inicial con cuenta ${targetAccountId} falló:`, err?.message || err);
-      // Reintento 1: Parámetros básicos sin filtros temporales si la API los rechaza
-      try {
-        response = await unipile.searchLinkedIn({
-          account_id: targetAccountId,
-          category: "posts",
-          keywords,
-          limit: requestLimit,
-        });
-      } catch (innerErr) {
-        // Reintento 2: Probar con otra cuenta saludable de Unipile
-        const alternative = liveAccounts.find((a) => a.id !== targetAccountId && isAccountHealthy(a));
-        if (alternative) {
-          console.log(`[Posts Search] Reintentando con cuenta alternativa saludable: ${alternative.name} (${alternative.id})`);
-          targetAccountId = alternative.id;
-          selectedAccountObj = alternative;
-          response = await unipile.searchLinkedIn({
-            account_id: targetAccountId,
-            category: "posts",
-            keywords,
-            limit: requestLimit,
-          });
-        } else {
-          throw innerErr;
-        }
-      }
-    }
-
-    // 1. Recolección profunda multietapa (Deep Fetching) mediante Cursor
-    // LinkedIn entrega entre 15 y 25 posts por página.
-    // Iteramos hasta cosechar entre 60 y 80 posts brutos para que, tras aplicar los estrictos filtros
-    // de calidad (anti-spam, anti-empleo, anti-ruso, geografía), siempre garanticemos 12 posts de alta viralidad.
     const rawItems: any[] = [];
     const seenPostIds = new Set<string>();
 
@@ -290,47 +307,46 @@ export async function POST(req: Request) {
       }
     };
 
-    appendItems(response?.items || []);
-    let currentCursor = response?.cursor;
-    let pagesFetched = 1;
-    const maxPages = 4; // Cosechar hasta 4 páginas (60-80 posts brutos de LinkedIn)
-
-    while (currentCursor && pagesFetched < maxPages && rawItems.length < 75) {
+    const searchPromises = queriesToRun.map(async (queryText) => {
       try {
-        const nextRes = await unipile.searchLinkedIn({
-          ...searchParams,
-          cursor: currentCursor,
+        const res = await unipile.searchLinkedIn({
+          account_id: targetAccountId,
+          category: "posts",
+          keywords: queryText,
+          limit: 25,
         });
-        const pageItems = nextRes?.items || [];
-        if (pageItems.length === 0) break;
-        appendItems(pageItems);
-        currentCursor = nextRes?.cursor || null;
-        pagesFetched++;
-      } catch (pageErr) {
-        console.warn(`[Posts Search] Fin de paginación con cursor en página ${pagesFetched + 1}:`, pageErr);
-        break;
+        return res?.items || [];
+      } catch (err: any) {
+        console.warn(`[Posts Search] Sub-consulta para "${queryText}" con cuenta ${targetAccountId} falló:`, err?.message || err);
+        return [];
       }
-    }
+    });
 
-    // 1.1. Fallback de Ventana Temporal Inteligente:
-    // Si para un término muy específico o de nicho en PAST_MONTH LinkedIn devuelve menos de 25 posts brutos,
-    // consultamos sin la restricción mensual para capturar los posts virales más emblemáticos de la temática.
-    if (rawItems.length < 25 && searchParams.date_posted) {
-      try {
-        const broaderParams = { ...searchParams };
-        delete broaderParams.date_posted;
-        delete broaderParams.cursor;
-        const broaderRes = await unipile.searchLinkedIn(broaderParams);
-        appendItems(broaderRes?.items || []);
-        if (broaderRes?.cursor && rawItems.length < 50) {
-          const secondBroader = await unipile.searchLinkedIn({
-            ...broaderParams,
-            cursor: broaderRes.cursor,
-          });
-          appendItems(secondBroader?.items || []);
-        }
-      } catch (broaderErr) {
-        console.warn("[Posts Search] Fallback de ventana temporal omitido:", broaderErr);
+    const searchResults = await Promise.all(searchPromises);
+    searchResults.forEach((items) => appendItems(items));
+
+    // Si todas las subconsultas fallaron (por ejemplo expiración de sesión), reintentar con cuenta alternativa saludable
+    if (rawItems.length === 0) {
+      const alternative = liveAccounts.find((a) => a.id !== targetAccountId && isAccountHealthy(a));
+      if (alternative) {
+        console.log(`[Posts Search] Reintentando con cuenta alternativa saludable: ${alternative.name} (${alternative.id})`);
+        targetAccountId = alternative.id;
+        selectedAccountObj = alternative;
+        const retryPromises = queriesToRun.map(async (queryText) => {
+          try {
+            const res = await unipile.searchLinkedIn({
+              account_id: targetAccountId,
+              category: "posts",
+              keywords: queryText,
+              limit: 25,
+            });
+            return res?.items || [];
+          } catch {
+            return [];
+          }
+        });
+        const retryResults = await Promise.all(retryPromises);
+        retryResults.forEach((items) => appendItems(items));
       }
     }
 
