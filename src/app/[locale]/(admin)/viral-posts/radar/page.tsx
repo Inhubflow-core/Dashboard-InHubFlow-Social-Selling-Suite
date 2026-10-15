@@ -571,7 +571,7 @@ export default function ViralRadarPage() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="Radar Viral (Top Posts de LinkedIn)" />
+      <PageBreadcrumb pageTitle="Post Finder (Top Posts de LinkedIn)" />
 
 
       {/* Selector Principal de Modo: Live LinkedIn vs Plantillas Maestras */}
@@ -598,7 +598,7 @@ export default function ViralRadarPage() {
             }`}
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Radar en Vivo (LinkedIn)
+            Post Finder (LinkedIn)
           </button>
           <button
             type="button"
@@ -616,7 +616,7 @@ export default function ViralRadarPage() {
 
       {/* Panel de Control de Búsqueda y Parámetros */}
       <ComponentCard
-        title={viewMode === "live" ? "Radar en Vivo en la Red de LinkedIn" : "Buscador de Plantillas Virales"}
+        title={viewMode === "live" ? "Post Finder en la Red de LinkedIn" : "Buscador de Plantillas Virales"}
         desc={
           viewMode === "live"
             ? `Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${currentDisplayName}.`

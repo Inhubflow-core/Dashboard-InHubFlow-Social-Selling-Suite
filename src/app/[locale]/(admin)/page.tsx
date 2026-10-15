@@ -40,7 +40,7 @@ const modules = [
     name: "1. Viral Post Engine",
     desc: "Crea y programa posts de texto, imagenes y carruseles PDF para 1 mes en 5 minutos.",
     link: "/viral-posts/radar",
-    action: "Ir al Radar Viral",
+    action: "Ir a Post Finder",
   },
   {
     name: "2. Signal Radar",

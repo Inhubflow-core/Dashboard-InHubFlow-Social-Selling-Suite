@@ -513,9 +513,9 @@ assert(top12[0].score >= top12[1].score, "El primer post tiene un score de viral
 assert(top12.every((p) => !p.isJob), "Ningún post en el Top 12 contiene contenido de empleo");
 
 // -----------------------------------------------------------------------------
-// PRUEBA 12: Persistencia de Sesión del Radar Viral (Navegación sin pérdida de datos)
+// PRUEBA 12: Persistencia de Sesión de Post Finder (Navegación sin pérdida de datos)
 // -----------------------------------------------------------------------------
-console.log("\n--- 12. Prueba de Persistencia del Radar Viral (Consistencia al Navegar) ---");
+console.log("\n--- 12. Prueba de Persistencia de Post Finder (Consistencia al Navegar) ---");
 
 // Mock de Storage en memoria
 class MockStorage {

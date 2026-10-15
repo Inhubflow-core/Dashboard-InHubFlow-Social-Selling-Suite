@@ -171,14 +171,14 @@ export default function PostsListPage() {
               No hay publicaciones que coincidan con los filtros seleccionados.
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Modela una publicación viral desde el radar o redacta una nueva con IA.
+              Modela una publicación viral desde Post Finder o redacta una nueva con IA.
             </p>
             <div className="mt-4 flex items-center justify-center gap-3">
               <a
                 href="/viral-posts/radar"
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Explorar Radar Viral
+                Explorar Post Finder
               </a>
               <a
                 href="/viral-posts/create"

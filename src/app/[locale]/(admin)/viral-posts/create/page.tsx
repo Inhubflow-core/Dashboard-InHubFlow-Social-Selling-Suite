@@ -331,7 +331,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
           <div className="space-y-0.5">
             <span className="text-[10px] uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
-              Modelando desde Radar Viral:
+              Modelando desde Post Finder:
             </span>
             <p className="text-xs font-semibold text-gray-800 dark:text-white">
               Publicación original de {referenceAuthor}: &quot;{referenceHook.slice(0, 80)}...&quot;
