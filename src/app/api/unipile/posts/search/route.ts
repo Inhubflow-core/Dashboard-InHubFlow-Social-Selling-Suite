@@ -161,10 +161,98 @@ function resolveMarketFromTimezone(tz: string): string {
 
 function generateQueryVariations(rawKeywords: string, targetMarket: string): string[] {
   const kw = rawKeywords.trim();
+  if (!kw) return ["Social Selling"];
+
   const lower = kw.toLowerCase();
   const variations: string[] = [kw];
 
-  if ((lower.includes("b2b") && lower.includes("outbound")) || lower === "b2b outbound" || lower === "outbound b2b") {
+  // A. Normalización lingüística universal (sin acentos para matching amplio en LinkedIn)
+  const unaccented = kw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  if (unaccented && unaccented.toLowerCase() !== lower) {
+    variations.push(unaccented);
+  }
+
+  // B. Generación universal de Hashtag de Nicho (los creadores en cualquier industria usan hashtags)
+  const alphaOnly = unaccented.replace(/[^a-zA-Z0-9]/g, "");
+  if (alphaOnly.length >= 3) {
+    variations.push(`#${alphaOnly}`);
+  }
+
+  // C. Tesauro Universal Multi-Industria para Plataforma SaaS (10 Grandes Ejes de Negocio)
+  // 1. Salud, Nutrición, Bienestar y Medicina
+  if (lower.includes("cetogenica") || lower.includes("keto") || lower.includes("cetogenico")) {
+    variations.push("Keto Diet");
+    variations.push("Dieta Cetogénica");
+  } else if (lower.includes("nutricion") || lower.includes("nutricional") || lower.includes("dietetica")) {
+    variations.push("Nutrition");
+    variations.push("Nutrición Saludable");
+  } else if (lower.includes("odontolog") || lower.includes("dentis")) {
+    variations.push("Cosmetic Dentistry");
+    variations.push("Odontología");
+  } else if (lower.includes("fitness") || lower.includes("entrenamient") || lower.includes("gym")) {
+    variations.push("Fitness Coaching");
+    variations.push("Personal Trainer");
+  } else if (lower.includes("fisioterap") || lower.includes("rehabilitac")) {
+    variations.push("Physical Therapy");
+    variations.push("Fisioterapia");
+  } else if (lower.includes("psicolog") || lower.includes("salud mental") || lower.includes("terapia")) {
+    variations.push("Mental Health");
+    variations.push("Psicología");
+  }
+  // 2. Energía, Sostenibilidad, Clima y Medio Ambiente
+  else if (lower.includes("solar") || lower.includes("fotovoltaic") || lower.includes("panel")) {
+    variations.push("Solar Energy");
+    variations.push("Energía Solar Fotovoltaica");
+    variations.push("Paneles Solares");
+  } else if (lower.includes("renovable") || lower.includes("sustentab") || lower.includes("sostenib")) {
+    variations.push("Renewable Energy");
+    variations.push("Sustainability");
+  } else if (lower.includes("reciclaj") || lower.includes("residuos") || lower.includes("circular")) {
+    variations.push("Circular Economy");
+    variations.push("Gestión de Residuos");
+  }
+  // 3. Legal, Tributario y Compliance
+  else if (lower.includes("tributari") || lower.includes("fiscal") || lower.includes("impuesto")) {
+    variations.push("Tax Law");
+    variations.push("Derecho Tributario");
+  } else if (lower.includes("laboral") && (lower.includes("derecho") || lower.includes("abogad"))) {
+    variations.push("Employment Law");
+    variations.push("Derecho Laboral");
+  } else if (lower.includes("derecho") || lower.includes("abogad") || lower.includes("juridic")) {
+    variations.push("Corporate Law");
+    variations.push("Legal Tech");
+  }
+  // 4. Inmobiliaria, Proptech y Construcción
+  else if (lower.includes("inmobiliari") || lower.includes("bienes raices") || lower.includes("real estate") || lower.includes("proptech")) {
+    variations.push("Real Estate Investing");
+    variations.push("Proptech");
+    variations.push("Bienes Raíces");
+  } else if (lower.includes("arquitectur") || lower.includes("construcc")) {
+    variations.push("Sustainable Architecture");
+    variations.push("Construcción");
+  }
+  // 5. Finanzas, Inversión, Fintech y Cripto
+  else if (lower.includes("fintech") || lower.includes("cripto") || lower.includes("crypto") || lower.includes("defi")) {
+    variations.push("Fintech Innovation");
+    variations.push("DeFi");
+  } else if (lower.includes("finanz") || lower.includes("inversi") || lower.includes("wealth") || lower.includes("patrimoni")) {
+    variations.push("Corporate Finance");
+    variations.push("Finanzas Corporativas");
+  }
+  // 6. Tecnología, IA, Software y Ciberseguridad
+  else if (lower.includes("ciberseguridad") || lower.includes("cybersecurity") || lower.includes("infosec")) {
+    variations.push("Cybersecurity");
+    variations.push("Information Security");
+  } else if (lower.includes("inteligencia artificial") || lower === "ia" || lower.includes("artificial intelligence") || lower.includes("machine learning")) {
+    variations.push("Artificial Intelligence");
+    variations.push("Generative AI");
+    variations.push("IA Generativa");
+  } else if (lower.includes("saas") || lower.includes("software") || lower.includes("cloud") || lower.includes("devops")) {
+    variations.push("B2B SaaS");
+    variations.push("Cloud Architecture");
+  }
+  // 7. Ventas B2B, Prospección y Marketing
+  else if ((lower.includes("b2b") && lower.includes("outbound")) || lower === "b2b outbound" || lower === "outbound b2b") {
     variations.push("Outbound B2B");
     if (targetMarket === "brazil_us") {
       variations.push("Prospecção Outbound");
@@ -182,42 +270,57 @@ function generateQueryVariations(rawKeywords: string, targetMarket: string): str
       variations.push("Social Selling LinkedIn");
       variations.push("Ventas B2B");
     }
-  } else if (lower.includes("inteligencia artificial") || lower === "ia" || lower.includes("artificial intelligence")) {
-    variations.push("Artificial Intelligence");
-    variations.push("IA Generativa");
-    variations.push("Inteligência Artificial");
   } else if (lower.includes("cold email") || lower.includes("email frio")) {
     variations.push("Cold Outreach");
     variations.push("Cold Email B2B");
   } else if (lower.includes("lead generation") || lower.includes("generacion de leads") || lower.includes("geração de leads")) {
     variations.push("Geração de Leads");
     variations.push("B2B Lead Generation");
-    variations.push("Generación de Leads");
-  } else if (lower.includes("saas") || lower.includes("growth")) {
-    variations.push("B2B SaaS Growth");
-    variations.push("SaaS Marketing");
-  } else if (lower.includes("cetogenica") || lower.includes("keto")) {
-    variations.push("Keto Diet");
-    variations.push("Dieta Cetogênica");
-    variations.push("Nutrición Cetogénica");
-  } else if (lower.includes("energia solar") || lower.includes("solar")) {
-    variations.push("Solar Energy");
-    variations.push("Energia Solar Fotovoltaica");
-    variations.push("Energía Solar");
-  } else {
-    // Permutaciones dinámicas para palabras clave generales
-    const words = kw.split(/\s+/).filter(Boolean);
+  } else if (lower.includes("copywriting") || lower.includes("redaccion")) {
+    variations.push("Copywriting");
+    variations.push("Content Marketing");
+  } else if (lower.includes("ecommerce") || lower.includes("e-commerce")) {
+    variations.push("Ecommerce Growth");
+    variations.push("Ventas Online");
+  }
+  // 8. Recursos Humanos, Talento y Liderazgo
+  else if (lower.includes("recursos humanos") || lower.includes("rrhh") || lower.includes("talento") || lower.includes("reclutamient")) {
+    variations.push("HR Leadership");
+    variations.push("People Operations");
+  } else if (lower.includes("liderazgo") || lower.includes("leadership") || lower.includes("coaching") || lower.includes("management")) {
+    variations.push("Executive Leadership");
+    variations.push("Management");
+  }
+  // 9. Logística, Cadena de Suministro y Agro
+  else if (lower.includes("logistica") || lower.includes("transporte") || lower.includes("supply chain")) {
+    variations.push("Supply Chain Management");
+    variations.push("Logística");
+  } else if (lower.includes("agro") || lower.includes("agronegoci") || lower.includes("agricultur")) {
+    variations.push("Agribusiness");
+    variations.push("Agro");
+  }
+  // 10. Fallback Universal Dinámico para Cualquier Nicho Arbitrario
+  else {
+    const stopwords = new Set([
+      "de", "del", "la", "el", "los", "las", "un", "una", "unos", "unas", "en", "para", "por", "con",
+      "y", "o", "a", "al", "da", "do", "das", "dos", "em", "no", "na", "nos", "nas", "com", "para",
+      "e", "ou", "the", "of", "in", "for", "on", "with", "at", "by", "from", "an", "and", "or"
+    ]);
+    const words = unaccented.split(/\s+/).filter((w) => Boolean(w) && !stopwords.has(w.toLowerCase()));
+
     if (words.length >= 2) {
       const reversed = [...words].reverse().join(" ");
       if (!variations.includes(reversed)) variations.push(reversed);
-      variations.push(`${kw} B2B`);
-    } else if (words.length === 1) {
-      variations.push(`${kw} B2B`);
-      variations.push(`${kw} LinkedIn`);
+      const corePair = words.slice(0, 2).join(" ");
+      if (!variations.includes(corePair)) variations.push(corePair);
+    } else if (words.length === 1 && words[0]) {
+      variations.push(`${words[0]} Leadership`);
+      variations.push(`${words[0]} Trends`);
     }
   }
 
-  return Array.from(new Set(variations)).slice(0, 3);
+  // Deduplicar y retornar estrictamente 3 variantes para cosecha simultánea
+  return Array.from(new Set(variations.filter(Boolean))).slice(0, 3);
 }
 
 export async function POST(req: Request) {
@@ -615,8 +718,13 @@ export async function POST(req: Request) {
         return total > 0;
       });
 
-      // Si tras el filtro estricto la lista quedó vacía, mostrar los posts calificados sin empleo/spam
-      if (qualifiedPosts.length === 0 && nonSpamPosts.length > 0) {
+      // Si tras el filtro estricto de cero interacción la lista tiene menos de 12 posts,
+      // complementar con posts limpios y pertinentes de la misma temática para garantizar siempre hasta 12 posts en el SaaS
+      if (qualifiedPosts.length < 12 && nonSpamPosts.length > qualifiedPosts.length) {
+        const qualifiedIds = new Set(qualifiedPosts.map((p) => p.id));
+        const additionalClean = nonSpamPosts.filter((p) => !qualifiedIds.has(p.id));
+        qualifiedPosts = [...qualifiedPosts, ...additionalClean];
+      } else if (qualifiedPosts.length === 0 && nonSpamPosts.length > 0) {
         qualifiedPosts = nonSpamPosts;
       }
     }
