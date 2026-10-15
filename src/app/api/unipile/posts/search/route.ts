@@ -449,17 +449,17 @@ export async function POST(req: Request) {
 
       // Asignación de Tier y Badge de Viralidad (Estrictamente los 3 tipos oficiales requeridos)
       let viralityTier: "mega" | "high" | "trending" = "trending";
-      let viralityBadge = "En Tendencia";
+      let viralityBadge = "En Tendencia 🔥";
 
       if (viralityScore >= 100 || (likes >= 50 && comments >= 15)) {
         viralityTier = "mega";
-        viralityBadge = "Mega Viral";
+        viralityBadge = "Mega Viral 🔥🔥🔥";
       } else if (viralityScore >= 35 || (likes >= 20 && comments >= 5) || comments >= 8) {
         viralityTier = "high";
-        viralityBadge = "Alta Tracción";
+        viralityBadge = "Alta Tracción 🔥🔥";
       } else {
         viralityTier = "trending";
-        viralityBadge = "En Tendencia";
+        viralityBadge = "En Tendencia 🔥";
       }
 
       // Ratio de interacción calculado dinámicamente

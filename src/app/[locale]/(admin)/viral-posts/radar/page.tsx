@@ -716,9 +716,9 @@ export default function ViralRadarPage() {
               </span>
               {[
                 { id: "all", label: "Todos (Top 12)" },
-                { id: "mega", label: "Mega Viral" },
-                { id: "high", label: "Alta Tracción" },
-                { id: "trending", label: "En Tendencia" },
+                { id: "mega", label: "Mega Viral 🔥🔥🔥" },
+                { id: "high", label: "Alta Tracción 🔥🔥" },
+                { id: "trending", label: "En Tendencia 🔥" },
               ].map((tier) => (
                 <button
                   key={tier.id}
@@ -920,12 +920,12 @@ export default function ViralRadarPage() {
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
                         }`}
                       >
-                        {post.viralityBadge?.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim() || (
+                        {post.viralityBadge || (
                           post.viralityTier === "mega"
-                            ? "Mega Viral"
+                            ? "Mega Viral 🔥🔥🔥"
                             : post.viralityTier === "high"
-                            ? "Alta Tracción"
-                            : "En Tendencia"
+                            ? "Alta Tracción 🔥🔥"
+                            : "En Tendencia 🔥"
                         )}
                       </span>
                       {post.viralityScore !== undefined && (
@@ -1162,7 +1162,13 @@ export default function ViralRadarPage() {
                         : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
                     }`}
                   >
-                    {selectedPostForModal.viralityBadge.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim()}
+                    {selectedPostForModal.viralityBadge || (
+                      selectedPostForModal.viralityTier === "mega"
+                        ? "Mega Viral 🔥🔥🔥"
+                        : selectedPostForModal.viralityTier === "high"
+                        ? "Alta Tracción 🔥🔥"
+                        : "En Tendencia 🔥"
+                    )}
                   </span>
                 )}
                 {selectedPostForModal.viralityScore !== undefined && (
