@@ -4,10 +4,27 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function SignalListsPage() {
   const { lists, leads, isLoaded, createList } = useLeadsStore();
+
+  const [highlightedListId, setHighlightedListId] = useState<string | null>(null);
+  const [selectedListForModal, setSelectedListForModal] = useState<LeadListGroup | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const lId = params.get("listId");
+    if (lId) {
+      setHighlightedListId(lId);
+      const found = lists.find((l) => l.id === lId);
+      if (found) {
+        setSelectedListForModal(found);
+      }
+    }
+  }, [lists]);
 
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -178,28 +195,41 @@ export default function SignalListsPage() {
         ) : (
           lists.map((list) => {
             const count = getRealLeadsCount(list.id, list.leadsCount);
+            const isHighlighted = highlightedListId === list.id;
+
             return (
               <div
                 key={list.id}
-                className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500/60 transition dark:border-gray-800 dark:bg-gray-900"
+                className={`flex flex-col justify-between rounded-2xl border p-5 shadow-theme-xs transition dark:bg-gray-900 ${
+                  isHighlighted
+                    ? "border-brand-500 ring-2 ring-brand-500/30 bg-brand-50/10 dark:border-brand-400"
+                    : "border-gray-200 bg-white hover:border-brand-500/60 dark:border-gray-800"
+                }`}
               >
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                        list.signalLevel === "level_1"
-                          ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          list.signalLevel === "level_1"
+                            ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
+                            : list.signalLevel === "level_2"
+                            ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                            : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                        }`}
+                      >
+                        {list.signalLevel === "level_1"
+                          ? "Nivel 1: Mis Posts"
                           : list.signalLevel === "level_2"
-                          ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
-                          : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                      }`}
-                    >
-                      {list.signalLevel === "level_1"
-                        ? "Nivel 1: Mis Posts"
-                        : list.signalLevel === "level_2"
-                        ? "Nivel 2: Competencia"
-                        : "Nivel 3: Global"}
-                    </span>
+                          ? "Nivel 2: Competencia"
+                          : "Nivel 3: Global"}
+                      </span>
+                      {isHighlighted && (
+                        <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                          Lista Seleccionada
+                        </span>
+                      )}
+                    </div>
                     <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
                       {count} Leads
                     </span>
@@ -250,24 +280,139 @@ export default function SignalListsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
-                  <a
-                    href="/leads"
-                    className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                  <button
+                    type="button"
+                    onClick={() => setSelectedListForModal(list)}
+                    className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                   >
-                    Ver Prospectos
-                  </a>
-                  <a
+                    Ver Prospectos ({count})
+                  </button>
+                  <Link
                     href={`/campaigns?listId=${list.id}${list.competitorName ? `&competitor=${encodeURIComponent(list.competitorName)}` : ""}`}
                     className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                   >
                     Lanzar Campaña
-                  </a>
+                  </Link>
                 </div>
               </div>
             );
           })
         )}
       </div>
+
+      {/* Modal Interactivo: Leads de la Lista Seleccionada */}
+      {selectedListForModal && (() => {
+        const listLeads = leads.filter((l) => l.listId === selectedListForModal.id);
+
+        return (
+          <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+              <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+                <div>
+                  <span className="rounded bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                    Audiencia Inteligente: {selectedListForModal.name}
+                  </span>
+                  <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
+                    Prospectos en esta Lista ({listLeads.length})
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {selectedListForModal.description || "Segmento alimentado automáticamente por señales de intención."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedListForModal(null)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Lista de prospectos */}
+              <div className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[55vh] overflow-y-auto pr-1">
+                {listLeads.length === 0 ? (
+                  <div className="py-12 text-center text-xs text-gray-500">
+                    Aún no hay prospectos asignados a esta lista. Cuando el radar capture nuevas interacciones, se insertarán automáticamente aquí.
+                  </div>
+                ) : (
+                  listLeads.map((lead) => (
+                    <div key={lead.id} className="py-3 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {lead.firstName?.[0] || "L"}
+                          {lead.lastName?.[0] || ""}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+                              {lead.fullName}
+                            </h4>
+                            {lead.language && (
+                              <span
+                                className={`rounded px-1.5 py-0.2 text-[9px] font-bold border ${
+                                  lead.language === "en"
+                                    ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                    : lead.language === "pt"
+                                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                                    : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                }`}
+                                title={`Idioma detectado: ${lead.language.toUpperCase()}`}
+                              >
+                                {lead.language.toUpperCase()}
+                              </span>
+                            )}
+                            <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-400">
+                              Intención {lead.intentScore}/100
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                            {lead.title} • {lead.company} {lead.location ? `• ${lead.location}` : ""}
+                          </p>
+                          {lead.timeline?.[0]?.detail && (
+                            <p className="text-xs text-purple-800 italic dark:text-purple-300 font-medium mt-0.5">
+                              {lead.timeline[0].detail}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {lead.linkedinUrl && (
+                          <a
+                            href={lead.linkedinUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                          >
+                            LinkedIn &rarr;
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Pie del modal con botón de acción directa */}
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedListForModal(null)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  Cerrar
+                </button>
+                <Link
+                  href={`/campaigns?listId=${selectedListForModal.id}${selectedListForModal.competitorName ? `&competitor=${encodeURIComponent(selectedListForModal.competitorName)}` : ""}`}
+                  className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                >
+                  Lanzar Campaña con esta Lista ({listLeads.length} leads) &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

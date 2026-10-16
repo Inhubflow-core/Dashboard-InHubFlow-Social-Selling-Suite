@@ -152,6 +152,12 @@ export function useLeadsStore() {
     return result;
   };
 
+  const getOrCreateList = (params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
+    const list = getOrCreateMonitorList(params);
+    setLists(getStoredLeadLists());
+    return list;
+  };
+
   return {
     leads,
     lists,
@@ -161,6 +167,7 @@ export function useLeadsStore() {
     deleteLead,
     createList,
     importSignalLeads,
+    getOrCreateList,
   };
 }
 
@@ -247,4 +254,40 @@ export function importSignalLeadsToList(
   localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
 
   return { list: updatedList, addedCount: convertedLeads.length };
+}
+
+export function getOrCreateMonitorList(params: {
+  monitorId: string;
+  competitorName: string;
+  keywords?: string[];
+}): LeadListGroup {
+  const currentLists = getStoredLeadLists();
+  const existing = currentLists.find(
+    (l) =>
+      l.sourceMonitorId === params.monitorId ||
+      (l.competitorName && l.competitorName.toLowerCase() === params.competitorName.toLowerCase()) ||
+      l.name.toLowerCase().includes(params.competitorName.toLowerCase())
+  );
+  if (existing) return existing;
+
+  const kw = params.keywords?.slice(0, 2).join(", ") || "leads B2B";
+  const newList: LeadListGroup = {
+    id: `list-sig-n2-${params.monitorId}`,
+    name: `[Signal N2] ${params.competitorName} • ${kw}`,
+    description: `Lista inteligente auto-alimentada por interacciones en publicaciones de ${params.competitorName}.`,
+    signalSource: "Competitor Posts (Nivel 2)",
+    signalLevel: "level_2",
+    leadsCount: 0,
+    assignedCampaign: "Secuencia de Social Selling",
+    createdAt: new Date().toISOString(),
+    competitorName: params.competitorName,
+    keywords: params.keywords,
+    sourceMonitorId: params.monitorId,
+  };
+
+  const updatedLists = [newList, ...currentLists];
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+  }
+  return newList;
 }
