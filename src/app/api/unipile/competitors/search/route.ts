@@ -23,6 +23,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-adapta-1',
         name: 'Adapta IA',
         linkedinUrl: 'https://www.linkedin.com/company/adapta-ia',
+        logoUrl: 'https://unavatar.io/adapta.ia?fallback=https://ui-avatars.com/api/?name=Adapta+IA&background=0A66C2&color=fff&bold=true',
         headline: 'Soluciones de Inteligencia Artificial para Empresas & Automatización B2B',
         industry: 'Inteligencia Artificial y Software',
         location: 'Madrid, España',
@@ -35,6 +36,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-lemlist-1',
         name: 'lemlist',
         linkedinUrl: 'https://www.linkedin.com/company/lemlist',
+        logoUrl: 'https://unavatar.io/lemlist.com?fallback=https://ui-avatars.com/api/?name=lemlist&background=5D3DF3&color=fff&bold=true',
         headline: 'The all-in-one cold outreach & sales engagement platform',
         industry: 'Software Development',
         location: 'París, Francia',
@@ -47,6 +49,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-apollo-1',
         name: 'Apollo.io',
         linkedinUrl: 'https://www.linkedin.com/company/apolloio',
+        logoUrl: 'https://unavatar.io/apollo.io?fallback=https://ui-avatars.com/api/?name=Apollo.io&background=F36A3D&color=fff&bold=true',
         headline: 'Lead Intelligence & Sales Engagement Platform for High-Growth Teams',
         industry: 'Software Development',
         location: 'San Francisco, California, EE. UU.',
@@ -59,6 +62,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-hubspot-1',
         name: 'HubSpot',
         linkedinUrl: 'https://www.linkedin.com/company/hubspot',
+        logoUrl: 'https://unavatar.io/hubspot.com?fallback=https://ui-avatars.com/api/?name=HubSpot&background=FF7A59&color=fff&bold=true',
         headline: 'CRM Platform with Marketing, Sales, and Customer Service Software',
         industry: 'Software Development',
         location: 'Cambridge, Massachusetts, EE. UU.',
@@ -75,7 +79,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
     }
   }
 
-  // Generación contextual basada en la búsqueda del usuario (ej. "prospect me")
+  // Generación contextual basada en la búsqueda del usuario (ej. "prospect", "prospect me")
   const capitalizedName = clean
     .split(' ')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
@@ -86,6 +90,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
       id: `comp-gen-${slug}-1`,
       name: capitalizedName,
       linkedinUrl: `https://www.linkedin.com/company/${slug}`,
+      logoUrl: `https://unavatar.io/${slug}.com?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(capitalizedName)}&background=0A66C2&color=fff&bold=true&size=128`,
       headline: `Empresa de Soluciones B2B y Tecnologías para el sector ${capitalizedName}`,
       industry: 'Software y Servicios Tecnológicos',
       location: 'España / Global',
@@ -96,6 +101,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
       id: `comp-gen-${slug}-2`,
       name: `${capitalizedName} Solutions`,
       linkedinUrl: `https://www.linkedin.com/company/${slug}-solutions`,
+      logoUrl: `https://unavatar.io/${slug}solutions.com?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(capitalizedName + ' Solutions')}&background=2563EB&color=fff&bold=true&size=128`,
       headline: `Consultoría Estratégica & Automatización Comercial`,
       industry: 'Marketing y Consultoría de Negocios',
       location: 'Madrid, España',
@@ -106,6 +112,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
       id: `comp-gen-${slug}-3`,
       name: `${capitalizedName} Global Group`,
       linkedinUrl: `https://www.linkedin.com/company/${slug}-global`,
+      logoUrl: `https://unavatar.io/${slug}global.com?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(capitalizedName + ' Global')}&background=1E40AF&color=fff&bold=true&size=128`,
       headline: `Plataforma de Adquisición de Clientes y Prospección Digital`,
       industry: 'Tecnología de la Información',
       location: 'Latam / Internacional',
@@ -146,10 +153,17 @@ export async function GET(req: NextRequest) {
               item.public_profile_url ||
               `https://www.linkedin.com/company/${companySlug}`;
 
+            const logoUrl =
+              item.profile_picture_url ||
+              item.picture_url ||
+              item.logo_url ||
+              `https://unavatar.io/${companySlug}.com?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || query)}&background=0A66C2&color=fff&bold=true&size=128`;
+
             return {
               id: item.id || `comp-live-${idx}`,
               name: item.name || query,
               linkedinUrl,
+              logoUrl,
               headline: item.summary || item.headline || item.industry || 'Empresa en LinkedIn',
               industry: item.industry || 'Tecnología / B2B',
               location: item.location || 'Internacional',
@@ -157,6 +171,7 @@ export async function GET(req: NextRequest) {
               type: 'company',
             };
           });
+
 
         if (items.length > 0) {
           return NextResponse.json({ items, source: 'unipile_live' });

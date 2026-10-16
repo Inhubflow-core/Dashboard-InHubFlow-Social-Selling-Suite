@@ -43,6 +43,7 @@ export interface Level2CompetitorMonitor {
   id: string;
   competitorName: string;
   competitorUrl: string;
+  logoUrl?: string;
   keywordsFilter: string[]; // ej. ["Agentes IA", "Prospeccion B2B"]
   status: MonitorStatus;
   interactionTypes: ("likes" | "comments")[];
@@ -51,6 +52,7 @@ export interface Level2CompetitorMonitor {
   lastScanAt: string;
   createdAt: string;
 }
+
 
 export interface Level3GlobalMonitor {
   id: string;

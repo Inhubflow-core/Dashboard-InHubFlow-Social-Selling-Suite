@@ -131,6 +131,7 @@ export default function CompetitorsSignalRadarPage() {
       id: `mon-l2-${Date.now()}`,
       competitorName,
       competitorUrl: competitorUrl || "https://www.linkedin.com/company/competitor",
+      logoUrl: selectedCompetitorItem?.logoUrl,
       keywordsFilter: keywords.length > 0 ? keywords : ["Prospeccion B2B"],
       status: "active",
       interactionTypes: interactions.length > 0 ? interactions : ["comments"],
@@ -139,6 +140,7 @@ export default function CompetitorsSignalRadarPage() {
       lastScanAt: "Recien configurado",
       createdAt: new Date().toISOString(),
     };
+
 
     addLevel2Monitor(newMonitor);
     setIsAddingCompetitor(false);
@@ -377,9 +379,25 @@ export default function CompetitorsSignalRadarPage() {
                           className="cursor-pointer rounded-lg p-2 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between gap-3 border border-transparent hover:border-brand-200 dark:hover:border-brand-800/40"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div className="h-8 w-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-xs">
+                            {item.logoUrl ? (
+                              <img
+                                src={item.logoUrl}
+                                alt={item.name}
+                                className="h-9 w-9 rounded-lg object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = "none";
+                                  const fallback = (e.target as HTMLElement).nextElementSibling;
+                                  if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              style={{ display: item.logoUrl ? "none" : "flex" }}
+                              className="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs"
+                            >
                               {item.name.charAt(0).toUpperCase()}
                             </div>
+
                             <div className="min-w-0 flex-1">
                               <p className="font-semibold text-gray-900 dark:text-white truncate">
                                 {item.name}
@@ -388,7 +406,7 @@ export default function CompetitorsSignalRadarPage() {
                                 {item.headline || item.industry}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
-                                <span>{item.location || 'Global'}</span>
+                                <span>{item.location || "Global"}</span>
                                 {item.followers && (
                                   <>
                                     <span>•</span>
@@ -409,14 +427,27 @@ export default function CompetitorsSignalRadarPage() {
                 )}
 
                 {selectedCompetitorItem && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-                    <span>✓ Cuenta oficial vinculada:</span>
-                    <span className="font-bold truncate max-w-[200px]">
-                      {selectedCompetitorItem.name}
-                    </span>
+                  <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
+                    {selectedCompetitorItem.logoUrl && (
+                      <img
+                        src={selectedCompetitorItem.logoUrl}
+                        alt={selectedCompetitorItem.name}
+                        className="h-6 w-6 rounded-md object-contain bg-white border border-emerald-200 p-0.5 shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1 truncate">
+                      <span className="font-bold">✓ Cuenta oficial vinculada: </span>
+                      <span className="font-semibold underline">{selectedCompetitorItem.name}</span>
+                      {selectedCompetitorItem.followers && (
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 ml-1.5">
+                          • {selectedCompetitorItem.followers}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
+
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
@@ -603,18 +634,42 @@ export default function CompetitorsSignalRadarPage() {
                 {l2Monitors.map((comp) => (
                   <tr key={comp.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
                     <td className="py-4">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {comp.competitorName}
-                      </p>
-                      <a
-                        href={comp.competitorUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs"
-                      >
-                        {comp.competitorUrl}
-                      </a>
+                      <div className="flex items-center gap-2.5">
+                        {comp.logoUrl ? (
+                          <img
+                            src={comp.logoUrl}
+                            alt={comp.competitorName}
+                            className="h-8 w-8 rounded-lg object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                              const fb = (e.target as HTMLElement).nextElementSibling;
+                              if (fb) (fb as HTMLElement).style.display = "flex";
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          style={{ display: comp.logoUrl ? "none" : "flex" }}
+                          className="h-8 w-8 rounded-lg bg-blue-600 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs"
+                        >
+                          {comp.competitorName.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">
+                            {comp.competitorName}
+                          </p>
+                          <a
+                            href={comp.competitorUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs"
+                          >
+                            {comp.competitorUrl}
+                          </a>
+                        </div>
+                      </div>
                     </td>
+
 
                     <td className="py-4">
                       <div className="flex flex-wrap gap-1">
