@@ -48,6 +48,7 @@ export interface Level2CompetitorMonitor {
   keywordsFilter: string[]; // ej. ["Agentes IA", "Prospeccion B2B"]
   status: MonitorStatus;
   interactionTypes: ("likes" | "comments")[];
+  excludeAuthorEmployees?: boolean;
   outreachTemplate: string;
   leadsIdentifiedCount: number;
   lastScanAt: string;
