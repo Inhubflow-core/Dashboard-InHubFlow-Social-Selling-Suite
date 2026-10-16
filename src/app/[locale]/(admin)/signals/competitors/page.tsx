@@ -100,8 +100,9 @@ export default function CompetitorsSignalRadarPage() {
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
+        const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
         const res = await fetch(
-          `/api/unipile/competitors/search?query=${encodeURIComponent(term)}&accountId=${activeAccount?.id || ""}`
+          `/api/unipile/competitors/search?query=${encodeURIComponent(term)}&accountId=${encodeURIComponent(rawAccId)}`
         );
         const data = await res.json();
         setSearchResults(data.items || []);

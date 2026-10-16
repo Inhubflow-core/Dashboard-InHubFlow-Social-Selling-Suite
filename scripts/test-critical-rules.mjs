@@ -765,7 +765,7 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
 
   // 6. Validación de Búsqueda Combinada Empresas & Personas con Logos Oficiales y Scroll Amplio
   const mockSearchResults = [
-    { id: "comp-1", name: "Prospectme", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospectme", logoUrl: "data:image/svg+xml..." },
+    { id: "comp-1", name: "Prospectme", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospectmebr/", logoUrl: "data:image/svg+xml..." },
     { id: "comp-2", name: "Prospect For Me LLC", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-for-me-llc", logoUrl: "data:image/svg+xml..." },
     { id: "comp-3", name: "Prospect Me Realty", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-me-realty", logoUrl: "data:image/svg+xml..." },
     { id: "comp-4", name: "Prospect Me Global Agency", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-me-global" },

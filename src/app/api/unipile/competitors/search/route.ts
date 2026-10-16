@@ -18,16 +18,29 @@ const PROSPECTME_SVG_LOGO =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" rx="20" fill="#f8f9ff"/>
-  <circle cx="50" cy="22" r="7" fill="#4361ee"/>
-  <circle cx="75" cy="36" r="7" fill="#3a0ca3"/>
-  <circle cx="75" cy="64" r="7" fill="#4361ee"/>
-  <circle cx="50" cy="78" r="7" fill="#4cc9f0"/>
-  <circle cx="25" cy="64" r="7" fill="#7209b7"/>
-  <circle cx="25" cy="36" r="7" fill="#4361ee"/>
-  <path d="M50 22 L75 36 L75 64 L50 78 L25 64 L25 36 Z" fill="none" stroke="#4361ee" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M50 22 L50 78 M25 36 L75 64 M25 64 L75 36" fill="none" stroke="#4cc9f0" stroke-width="2.5" stroke-dasharray="2,2"/>
-  <circle cx="50" cy="50" r="5" fill="#7209b7"/>
+  <rect width="100" height="100" rx="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(10, 8)">
+    <line x1="16" y1="22" x2="30" y2="14" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="30" y1="14" x2="42" y2="24" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="16" y1="22" x2="22" y2="34" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="22" y1="34" x2="36" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="30" y1="14" x2="22" y2="34" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="42" y1="24" x2="36" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <line x1="16" y1="22" x2="10" y2="32" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
+    <line x1="30" y1="14" x2="32" y2="6" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
+    <line x1="42" y1="24" x2="48" y2="18" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
+
+    <circle cx="16" cy="22" r="4.2" fill="#6d28d9"/>
+    <circle cx="30" cy="14" r="5" fill="#7c3aed"/>
+    <circle cx="42" cy="24" r="4.5" fill="#8b5cf6"/>
+    <circle cx="22" cy="34" r="4.5" fill="#6d28d9"/>
+    <circle cx="36" cy="38" r="4" fill="#7c3aed"/>
+    <circle cx="10" cy="32" r="2.5" fill="#a78bfa"/>
+    <circle cx="32" cy="6" r="3" fill="#a78bfa"/>
+    <circle cx="48" cy="18" r="3" fill="#c4b5fd"/>
+    <circle cx="28" cy="46" r="2.5" fill="#c4b5fd"/>
+  </g>
+  <text x="64" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="900" fill="#2d3748" text-anchor="middle">p</text>
 </svg>
 `);
 
@@ -70,11 +83,11 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
       {
         id: 'comp-prospectme-saopaulo',
         name: 'Prospectme',
-        linkedinUrl: 'https://www.linkedin.com/company/prospectme',
+        linkedinUrl: 'https://www.linkedin.com/company/prospectmebr/',
         logoUrl: PROSPECTME_SVG_LOGO,
-        headline: 'Atividades dos serviços de tecnologia da informação',
-        industry: 'Tecnologia da Informação & Prospecção B2B',
-        location: 'São Paulo, SP, Brasil',
+        headline: 'Automatize sua prospecção no LinkedIn',
+        industry: 'Atividades dos serviços de tecnologia da informação · 2-10 funcionários',
+        location: 'São Paulo, SP · Brasil',
         followers: '157 seguidores',
         type: 'company',
       },
@@ -1113,64 +1126,95 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ items: [] });
     }
 
-    // Si Unipile está configurado con credenciales en vivo
-    if (unipile.isConfigured() && accountId) {
+    // 1. Limpieza rigurosa de accountId (remover prefijos internos acc-li-)
+    let cleanAccountId = (accountId || '').replace(/^acc-li-/, '').trim();
+
+    // 2. Si Unipile está configurado pero no llegó accountId o vino vacío, autodescubrir la cuenta conectada activa
+    if (unipile.isConfigured() && !cleanAccountId) {
+      try {
+        const list = await unipile.listAccounts();
+        const active = (list.items || []).find((a: any) =>
+          String(a.type || a.provider || '').toUpperCase() === 'LINKEDIN' &&
+          (a.status === 'OK' || a.status === 'CONNECTED')
+        ) || (list.items || [])[0];
+        if (active?.id) {
+          cleanAccountId = active.id;
+        }
+      } catch (e) {
+        console.warn('[CompetitorsSearch] No se pudo autodescubrir cuenta Unipile:', e);
+      }
+    }
+
+    // 3. Ejecutar búsqueda en vivo en LinkedIn a través de Unipile
+    if (unipile.isConfigured() && cleanAccountId) {
       try {
         const promises: Promise<any>[] = [];
 
         if (category === 'all' || category === 'companies') {
           promises.push(
             unipile.searchLinkedIn({
-              account_id: accountId,
+              account_id: cleanAccountId,
               category: 'companies',
               keywords: query,
               limit: 10,
-            }).catch(() => null)
+            }).catch((err) => {
+              console.warn('[CompetitorsSearch] Error en búsqueda de empresas en Unipile:', err);
+              return null;
+            })
           );
         }
 
         if (category === 'all' || category === 'people') {
           promises.push(
             unipile.searchLinkedIn({
-              account_id: accountId,
+              account_id: cleanAccountId,
               category: 'people',
               keywords: query,
               limit: 10,
-            }).catch(() => null)
+            }).catch((err) => {
+              console.warn('[CompetitorsSearch] Error en búsqueda de personas en Unipile:', err);
+              return null;
+            })
           );
         }
 
         const results = await Promise.all(promises);
         const liveItems: CompetitorSearchResult[] = [];
 
-        // Procesar empresas
+        // Procesar empresas desde Unipile
         const companiesRes = results[0];
         if (companiesRes && Array.isArray(companiesRes.items)) {
           companiesRes.items.forEach((item: any, idx: number) => {
             if (!item || (!item.name && item.type !== 'COMPANY')) return;
-            const companySlug = item.name
-              ? item.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
-              : `company-${idx}`;
-            const linkedinUrl =
-              item.profile_url ||
-              item.public_profile_url ||
-              `https://www.linkedin.com/company/${companySlug}`;
+
+            let linkedinUrl = item.public_profile_url || item.profile_url || '';
+            if (linkedinUrl.includes('/sales/company/')) {
+              const numId = linkedinUrl.split('/sales/company/')[1]?.split('?')[0];
+              linkedinUrl = `https://www.linkedin.com/company/${item.universal_name || numId || item.id}/`;
+            } else if (item.universal_name) {
+              linkedinUrl = `https://www.linkedin.com/company/${item.universal_name}/`;
+            } else if (!linkedinUrl && item.id) {
+              linkedinUrl = `https://www.linkedin.com/company/${item.id}/`;
+            } else if (!linkedinUrl) {
+              const slug = item.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+              linkedinUrl = `https://www.linkedin.com/company/${slug}/`;
+            }
 
             const logoUrl =
               item.profile_picture_url ||
               item.picture_url ||
               item.logo_url ||
-              `https://unavatar.io/${companySlug}.com?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || query)}&background=0A66C2&color=fff&bold=true&size=128`;
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || query)}&background=0A66C2&color=fff&bold=true&size=128`;
 
             liveItems.push({
               id: item.id || `comp-live-${idx}`,
               name: item.name || query,
               linkedinUrl,
               logoUrl,
-              headline: item.summary || item.headline || item.industry || 'Empresa en LinkedIn',
+              headline: item.summary || item.headline || item.tagline || item.industry || 'Empresa en LinkedIn',
               industry: item.industry || 'Tecnología / B2B',
               location: item.location || 'Internacional',
-              followers: item.followers_count ? `${item.followers_count} seguidores` : undefined,
+              followers: item.followers_count ? `${item.followers_count} seguidores` : (item.headcount ? `${item.headcount} empleados` : undefined),
               type: 'company',
             });
           });
