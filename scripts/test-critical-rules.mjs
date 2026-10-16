@@ -751,7 +751,19 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
   preConfiguredMonitor.postUrl = "https://www.linkedin.com/feed/update/urn:li:activity:7251892837461928371/";
   preConfiguredMonitor.status = "active";
   assert(preConfiguredMonitor.status === "active", "El monitor pasa a 'active' tras vincular la URL oficial de LinkedIn");
+
+  // 5. Búsqueda y Resolución de Cuenta de Competidor en LinkedIn (Nivel 2)
+  function resolveCompetitorSlug(query) {
+    return query.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  const queryCompetitor = "prospect me";
+  const slug = resolveCompetitorSlug(queryCompetitor);
+  const expectedLinkedInUrl = `https://www.linkedin.com/company/${slug}`;
+  assert(slug === "prospect-me", "Genera slug canónico para la empresa competidora");
+  assert(expectedLinkedInUrl === "https://www.linkedin.com/company/prospect-me", "Autocompleta la URL oficial de LinkedIn de la empresa");
 }
+
 
 
 

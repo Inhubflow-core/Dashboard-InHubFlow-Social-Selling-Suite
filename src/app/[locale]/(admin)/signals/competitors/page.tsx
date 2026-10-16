@@ -65,6 +65,53 @@ export default function CompetitorsSignalRadarPage() {
     "Hola {{first_name}}, vi tu interaccion en el post de {{competitor}} sobre {{tema}}. Me parecio muy interesante... ¿como lo estan resolviendo en {{company}}?"
   );
 
+  // LinkedIn real-time search states
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [selectedCompetitorItem, setSelectedCompetitorItem] = useState<any | null>(null);
+
+  useEffect(() => {
+    const term = competitorName.trim();
+    if (!term || term.length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    if (
+      selectedCompetitorItem &&
+      selectedCompetitorItem.name.toLowerCase() === term.toLowerCase()
+    ) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `/api/unipile/competitors/search?query=${encodeURIComponent(term)}&accountId=${activeAccount?.id || ""}`
+        );
+        const data = await res.json();
+        setSearchResults(data.items || []);
+        setIsSearchDropdownOpen(true);
+      } catch (err) {
+        console.warn("[Competitors] Error en búsqueda de competidores en LinkedIn:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 280);
+
+    return () => clearTimeout(timer);
+  }, [competitorName, activeAccount?.id, selectedCompetitorItem]);
+
+  const handleSelectCompetitor = (item: any) => {
+    setCompetitorName(item.name);
+    setCompetitorUrl(item.linkedinUrl);
+    setSelectedCompetitorItem(item);
+    setIsSearchDropdownOpen(false);
+  };
+
   const totalCompetitorLeads = l2Monitors.reduce((acc, m) => acc + m.leadsIdentifiedCount, 0);
 
   const handleAddCompetitor = (e: React.FormEvent) => {
@@ -95,6 +142,9 @@ export default function CompetitorsSignalRadarPage() {
 
     addLevel2Monitor(newMonitor);
     setIsAddingCompetitor(false);
+    setSelectedCompetitorItem(null);
+    setSearchResults([]);
+    setIsSearchDropdownOpen(false);
     setCompetitorName("");
     setCompetitorUrl("");
     setScanFeedback({
@@ -102,6 +152,7 @@ export default function CompetitorsSignalRadarPage() {
       text: `Competidor "${newMonitor.competitorName}" agregado para auditoría y captura de señales.`,
     });
   };
+
 
   const handleScanCompetitor = async (comp: Level2CompetitorMonitor) => {
     setIsScanningId(comp.id);
@@ -247,33 +298,147 @@ export default function CompetitorsSignalRadarPage() {
         >
           <form onSubmit={handleAddCompetitor} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Nombre de la Cuenta o Competidor
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={competitorName}
-                  onChange={(e) => setCompetitorName(e.target.value)}
-                  placeholder="Ej. Adapta IA / Fundador"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+              {/* Buscador inteligente en tiempo real de LinkedIn */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-gray-500">
+                    Nombre de la Cuenta o Competidor
+                  </label>
+                  {isSearching && (
+                    <span className="flex items-center gap-1 text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                      <span className="h-2.5 w-2.5 rounded-full border-2 border-brand-500 border-t-transparent animate-spin"></span>
+                      Buscando en LinkedIn...
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={competitorName}
+                    onFocus={() => {
+                      if (searchResults.length > 0) setIsSearchDropdownOpen(true);
+                    }}
+                    onChange={(e) => {
+                      setCompetitorName(e.target.value);
+                      if (
+                        selectedCompetitorItem &&
+                        e.target.value !== selectedCompetitorItem.name
+                      ) {
+                        setSelectedCompetitorItem(null);
+                      }
+                    }}
+                    placeholder="Ej. Prospect Me, Adapta IA, Lemlist..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
+                  />
+                  {competitorName && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompetitorName("");
+                        setCompetitorUrl("");
+                        setSelectedCompetitorItem(null);
+                        setSearchResults([]);
+                        setIsSearchDropdownOpen(false);
+                      }}
+                      className="absolute right-2.5 top-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      title="Limpiar búsqueda"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Dropdown de cuentas de LinkedIn encontradas */}
+                {isSearchDropdownOpen && searchResults.length > 0 && (
+                  <div
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Cuentas de LinkedIn Encontradas
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsSearchDropdownOpen(false)}
+                        className="text-[10px] text-gray-400 hover:text-gray-600 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {searchResults.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleSelectCompetitor(item)}
+                          className="cursor-pointer rounded-lg p-2 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between gap-3 border border-transparent hover:border-brand-200 dark:hover:border-brand-800/40"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="h-8 w-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-xs">
+                              {item.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                {item.name}
+                              </p>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                {item.headline || item.industry}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
+                                <span>{item.location || 'Global'}</span>
+                                {item.followers && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{item.followers}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300 shrink-0">
+                            LinkedIn
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedCompetitorItem && (
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                    <span>✓ Cuenta oficial vinculada:</span>
+                    <span className="font-bold truncate max-w-[200px]">
+                      {selectedCompetitorItem.name}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   URL de LinkedIn de la Cuenta
                 </label>
-                <input
-                  type="url"
-                  value={competitorUrl}
-                  onChange={(e) => setCompetitorUrl(e.target.value)}
-                  placeholder="https://www.linkedin.com/company/nombre-competidor"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={competitorUrl}
+                    onChange={(e) => setCompetitorUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/company/nombre-competidor"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  />
+                  {selectedCompetitorItem && (
+                    <span className="absolute right-2.5 top-2 text-xs font-bold text-emerald-600" title="URL confirmada">
+                      ✓
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
