@@ -2,17 +2,15 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { getPersonAvatarUrl } from "@/lib/leads/avatar-helper";
 import { useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export default function SignalListsPage() {
-  const { lists, leads, isLoaded, createList } = useLeadsStore();
+  const { lists, leads, isLoaded, createList, deleteList } = useLeadsStore();
 
   const [highlightedListId, setHighlightedListId] = useState<string | null>(null);
-  const [selectedListForModal, setSelectedListForModal] = useState<LeadListGroup | null>(null);
 
   const hasCheckedUrlRef = useRef(false);
   useEffect(() => {
@@ -23,21 +21,29 @@ export default function SignalListsPage() {
     if (lId || competitorParam) {
       hasCheckedUrlRef.current = true;
       if (lId) setHighlightedListId(lId);
-      let found = lists.find((l) => l.id === lId);
+      let found = lists.find((l) => l.id === lId || l.sourceMonitorId === lId);
       if (!found && competitorParam) {
         found = lists.find(
           (l) =>
-            l.sourceMonitorId === lId ||
             (l.competitorName && l.competitorName.toLowerCase() === competitorParam.toLowerCase()) ||
             l.name.toLowerCase().includes(competitorParam.toLowerCase())
         );
       }
       if (found) {
         setHighlightedListId(found.id);
-        setSelectedListForModal(found);
       }
     }
   }, [isLoaded, lists]);
+
+  const handleDeleteList = (list: LeadListGroup) => {
+    const count = getRealLeadsCount(list);
+    const confirmed = window.confirm(
+      `¿Eliminar la lista "${list.name}"?\n\nEsta acción borrará de forma permanente la lista dinámica y los ${count} contactos/leads dentro de ella.`
+    );
+    if (confirmed) {
+      deleteList(list.id);
+    }
+  };
 
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -250,9 +256,21 @@ export default function SignalListsPage() {
                         </span>
                       )}
                     </div>
-                    <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
-                      {count} Leads
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
+                        {count} Leads
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteList(list)}
+                        title="Eliminar lista y todos sus prospectos"
+                        className="rounded-lg p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 transition"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
                   <h4 className="text-sm font-bold text-gray-900 dark:text-white">
@@ -300,13 +318,12 @@ export default function SignalListsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedListForModal(list)}
+                  <Link
+                    href={`/leads/lists/${list.id}`}
                     className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                   >
-                    Ver Prospectos ({count})
-                  </button>
+                    Ver Prospectos ({count}) &rarr;
+                  </Link>
                   <Link
                     href={`/campaigns?listId=${list.id}${list.competitorName ? `&competitor=${encodeURIComponent(list.competitorName)}` : ""}`}
                     className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
@@ -319,143 +336,6 @@ export default function SignalListsPage() {
           })
         )}
       </div>
-
-      {/* Modal Interactivo: Leads de la Lista Seleccionada */}
-      {selectedListForModal && (() => {
-        const listLeads = leads.filter(
-          (l) =>
-            l.listId === selectedListForModal.id ||
-            (selectedListForModal.competitorName && (
-              l.company?.toLowerCase().includes(selectedListForModal.competitorName.toLowerCase()) ||
-              l.signalSource?.toLowerCase().includes(selectedListForModal.competitorName.toLowerCase())
-            ))
-        );
-
-        return (
-          <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
-              <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-                <div>
-                  <span className="rounded bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                    Audiencia Inteligente: {selectedListForModal.name}
-                  </span>
-                  <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                    Prospectos en esta Lista ({listLeads.length})
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {selectedListForModal.description || "Segmento alimentado automáticamente por señales de intención."}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedListForModal(null)}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Lista de prospectos */}
-              <div className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[55vh] overflow-y-auto pr-1">
-                {listLeads.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-gray-500">
-                    Aún no hay prospectos asignados a esta lista. Cuando el radar capture nuevas interacciones, se insertarán automáticamente aquí.
-                  </div>
-                ) : (
-                  listLeads.map((lead) => (
-                    <div key={lead.id} className="py-3 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="relative h-9 w-9 shrink-0">
-                          <img
-                            src={getPersonAvatarUrl(lead.fullName, lead.avatarUrl)}
-                            alt={lead.fullName}
-                            className="h-9 w-9 rounded-full object-cover shadow-xs border border-gray-200/80 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
-                            onError={(e) => {
-                              const target = e.target as HTMLElement;
-                              target.style.display = "none";
-                              const fallback = target.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = "flex";
-                            }}
-                          />
-                          <div
-                            style={{ display: "none" }}
-                            className="h-9 w-9 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-xs shadow-xs"
-                          >
-                            {lead.firstName?.[0] || "L"}
-                            {lead.lastName?.[0] || ""}
-                          </div>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                              {lead.fullName}
-                            </h4>
-                            {lead.language && (
-                              <span
-                                className={`rounded px-1.5 py-0.2 text-[9px] font-bold border ${
-                                  lead.language === "en"
-                                    ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
-                                    : lead.language === "pt"
-                                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
-                                    : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                                }`}
-                                title={`Idioma detectado: ${lead.language.toUpperCase()}`}
-                              >
-                                {lead.language.toUpperCase()}
-                              </span>
-                            )}
-                            <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-400">
-                              Intención {lead.intentScore}/100
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                            {lead.title} • {lead.company} {lead.location ? `• ${lead.location}` : ""}
-                          </p>
-                          {lead.timeline?.[0]?.detail && (
-                            <p className="text-xs text-purple-800 italic dark:text-purple-300 font-medium mt-0.5">
-                              {lead.timeline[0].detail}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {lead.linkedinUrl && (
-                          <a
-                            href={lead.linkedinUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                          >
-                            LinkedIn &rarr;
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Pie del modal con botón de acción directa */}
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setSelectedListForModal(null)}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                >
-                  Cerrar
-                </button>
-                <Link
-                  href={`/campaigns?listId=${selectedListForModal.id}${selectedListForModal.competitorName ? `&competitor=${encodeURIComponent(selectedListForModal.competitorName)}` : ""}`}
-                  className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
-                >
-                  Lanzar Campaña con esta Lista ({listLeads.length} leads) &rarr;
-                </Link>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

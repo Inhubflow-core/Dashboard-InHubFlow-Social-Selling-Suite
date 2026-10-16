@@ -236,6 +236,52 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
   };
 
+  const deleteList = (listId: string) => {
+    const targetList = lists.find((l) => l.id === listId);
+    const updatedLists = lists.filter((l) => l.id !== listId);
+    setLists(updatedLists);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+    }
+
+    // Borrado en cascada de todos los contactos dentro de la lista
+    const updatedLeads = leads.filter((lead) => {
+      if (lead.listId === listId) return false;
+      if (targetList?.competitorName) {
+        const matchesComp =
+          lead.company?.toLowerCase().includes(targetList.competitorName.toLowerCase()) ||
+          lead.signalSource?.toLowerCase().includes(targetList.competitorName.toLowerCase());
+        if (matchesComp && (!lead.listId || lead.listId === listId || lead.listId === targetList.id)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    setLeads(updatedLeads);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
+
+      // Purgar también señales sin procesar asociadas a esta lista
+      try {
+        const rawSignals = localStorage.getItem("inhubflow_signals_leads");
+        if (rawSignals) {
+          const signalLeads: SignalLeadItem[] = JSON.parse(rawSignals);
+          if (Array.isArray(signalLeads)) {
+            const filteredSignals = signalLeads.filter((s) => {
+              if (targetList?.sourceMonitorId && s.monitorId === targetList.sourceMonitorId) return false;
+              if (targetList?.competitorName && s.sourceAuthorName?.toLowerCase() === targetList.competitorName.toLowerCase()) return false;
+              return true;
+            });
+            localStorage.setItem("inhubflow_signals_leads", JSON.stringify(filteredSignals));
+          }
+        }
+      } catch (err) {
+        console.warn("[deleteList] Error limpiando signals storage:", err);
+      }
+    }
+  };
+
   const importSignalLeads = (targetList: LeadListGroup, signalLeads: SignalLeadItem[]) => {
     const result = importSignalLeadsToList(targetList, signalLeads);
     setLeads(getStoredLeads());
@@ -256,6 +302,7 @@ export function useLeadsStore() {
     updateLeadSequenceStatus,
     deleteLead,
     createList,
+    deleteList,
     importSignalLeads,
     getOrCreateList,
   };
