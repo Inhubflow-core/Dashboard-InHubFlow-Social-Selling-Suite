@@ -2,6 +2,7 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { getPersonAvatarUrl } from "@/lib/leads/avatar-helper";
 import { useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import Link from "next/link";
@@ -363,14 +364,30 @@ export default function SignalListsPage() {
                 ) : (
                   listLeads.map((lead) => (
                     <div key={lead.id} className="py-3 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                          {lead.firstName?.[0] || "L"}
-                          {lead.lastName?.[0] || ""}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="relative h-9 w-9 shrink-0">
+                          <img
+                            src={getPersonAvatarUrl(lead.fullName, lead.avatarUrl)}
+                            alt={lead.fullName}
+                            className="h-9 w-9 rounded-full object-cover shadow-xs border border-gray-200/80 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
+                            onError={(e) => {
+                              const target = e.target as HTMLElement;
+                              target.style.display = "none";
+                              const fallback = target.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = "flex";
+                            }}
+                          />
+                          <div
+                            style={{ display: "none" }}
+                            className="h-9 w-9 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-xs shadow-xs"
+                          >
+                            {lead.firstName?.[0] || "L"}
+                            {lead.lastName?.[0] || ""}
+                          </div>
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+                            <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
                               {lead.fullName}
                             </h4>
                             {lead.language && (

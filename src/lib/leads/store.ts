@@ -5,6 +5,7 @@ import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
 import type { SignalLeadItem } from "@/lib/signals/types";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
+import { getPersonAvatarUrl } from "./avatar-helper";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
 const LISTS_STORAGE_KEY = "inhubflow_leads_lists";
@@ -298,7 +299,7 @@ export function importSignalLeadsToList(
       company: sLead.company || (targetList.competitorName ? `Interactuó con ${targetList.competitorName}` : "No especificado"),
       location: sLead.location || "Remoto / No especificado",
       linkedinUrl: sLead.linkedinUrl || "",
-      avatarUrl: sLead.avatarUrl,
+      avatarUrl: getPersonAvatarUrl(sLead.fullName, sLead.avatarUrl),
       signalSource: targetList.signalSource || `Signal: ${targetList.competitorName || "Competidor"}`,
       signalLevel: targetList.signalLevel || "level_2",
       intentScore: sLead.intentLevel === "very_high" ? 95 : sLead.intentLevel === "medium_high" ? 85 : 70,

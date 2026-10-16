@@ -2,6 +2,7 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { getPersonAvatarUrl } from "@/lib/leads/avatar-helper";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import { useMemo, useState } from "react";
@@ -185,11 +186,27 @@ export default function LeadsPage() {
                   return (
                     <tr key={lead.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
                       {/* Columna: Prospecto */}
-                      <td className="py-3.5 pr-3 min-w-[190px]">
-                        <div className="flex items-center gap-2.5">
-                          <div className="h-9 w-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                            {lead.firstName[0]}
-                            {lead.lastName[0]}
+                      <td className="py-3.5 pr-3 min-w-[200px]">
+                        <div className="flex items-center gap-3">
+                          <div className="relative h-9 w-9 shrink-0">
+                            <img
+                              src={getPersonAvatarUrl(lead.fullName, lead.avatarUrl)}
+                              alt={lead.fullName}
+                              className="h-9 w-9 rounded-full object-cover shadow-xs border border-gray-200/80 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
+                              onError={(e) => {
+                                const target = e.target as HTMLElement;
+                                target.style.display = "none";
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = "flex";
+                              }}
+                            />
+                            <div
+                              style={{ display: "none" }}
+                              className="h-9 w-9 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-xs shadow-xs"
+                            >
+                              {lead.firstName[0]}
+                              {lead.lastName[0]}
+                            </div>
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
@@ -299,9 +316,25 @@ export default function LeadsPage() {
             {/* Cabecera de la Ficha 360 */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="h-12 w-12 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                  {selectedLeadFor360.firstName[0]}
-                  {selectedLeadFor360.lastName[0]}
+                <div className="relative h-12 w-12 shrink-0">
+                  <img
+                    src={getPersonAvatarUrl(selectedLeadFor360.fullName, selectedLeadFor360.avatarUrl)}
+                    alt={selectedLeadFor360.fullName}
+                    className="h-12 w-12 rounded-full object-cover shadow-xs border-2 border-brand-500/30 bg-gray-100 dark:bg-gray-800"
+                    onError={(e) => {
+                      const target = e.target as HTMLElement;
+                      target.style.display = "none";
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = "flex";
+                    }}
+                  />
+                  <div
+                    style={{ display: "none" }}
+                    className="h-12 w-12 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-sm shadow-xs"
+                  >
+                    {selectedLeadFor360.firstName[0]}
+                    {selectedLeadFor360.lastName[0]}
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
