@@ -773,7 +773,7 @@ export default function CompetitorsSignalRadarPage() {
                                     : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
                                 }`}
                               >
-                                {isPerson ? "👤 Perfil" : "🏢 Empresa"}
+                                {isPerson ? "Perfil" : "Empresa"}
                               </span>
                             </div>
                             <a
