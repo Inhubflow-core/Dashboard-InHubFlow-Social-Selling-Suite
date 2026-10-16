@@ -154,7 +154,6 @@ export function useLeadsStore() {
 
   const getOrCreateList = (params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
     const list = getOrCreateMonitorList(params);
-    setLists(getStoredLeadLists());
     return list;
   };
 

@@ -7,12 +7,12 @@ import { useSignalRadar } from "@/lib/signals/store";
 import type { Level2CompetitorMonitor, SignalLeadItem } from "@/lib/signals/types";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
-import { useLeadsStore } from "@/lib/leads/store";
+import { getOrCreateMonitorList, useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import { detectLeadLanguage, LANGUAGE_LABELS } from "@/lib/signals/language-detector";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function CompetitorsSignalRadarPage() {
   const {
@@ -90,13 +90,16 @@ export default function CompetitorsSignalRadarPage() {
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
-  // Auto-sincronización continua de leads de monitores hacia sus listas inteligentes
+  // Auto-sincronización única al montar leads de monitores hacia sus listas inteligentes
+  const hasAutoSyncedRef = useRef(false);
   useEffect(() => {
-    if (!isLoaded || l2Monitors.length === 0) return;
+    if (!isLoaded || l2Monitors.length === 0 || hasAutoSyncedRef.current) return;
+    hasAutoSyncedRef.current = true;
+
     for (const comp of l2Monitors) {
       const compLeads = leads.filter((l) => l.monitorId === comp.id);
       if (compLeads.length > 0) {
-        const targetList = getOrCreateList({
+        const targetList = getOrCreateMonitorList({
           monitorId: comp.id,
           competitorName: comp.competitorName,
           keywords: comp.keywordsFilter,
@@ -104,7 +107,7 @@ export default function CompetitorsSignalRadarPage() {
         importSignalLeads(targetList, compLeads);
       }
     }
-  }, [isLoaded, l2Monitors.length]);
+  }, [isLoaded, l2Monitors, leads, importSignalLeads]);
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");
@@ -974,17 +977,19 @@ export default function CompetitorsSignalRadarPage() {
 
                       {/* Botón Ver Lista Directa */}
                       {(() => {
-                        const targetList = getOrCreateList({
-                          monitorId: comp.id,
-                          competitorName: comp.competitorName,
-                          keywords: comp.keywordsFilter,
-                        });
+                        const targetList = allLeadLists.find(
+                          (l) =>
+                            l.sourceMonitorId === comp.id ||
+                            (l.competitorName && l.competitorName.toLowerCase() === comp.competitorName.toLowerCase()) ||
+                            l.name.toLowerCase().includes(comp.competitorName.toLowerCase())
+                        );
+                        const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
                         const compLeads = getCompetitorLeads(comp.id);
                         const leadCount = compLeads.length;
 
                         return (
                           <Link
-                            href={`/leads/lists?listId=${encodeURIComponent(targetList.id)}&competitor=${encodeURIComponent(comp.competitorName)}`}
+                            href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
                             className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                             title={`Abrir lista inteligente de ${comp.competitorName}`}
                           >

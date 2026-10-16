@@ -5,7 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function SignalListsPage() {
   const { lists, leads, isLoaded, createList } = useLeadsStore();
@@ -13,18 +13,20 @@ export default function SignalListsPage() {
   const [highlightedListId, setHighlightedListId] = useState<string | null>(null);
   const [selectedListForModal, setSelectedListForModal] = useState<LeadListGroup | null>(null);
 
+  const hasCheckedUrlRef = useRef(false);
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !isLoaded || hasCheckedUrlRef.current) return;
     const params = new URLSearchParams(window.location.search);
     const lId = params.get("listId");
     if (lId) {
+      hasCheckedUrlRef.current = true;
       setHighlightedListId(lId);
       const found = lists.find((l) => l.id === lId);
       if (found) {
         setSelectedListForModal(found);
       }
     }
-  }, [lists]);
+  }, [isLoaded, lists]);
 
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
