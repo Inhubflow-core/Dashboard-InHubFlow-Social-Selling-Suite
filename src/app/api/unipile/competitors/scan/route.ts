@@ -254,7 +254,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // Preparar entidades del autor y competidor para el filtro anti-auto-bombo
+    // Preparar entidades del autor y competidor para el filtro anti-engagement interno
     const targetEntities = [
       competitorName,
       identifier,
@@ -278,7 +278,7 @@ export async function POST(req: NextRequest) {
         const headline = author.headline || "";
         const effectiveCompany = extractCompanyFromHeadline(headline) || "";
 
-        // Anti-Auto-Bombo: Excluir empleados del autor o del competidor
+        // Anti-Engagement Interno: Excluir empleados del autor o del competidor
         if (excludeAuthorEmployees) {
           const isEmployee = isAuthorEmployeeOrAffiliate(
             { fullName, headline, company: effectiveCompany },
@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
         const headline = author.headline || "";
         const effectiveCompany = extractCompanyFromHeadline(headline) || "";
 
-        // Anti-Auto-Bombo: Excluir empleados del autor o del competidor
+        // Anti-Engagement Interno: Excluir empleados del autor o del competidor
         if (excludeAuthorEmployees) {
           const isEmployee = isAuthorEmployeeOrAffiliate(
             { fullName, headline, company: effectiveCompany },

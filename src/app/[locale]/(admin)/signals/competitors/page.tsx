@@ -228,7 +228,7 @@ export default function CompetitorsSignalRadarPage() {
       setScanFeedback({
         type: "success",
         text: `Auditoría completada para ${comp.competitorName}: ${added.length} interacciones reales encontradas en LinkedIn${
-          data.excludedEmployeesCount ? ` (${data.excludedEmployeesCount} empleados del autor filtrados)` : ""
+          data.excludedEmployeesCount ? ` (${data.excludedEmployeesCount} interacciones internas filtradas)` : ""
         }.`,
       });
     } catch (err: any) {
@@ -603,7 +603,7 @@ export default function CompetitorsSignalRadarPage() {
               </div>
             </div>
 
-            {/* Filtro Anti-Auto-Bombo / Excluir empleados del autor */}
+            {/* Filtro Anti-Engagement Interno / Excluir empleados del autor */}
             <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -622,10 +622,10 @@ export default function CompetitorsSignalRadarPage() {
                 />
                 <div className="min-w-0">
                   <span className="block text-xs font-bold text-gray-800 dark:text-gray-200">
-                    Excluir empleados del autor
+                    Excluir engagement interno
                   </span>
                   <span className="block text-[11px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
-                    Evita auto-bombo: descarta a personas que trabajan en la misma empresa que publicó el post.
+                    Descarta interacciones de empleados y colaboradores de la misma empresa.
                   </span>
                 </div>
               </label>
@@ -812,9 +812,9 @@ export default function CompetitorsSignalRadarPage() {
                               {comp.excludeAuthorEmployees !== false && (
                                 <span
                                   className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300"
-                                  title="Filtrando auto-bombo de empleados del autor"
+                                  title="Filtrando engagement interno de empleados del autor"
                                 >
-                                  Anti-auto-bombo
+                                  Sin engagement interno
                                 </span>
                               )}
                             </div>
