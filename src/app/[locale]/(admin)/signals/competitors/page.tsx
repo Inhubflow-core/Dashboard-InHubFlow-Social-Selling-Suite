@@ -2,6 +2,7 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { extractIdentifier } from "@/lib/signals/employee-filter";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { Level2CompetitorMonitor, SignalLeadItem } from "@/lib/signals/types";
 import { getStoredAccounts } from "@/lib/unipile/store";
@@ -19,6 +20,7 @@ export default function CompetitorsSignalRadarPage() {
     deleteLevel2Monitor,
     toggleLevel2Status,
     recordDiscoveredLeads,
+    sanitizeLeadsForMonitor,
   } = useSignalRadar();
 
   // Cuentas de LinkedIn
@@ -46,6 +48,36 @@ export default function CompetitorsSignalRadarPage() {
         if (fallback.length > 0) setActiveAccount(fallback[0]);
       });
   }, []);
+
+  // Auto-sanitización retroactiva de leads existentes contra engagement interno
+  const [hasSanitizedExisting, setHasSanitizedExisting] = useState(false);
+  useEffect(() => {
+    if (!isLoaded || hasSanitizedExisting || l2Monitors.length === 0) return;
+
+    let totalPurged = 0;
+    for (const comp of l2Monitors) {
+      if (comp.excludeAuthorEmployees !== false) {
+        const iden = extractIdentifier(comp.competitorUrl);
+        const targets = [comp.competitorName, iden].filter(Boolean);
+        const purged = sanitizeLeadsForMonitor(comp.id, targets);
+        if (purged > 0) {
+          totalPurged += purged;
+          updateLevel2Monitor(comp.id, {
+            leadsIdentifiedCount: Math.max(0, comp.leadsIdentifiedCount - purged),
+          });
+        }
+      }
+    }
+
+    if (totalPurged > 0) {
+      setScanFeedback({
+        type: "success",
+        text: `Filtro inteligente aplicado: se depuraron ${totalPurged} perfiles de colaboradores/empleados internos en tus leads guardados.`,
+      });
+    }
+
+    setHasSanitizedExisting(true);
+  }, [isLoaded, l2Monitors, hasSanitizedExisting, sanitizeLeadsForMonitor, updateLevel2Monitor]);
 
   const [isAddingCompetitor, setIsAddingCompetitor] = useState(false);
   const [selectedCompetitorForLeads, setSelectedCompetitorForLeads] =

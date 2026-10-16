@@ -13,6 +13,7 @@ import type {
   Level3GlobalMonitor,
   SignalLeadItem,
 } from "./types";
+import { isAuthorEmployeeOrAffiliate } from "./employee-filter";
 
 const L1_KEY = "inhubflow_signals_l1";
 const L2_KEY = "inhubflow_signals_l2";
@@ -237,6 +238,27 @@ export function useSignalRadar() {
     return leads.filter((l) => l.monitorId === monitorId);
   };
 
+  const sanitizeLeadsForMonitor = (
+    monitorId: string,
+    targetEntities: string[]
+  ): number => {
+    const current = getStoredSignalLeads();
+    const clean = current.filter((l) => {
+      if (l.monitorId !== monitorId) return true;
+      const isEmployee = isAuthorEmployeeOrAffiliate(
+        { fullName: l.fullName, headline: l.headline, company: l.company },
+        targetEntities
+      );
+      return !isEmployee;
+    });
+    const removedCount = current.length - clean.length;
+    if (removedCount > 0) {
+      saveStoredSignalLeads(clean);
+      setLeads(clean);
+    }
+    return removedCount;
+  };
+
   return {
     l1Monitors,
     l2Monitors,
@@ -257,5 +279,6 @@ export function useSignalRadar() {
     toggleLevel3Status,
     recordDiscoveredLeads,
     getLeadsForMonitor,
+    sanitizeLeadsForMonitor,
   };
 }
