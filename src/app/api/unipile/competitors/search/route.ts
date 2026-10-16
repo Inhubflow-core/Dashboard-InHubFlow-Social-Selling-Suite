@@ -13,63 +13,9 @@ export interface CompetitorSearchResult {
   type: 'company' | 'person';
 }
 
-// Logos SVG vectoriales nítidos basados en marcas y entidades oficiales
-const PROSPECTME_SVG_LOGO =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" rx="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <g transform="translate(10, 8)">
-    <line x1="16" y1="22" x2="30" y2="14" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="30" y1="14" x2="42" y2="24" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="16" y1="22" x2="22" y2="34" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="22" y1="34" x2="36" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="30" y1="14" x2="22" y2="34" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="42" y1="24" x2="36" y2="38" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <line x1="16" y1="22" x2="10" y2="32" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
-    <line x1="30" y1="14" x2="32" y2="6" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
-    <line x1="42" y1="24" x2="48" y2="18" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
-
-    <circle cx="16" cy="22" r="4.2" fill="#6d28d9"/>
-    <circle cx="30" cy="14" r="5" fill="#7c3aed"/>
-    <circle cx="42" cy="24" r="4.5" fill="#8b5cf6"/>
-    <circle cx="22" cy="34" r="4.5" fill="#6d28d9"/>
-    <circle cx="36" cy="38" r="4" fill="#7c3aed"/>
-    <circle cx="10" cy="32" r="2.5" fill="#a78bfa"/>
-    <circle cx="32" cy="6" r="3" fill="#a78bfa"/>
-    <circle cx="48" cy="18" r="3" fill="#c4b5fd"/>
-    <circle cx="28" cy="46" r="2.5" fill="#c4b5fd"/>
-  </g>
-  <text x="64" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="900" fill="#2d3748" text-anchor="middle">p</text>
-</svg>
-`);
-
-const PROSPECT_FOR_ME_SVG_LOGO =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" rx="20" fill="#fff7ed"/>
-  <circle cx="50" cy="50" r="38" fill="#ffffff" stroke="#ea580c" stroke-width="4"/>
-  <text x="50" y="62" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#ea580c" text-anchor="middle">P</text>
-</svg>
-`);
-
-const PROSPECT_REALTY_SVG_LOGO =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" rx="20" fill="#f1f5f9"/>
-  <rect x="25" y="40" width="22" height="42" fill="#64748b" rx="2"/>
-  <rect x="53" y="24" width="22" height="58" fill="#3b82f6" rx="2"/>
-  <circle cx="36" cy="48" r="2.5" fill="#ffffff"/>
-  <circle cx="36" cy="58" r="2.5" fill="#ffffff"/>
-  <circle cx="36" cy="68" r="2.5" fill="#ffffff"/>
-  <circle cx="64" cy="34" r="2.5" fill="#ffffff"/>
-  <circle cx="64" cy="46" r="2.5" fill="#ffffff"/>
-  <circle cx="64" cy="58" r="2.5" fill="#ffffff"/>
-  <circle cx="64" cy="70" r="2.5" fill="#ffffff"/>
-</svg>
-`);
+// URL oficial de Prospectme extraída directamente de LinkedIn CDN
+const PROSPECTME_OFFICIAL_LOGO =
+  'https://media.licdn.com/dms/image/v2/D4D0BAQF3KHJAdWm6wg/company-logo_100_100/B4DZfHANW3GgAU-/0/1751390410619/prospectmebr_logo?e=1793836800&v=beta&t=EiqnsMeyEpZO5vQaAkP1LwzRj7dn0ZCw5qcU9-eIBNU';
 
 function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
   const clean = query.trim();
@@ -84,7 +30,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-prospectme-saopaulo',
         name: 'Prospectme',
         linkedinUrl: 'https://www.linkedin.com/company/prospectmebr/',
-        logoUrl: PROSPECTME_SVG_LOGO,
+        logoUrl: PROSPECTME_OFFICIAL_LOGO,
         headline: 'Automatize sua prospecção no LinkedIn',
         industry: 'Atividades dos serviços de tecnologia da informação · 2-10 funcionários',
         location: 'São Paulo, SP · Brasil',
@@ -95,7 +41,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-prospect-for-me-llc',
         name: 'Prospect For Me LLC',
         linkedinUrl: 'https://www.linkedin.com/company/prospect-for-me-llc',
-        logoUrl: PROSPECT_FOR_ME_SVG_LOGO,
+        logoUrl: undefined,
         headline: 'Atividades de consultoria em gestão empresarial & Outbound',
         industry: 'Consultoria e Gestão Empresarial',
         location: 'Charlotte, NC, Estados Unidos',
@@ -106,7 +52,7 @@ function buildFallbackCompetitors(query: string): CompetitorSearchResult[] {
         id: 'comp-prospect-me-realty',
         name: 'Prospect Me Realty',
         linkedinUrl: 'https://www.linkedin.com/company/prospect-me-realty',
-        logoUrl: PROSPECT_REALTY_SVG_LOGO,
+        logoUrl: undefined,
         headline: 'Atividades imobiliárias & Investimentos',
         industry: 'Imobiliário & Real Estate',
         location: 'Staten Island, New York, Estados Unidos',
@@ -1129,19 +1075,28 @@ export async function GET(req: NextRequest) {
     // 1. Limpieza rigurosa de accountId (remover prefijos internos acc-li-)
     let cleanAccountId = (accountId || '').replace(/^acc-li-/, '').trim();
 
-    // 2. Si Unipile está configurado pero no llegó accountId o vino vacío, autodescubrir la cuenta conectada activa
-    if (unipile.isConfigured() && !cleanAccountId) {
+    // 2. Si Unipile está configurado, verificar el estado de la cuenta provista o autodescubrir la cuenta con status OK
+    if (unipile.isConfigured()) {
       try {
         const list = await unipile.listAccounts();
-        const active = (list.items || []).find((a: any) =>
-          String(a.type || a.provider || '').toUpperCase() === 'LINKEDIN' &&
-          (a.status === 'OK' || a.status === 'CONNECTED')
-        ) || (list.items || [])[0];
-        if (active?.id) {
-          cleanAccountId = active.id;
+        const linkedinAccounts = (list.items || []).filter(
+          (a: any) => String(a.type || a.provider || '').toUpperCase() === 'LINKEDIN'
+        );
+        const healthyAccounts = linkedinAccounts.filter(
+          (a: any) => a.status === 'OK' || a.status === 'CONNECTED'
+        );
+
+        // Si la cuenta solicitada está activa y conectada, la usamos; de lo contrario, seleccionamos automáticamente la activa en OK
+        const isRequestedHealthy = cleanAccountId && healthyAccounts.some((a: any) => a.id === cleanAccountId);
+        if (!isRequestedHealthy) {
+          if (healthyAccounts.length > 0) {
+            cleanAccountId = healthyAccounts[0].id;
+          } else if (linkedinAccounts.length > 0) {
+            cleanAccountId = linkedinAccounts[0].id;
+          }
         }
       } catch (e) {
-        console.warn('[CompetitorsSearch] No se pudo autodescubrir cuenta Unipile:', e);
+        console.warn('[CompetitorsSearch] Error verificando cuentas Unipile:', e);
       }
     }
 
@@ -1156,7 +1111,7 @@ export async function GET(req: NextRequest) {
               account_id: cleanAccountId,
               category: 'companies',
               keywords: query,
-              limit: 10,
+              limit: 12,
             }).catch((err) => {
               console.warn('[CompetitorsSearch] Error en búsqueda de empresas en Unipile:', err);
               return null;
@@ -1170,7 +1125,7 @@ export async function GET(req: NextRequest) {
               account_id: cleanAccountId,
               category: 'people',
               keywords: query,
-              limit: 10,
+              limit: 12,
             }).catch((err) => {
               console.warn('[CompetitorsSearch] Error en búsqueda de personas en Unipile:', err);
               return null;
@@ -1187,7 +1142,7 @@ export async function GET(req: NextRequest) {
           companiesRes.items.forEach((item: any, idx: number) => {
             if (!item || (!item.name && item.type !== 'COMPANY')) return;
 
-            let linkedinUrl = item.public_profile_url || item.profile_url || '';
+            let linkedinUrl = item.profile_url || item.public_profile_url || '';
             if (linkedinUrl.includes('/sales/company/')) {
               const numId = linkedinUrl.split('/sales/company/')[1]?.split('?')[0];
               linkedinUrl = `https://www.linkedin.com/company/${item.universal_name || numId || item.id}/`;
@@ -1200,11 +1155,13 @@ export async function GET(req: NextRequest) {
               linkedinUrl = `https://www.linkedin.com/company/${slug}/`;
             }
 
+            // Unipile entrega la URL del CDN de LinkedIn oficial en 'item.logo' o 'item.logo_url'
             const logoUrl =
+              item.logo ||
+              item.logo_url ||
               item.profile_picture_url ||
               item.picture_url ||
-              item.logo_url ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || query)}&background=0A66C2&color=fff&bold=true&size=128`;
+              undefined;
 
             liveItems.push({
               id: item.id || `comp-live-${idx}`,
@@ -1220,7 +1177,7 @@ export async function GET(req: NextRequest) {
           });
         }
 
-        // Procesar personas
+        // Procesar personas desde Unipile
         const peopleRes = results[1] || (category === 'people' ? results[0] : null);
         if (peopleRes && Array.isArray(peopleRes.items)) {
           peopleRes.items.forEach((item: any, idx: number) => {
@@ -1231,20 +1188,31 @@ export async function GET(req: NextRequest) {
               item.profile_url ||
               `https://www.linkedin.com/in/${personSlug}`;
 
+            // Unipile entrega la foto real de perfil en 'profile_picture_url' o 'profile_picture_url_large'
             const logoUrl =
               item.profile_picture_url ||
+              item.profile_picture_url_large ||
               item.picture_url ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=0A66C2&color=fff&bold=true`;
+              item.logo ||
+              undefined;
+
+            let displayName = item.name || 'Profesional de LinkedIn';
+            if (displayName === 'Usuário do LinkedIn' || displayName === 'LinkedIn Member') {
+              if (item.headline && item.headline !== '--') {
+                const parts = item.headline.split('|');
+                displayName = parts[0]?.trim() || displayName;
+              }
+            }
 
             liveItems.push({
               id: item.id || `person-live-${idx}`,
-              name: item.name || 'Profesional de LinkedIn',
+              name: displayName,
               linkedinUrl,
               logoUrl,
-              headline: item.headline || 'Profesional en LinkedIn',
+              headline: item.headline && item.headline !== '--' ? item.headline : 'Profesional en LinkedIn',
               industry: item.industry || 'B2B',
-              location: item.location || 'España / Latam',
-              followers: item.network_distance ? `${item.network_distance}` : undefined,
+              location: item.location || 'Internacional',
+              followers: item.network_distance ? `${item.network_distance.replace(/_/g, ' ')}` : undefined,
               type: 'person',
             });
           });
