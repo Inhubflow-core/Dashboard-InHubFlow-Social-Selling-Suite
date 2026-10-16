@@ -7,7 +7,7 @@ import type { Level2CompetitorMonitor, SignalLeadItem } from "@/lib/signals/type
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function CompetitorsSignalRadarPage() {
   const {
@@ -67,9 +67,20 @@ export default function CompetitorsSignalRadarPage() {
 
   // LinkedIn real-time search states
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchCategoryFilter, setSearchCategoryFilter] = useState<"all" | "companies" | "people">("all");
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const [selectedCompetitorItem, setSelectedCompetitorItem] = useState<any | null>(null);
+
+  const filteredSearchResults = useMemo(() => {
+    if (searchCategoryFilter === "companies") {
+      return searchResults.filter((item) => item.type === "company");
+    }
+    if (searchCategoryFilter === "people") {
+      return searchResults.filter((item) => item.type === "person");
+    }
+    return searchResults;
+  }, [searchResults, searchCategoryFilter]);
 
   useEffect(() => {
     const term = competitorName.trim();
@@ -127,11 +138,14 @@ export default function CompetitorsSignalRadarPage() {
     if (trackLikes) interactions.push("likes");
     if (trackComments) interactions.push("comments");
 
+    const isPerson = selectedCompetitorItem?.type === "person" || competitorUrl.includes("/in/");
+
     const newMonitor: Level2CompetitorMonitor = {
       id: `mon-l2-${Date.now()}`,
       competitorName,
-      competitorUrl: competitorUrl || "https://www.linkedin.com/company/competitor",
+      competitorUrl: competitorUrl || (isPerson ? "https://www.linkedin.com/in/competitor" : "https://www.linkedin.com/company/competitor"),
       logoUrl: selectedCompetitorItem?.logoUrl,
+      competitorType: isPerson ? "person" : "company",
       keywordsFilter: keywords.length > 0 ? keywords : ["Prospeccion B2B"],
       status: "active",
       interactionTypes: interactions.length > 0 ? interactions : ["comments"],
@@ -140,7 +154,6 @@ export default function CompetitorsSignalRadarPage() {
       lastScanAt: "Recien configurado",
       createdAt: new Date().toISOString(),
     };
-
 
     addLevel2Monitor(newMonitor);
     setIsAddingCompetitor(false);
@@ -355,73 +368,147 @@ export default function CompetitorsSignalRadarPage() {
                 {/* Dropdown de cuentas de LinkedIn encontradas */}
                 {isSearchDropdownOpen && searchResults.length > 0 && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
                     onMouseDown={(e) => e.preventDefault()}
                   >
-                    <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        Cuentas de LinkedIn Encontradas
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsSearchDropdownOpen(false)}
-                        className="text-[10px] text-gray-400 hover:text-gray-600 font-bold"
-                      >
-                        ✕
-                      </button>
+                    {/* Header con tabs de categoría y botón cerrar */}
+                    <div className="p-2.5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                          Resultados en LinkedIn ({searchResults.length} encontrados)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsSearchDropdownOpen(false)}
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold px-1"
+                          title="Cerrar lista"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Tabs de Filtro Rápido */}
+                      <div className="flex items-center gap-1.5 bg-gray-200/70 dark:bg-gray-800 p-1 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setSearchCategoryFilter("all")}
+                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition ${
+                            searchCategoryFilter === "all"
+                              ? "bg-white text-gray-900 shadow-xs dark:bg-gray-700 dark:text-white"
+                              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                          }`}
+                        >
+                          Todos ({searchResults.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSearchCategoryFilter("companies")}
+                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                            searchCategoryFilter === "companies"
+                              ? "bg-white text-blue-700 shadow-xs dark:bg-gray-700 dark:text-blue-300"
+                              : "text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300"
+                          }`}
+                        >
+                          🏢 Empresas ({searchResults.filter((i) => i.type === "company").length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSearchCategoryFilter("people")}
+                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                            searchCategoryFilter === "people"
+                              ? "bg-white text-purple-700 shadow-xs dark:bg-gray-700 dark:text-purple-300"
+                              : "text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-300"
+                          }`}
+                        >
+                          👤 Personas ({searchResults.filter((i) => i.type === "person").length})
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      {searchResults.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleSelectCompetitor(item)}
-                          className="cursor-pointer rounded-lg p-2 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between gap-3 border border-transparent hover:border-brand-200 dark:hover:border-brand-800/40"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            {item.logoUrl ? (
-                              <img
-                                src={item.logoUrl}
-                                alt={item.name}
-                                className="h-9 w-9 rounded-lg object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0"
-                                onError={(e) => {
-                                  (e.target as HTMLElement).style.display = "none";
-                                  const fallback = (e.target as HTMLElement).nextElementSibling;
-                                  if (fallback) (fallback as HTMLElement).style.display = "flex";
-                                }}
-                              />
-                            ) : null}
+                    {/* Lista con scroll vertical explícito */}
+                    <div className="overflow-y-auto max-h-72 p-2 space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
+                      {filteredSearchResults.length === 0 ? (
+                        <div className="py-6 text-center text-gray-400 text-xs">
+                          No se encontraron coincidencias en esta categoría.
+                        </div>
+                      ) : (
+                        filteredSearchResults.map((item) => {
+                          const isCompany = item.type === "company";
+                          return (
                             <div
-                              style={{ display: item.logoUrl ? "none" : "flex" }}
-                              className="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs"
+                              key={item.id}
+                              onClick={() => handleSelectCompetitor(item)}
+                              className="cursor-pointer rounded-lg p-2.5 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between gap-3 border border-transparent hover:border-brand-200 dark:hover:border-brand-800/40"
                             >
-                              {item.name.charAt(0).toUpperCase()}
-                            </div>
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                {item.logoUrl ? (
+                                  <img
+                                    src={item.logoUrl}
+                                    alt={item.name}
+                                    className={`h-9 w-9 object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 ${
+                                      isCompany ? "rounded-lg" : "rounded-full object-cover"
+                                    }`}
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).style.display = "none";
+                                      const fallback = (e.target as HTMLElement).nextElementSibling;
+                                      if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  style={{ display: item.logoUrl ? "none" : "flex" }}
+                                  className={`h-9 w-9 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs ${
+                                    isCompany ? "rounded-lg bg-blue-600" : "rounded-full bg-purple-600"
+                                  }`}
+                                >
+                                  {item.name.charAt(0).toUpperCase()}
+                                </div>
 
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-gray-900 dark:text-white truncate">
-                                {item.name}
-                              </p>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                                {item.headline || item.industry}
-                              </p>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
-                                <span>{item.location || "Global"}</span>
-                                {item.followers && (
-                                  <>
-                                    <span>•</span>
-                                    <span>{item.followers}</span>
-                                  </>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                    {item.name}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                    {item.headline || item.industry}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
+                                    <span>{item.location || "Global"}</span>
+                                    {item.followers && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="font-medium text-gray-600 dark:text-gray-300">
+                                          {item.followers}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="shrink-0 flex flex-col items-end gap-1">
+                                {isCompany ? (
+                                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/60 dark:border-blue-900 dark:text-blue-300 flex items-center gap-1">
+                                    🏢 Empresa
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/60 dark:border-purple-900 dark:text-purple-300 flex items-center gap-1">
+                                    👤 Perfil
+                                  </span>
                                 )}
+                                <span className="text-[9px] text-gray-400 font-mono">LinkedIn</span>
                               </div>
                             </div>
-                          </div>
+                          );
+                        })
+                      )}
+                    </div>
 
-                          <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300 shrink-0">
-                            LinkedIn
-                          </span>
-                        </div>
-                      ))}
+                    {/* Footer informativo de scroll */}
+                    <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
+                      <span>↕ Desplaza con el cursor para explorar más resultados</span>
+                      <span className="font-semibold text-brand-600 dark:text-brand-400">
+                        {filteredSearchResults.length} opciones
+                      </span>
                     </div>
                   </div>
                 )}
@@ -432,12 +519,19 @@ export default function CompetitorsSignalRadarPage() {
                       <img
                         src={selectedCompetitorItem.logoUrl}
                         alt={selectedCompetitorItem.name}
-                        className="h-6 w-6 rounded-md object-contain bg-white border border-emerald-200 p-0.5 shrink-0"
+                        className={`h-6 w-6 object-contain bg-white border border-emerald-200 p-0.5 shrink-0 ${
+                          selectedCompetitorItem.type === "person" ? "rounded-full object-cover" : "rounded-md"
+                        }`}
                       />
                     )}
                     <div className="min-w-0 flex-1 truncate">
-                      <span className="font-bold">✓ Cuenta oficial vinculada: </span>
+                      <span className="font-bold">
+                        ✓ {selectedCompetitorItem.type === "person" ? "Perfil referente vinculado: " : "Cuenta oficial de empresa vinculada: "}
+                      </span>
                       <span className="font-semibold underline">{selectedCompetitorItem.name}</span>
+                      <span className="ml-1.5 inline-block text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
+                        {selectedCompetitorItem.type === "person" ? "👤 Perfil" : "🏢 Empresa"}
+                      </span>
                       {selectedCompetitorItem.followers && (
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400 ml-1.5">
                           • {selectedCompetitorItem.followers}
@@ -448,17 +542,16 @@ export default function CompetitorsSignalRadarPage() {
                 )}
               </div>
 
-
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  URL de LinkedIn de la Cuenta
+                  URL de LinkedIn de la Cuenta o Perfil
                 </label>
                 <div className="relative">
                   <input
                     type="url"
                     value={competitorUrl}
                     onChange={(e) => setCompetitorUrl(e.target.value)}
-                    placeholder="https://www.linkedin.com/company/nombre-competidor"
+                    placeholder="https://www.linkedin.com/company/nombre o https://www.linkedin.com/in/nombre"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                   {selectedCompetitorItem && (
@@ -631,44 +724,61 @@ export default function CompetitorsSignalRadarPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
-                {l2Monitors.map((comp) => (
-                  <tr key={comp.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                    <td className="py-4">
-                      <div className="flex items-center gap-2.5">
-                        {comp.logoUrl ? (
-                          <img
-                            src={comp.logoUrl}
-                            alt={comp.competitorName}
-                            className="h-8 w-8 rounded-lg object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = "none";
-                              const fb = (e.target as HTMLElement).nextElementSibling;
-                              if (fb) (fb as HTMLElement).style.display = "flex";
-                            }}
-                          />
-                        ) : null}
-                        <div
-                          style={{ display: comp.logoUrl ? "none" : "flex" }}
-                          className="h-8 w-8 rounded-lg bg-blue-600 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs"
-                        >
-                          {comp.competitorName.charAt(0).toUpperCase()}
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white truncate">
-                            {comp.competitorName}
-                          </p>
-                          <a
-                            href={comp.competitorUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs"
+                {l2Monitors.map((comp) => {
+                  const isPerson = comp.competitorType === "person" || comp.competitorUrl.includes("/in/");
+                  return (
+                    <tr key={comp.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
+                      <td className="py-4">
+                        <div className="flex items-center gap-2.5">
+                          {comp.logoUrl ? (
+                            <img
+                              src={comp.logoUrl}
+                              alt={comp.competitorName}
+                              className={`h-8 w-8 object-contain bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 ${
+                                isPerson ? "rounded-full object-cover" : "rounded-lg"
+                              }`}
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                                const fb = (e.target as HTMLElement).nextElementSibling;
+                                if (fb) (fb as HTMLElement).style.display = "flex";
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            style={{ display: comp.logoUrl ? "none" : "flex" }}
+                            className={`h-8 w-8 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs ${
+                              isPerson ? "rounded-full bg-purple-600" : "rounded-lg bg-blue-600"
+                            }`}
                           >
-                            {comp.competitorUrl}
-                          </a>
+                            {comp.competitorName.charAt(0).toUpperCase()}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                {comp.competitorName}
+                              </p>
+                              <span
+                                className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
+                                  isPerson
+                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                                    : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                }`}
+                              >
+                                {isPerson ? "👤 Perfil" : "🏢 Empresa"}
+                              </span>
+                            </div>
+                            <a
+                              href={comp.competitorUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs"
+                            >
+                              {comp.competitorUrl}
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
 
                     <td className="py-4">
@@ -753,7 +863,8 @@ export default function CompetitorsSignalRadarPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

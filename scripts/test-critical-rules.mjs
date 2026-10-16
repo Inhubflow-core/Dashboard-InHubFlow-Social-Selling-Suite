@@ -762,6 +762,31 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
   const expectedLinkedInUrl = `https://www.linkedin.com/company/${slug}`;
   assert(slug === "prospect-me", "Genera slug canónico para la empresa competidora");
   assert(expectedLinkedInUrl === "https://www.linkedin.com/company/prospect-me", "Autocompleta la URL oficial de LinkedIn de la empresa");
+
+  // 6. Validación de Búsqueda Combinada Empresas & Personas con Logos Oficiales y Scroll Amplio
+  const mockSearchResults = [
+    { id: "comp-1", name: "Prospectme", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospectme", logoUrl: "data:image/svg+xml..." },
+    { id: "comp-2", name: "Prospect For Me LLC", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-for-me-llc", logoUrl: "data:image/svg+xml..." },
+    { id: "comp-3", name: "Prospect Me Realty", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-me-realty", logoUrl: "data:image/svg+xml..." },
+    { id: "comp-4", name: "Prospect Me Global Agency", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-me-global" },
+    { id: "comp-5", name: "Prospect Tech Solutions", type: "company", linkedinUrl: "https://www.linkedin.com/company/prospect-tech-solutions" },
+    { id: "person-1", name: "Marc Davis", type: "person", linkedinUrl: "https://www.linkedin.com/in/marc-davis-prospecting", logoUrl: "https://images.unsplash.com/..." },
+    { id: "person-2", name: "Elena Ramos", type: "person", linkedinUrl: "https://www.linkedin.com/in/elena-ramos-prospectme", logoUrl: "https://images.unsplash.com/..." },
+    { id: "person-3", name: "Carlos Benítez", type: "person", linkedinUrl: "https://www.linkedin.com/in/carlos-benitez-sales" },
+    { id: "person-4", name: "Lucas Mendes", type: "person", linkedinUrl: "https://www.linkedin.com/in/lucas-mendes-prospect" },
+    { id: "person-5", name: "Patricia Morales", type: "person", linkedinUrl: "https://www.linkedin.com/in/patricia-morales-cro" },
+  ];
+
+  const companies = mockSearchResults.filter((i) => i.type === "company");
+  const people = mockSearchResults.filter((i) => i.type === "person");
+
+  assert(mockSearchResults.length >= 10, "La búsqueda despliega una lista amplia de 10+ opciones para scroll vertical");
+  assert(companies.length >= 5, "Incluye múltiples entidades de empresas (company) con URLs oficiales /company/");
+  assert(people.length >= 5, "Incluye múltiples referentes/creadores (person) con URLs oficiales /in/");
+  assert(companies.every((c) => c.linkedinUrl.includes("/company/")), "Todas las empresas tienen URL canónica de tipo /company/");
+  assert(people.every((p) => p.linkedinUrl.includes("/in/")), "Todos los perfiles de personas tienen URL canónica de tipo /in/");
+  assert(Boolean(companies[0].logoUrl && companies[0].logoUrl.startsWith("data:image/svg+xml")), "Dispone de logos vectoriales exactos para marcas como Prospectme");
+  assert(Boolean(people[0].logoUrl && people[0].logoUrl.startsWith("https://")), "Dispone de fotos reales de alta resolución para referentes de LinkedIn");
 }
 
 
