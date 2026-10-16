@@ -404,7 +404,7 @@ export default function CompetitorsSignalRadarPage() {
                               : "text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300"
                           }`}
                         >
-                          🏢 Empresas ({searchResults.filter((i) => i.type === "company").length})
+                          Empresas ({searchResults.filter((i) => i.type === "company").length})
                         </button>
                         <button
                           type="button"
@@ -415,7 +415,7 @@ export default function CompetitorsSignalRadarPage() {
                               : "text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-300"
                           }`}
                         >
-                          👤 Personas ({searchResults.filter((i) => i.type === "person").length})
+                          Personas ({searchResults.filter((i) => i.type === "person").length})
                         </button>
                       </div>
                     </div>
@@ -484,12 +484,12 @@ export default function CompetitorsSignalRadarPage() {
 
                               <div className="shrink-0 flex flex-col items-end gap-1">
                                 {isCompany ? (
-                                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/60 dark:border-blue-900 dark:text-blue-300 flex items-center gap-1">
-                                    🏢 Empresa
+                                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/60 dark:border-blue-900 dark:text-blue-300">
+                                    Empresa
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/60 dark:border-purple-900 dark:text-purple-300 flex items-center gap-1">
-                                    👤 Perfil
+                                  <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/60 dark:border-purple-900 dark:text-purple-300">
+                                    Perfil
                                   </span>
                                 )}
                                 <span className="text-[9px] text-gray-400 font-mono">LinkedIn</span>
@@ -502,7 +502,7 @@ export default function CompetitorsSignalRadarPage() {
 
                     {/* Footer informativo de scroll */}
                     <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
-                      <span>↕ Desplaza con el cursor para explorar más resultados</span>
+                      <span>Desplaza con el cursor para explorar mas opciones</span>
                       <span className="font-semibold text-brand-600 dark:text-brand-400">
                         {filteredSearchResults.length} opciones
                       </span>
@@ -523,11 +523,11 @@ export default function CompetitorsSignalRadarPage() {
                     )}
                     <div className="min-w-0 flex-1 truncate">
                       <span className="font-bold">
-                        ✓ {selectedCompetitorItem.type === "person" ? "Perfil referente vinculado: " : "Cuenta oficial de empresa vinculada: "}
+                        {selectedCompetitorItem.type === "person" ? "Perfil referente vinculado: " : "Cuenta oficial de empresa vinculada: "}
                       </span>
                       <span className="font-semibold underline">{selectedCompetitorItem.name}</span>
                       <span className="ml-1.5 inline-block text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
-                        {selectedCompetitorItem.type === "person" ? "👤 Perfil" : "🏢 Empresa"}
+                        {selectedCompetitorItem.type === "person" ? "Perfil" : "Empresa"}
                       </span>
                       {selectedCompetitorItem.followers && (
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400 ml-1.5">

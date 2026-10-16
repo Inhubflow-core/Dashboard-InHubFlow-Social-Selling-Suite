@@ -14,7 +14,21 @@ export interface CompetitorSearchResult {
 }
 
 function normalizeSearchText(value: string): string {
-  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase().trim();
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+}
+
+function cleanUrl(url?: any): string {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (trimmed === 'undefined' || trimmed === 'null' || !trimmed.startsWith('http')) return '';
+  return trimmed;
+}
+
+function isAccountHealthy(acc: any): boolean {
+  if (!acc) return false;
+  if (acc.status === 'OK' || acc.status === 'CONNECTED') return true;
+  if (Array.isArray(acc.sources) && acc.sources.some((s: any) => s.status === 'OK' || s.status === 'CONNECTED')) return true;
+  return false;
 }
 
 function resultMatchesQuery(item: CompetitorSearchResult, query: string): boolean {
@@ -47,9 +61,7 @@ export async function GET(req: NextRequest) {
         const linkedinAccounts = (list.items || []).filter(
           (a: any) => String(a.type || a.provider || '').toUpperCase() === 'LINKEDIN'
         );
-        const healthyAccounts = linkedinAccounts.filter(
-          (a: any) => a.status === 'OK' || a.status === 'CONNECTED'
-        );
+        const healthyAccounts = linkedinAccounts.filter(isAccountHealthy);
 
         // Si la cuenta solicitada está activa y conectada, la usamos; de lo contrario, seleccionamos automáticamente la activa en OK
         const isRequestedHealthy = cleanAccountId && healthyAccounts.some((a: any) => a.id === cleanAccountId);
@@ -111,37 +123,62 @@ export async function GET(req: NextRequest) {
         const companiesOffset = category === 'all' || category === 'companies' ? 0 : -1;
         const peopleOffset = category === 'all' ? 1 : category === 'people' ? 0 : -1;
 
-        // Enriquecer los resultados de empresa con su perfil publico real de LinkedIn.
+        // Procesar los resultados de empresa
         const companiesRes = companiesOffset < 0 ? null : results[companiesOffset];
         if (companiesRes && Array.isArray(companiesRes.items)) {
-          const companyItems = await Promise.all(companiesRes.items.map(async (item: any, idx: number) => {
-            if (!item || (!item.name && item.type !== 'COMPANY')) return null;
-            const identifier = item.public_identifier || item.universal_name || item.id;
-            let profile: Record<string, any> = {};
-            if (identifier) {
-              try {
-                profile = await unipile.getCompanyProfile({ account_id: cleanAccountId, identifier });
-              } catch (error) {
-                console.warn(`[CompetitorsSearch] No se pudo enriquecer empresa ${identifier}:`, error);
+          const companyItems = await Promise.all(
+            companiesRes.items.map(async (item: any, idx: number) => {
+              if (!item || (!item.name && item.type !== 'COMPANY')) return null;
+              const identifier = item.public_identifier || item.universal_name || item.id;
+              
+              let profile: Record<string, any> = {};
+              const existingUrl = cleanUrl(item.profile_url) || cleanUrl(item.public_profile_url);
+              const existingLogo = cleanUrl(item.logo) || cleanUrl(item.logo_url) || cleanUrl(item.profile_picture_url) || cleanUrl(item.picture_url);
+
+              // Solo enriquecer con perfil si falta URL o logo
+              if ((!existingUrl || !existingLogo) && identifier) {
+                try {
+                  const profilePromise = unipile.getCompanyProfile({ account_id: cleanAccountId, identifier });
+                  const timeoutPromise = new Promise<Record<string, any>>((resolve) => setTimeout(() => resolve({}), 2500));
+                  profile = await Promise.race([profilePromise, timeoutPromise]);
+                } catch (error) {
+                  console.warn(`[CompetitorsSearch] No se pudo enriquecer empresa ${identifier}:`, error);
+                }
               }
-            }
-            const linkedinUrl = profile.profile_url || item.profile_url || item.public_profile_url ||
-              (profile.public_identifier || item.public_identifier || item.universal_name
-                ? `https://www.linkedin.com/company/${profile.public_identifier || item.public_identifier || item.universal_name}/`
-                : '');
-            if (!linkedinUrl) return null;
-            return {
-              id: String(item.id || profile.id || `comp-live-${idx}`),
-              name: String(profile.name || item.name || ''),
-              linkedinUrl,
-              logoUrl: profile.logo || profile.logo_url || item.logo || item.logo_url || item.profile_picture_url || item.picture_url || undefined,
-              headline: profile.description || item.summary || item.headline || item.tagline || item.industry || undefined,
-              industry: profile.industry || item.industry || undefined,
-              location: item.location || undefined,
-              followers: item.followers_count ? `${item.followers_count} seguidores` : (item.headcount ? `${item.headcount} empleados` : undefined),
-              type: 'company' as const,
-            };
-          }));
+
+              let linkedinUrl = cleanUrl(profile.profile_url) || existingUrl;
+              if (!linkedinUrl) {
+                const slug = profile.public_identifier || item.public_identifier || item.universal_name;
+                if (slug && slug !== 'undefined') {
+                  linkedinUrl = `https://www.linkedin.com/company/${slug}/`;
+                } else if (item.id && item.id !== 'undefined') {
+                  linkedinUrl = `https://www.linkedin.com/company/${item.id}/`;
+                }
+              }
+              if (!linkedinUrl) return null;
+
+              const logoUrl =
+                cleanUrl(profile.logo) ||
+                cleanUrl(profile.logo_url) ||
+                existingLogo ||
+                undefined;
+
+              const name = String(profile.name || item.name || '').trim();
+              if (!name) return null;
+
+              return {
+                id: String(item.id || profile.id || `comp-live-${idx}`),
+                name,
+                linkedinUrl,
+                logoUrl,
+                headline: profile.description || item.summary || item.headline || item.tagline || item.industry || undefined,
+                industry: profile.industry || item.industry || undefined,
+                location: item.location || undefined,
+                followers: item.followers_count ? `${item.followers_count} seguidores` : (item.headcount ? `${item.headcount} empleados` : undefined),
+                type: 'company' as const,
+              };
+            })
+          );
           liveItems.push(...companyItems.filter((item): item is CompetitorSearchResult => Boolean(item)));
         }
 
@@ -149,30 +186,31 @@ export async function GET(req: NextRequest) {
         const peopleRes = results[peopleOffset];
         if (peopleRes && Array.isArray(peopleRes.items)) {
           peopleRes.items.forEach((item: any, idx: number) => {
-            if (!item || (!item.name && item.type !== 'PEOPLE')) return;
+            if (!item || (!item.name && !item.first_name && item.type !== 'PEOPLE')) return;
             const personSlug = item.public_identifier || (item.name ? item.name.toLowerCase().replace(/[^a-z0-9]/g, '-') : `person-${idx}`);
             const linkedinUrl =
-              item.public_profile_url ||
-              item.profile_url ||
+              cleanUrl(item.public_profile_url) ||
+              cleanUrl(item.profile_url) ||
               `https://www.linkedin.com/in/${personSlug}`;
 
-            // Unipile entrega la foto real de perfil en 'profile_picture_url' o 'profile_picture_url_large'
             const logoUrl =
-              item.profile_picture_url ||
-              item.profile_picture_url_large ||
-              item.picture_url ||
-              item.logo ||
+              cleanUrl(item.profile_picture_url) ||
+              cleanUrl(item.profile_picture_url_large) ||
+              cleanUrl(item.picture_url) ||
+              cleanUrl(item.logo) ||
               undefined;
 
-            let displayName = item.name || 'Profesional de LinkedIn';
-            if (displayName === 'Usuário do LinkedIn' || displayName === 'LinkedIn Member') {
+            let displayName = (item.name || [item.first_name, item.last_name].filter(Boolean).join(' ') || '').trim();
+            if (!displayName || displayName === 'Usuário do LinkedIn' || displayName === 'LinkedIn Member' || displayName === 'Usuario de LinkedIn') {
               if (item.headline && item.headline !== '--') {
                 const parts = item.headline.split('|');
-                displayName = parts[0]?.trim() || displayName;
+                displayName = parts[0]?.trim() || displayName || 'Profesional de LinkedIn';
+              } else {
+                displayName = 'Profesional de LinkedIn';
               }
             }
 
-            if (!linkedinUrl || displayName === 'Profesional de LinkedIn') return;
+            if (!linkedinUrl) return;
             liveItems.push({
               id: item.id || `person-live-${idx}`,
               name: displayName,
@@ -181,16 +219,12 @@ export async function GET(req: NextRequest) {
               headline: item.headline && item.headline !== '--' ? item.headline : undefined,
               industry: item.industry || undefined,
               location: item.location || undefined,
-              followers: item.network_distance ? `${item.network_distance.replace(/_/g, ' ')}` : undefined,
-              type: 'person',
+              followers: item.network_distance ? `${item.network_distance.replace(/_/g, ' ')}` : (item.followers_count ? `${item.followers_count} seguidores` : undefined),
+              type: 'person' as const,
             });
           });
         }
 
-        // Unipile ya aplica la relevancia de LinkedIn. El filtro local solo se usa
-        // para ordenar coincidencias exactas; no se descartan resultados válidos
-        // cuyo nombre no contiene literalmente todos los tokens (por ejemplo,
-        // resultados de empresa con el término en su descripción).
         const normalizedQuery = normalizeSearchText(query);
         liveItems.sort((a, b) => {
           const aExact = normalizeSearchText(a.name) === normalizedQuery ? 1 : 0;
@@ -212,3 +246,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items: [] }, { status: 500 });
   }
 }
+

@@ -15,10 +15,17 @@ function isRelevantInteraction(type: Array<"likes" | "comments">, interaction: "
   return type.includes(interaction);
 }
 
+function isAccountHealthy(acc: any): boolean {
+  if (!acc) return false;
+  if (acc.status === "OK" || acc.status === "CONNECTED") return true;
+  if (Array.isArray(acc.sources) && acc.sources.some((s: any) => s.status === "OK" || s.status === "CONNECTED")) return true;
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const accountId = String(body.accountId || "").replace(/^acc-li-/, "").trim();
+    let accountId = String(body.accountId || "").replace(/^acc-li-/, "").trim();
     const competitorUrl = String(body.competitorUrl || "").trim();
     const competitorName = String(body.competitorName || "").trim();
     const interactionTypes = Array.isArray(body.interactionTypes)
@@ -29,16 +36,49 @@ export async function POST(req: NextRequest) {
     if (!unipile.isConfigured()) {
       return NextResponse.json({ items: [], source: "unavailable", reason: "unipile_not_configured" }, { status: 503 });
     }
+
+    // Auto-descubrir cuenta saludable de LinkedIn si la provista está desconectada o vacía
+    if (unipile.isConfigured()) {
+      try {
+        const list = await unipile.listAccounts();
+        const linkedinAccounts = (list.items || []).filter(
+          (a: any) => String(a.type || a.provider || "").toUpperCase() === "LINKEDIN"
+        );
+        const healthyAccounts = linkedinAccounts.filter(isAccountHealthy);
+        const isHealthy = accountId && healthyAccounts.some((a: any) => a.id === accountId);
+        if (!isHealthy && healthyAccounts.length > 0) {
+          accountId = healthyAccounts[0].id;
+        }
+      } catch (err) {
+        console.warn("[CompetitorsScan] Error verificando cuentas Unipile:", err);
+      }
+    }
+
     if (!accountId || !competitorUrl) {
       return NextResponse.json({ error: "accountId y competitorUrl son obligatorios" }, { status: 400 });
     }
 
-    const identifier = extractIdentifier(competitorUrl);
+    let identifier = extractIdentifier(competitorUrl);
+    const isCompany = !competitorUrl.includes("/in/");
+
+    // Unipile requiere ID numérico para posts de empresas (ej. 1441 para Google o 97885580 para Adapta).
+    // Si el identificador extraído de la URL es texto, lo enriquecemos primero con getCompanyProfile.
+    if (isCompany && !/^\d+$/.test(identifier)) {
+      try {
+        const compProfile = await unipile.getCompanyProfile({ account_id: accountId, identifier });
+        if (compProfile?.id && /^\d+$/.test(String(compProfile.id))) {
+          identifier = String(compProfile.id);
+        }
+      } catch (e) {
+        console.warn("[CompetitorsScan] No se pudo resolver ID numérico de empresa:", e);
+      }
+    }
+
     const posts = await unipile.getUserPosts({
       account_id: accountId,
       identifier,
       limit,
-      is_company: !competitorUrl.includes("/in/"),
+      is_company: isCompany,
     });
 
     const interactions = await Promise.all(
