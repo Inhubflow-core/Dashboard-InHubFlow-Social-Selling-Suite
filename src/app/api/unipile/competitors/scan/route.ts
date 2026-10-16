@@ -33,6 +33,15 @@ export async function POST(req: NextRequest) {
       : ["comments"];
     const limit = Math.min(25, Math.max(1, Number(body.limit) || 10));
 
+    const rawKeywords = Array.isArray(body.keywordsFilter)
+      ? body.keywordsFilter
+      : typeof body.keywordsFilter === "string"
+      ? body.keywordsFilter.split(",")
+      : [];
+    const keywordsFilter = rawKeywords
+      .map((k: string) => String(k || "").trim().toLowerCase())
+      .filter(Boolean);
+
     if (!unipile.isConfigured()) {
       return NextResponse.json({ items: [], source: "unavailable", reason: "unipile_not_configured" }, { status: 503 });
     }
@@ -81,8 +90,17 @@ export async function POST(req: NextRequest) {
       is_company: isCompany,
     });
 
+    // Si se especificaron palabras clave, priorizar publicaciones que contengan alguno de los términos
+    const matchingPosts = keywordsFilter.length > 0
+      ? posts.filter((post) => {
+          const text = String(post.text || "").toLowerCase();
+          return keywordsFilter.some((kw: string) => text.includes(kw));
+        })
+      : posts;
+    const postsToProcess = matchingPosts.length > 0 ? matchingPosts : posts;
+
     const interactions = await Promise.all(
-      posts.slice(0, limit).map(async (post) => {
+      postsToProcess.slice(0, limit).map(async (post) => {
         const [comments, reactions] = await Promise.all([
           isRelevantInteraction(interactionTypes, "comments")
             ? unipile.getPostComments(post.id, accountId, 100).catch(() => ({ items: [] }))

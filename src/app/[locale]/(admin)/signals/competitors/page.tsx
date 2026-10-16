@@ -194,6 +194,7 @@ export default function CompetitorsSignalRadarPage() {
           competitorName: comp.competitorName,
           competitorUrl: comp.competitorUrl,
           interactionTypes: comp.interactionTypes,
+          keywordsFilter: comp.keywordsFilter,
           limit: 10,
         }),
       });
