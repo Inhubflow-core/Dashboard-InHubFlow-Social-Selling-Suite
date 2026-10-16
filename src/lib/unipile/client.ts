@@ -809,36 +809,34 @@ export class UnipileClient {
   }
 
   /**
+   * Obtiene el perfil publico completo de una empresa en LinkedIn.
+   * Unipile entrega aqui el logo oficial y la URL publica de la pagina.
+   */
+  async getCompanyProfile(params: {
+    account_id: string;
+    identifier: string;
+  }): Promise<Record<string, unknown>> {
+    if (this.isSandboxMode()) return {};
+
+    const identifier = params.identifier.trim();
+    if (!identifier) return {};
+
+    return this.request<Record<string, unknown>>(
+      `/api/v1/linkedin/company/${encodeURIComponent(identifier)}?account_id=${encodeURIComponent(params.account_id)}`
+    );
+  }
+
+  /**
    * Realiza una busqueda avanzada en LinkedIn
    */
   async searchLinkedIn(params: UnipileLinkedInSearchParams): Promise<UnipileLinkedInSearchResponse> {
     if (this.isSandboxMode()) {
+      // El sandbox no tiene acceso a LinkedIn: nunca devolver resultados inventados.
       return {
         object: 'LinkedinSearch',
-        items: [
-          {
-            type: 'PEOPLE',
-            id: 'mock-p-1',
-            name: 'Carlos Benitez',
-            headline: 'VP de Ventas & Operaciones B2B | Saas & Enterprise',
-            location: 'Madrid, Comunidad de Madrid, España',
-            public_identifier: 'carlos-benitez-sales',
-            public_profile_url: 'https://www.linkedin.com/in/carlos-benitez-sales',
-            network_distance: 'SECOND_DEGREE',
-          },
-          {
-            type: 'PEOPLE',
-            id: 'mock-p-2',
-            name: 'Patricia Morales',
-            headline: 'Chief Revenue Officer (CRO) en ScaleUp Tech',
-            location: 'Barcelona, Cataluña, España',
-            public_identifier: 'patricia-morales-cro',
-            public_profile_url: 'https://www.linkedin.com/in/patricia-morales-cro',
-            network_distance: 'SECOND_DEGREE',
-          },
-        ],
+        items: [],
         cursor: null,
-        paging: { start: 0, page_count: 2, total_count: 2 },
+        paging: { start: 0, page_count: 0, total_count: 0 },
       };
     }
 

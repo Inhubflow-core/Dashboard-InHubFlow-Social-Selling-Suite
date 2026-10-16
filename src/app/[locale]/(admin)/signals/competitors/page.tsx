@@ -107,6 +107,13 @@ export default function CompetitorsSignalRadarPage() {
         const data = await res.json();
         setSearchResults(data.items || []);
         setIsSearchDropdownOpen(true);
+        if (data.reason === "unipile_not_configured") {
+          setScanFeedback({ type: "error", text: "La búsqueda real requiere Unipile configurado. No se mostrarán resultados simulados." });
+        } else if (data.reason === "linkedin_account_not_connected") {
+          setScanFeedback({ type: "error", text: "Conecta una cuenta activa de LinkedIn para buscar resultados reales." });
+        } else {
+          setScanFeedback(null);
+        }
       } catch (err) {
         console.warn("[Competitors] Error en búsqueda de competidores en LinkedIn:", err);
       } finally {
@@ -140,11 +147,15 @@ export default function CompetitorsSignalRadarPage() {
     if (trackComments) interactions.push("comments");
 
     const isPerson = selectedCompetitorItem?.type === "person" || competitorUrl.includes("/in/");
+    if (!selectedCompetitorItem || !competitorUrl) {
+      setScanFeedback({ type: "error", text: "Selecciona un resultado real de LinkedIn antes de agregarlo." });
+      return;
+    }
 
     const newMonitor: Level2CompetitorMonitor = {
       id: `mon-l2-${Date.now()}`,
       competitorName,
-      competitorUrl: competitorUrl || (isPerson ? "https://www.linkedin.com/in/competitor" : "https://www.linkedin.com/company/competitor"),
+      competitorUrl,
       logoUrl: selectedCompetitorItem?.logoUrl,
       competitorType: isPerson ? "person" : "company",
       keywordsFilter: keywords.length > 0 ? keywords : ["Prospeccion B2B"],
@@ -174,65 +185,48 @@ export default function CompetitorsSignalRadarPage() {
     setIsScanningId(comp.id);
     setScanFeedback(null);
     try {
-      // Simulación de auditoría de actividad del competidor con IA/Unipile
-      await new Promise((r) => setTimeout(r, 1200));
+      const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
+      const response = await fetch("/api/unipile/competitors/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId: rawAccId,
+          competitorName: comp.competitorName,
+          competitorUrl: comp.competitorUrl,
+          interactionTypes: comp.interactionTypes,
+          limit: 10,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.reason || data.error || "No se pudo consultar LinkedIn");
 
-      const sampleCompetitorProspects = [
-        {
-          name: "Alejandro Morales",
-          headline: "Director Comercial en Global Logistics",
-          company: "Global Logistics",
-          location: "Bogotá, Colombia",
-          snippet: `Comentó en el post de ${comp.competitorName}: "Interesante enfoque, pero la integración CRM suele ser el cuello de botella."`,
-        },
-        {
-          name: "Valeria Gómez",
-          headline: "VP Growth & RevOps en FinCloud",
-          company: "FinCloud",
-          location: "Ciudad de México, México",
-          snippet: `Dio Like a la publicación sobre ${comp.keywordsFilter[0] || "Soluciones B2B"}`,
-        },
-        {
-          name: "Javier Santos",
-          headline: "CEO & Co-Founder en ScaleTech",
-          company: "ScaleTech",
-          location: "Madrid, España",
-          snippet: `Comentó: "¿Tienen soporte multicanal o solo operan en LinkedIn?"`,
-        },
-      ];
-
-      const newLeadsToAdd: SignalLeadItem[] = sampleCompetitorProspects.map((p, idx) => ({
+      const newLeadsToAdd: SignalLeadItem[] = (data.items || []).map((lead: any, idx: number) => ({
         id: `sig-lead-c-${Date.now()}-${idx}`,
         monitorId: comp.id,
-        fullName: p.name,
-        headline: p.headline,
-        company: p.company,
-        location: p.location,
-        linkedinUrl: `https://www.linkedin.com/in/${p.name.toLowerCase().replace(/\s+/g, "-")}`,
+        fullName: lead.fullName,
+        headline: lead.headline || "Profesional en LinkedIn",
+        company: lead.company || "",
+        location: lead.location || "",
+        linkedinUrl: lead.linkedinUrl || "",
+        avatarUrl: lead.avatarUrl,
         connectionDegree: "2nd",
-        intentLevel: "medium_high",
-        signalSnippet: p.snippet,
+        intentLevel: lead.signalType === "comment" ? "medium_high" : "medium",
+        signalSnippet: lead.signalSnippet,
         detectedAt: new Date().toISOString(),
         status: "new",
       }));
 
       const added = recordDiscoveredLeads(newLeadsToAdd);
-      const newCapturedCount = comp.leadsIdentifiedCount + added.length;
-
       updateLevel2Monitor(comp.id, {
-        leadsIdentifiedCount: newCapturedCount,
+        leadsIdentifiedCount: comp.leadsIdentifiedCount + added.length,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       });
-
       setScanFeedback({
         type: "success",
-        text: `Auditoría completada para ${comp.competitorName}: ${added.length} nuevos decisores identificados interactuando con su contenido.`,
+        text: `Auditoría completada para ${comp.competitorName}: ${added.length} interacciones reales encontradas en LinkedIn.`,
       });
     } catch (err: any) {
-      setScanFeedback({
-        type: "error",
-        text: `Error al auditar competidor: ${err.message || "Error al conectar"}`,
-      });
+      setScanFeedback({ type: "error", text: `Error al auditar competidor: ${err.message || "Error al conectar"}` });
     } finally {
       setIsScanningId(null);
     }
