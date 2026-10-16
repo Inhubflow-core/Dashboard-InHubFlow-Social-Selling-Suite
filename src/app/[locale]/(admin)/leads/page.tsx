@@ -6,6 +6,13 @@ import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import { useMemo, useState } from "react";
 
+const truncateText = (text?: string, maxLength: number = 46): string => {
+  if (!text) return "";
+  const clean = text.trim();
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength).trimEnd()}...`;
+};
+
 export default function LeadsPage() {
   const { leads, lists, isLoaded, updateLeadStage, updateLeadSequenceStatus, deleteLead } =
     useLeadsStore();
@@ -161,13 +168,13 @@ export default function LeadsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
                 <tr>
-                  <th className="pb-3">Prospecto</th>
-                  <th className="pb-3">Cargo y Empresa</th>
-                  <th className="pb-3">Origen de Señal</th>
-                  <th className="pb-3">Puntuacion</th>
-                  <th className="pb-3">Etapa CRM</th>
-                  <th className="pb-3">Estado Secuencia</th>
-                  <th className="pb-3 text-right">Acciones</th>
+                  <th className="pb-3 min-w-[190px]">Prospecto</th>
+                  <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo y Empresa</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap">Origen de Señal</th>
+                  <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">Puntuación</th>
+                  <th className="pb-3 min-w-[130px] whitespace-nowrap">Etapa CRM</th>
+                  <th className="pb-3 min-w-[110px] whitespace-nowrap">Estado Secuencia</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -177,20 +184,21 @@ export default function LeadsPage() {
 
                   return (
                     <tr key={lead.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                      <td className="py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      {/* Columna: Prospecto */}
+                      <td className="py-3.5 pr-3 min-w-[190px]">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-9 w-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                             {lead.firstName[0]}
                             {lead.lastName[0]}
                           </div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                              <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                                 {lead.fullName}
                               </h4>
                               {lead.language && (
                                 <span
-                                  className={`rounded px-1.5 py-0.2 text-[9px] font-bold border ${
+                                  className={`rounded px-1.5 py-0.2 text-[9px] font-bold border shrink-0 ${
                                     lead.language === "en"
                                       ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       : lead.language === "pt"
@@ -203,55 +211,74 @@ export default function LeadsPage() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-gray-400">{lead.location}</p>
+                            <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                              {lead.location || "Remoto / No especificado"}
+                            </p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-4">
-                        <p className="text-gray-800 dark:text-gray-200 font-medium">
-                          {lead.title}
+                      {/* Columna: Cargo y Empresa (Truncado estético con ... y tooltip nativo) */}
+                      <td className="py-3.5 pr-3 max-w-[270px]">
+                        <p
+                          className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate leading-snug cursor-help"
+                          title={lead.title}
+                        >
+                          {truncateText(lead.title, 48)}
                         </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                          {lead.company}
+                        <p
+                          className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
+                          title={lead.company}
+                        >
+                          {truncateText(lead.company, 40)}
                         </p>
                       </td>
 
-                      <td className="py-4">
-                        <span className="rounded bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                          {lead.signalSource}
+                      {/* Columna: Origen de Señal */}
+                      <td className="py-3.5 pr-2 whitespace-nowrap">
+                        <span
+                          className="rounded-md bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          title={lead.signalSource}
+                        >
+                          {truncateText(lead.signalSource, 26)}
                         </span>
                       </td>
 
-                      <td className="py-4">
+                      {/* Columna: Puntuación */}
+                      <td className="py-3.5 px-2 whitespace-nowrap text-center">
                         <span className="font-bold text-xs text-brand-600 dark:text-brand-400">
                           {lead.intentScore}/100
                         </span>
                       </td>
 
-                      <td className="py-4">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${stageBadge.color}`}>
+                      {/* Columna: Etapa CRM */}
+                      <td className="py-3.5 pr-2 whitespace-nowrap">
+                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold inline-block ${stageBadge.color}`}>
                           {stageBadge.label}
                         </span>
                       </td>
 
-                      <td className="py-4">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${sequenceBadge.color}`}>
+                      {/* Columna: Estado Secuencia */}
+                      <td className="py-3.5 pr-2 whitespace-nowrap">
+                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold inline-block ${sequenceBadge.color}`}>
                           {sequenceBadge.label}
                         </span>
                       </td>
 
-                      <td className="py-4 text-right space-x-2">
+                      {/* Columna: Acciones (Ficha 360 y Chat) */}
+                      <td className="py-3.5 text-right whitespace-nowrap space-x-1.5">
                         <button
                           type="button"
                           onClick={() => setSelectedLeadFor360(lead)}
-                          className="rounded-md border border-brand-500 px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20"
+                          className="rounded-lg border border-brand-500 px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
+                          title="Abrir expediente completo del contacto con todo el cargo y trazabilidad"
                         >
                           Ficha 360
                         </button>
                         <a
                           href="/inbox"
-                          className="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                          className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
+                          title="Abrir chat en Inbox"
                         >
                           Chat
                         </a>
@@ -268,22 +295,22 @@ export default function LeadsPage() {
       {/* Modal Interactivo: Ficha 360 del Contacto */}
       {selectedLeadFor360 && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-5">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             {/* Cabecera de la Ficha 360 */}
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800 gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="h-12 w-12 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
                   {selectedLeadFor360.firstName[0]}
                   {selectedLeadFor360.lastName[0]}
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
                       {selectedLeadFor360.fullName}
                     </h3>
                     {selectedLeadFor360.language && (
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold border shrink-0 ${
                           selectedLeadFor360.language === "en"
                             ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                             : selectedLeadFor360.language === "pt"
@@ -296,26 +323,39 @@ export default function LeadsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {selectedLeadFor360.title} en {selectedLeadFor360.company} • {selectedLeadFor360.location}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {selectedLeadFor360.company} • {selectedLeadFor360.location}
                   </p>
-                  <a
-                    href={selectedLeadFor360.linkedinUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-brand-600 hover:underline dark:text-brand-400"
-                  >
-                    Ver Perfil en LinkedIn &rarr;
-                  </a>
+                  {selectedLeadFor360.linkedinUrl && (
+                    <a
+                      href={selectedLeadFor360.linkedinUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 font-semibold inline-flex items-center gap-1 mt-0.5"
+                    >
+                      Ver Perfil en LinkedIn &rarr;
+                    </a>
+                  )}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLeadFor360(null)}
-                className="text-gray-400 hover:text-gray-600 font-bold p-1"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold p-1 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
+                title="Cerrar Ficha 360"
               >
-                Cerrar
+                ✕ Cerrar
               </button>
+            </div>
+
+            {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
+            <div className="rounded-xl border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 block mb-1">
+                Cargo y Titular Completo en LinkedIn
+              </span>
+              <p className="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
+                {selectedLeadFor360.title}
+              </p>
             </div>
 
             {/* Datos de Contacto y Estado Rápido */}
