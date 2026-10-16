@@ -97,7 +97,11 @@ export default function CompetitorsSignalRadarPage() {
     hasAutoSyncedRef.current = true;
 
     for (const comp of l2Monitors) {
-      const compLeads = leads.filter((l) => l.monitorId === comp.id);
+      const compLeads = leads.filter(
+        (l) =>
+          l.monitorId === comp.id ||
+          (comp.competitorName && l.sourceAuthorName?.toLowerCase() === comp.competitorName.toLowerCase())
+      );
       if (compLeads.length > 0) {
         const targetList = getOrCreateMonitorList({
           monitorId: comp.id,
@@ -314,8 +318,12 @@ export default function CompetitorsSignalRadarPage() {
     }
   };
 
-  const getCompetitorLeads = (monitorId: string): SignalLeadItem[] => {
-    return leads.filter((l) => l.monitorId === monitorId);
+  const getCompetitorLeads = (monitorId: string, competitorName?: string): SignalLeadItem[] => {
+    return leads.filter(
+      (l) =>
+        l.monitorId === monitorId ||
+        (competitorName && l.sourceAuthorName?.toLowerCase() === competitorName.toLowerCase())
+    );
   };
 
   const currentDisplayName = activeAccount?.name || "Cuenta Principal de LinkedIn";
@@ -984,8 +992,8 @@ export default function CompetitorsSignalRadarPage() {
                             l.name.toLowerCase().includes(comp.competitorName.toLowerCase())
                         );
                         const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
-                        const compLeads = getCompetitorLeads(comp.id);
-                        const leadCount = compLeads.length;
+                        const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
+                        const leadCount = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
 
                         return (
                           <Link

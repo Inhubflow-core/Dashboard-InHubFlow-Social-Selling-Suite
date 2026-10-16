@@ -19,6 +19,10 @@ export interface SignalLeadItem {
   status: "new" | "invitation_sent" | "connected" | "dm_sent" | "replied";
   attachedResource?: string;
   language?: "en" | "es" | "pt";
+  signalLevel?: SignalLevel;
+  sourcePostTitle?: string;
+  sourceAuthorName?: string;
+  sourceAuthorUrl?: string;
 }
 
 export interface Level1Monitor {

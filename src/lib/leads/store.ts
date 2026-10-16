@@ -16,8 +16,20 @@ export function getStoredLeads(): Lead360Item[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Purgar leads mock antiguos
-    const cleanLeads = parsed.filter((l: Lead360Item) => l && !l.id?.startsWith("lead-360-"));
+    // Purgar SOLO leads mock antiguos si existieran
+    const legacyMockIds = new Set([
+      "lead-360-01",
+      "lead-360-02",
+      "lead-360-03",
+      "lead-360-04",
+      "lead-360-05",
+      "lead-360-06",
+      "lead-360-07",
+      "lead-360-08",
+    ]);
+    const cleanLeads = parsed.filter(
+      (l: Lead360Item) => l && l.id && !legacyMockIds.has(l.id)
+    );
     if (cleanLeads.length !== parsed.length) {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(cleanLeads));
     }
@@ -34,11 +46,31 @@ export function getStoredLeadLists(): LeadListGroup[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Purgar listas mock antiguas
-    const cleanLists = parsed.filter((lg: LeadListGroup) => lg && !lg.id?.startsWith("list-l"));
-    if (cleanLists.length !== parsed.length) {
-      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(cleanLists));
+    // Purgar listas mock antiguas (ej: list-l1-01, list-l2-01)
+    const legacyMockLists = new Set(["list-l1-01", "list-l2-01", "list-l3-01"]);
+    const cleanLists = parsed.filter((lg: LeadListGroup) => lg && lg.id && !legacyMockLists.has(lg.id));
+
+    // Sincronizar contadores exactos si existen leads en localStorage
+    const rawLeads = localStorage.getItem(LEADS_STORAGE_KEY);
+    const storedLeads: Lead360Item[] = rawLeads ? JSON.parse(rawLeads) : [];
+    if (Array.isArray(storedLeads) && storedLeads.length > 0) {
+      const calibratedLists = cleanLists.map((lg: LeadListGroup) => {
+        const actualCount = storedLeads.filter(
+          (l) =>
+            l.listId === lg.id ||
+            (lg.competitorName && (
+              l.company?.toLowerCase().includes(lg.competitorName.toLowerCase()) ||
+              l.signalSource?.toLowerCase().includes(lg.competitorName.toLowerCase())
+            ))
+        ).length;
+        return {
+          ...lg,
+          leadsCount: actualCount,
+        };
+      });
+      return calibratedLists;
     }
+
     return cleanLists;
   } catch {
     return [];
@@ -93,14 +125,72 @@ export function exportLeadsToCsv(leads: Lead360Item[]): void {
   document.body.removeChild(link);
 }
 
+export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListGroup[] } {
+  if (typeof window === "undefined") return { leads: [], lists: [] };
+  try {
+    let currentLeads = getStoredLeads();
+    let currentLists = getStoredLeadLists();
+
+    const rawSignals = localStorage.getItem("inhubflow_signals_leads");
+    if (!rawSignals) return { leads: currentLeads, lists: currentLists };
+    const signalLeads: SignalLeadItem[] = JSON.parse(rawSignals);
+    if (!Array.isArray(signalLeads) || signalLeads.length === 0) {
+      return { leads: currentLeads, lists: currentLists };
+    }
+
+    let modified = false;
+    for (const sLead of signalLeads) {
+      if (!sLead || !sLead.fullName) continue;
+
+      const exists = currentLeads.some(
+        (l) =>
+          (sLead.linkedinUrl && l.linkedinUrl === sLead.linkedinUrl) ||
+          (l.fullName && sLead.fullName && l.fullName.toLowerCase() === sLead.fullName.toLowerCase())
+      );
+      if (exists) continue;
+
+      const compName = sLead.sourceAuthorName || "Competidor";
+      let targetList = currentLists.find(
+        (lg) =>
+          (sLead.monitorId && lg.sourceMonitorId === sLead.monitorId) ||
+          (lg.competitorName && lg.competitorName.toLowerCase() === compName.toLowerCase()) ||
+          lg.name.toLowerCase().includes(compName.toLowerCase())
+      );
+
+      if (!targetList) {
+        targetList = getOrCreateMonitorList({
+          monitorId: sLead.monitorId || `mon-${Date.now()}`,
+          competitorName: compName,
+          keywords: ["leads B2B"],
+        });
+        currentLists = getStoredLeadLists();
+      }
+
+      importSignalLeadsToList(targetList, [sLead]);
+      modified = true;
+    }
+
+    if (modified) {
+      currentLeads = getStoredLeads();
+      currentLists = getStoredLeadLists();
+    }
+
+    return { leads: currentLeads, lists: currentLists };
+  } catch (err) {
+    console.error("Error al sincronizar señales a CRM:", err);
+    return { leads: getStoredLeads(), lists: getStoredLeadLists() };
+  }
+}
+
 export function useLeadsStore() {
   const [leads, setLeads] = useState<Lead360Item[]>([]);
   const [lists, setLists] = useState<LeadListGroup[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setLeads(getStoredLeads());
-    setLists(getStoredLeadLists());
+    const { leads: syncedLeads, lists: syncedLists } = syncSignalLeadsToCrm();
+    setLeads(syncedLeads);
+    setLists(syncedLists);
     setIsLoaded(true);
   }, []);
 
@@ -200,7 +290,7 @@ export function importSignalLeadsToList(
     });
 
     const lead360: Lead360Item = {
-      id: `lead-360-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `lead-crm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       fullName: sLead.fullName || "Miembro de LinkedIn",
       firstName,
       lastName,
@@ -237,11 +327,20 @@ export function importSignalLeadsToList(
   const updatedLeads = [...convertedLeads, ...currentLeads];
   localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
 
-  // 3. Guardar lista o actualizar contador
+  // 3. Contar de manera exacta los leads reales que pertenecen a esta lista
+  const actualCountInStore = updatedLeads.filter(
+    (l) =>
+      l.listId === targetList.id ||
+      (targetList.competitorName && (
+        l.company?.toLowerCase().includes(targetList.competitorName.toLowerCase()) ||
+        l.signalSource?.toLowerCase().includes(targetList.competitorName.toLowerCase())
+      ))
+  ).length;
+
   const existingListIndex = currentLists.findIndex((lg) => lg.id === targetList.id);
   const updatedList: LeadListGroup = {
     ...targetList,
-    leadsCount: (targetList.leadsCount || 0) + convertedLeads.length,
+    leadsCount: actualCountInStore,
   };
 
   let updatedLists: LeadListGroup[];

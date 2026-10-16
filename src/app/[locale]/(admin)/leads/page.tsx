@@ -23,12 +23,19 @@ export default function LeadsPage() {
         lead.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesList = selectedListFilter === "all" || lead.listId === selectedListFilter;
+      const targetListObj = lists.find((lg) => lg.id === selectedListFilter);
+      const matchesList =
+        selectedListFilter === "all" ||
+        lead.listId === selectedListFilter ||
+        (targetListObj?.competitorName && (
+          lead.company?.toLowerCase().includes(targetListObj.competitorName.toLowerCase()) ||
+          lead.signalSource?.toLowerCase().includes(targetListObj.competitorName.toLowerCase())
+        ));
       const matchesStage = selectedStageFilter === "all" || lead.stage === selectedStageFilter;
 
       return matchesSearch && matchesList && matchesStage;
     });
-  }, [leads, searchTerm, selectedListFilter, selectedStageFilter]);
+  }, [leads, lists, searchTerm, selectedListFilter, selectedStageFilter]);
 
   const getStageLabel = (stage: CrmStage) => {
     switch (stage) {

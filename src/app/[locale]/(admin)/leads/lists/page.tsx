@@ -18,11 +18,21 @@ export default function SignalListsPage() {
     if (typeof window === "undefined" || !isLoaded || hasCheckedUrlRef.current) return;
     const params = new URLSearchParams(window.location.search);
     const lId = params.get("listId");
-    if (lId) {
+    const competitorParam = params.get("competitor");
+    if (lId || competitorParam) {
       hasCheckedUrlRef.current = true;
-      setHighlightedListId(lId);
-      const found = lists.find((l) => l.id === lId);
+      if (lId) setHighlightedListId(lId);
+      let found = lists.find((l) => l.id === lId);
+      if (!found && competitorParam) {
+        found = lists.find(
+          (l) =>
+            l.sourceMonitorId === lId ||
+            (l.competitorName && l.competitorName.toLowerCase() === competitorParam.toLowerCase()) ||
+            l.name.toLowerCase().includes(competitorParam.toLowerCase())
+        );
+      }
       if (found) {
+        setHighlightedListId(found.id);
         setSelectedListForModal(found);
       }
     }
@@ -56,9 +66,16 @@ export default function SignalListsPage() {
     setNewListDesc("");
   };
 
-  const getRealLeadsCount = (listId: string, fallback: number) => {
-    const matching = leads.filter((l) => l.listId === listId);
-    return matching.length > 0 ? matching.length : fallback;
+  const getRealLeadsCount = (list: LeadListGroup) => {
+    const matching = leads.filter(
+      (l) =>
+        l.listId === list.id ||
+        (list.competitorName && (
+          l.company?.toLowerCase().includes(list.competitorName.toLowerCase()) ||
+          l.signalSource?.toLowerCase().includes(list.competitorName.toLowerCase())
+        ))
+    );
+    return matching.length > 0 ? matching.length : list.leadsCount;
   };
 
   return (
@@ -196,7 +213,7 @@ export default function SignalListsPage() {
           <p className="text-xs text-gray-400 py-4">Cargando listas...</p>
         ) : (
           lists.map((list) => {
-            const count = getRealLeadsCount(list.id, list.leadsCount);
+            const count = getRealLeadsCount(list);
             const isHighlighted = highlightedListId === list.id;
 
             return (
@@ -304,7 +321,14 @@ export default function SignalListsPage() {
 
       {/* Modal Interactivo: Leads de la Lista Seleccionada */}
       {selectedListForModal && (() => {
-        const listLeads = leads.filter((l) => l.listId === selectedListForModal.id);
+        const listLeads = leads.filter(
+          (l) =>
+            l.listId === selectedListForModal.id ||
+            (selectedListForModal.competitorName && (
+              l.company?.toLowerCase().includes(selectedListForModal.competitorName.toLowerCase()) ||
+              l.signalSource?.toLowerCase().includes(selectedListForModal.competitorName.toLowerCase())
+            ))
+        );
 
         return (
           <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
