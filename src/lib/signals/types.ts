@@ -18,6 +18,7 @@ export interface SignalLeadItem {
   detectedAt: string;
   status: "new" | "invitation_sent" | "connected" | "dm_sent" | "replied";
   attachedResource?: string;
+  language?: "en" | "es" | "pt";
 }
 
 export interface Level1Monitor {

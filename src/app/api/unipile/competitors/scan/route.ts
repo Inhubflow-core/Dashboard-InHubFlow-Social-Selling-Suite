@@ -26,6 +26,7 @@ import {
   extractCompanyFromHeadline,
   isAuthorEmployeeOrAffiliate,
 } from "@/lib/signals/employee-filter";
+import { detectLeadLanguage } from "@/lib/signals/language-detector";
 
 export async function POST(req: NextRequest) {
   try {
@@ -155,6 +156,13 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const commentText = comment.text || "";
+        const detectedCommentLang = detectLeadLanguage({
+          headline,
+          location: "",
+          signalSnippet: commentText,
+        });
+
         leadMap.set(author.id, {
           providerId: author.id,
           fullName,
@@ -163,9 +171,10 @@ export async function POST(req: NextRequest) {
           location: "",
           linkedinUrl: author.profile_url || (author.public_identifier ? `https://www.linkedin.com/in/${author.public_identifier}` : ""),
           avatarUrl: author.picture_url || undefined,
-          signalSnippet: `Comentó en el post de ${competitorName || "la cuenta monitorizada"}: “${comment.text || ""}”`,
+          signalSnippet: `Comentó en el post de ${competitorName || "la cuenta monitorizada"}: “${commentText}”`,
           signalType: "comment",
           sourcePostId: interaction.post.id,
+          language: detectedCommentLang,
         });
       }
 
@@ -189,6 +198,11 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const detectedReactionLang = detectLeadLanguage({
+          headline,
+          location: "",
+        });
+
         leadMap.set(author.id, {
           providerId: author.id,
           fullName,
@@ -200,6 +214,7 @@ export async function POST(req: NextRequest) {
           signalSnippet: `Reaccionó al post de ${competitorName || "la cuenta monitorizada"}`,
           signalType: "reaction",
           sourcePostId: interaction.post.id,
+          language: detectedReactionLang,
         });
       }
     }

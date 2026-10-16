@@ -41,6 +41,7 @@ export interface Lead360Item {
   timeline: LeadTimelineEvent[];
   createdAt: string;
   lastActivityAt: string;
+  language?: "en" | "es" | "pt";
 }
 
 export interface LeadListGroup {

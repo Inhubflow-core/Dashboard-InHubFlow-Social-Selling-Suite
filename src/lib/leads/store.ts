@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
 import type { SignalLeadItem } from "@/lib/signals/types";
+import { detectLeadLanguage } from "@/lib/signals/language-detector";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
 const LISTS_STORAGE_KEY = "inhubflow_leads_lists";
@@ -186,6 +187,12 @@ export function importSignalLeadsToList(
     );
     if (exists) continue;
 
+    const detectedLang = sLead.language || detectLeadLanguage({
+      headline: sLead.headline,
+      location: sLead.location,
+      signalSnippet: sLead.signalSnippet,
+    });
+
     const lead360: Lead360Item = {
       id: `lead-360-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       fullName: sLead.fullName || "Miembro de LinkedIn",
@@ -204,6 +211,7 @@ export function importSignalLeadsToList(
       listId: targetList.id,
       listName: targetList.name,
       activeCampaignName: targetList.assignedCampaign || "Secuencia de Social Selling",
+      language: detectedLang,
       timeline: [
         {
           id: `tl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,

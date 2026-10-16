@@ -177,9 +177,25 @@ export default function LeadsPage() {
                             {lead.lastName[0]}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white">
-                              {lead.fullName}
-                            </h4>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                                {lead.fullName}
+                              </h4>
+                              {lead.language && (
+                                <span
+                                  className={`rounded px-1.5 py-0.2 text-[9px] font-bold border ${
+                                    lead.language === "en"
+                                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                      : lead.language === "pt"
+                                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                                      : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                  }`}
+                                  title={`Idioma: ${lead.language.toUpperCase()}`}
+                                >
+                                  {lead.language.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[11px] text-gray-400">{lead.location}</p>
                           </div>
                         </div>
@@ -254,9 +270,25 @@ export default function LeadsPage() {
                   {selectedLeadFor360.lastName[0]}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                    {selectedLeadFor360.fullName}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                      {selectedLeadFor360.fullName}
+                    </h3>
+                    {selectedLeadFor360.language && (
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                          selectedLeadFor360.language === "en"
+                            ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                            : selectedLeadFor360.language === "pt"
+                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                        }`}
+                        title={`Idioma detectado: ${selectedLeadFor360.language.toUpperCase()}`}
+                      >
+                        {selectedLeadFor360.language.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {selectedLeadFor360.title} en {selectedLeadFor360.company} • {selectedLeadFor360.location}
                   </p>

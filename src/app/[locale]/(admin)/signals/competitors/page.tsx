@@ -9,6 +9,7 @@ import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
+import { detectLeadLanguage, LANGUAGE_LABELS } from "@/lib/signals/language-detector";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -337,6 +338,11 @@ export default function CompetitorsSignalRadarPage() {
         signalSnippet: lead.signalSnippet,
         detectedAt: new Date().toISOString(),
         status: "new",
+        language: lead.language || detectLeadLanguage({
+          headline: lead.headline,
+          location: lead.location,
+          signalSnippet: lead.signalSnippet,
+        }),
       }));
 
       const added = recordDiscoveredLeads(newLeadsToAdd);
@@ -1276,6 +1282,28 @@ export default function CompetitorsSignalRadarPage() {
                             <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                               {lead.fullName}
                             </h4>
+                            {(() => {
+                              const leadLang = lead.language || detectLeadLanguage({
+                                headline: lead.headline,
+                                location: lead.location,
+                                signalSnippet: lead.signalSnippet,
+                              });
+                              const badgeColor =
+                                leadLang === "en"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                  : leadLang === "pt"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800";
+
+                              return (
+                                <span
+                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${badgeColor}`}
+                                  title={`Idioma detectado: ${LANGUAGE_LABELS[leadLang] || leadLang.toUpperCase()}`}
+                                >
+                                  {leadLang.toUpperCase()}
+                                </span>
+                              );
+                            })()}
                             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                               Grado {lead.connectionDegree}
                             </span>

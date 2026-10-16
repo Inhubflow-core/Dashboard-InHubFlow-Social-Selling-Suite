@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       currentNodeId: body.currentNodeId || "node-tr-01",
       state: "in_progress",
       history: [],
+      language: body.language || "es",
     };
 
     const result = await executeCampaignStepForLead({

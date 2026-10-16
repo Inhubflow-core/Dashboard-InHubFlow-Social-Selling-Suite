@@ -2,6 +2,7 @@ import { unipile } from "@/lib/unipile/client";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeConfigData, CampaignWorkflow } from "./types";
 import { getStoredWorkflow, saveStoredWorkflow } from "./store";
+import { translateOutreachMessage } from "@/lib/ai/outreach-translator";
 
 export interface CampaignExecutionLog {
   id: string;
@@ -29,6 +30,7 @@ export interface LeadCampaignState {
   state: "pending" | "in_progress" | "waiting_delay" | "completed" | "failed";
   nextStepAt?: string | null;
   history: string[];
+  language?: "en" | "es" | "pt";
 }
 
 // Almacén de logs de ejecución en memoria
@@ -265,9 +267,16 @@ export async function executeCampaignStepForLead(params: {
         console.warn("[Runner] Advertencia al reaccionar al post:", error);
       }
 
-      // Comentario contextual
-      const commentBody = (nodeData.commentText || "Gran aporte {{first_name}}, excelente punto de vista.")
-        .replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      // Comentario contextual con adaptacion multilingue inteligente
+      let commentTemplate = nodeData.commentText || "Gran aporte {{first_name}}, excelente punto de vista.";
+      if (leadState.language && leadState.language !== "es") {
+        try {
+          commentTemplate = await translateOutreachMessage(commentTemplate, leadState.language);
+        } catch (e) {
+          console.warn("[Runner] Fallback en traduccion de comentario:", e);
+        }
+      }
+      const commentBody = commentTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
 
       try {
         await unipile.commentOnPost({
@@ -295,6 +304,7 @@ export async function executeCampaignStepForLead(params: {
       const nextEdge = edges.find((e) => e.source === currentNode.id);
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
+      const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
         id: `log-run-${Date.now()}`,
         campaignId: workflow.id,
@@ -305,7 +315,7 @@ export async function executeCampaignStepForLead(params: {
         nodeType: nodeData.nodeType,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Like y comentario ("${commentBody.slice(0, 40)}...") publicados con exito en el post de ${leadState.leadName}.`,
+        message: `Like y comentario ("${commentBody.slice(0, 40)}...")${logLangSuffix} publicados con exito en el post de ${leadState.leadName}.`,
       };
       recordExecutionLog(log);
 
@@ -387,10 +397,19 @@ export async function executeCampaignStepForLead(params: {
         console.warn("[Runner] Advertencia al seguir perfil (followUser):", error);
       }
 
-      // 2. Conectar (Send Invitation)
-      const note = (nodeData.hasNote !== false && nodeData.noteText)
-        ? nodeData.noteText.replace("{{first_name}}", leadState.leadName.split(" ")[0])
-        : undefined;
+      // 2. Conectar (Send Invitation) con adaptacion multilingue inteligente
+      let note: string | undefined = undefined;
+      if (nodeData.hasNote !== false && nodeData.noteText) {
+        let noteTemplate = nodeData.noteText;
+        if (leadState.language && leadState.language !== "es") {
+          try {
+            noteTemplate = await translateOutreachMessage(noteTemplate, leadState.language);
+          } catch (e) {
+            console.warn("[Runner] Fallback en traduccion de nota:", e);
+          }
+        }
+        note = noteTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      }
 
       try {
         await unipile.sendInvitation({
@@ -419,6 +438,7 @@ export async function executeCampaignStepForLead(params: {
       const nextEdge = edges.find((e) => e.source === currentNode.id);
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
+      const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
         id: `log-run-${Date.now()}`,
         campaignId: workflow.id,
@@ -429,7 +449,7 @@ export async function executeCampaignStepForLead(params: {
         nodeType: nodeData.nodeType,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Perfil de ${leadState.leadName} seguido y solicitud de conexion enviada${note ? " con nota personalizada" : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${workflow.dailyInvitationLimit}`,
+        message: `Perfil de ${leadState.leadName} seguido y solicitud de conexion enviada${note ? ` con nota personalizada${logLangSuffix}` : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${workflow.dailyInvitationLimit}`,
       };
       recordExecutionLog(log);
 
@@ -468,9 +488,19 @@ export async function executeCampaignStepForLead(params: {
         };
       }
 
-      const note = nodeData.noteText
-        ? nodeData.noteText.replace("{{first_name}}", leadState.leadName.split(" ")[0])
-        : undefined;
+      // Envio de invitacion con adaptacion multilingue inteligente
+      let note: string | undefined = undefined;
+      if (nodeData.noteText) {
+        let noteTemplate = nodeData.noteText;
+        if (leadState.language && leadState.language !== "es") {
+          try {
+            noteTemplate = await translateOutreachMessage(noteTemplate, leadState.language);
+          } catch (e) {
+            console.warn("[Runner] Fallback en traduccion de invitacion:", e);
+          }
+        }
+        note = noteTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      }
 
       try {
         await unipile.sendInvitation({
@@ -499,6 +529,7 @@ export async function executeCampaignStepForLead(params: {
       const nextEdge = edges.find((e) => e.source === currentNode.id);
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
+      const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
         id: `log-run-${Date.now()}`,
         campaignId: workflow.id,
@@ -509,7 +540,7 @@ export async function executeCampaignStepForLead(params: {
         nodeType: nodeData.nodeType,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Invitacion de conexion enviada a ${leadState.leadName}${note ? " con nota personalizada" : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${workflow.dailyInvitationLimit}`,
+        message: `Invitacion de conexion enviada a ${leadState.leadName}${note ? ` con nota personalizada${logLangSuffix}` : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${workflow.dailyInvitationLimit}`,
       };
       recordExecutionLog(log);
 
@@ -570,8 +601,16 @@ export async function executeCampaignStepForLead(params: {
         };
       }
 
-      const messageBody = (nodeData.dmText || "Hola {{first_name}}")
-        .replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      // Envio de DM con adaptacion multilingue inteligente
+      let dmTemplate = nodeData.dmText || "Hola {{first_name}}";
+      if (leadState.language && leadState.language !== "es") {
+        try {
+          dmTemplate = await translateOutreachMessage(dmTemplate, leadState.language);
+        } catch (e) {
+          console.warn("[Runner] Fallback en traduccion de DM:", e);
+        }
+      }
+      const messageBody = dmTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
 
       try {
         await unipile.sendMessage({
@@ -599,6 +638,7 @@ export async function executeCampaignStepForLead(params: {
       const nextEdge = edges.find((e) => e.source === currentNode.id);
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
+      const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
         id: `log-run-${Date.now()}`,
         campaignId: workflow.id,
@@ -609,7 +649,7 @@ export async function executeCampaignStepForLead(params: {
         nodeType: nodeData.nodeType,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Mensaje directo y recurso '${nodeData.attachedResource || "PDF"}' enviado a ${leadState.leadName}.`,
+        message: `Mensaje directo y recurso '${nodeData.attachedResource || "PDF"}' enviado a ${leadState.leadName}${logLangSuffix}.`,
       };
       recordExecutionLog(log);
 
