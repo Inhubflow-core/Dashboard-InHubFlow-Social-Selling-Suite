@@ -6,6 +6,8 @@ import { getStoredWorkflow, saveStoredWorkflow } from "@/lib/campaigns/store";
 import { availablePaletteNodes, defaultCampaignEdges, defaultCampaignNodes } from "@/lib/campaigns/templates";
 import type { CampaignWorkflow, NodeConfigData } from "@/lib/campaigns/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
+import { getStoredLeadLists } from "@/lib/leads/store";
+import type { LeadListGroup } from "@/lib/leads/types";
 import {
   Play,
   Terminal,
@@ -43,6 +45,26 @@ export default function CampaignsPage() {
   const [isExecutingTest, setIsExecutingTest] = useState(false);
   const [runnerLogs, setRunnerLogs] = useState<CampaignExecutionLog[]>([]);
   const [runnerNotice, setRunnerNotice] = useState<string | null>(null);
+
+  // Audiencia vinculada desde Signal Radar o Listas de Leads
+  const [linkedList, setLinkedList] = useState<LeadListGroup | null>(null);
+  const [linkedCompetitor, setLinkedCompetitor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const listId = params.get("listId");
+    const competitor = params.get("competitor");
+    if (competitor) setLinkedCompetitor(competitor);
+
+    if (listId) {
+      const allLists = getStoredLeadLists();
+      const found = allLists.find((l) => l.id === listId);
+      if (found) {
+        setLinkedList(found);
+      }
+    }
+  }, []);
 
   // Cargar campaña guardada
   useEffect(() => {
@@ -267,6 +289,39 @@ export default function CampaignsPage() {
           </button>
         </div>
       </div>
+
+      {/* Banner de Audiencia Vinculada desde Signal Radar */}
+      {linkedList && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200 dark:bg-purple-950/30 dark:border-purple-900/60 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="rounded-full bg-purple-600 text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              Audiencia Vinculada
+            </span>
+            <span className="font-bold text-gray-900 dark:text-white">
+              {linkedList.name}
+            </span>
+            <span className="text-gray-500 dark:text-gray-400">
+              • {linkedList.leadsCount} prospectos ({linkedCompetitor ? `Competidor: ${linkedCompetitor}` : linkedList.signalSource})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-purple-800 dark:text-purple-300 font-medium">
+              Variables contextuales activas: &#123;&#123;first_name&#125;&#125;, &#123;&#123;company&#125;&#125;, &#123;&#123;competitor&#125;&#125;
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setLinkedList(null);
+                setLinkedCompetitor(null);
+              }}
+              className="text-gray-400 hover:text-gray-600 font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Área de Trabajo Principal */}
       <div className="flex-1 grid grid-cols-12 gap-3 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">

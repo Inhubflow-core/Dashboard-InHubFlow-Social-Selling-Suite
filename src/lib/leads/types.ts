@@ -52,4 +52,7 @@ export interface LeadListGroup {
   leadsCount: number;
   assignedCampaign: string;
   createdAt: string;
+  competitorName?: string;
+  keywords?: string[];
+  sourceMonitorId?: string;
 }

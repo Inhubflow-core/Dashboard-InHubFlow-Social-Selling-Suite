@@ -7,7 +7,10 @@ import { useSignalRadar } from "@/lib/signals/store";
 import type { Level2CompetitorMonitor, SignalLeadItem } from "@/lib/signals/types";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
+import { useLeadsStore } from "@/lib/leads/store";
+import type { LeadListGroup } from "@/lib/leads/types";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export default function CompetitorsSignalRadarPage() {
@@ -79,11 +82,95 @@ export default function CompetitorsSignalRadarPage() {
     setHasSanitizedExisting(true);
   }, [isLoaded, l2Monitors, hasSanitizedExisting, sanitizeLeadsForMonitor, updateLevel2Monitor]);
 
+  const router = useRouter();
+  const { lists: allLeadLists, importSignalLeads } = useLeadsStore();
+
   const [isAddingCompetitor, setIsAddingCompetitor] = useState(false);
   const [selectedCompetitorForLeads, setSelectedCompetitorForLeads] =
     useState<Level2CompetitorMonitor | null>(null);
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Estados de exportación de leads del modal a Listas y Campañas
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [showSaveToListModal, setShowSaveToListModal] = useState(false);
+  const [selectedExistingListId, setSelectedExistingListId] = useState<string>("new");
+  const [customListName, setCustomListName] = useState<string>("");
+  const [modalFeedback, setModalFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
+
+  const handleOpenLeadsModal = (comp: Level2CompetitorMonitor) => {
+    setSelectedCompetitorForLeads(comp);
+    const compLeads = leads.filter((l) => l.monitorId === comp.id);
+    setSelectedLeadIds(compLeads.map((l) => l.id));
+    setModalFeedback(null);
+    setShowSaveToListModal(false);
+    const dateStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+    const kw = comp.keywordsFilter?.slice(0, 2).join(", ") || "General";
+    setCustomListName(`[Signal N2] ${comp.competitorName} • ${kw} • ${dateStr}`);
+    setSelectedExistingListId("new");
+  };
+
+  const handleToggleSelectAll = (compLeads: SignalLeadItem[]) => {
+    if (selectedLeadIds.length === compLeads.length) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(compLeads.map((l) => l.id));
+    }
+  };
+
+  const handleToggleLead = (id: string) => {
+    setSelectedLeadIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSaveLeadsToList = (shouldRedirectToCampaign: boolean = false) => {
+    if (!selectedCompetitorForLeads) return;
+    const compLeads = leads.filter((l) => l.monitorId === selectedCompetitorForLeads.id);
+    const leadsToSave = compLeads.filter((l) => selectedLeadIds.includes(l.id));
+
+    if (leadsToSave.length === 0) {
+      setModalFeedback({ type: "error", text: "Selecciona al menos un prospecto para guardar." });
+      return;
+    }
+
+    let targetList: LeadListGroup;
+    if (selectedExistingListId !== "new") {
+      const found = allLeadLists.find((lg) => lg.id === selectedExistingListId);
+      if (!found) {
+        setModalFeedback({ type: "error", text: "No se encontró la lista seleccionada." });
+        return;
+      }
+      targetList = found;
+    } else {
+      const finalName = customListName.trim() || `[Signal N2] ${selectedCompetitorForLeads.competitorName}`;
+      targetList = {
+        id: `list-sig-l2-${Date.now()}`,
+        name: finalName,
+        description: `Lista creada desde Signal Radar Nivel 2 para competidor ${selectedCompetitorForLeads.competitorName}.`,
+        signalSource: `Signal Nivel 2: ${selectedCompetitorForLeads.competitorName}`,
+        signalLevel: "level_2",
+        leadsCount: 0,
+        assignedCampaign: "Secuencia de Prospección Social",
+        createdAt: new Date().toISOString(),
+        competitorName: selectedCompetitorForLeads.competitorName,
+        keywords: selectedCompetitorForLeads.keywordsFilter,
+        sourceMonitorId: selectedCompetitorForLeads.id,
+      };
+    }
+
+    const res = importSignalLeads(targetList, leadsToSave);
+    setModalFeedback({
+      type: "success",
+      text: `${res.addedCount} prospectos transferidos exitosamente a la lista "${res.list.name}".`,
+      listId: res.list.id,
+    });
+    setShowSaveToListModal(false);
+
+    if (shouldRedirectToCampaign) {
+      router.push(`/campaigns?listId=${encodeURIComponent(res.list.id)}&competitor=${encodeURIComponent(selectedCompetitorForLeads.competitorName)}`);
+    }
+  };
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");
@@ -924,7 +1011,7 @@ export default function CompetitorsSignalRadarPage() {
                       {/* Botón Ver Leads */}
                       <button
                         type="button"
-                        onClick={() => setSelectedCompetitorForLeads(comp)}
+                        onClick={() => handleOpenLeadsModal(comp)}
                         className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs"
                       >
                         Ver Leads ({getCompetitorLeads(comp.id).length})
@@ -954,103 +1041,295 @@ export default function CompetitorsSignalRadarPage() {
       </ComponentCard>
 
       {/* Modal para Visualizar Leads Extraídos del Competidor */}
-      {selectedCompetitorForLeads && (
-        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-              <div>
-                <span className="rounded bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                  Auditoria Rival: {selectedCompetitorForLeads.competitorName}
-                </span>
-                <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Prospectos Extraidos de Publicaciones Rival
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Decisores que interactuaron con el contenido de la competencia sobre tematicas de interes.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedCompetitorForLeads(null)}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
-              >
-                Cerrar
-              </button>
-            </div>
+      {selectedCompetitorForLeads && (() => {
+        const compLeads = getCompetitorLeads(selectedCompetitorForLeads.id);
+        const allSelected = compLeads.length > 0 && selectedLeadIds.length === compLeads.length;
 
-            <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
-              {getCompetitorLeads(selectedCompetitorForLeads.id).length === 0 ? (
-                <div className="py-8 text-center space-y-3">
-                  <p className="text-xs text-gray-500">
-                    Aún no hay prospectos extraídos para este competidor. Haz clic en &quot;Auditar Ahora&quot; para iniciar la detección.
+        return (
+          <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+                <div>
+                  <span className="rounded bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                    Auditoria Rival: {selectedCompetitorForLeads.competitorName}
+                  </span>
+                  <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
+                    Prospectos Extraidos de Publicaciones Rival
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Decisores que interactuaron con el contenido de la competencia sobre tematicas de interes.
                   </p>
-                  <div className="flex items-center justify-center gap-3 pt-2">
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCompetitorForLeads(null)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Barra de Acciones Masivas */}
+              {compLeads.length > 0 && (
+                <div className="mt-4 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={() => handleToggleSelectAll(compLeads)}
+                        className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
+                      />
+                      <span>Seleccionar todos ({compLeads.length})</span>
+                    </label>
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                      • {selectedLeadIds.length} seleccionados
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      disabled={isScanningId === selectedCompetitorForLeads.id}
-                      onClick={() => handleScanCompetitor(selectedCompetitorForLeads)}
-                      className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                      onClick={() => setShowSaveToListModal(!showSaveToListModal)}
+                      disabled={selectedLeadIds.length === 0}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition disabled:opacity-40"
                     >
-                      {isScanningId === selectedCompetitorForLeads.id ? "Auditando..." : "Auditar Competidor Ahora"}
+                      Guardar en Lista ({selectedLeadIds.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveLeadsToList(true)}
+                      disabled={selectedLeadIds.length === 0}
+                      className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition disabled:opacity-40"
+                    >
+                      Crear Campaña con Selección
                     </button>
                   </div>
                 </div>
-              ) : (
-                getCompetitorLeads(selectedCompetitorForLeads.id).map((lead) => (
-                  <div key={lead.id} className="py-3.5 flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                          {lead.fullName}
-                        </h4>
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                          Grado {lead.connectionDegree}
-                        </span>
-                        <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-400">
-                          Intencion Media-Alta
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        {lead.headline} • {lead.location}
-                      </p>
-                      <p className="text-xs text-purple-800 italic dark:text-purple-300 font-medium">
-                        {lead.signalSnippet}
-                      </p>
-                    </div>
+              )}
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Link
-                        href="/campaigns"
-                        className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+              {/* Sub-formulario desplegable de Guardar en Lista */}
+              {showSaveToListModal && (
+                <div className="mt-3 p-4 rounded-xl border border-brand-200 bg-brand-50/50 dark:border-brand-900/60 dark:bg-brand-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                      Destino de los {selectedLeadIds.length} prospectos seleccionados
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveToListModal(false)}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer font-medium text-gray-800 dark:text-gray-200">
+                      <input
+                        type="radio"
+                        name="listOption"
+                        value="new"
+                        checked={selectedExistingListId === "new"}
+                        onChange={() => setSelectedExistingListId("new")}
+                        className="text-brand-500"
+                      />
+                      <span>Crear nueva lista inteligente</span>
+                    </label>
+
+                    {selectedExistingListId === "new" && (
+                      <input
+                        type="text"
+                        value={customListName}
+                        onChange={(e) => setCustomListName(e.target.value)}
+                        placeholder="Nombre de la lista..."
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                      />
+                    )}
+
+                    {allLeadLists.length > 0 && (
+                      <>
+                        <label className="flex items-center gap-2 cursor-pointer font-medium text-gray-800 dark:text-gray-200 pt-1">
+                          <input
+                            type="radio"
+                            name="listOption"
+                            value="existing"
+                            checked={selectedExistingListId !== "new"}
+                            onChange={() => setSelectedExistingListId(allLeadLists[0]?.id || "new")}
+                            className="text-brand-500"
+                          />
+                          <span>Añadir a lista existente</span>
+                        </label>
+
+                        {selectedExistingListId !== "new" && (
+                          <select
+                            value={selectedExistingListId}
+                            onChange={(e) => setSelectedExistingListId(e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                          >
+                            {allLeadLists.map((lg) => (
+                              <option key={lg.id} value={lg.id}>
+                                {lg.name} ({lg.leadsCount} leads)
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveToListModal(false)}
+                      className="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveLeadsToList(false)}
+                      className="rounded-lg bg-brand-500 px-4 py-1 text-xs font-semibold text-white hover:bg-brand-600"
+                    >
+                      Confirmar y Guardar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Feedback Alert */}
+              {modalFeedback && (
+                <div
+                  className={`mt-3 rounded-xl p-3 text-xs border flex items-center justify-between ${
+                    modalFeedback.type === "success"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
+                      : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">{modalFeedback.type === "success" ? "✓" : "⚠"}</span>
+                    <span>{modalFeedback.text}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {modalFeedback.type === "success" && (
+                      <>
+                        <Link
+                          href="/leads/lists"
+                          className="font-semibold underline hover:text-emerald-900 dark:hover:text-emerald-200"
+                        >
+                          Ver en Listas
+                        </Link>
+                        <span>•</span>
+                        <Link
+                          href={
+                            modalFeedback.listId
+                              ? `/campaigns?listId=${encodeURIComponent(modalFeedback.listId)}&competitor=${encodeURIComponent(selectedCompetitorForLeads.competitorName)}`
+                              : "/campaigns"
+                          }
+                          className="font-semibold underline hover:text-emerald-900 dark:hover:text-emerald-200"
+                        >
+                          Ir a Campañas
+                        </Link>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setModalFeedback(null)}
+                      className="ml-2 font-bold hover:underline"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Lista de leads */}
+              <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
+                {compLeads.length === 0 ? (
+                  <div className="py-8 text-center space-y-3">
+                    <p className="text-xs text-gray-500">
+                      Aún no hay prospectos extraídos para este competidor. Haz clic en &quot;Auditar Ahora&quot; para iniciar la detección.
+                    </p>
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        disabled={isScanningId === selectedCompetitorForLeads.id}
+                        onClick={() => handleScanCompetitor(selectedCompetitorForLeads)}
+                        className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                       >
-                        Enviar a Secuencia
-                      </Link>
+                        {isScanningId === selectedCompetitorForLeads.id ? "Auditando..." : "Auditar Competidor Ahora"}
+                      </button>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  compLeads.map((lead) => (
+                    <div key={lead.id} className="py-3.5 flex items-center justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIds.includes(lead.id)}
+                          onChange={() => handleToggleLead(lead.id)}
+                          className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer shrink-0"
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+                              {lead.fullName}
+                            </h4>
+                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                              Grado {lead.connectionDegree}
+                            </span>
+                            <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-400">
+                              Intencion Media-Alta
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                            {lead.headline} • {lead.location}
+                          </p>
+                          <p className="text-xs text-purple-800 italic dark:text-purple-300 font-medium">
+                            {lead.signalSnippet}
+                          </p>
+                        </div>
+                      </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-              <button
-                type="button"
-                disabled={isScanningId === selectedCompetitorForLeads.id}
-                onClick={() => handleScanCompetitor(selectedCompetitorForLeads)}
-                className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
-              >
-                + Re-auditar y Buscar Más Prospectos
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedCompetitorForLeads(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-              >
-                Cerrar
-              </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedLeadIds([lead.id]);
+                            setShowSaveToListModal(true);
+                          }}
+                          className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                        >
+                          Enviar a Secuencia
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  disabled={isScanningId === selectedCompetitorForLeads.id}
+                  onClick={() => handleScanCompetitor(selectedCompetitorForLeads)}
+                  className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                >
+                  + Re-auditar y Buscar Más Prospectos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCompetitorForLeads(null)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

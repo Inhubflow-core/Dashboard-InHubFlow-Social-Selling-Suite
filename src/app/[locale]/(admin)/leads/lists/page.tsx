@@ -219,6 +219,27 @@ export default function SignalListsPage() {
                         {list.signalSource}
                       </span>
                     </div>
+                    {list.competitorName && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Competidor Objetivo:</span>
+                        <span className="font-semibold text-purple-700 dark:text-purple-300">
+                          {list.competitorName}
+                        </span>
+                      </div>
+                    )}
+                    {list.keywords && list.keywords.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap pt-1">
+                        <span className="text-gray-400 text-[11px]">Filtros:</span>
+                        {list.keywords.map((kw, i) => (
+                          <span
+                            key={i}
+                            className="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-400">Campaña Asignada:</span>
                       <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[200px]">
@@ -236,10 +257,10 @@ export default function SignalListsPage() {
                     Ver Prospectos
                   </a>
                   <a
-                    href="/campaigns"
+                    href={`/campaigns?listId=${list.id}${list.competitorName ? `&competitor=${encodeURIComponent(list.competitorName)}` : ""}`}
                     className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                   >
-                    Ver Campaña
+                    Lanzar Campaña
                   </a>
                 </div>
               </div>
