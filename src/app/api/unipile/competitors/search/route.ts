@@ -19,9 +19,11 @@ function normalizeSearchText(value: string): string {
 
 function resultMatchesQuery(item: CompetitorSearchResult, query: string): boolean {
   const normalizedQuery = normalizeSearchText(query);
-  const normalizedName = normalizeSearchText(item.name);
+  const searchableText = normalizeSearchText(
+    [item.name, item.headline, item.industry, item.location].filter(Boolean).join(" ")
+  );
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
-  return normalizedName === normalizedQuery || queryTokens.every((token) => normalizedName.includes(token));
+  return normalizedQuery.length > 0 && queryTokens.every((token) => searchableText.includes(token));
 }
 
 export async function GET(req: NextRequest) {
@@ -106,8 +108,8 @@ export async function GET(req: NextRequest) {
 
         const results = await Promise.all(promises);
         const liveItems: CompetitorSearchResult[] = [];
-        const companiesOffset = category === 'all' ? 0 : -1;
-        const peopleOffset = category === 'all' ? 1 : 0;
+        const companiesOffset = category === 'all' || category === 'companies' ? 0 : -1;
+        const peopleOffset = category === 'all' ? 1 : category === 'people' ? 0 : -1;
 
         // Enriquecer los resultados de empresa con su perfil publico real de LinkedIn.
         const companiesRes = companiesOffset < 0 ? null : results[companiesOffset];
@@ -185,13 +187,19 @@ export async function GET(req: NextRequest) {
           });
         }
 
-        const filteredItems = liveItems.filter((item) => resultMatchesQuery(item, query));
-        filteredItems.sort((a, b) => {
-          const aExact = normalizeSearchText(a.name) === normalizeSearchText(query) ? 1 : 0;
-          const bExact = normalizeSearchText(b.name) === normalizeSearchText(query) ? 1 : 0;
-          return bExact - aExact;
+        // Unipile ya aplica la relevancia de LinkedIn. El filtro local solo se usa
+        // para ordenar coincidencias exactas; no se descartan resultados válidos
+        // cuyo nombre no contiene literalmente todos los tokens (por ejemplo,
+        // resultados de empresa con el término en su descripción).
+        const normalizedQuery = normalizeSearchText(query);
+        liveItems.sort((a, b) => {
+          const aExact = normalizeSearchText(a.name) === normalizedQuery ? 1 : 0;
+          const bExact = normalizeSearchText(b.name) === normalizedQuery ? 1 : 0;
+          const aMatch = resultMatchesQuery(a, query) ? 1 : 0;
+          const bMatch = resultMatchesQuery(b, query) ? 1 : 0;
+          return bExact - aExact || bMatch - aMatch;
         });
-        return NextResponse.json({ items: filteredItems, source: 'unipile_live' });
+        return NextResponse.json({ items: liveItems, source: 'unipile_live' });
       } catch (liveErr) {
         console.error('[CompetitorsSearch] Error en búsqueda real de LinkedIn:', liveErr);
         return NextResponse.json({ items: [], source: 'error', reason: 'linkedin_search_failed' }, { status: 502 });

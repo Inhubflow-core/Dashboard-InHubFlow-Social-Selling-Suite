@@ -361,7 +361,7 @@ export default function CompetitorsSignalRadarPage() {
                 </div>
 
                 {/* Dropdown de cuentas de LinkedIn encontradas */}
-                {isSearchDropdownOpen && searchResults.length > 0 && (
+                {isSearchDropdownOpen && (searchResults.length > 0 || !isSearching) && (
                   <div
                     className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
                     onMouseDown={(e) => e.preventDefault()}
@@ -370,7 +370,7 @@ export default function CompetitorsSignalRadarPage() {
                     <div className="p-2.5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                          Resultados en LinkedIn ({searchResults.length} encontrados)
+                          Sugerencias de LinkedIn ({searchResults.length} resultados)
                         </span>
                         <button
                           type="button"
@@ -423,8 +423,10 @@ export default function CompetitorsSignalRadarPage() {
                     {/* Lista con scroll vertical explícito */}
                     <div className="overflow-y-auto max-h-72 p-2 space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                       {filteredSearchResults.length === 0 ? (
-                        <div className="py-6 text-center text-gray-400 text-xs">
-                          No se encontraron coincidencias en esta categoría.
+                        <div className="py-6 text-center text-gray-500 dark:text-gray-400 text-xs">
+                          {searchResults.length === 0
+                            ? "LinkedIn no devolvió resultados para esta búsqueda. Prueba otro nombre o verifica que la cuenta esté conectada."
+                            : "No se encontraron coincidencias en esta categoría."}
                         </div>
                       ) : (
                         filteredSearchResults.map((item) => {
