@@ -5,7 +5,6 @@ import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
 import type { SignalLeadItem } from "@/lib/signals/types";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
-import { getPersonAvatarUrl } from "./avatar-helper";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
 const LISTS_STORAGE_KEY = "inhubflow_leads_lists";
@@ -28,10 +27,17 @@ export function getStoredLeads(): Lead360Item[] {
       "lead-360-07",
       "lead-360-08",
     ]);
-    const cleanLeads = parsed.filter(
-      (l: Lead360Item) => l && l.id && !legacyMockIds.has(l.id)
-    );
-    if (cleanLeads.length !== parsed.length) {
+    let hadFakeAvatars = false;
+    const cleanLeads = parsed
+      .filter((l: Lead360Item) => l && l.id && !legacyMockIds.has(l.id))
+      .map((l: Lead360Item) => {
+        if (l.avatarUrl && l.avatarUrl.includes("unsplash.com")) {
+          hadFakeAvatars = true;
+          return { ...l, avatarUrl: undefined };
+        }
+        return l;
+      });
+    if (cleanLeads.length !== parsed.length || hadFakeAvatars) {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(cleanLeads));
     }
     return cleanLeads;
@@ -289,6 +295,22 @@ export function useLeadsStore() {
     return result;
   };
 
+  const batchUpdateLeadPhotos = (updates: Record<string, string>) => {
+    if (!updates || Object.keys(updates).length === 0) return;
+    setLeads((prev) => {
+      const updated = prev.map((l) => {
+        if (updates[l.id]) {
+          return { ...l, avatarUrl: updates[l.id] };
+        }
+        return l;
+      });
+      if (typeof window !== "undefined") {
+        localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
   const getOrCreateList = (params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
     const list = getOrCreateMonitorList(params);
     return list;
@@ -304,6 +326,7 @@ export function useLeadsStore() {
     createList,
     deleteList,
     importSignalLeads,
+    batchUpdateLeadPhotos,
     getOrCreateList,
   };
 }
@@ -337,6 +360,11 @@ export function importSignalLeadsToList(
       signalSnippet: sLead.signalSnippet,
     });
 
+    // Sanitizar avatar para no persistir URLs falsas de stock
+    const cleanAvatar = (sLead.avatarUrl && !sLead.avatarUrl.includes("unsplash.com") && sLead.avatarUrl.length > 5)
+      ? sLead.avatarUrl
+      : undefined;
+
     const lead360: Lead360Item = {
       id: `lead-crm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       fullName: sLead.fullName || "Miembro de LinkedIn",
@@ -346,7 +374,7 @@ export function importSignalLeadsToList(
       company: sLead.company || (targetList.competitorName ? `Interactuó con ${targetList.competitorName}` : "No especificado"),
       location: sLead.location || "Remoto / No especificado",
       linkedinUrl: sLead.linkedinUrl || "",
-      avatarUrl: getPersonAvatarUrl(sLead.fullName, sLead.avatarUrl),
+      avatarUrl: cleanAvatar,
       signalSource: targetList.signalSource || `Signal: ${targetList.competitorName || "Competidor"}`,
       signalLevel: targetList.signalLevel || "level_2",
       intentScore: sLead.intentLevel === "very_high" ? 95 : sLead.intentLevel === "medium_high" ? 85 : 70,

@@ -2,12 +2,12 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { getPersonAvatarUrl } from "@/lib/leads/avatar-helper";
+import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const truncateText = (text?: string, maxLength: number = 48): string => {
   if (!text) return "";
@@ -29,11 +29,42 @@ export default function DynamicListDetailPage() {
     deleteLead,
     updateLeadStage,
     updateLeadSequenceStatus,
+    batchUpdateLeadPhotos,
   } = useLeadsStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
   const [selectedLeadFor360, setSelectedLeadFor360] = useState<Lead360Item | null>(null);
+
+  // Auto-sync de fotos oficiales de LinkedIn en segundo plano (estilo #b2b)
+  const isSyncingPhotosRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || leads.length === 0 || isSyncingPhotosRef.current) return;
+    const missingPhotos = leads
+      .filter((l) => (!l.avatarUrl || l.avatarUrl.includes("unsplash.com")) && Boolean(l.linkedinUrl))
+      .slice(0, 15);
+
+    if (missingPhotos.length === 0) return;
+
+    isSyncingPhotosRef.current = true;
+    fetch("/api/leads/sync-photos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targets: missingPhotos.map((l) => ({ id: l.id, linkedinUrl: l.linkedinUrl })),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.updated && Object.keys(data.updated).length > 0) {
+          batchUpdateLeadPhotos(data.updated);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        isSyncingPhotosRef.current = false;
+      });
+  }, [isLoaded, leads.length, batchUpdateLeadPhotos]);
 
   // Encontrar la lista por id o por sourceMonitorId
   const currentList = useMemo(() => {
@@ -329,26 +360,12 @@ export default function DynamicListDetailPage() {
                       {/* Columna: Prospecto con Foto de Perfil */}
                       <td className="py-3.5 pr-3 min-w-[200px]">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-9 w-9 shrink-0">
-                            <img
-                              src={getPersonAvatarUrl(lead.fullName, lead.avatarUrl)}
-                              alt={lead.fullName}
-                              className="h-9 w-9 rounded-full object-cover shadow-xs border border-gray-200/80 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
-                              onError={(e) => {
-                                const target = e.target as HTMLElement;
-                                target.style.display = "none";
-                                const fallback = target.nextElementSibling as HTMLElement;
-                                if (fallback) fallback.style.display = "flex";
-                              }}
-                            />
-                            <div
-                              style={{ display: "none" }}
-                              className="h-9 w-9 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-xs shadow-xs"
-                            >
-                              {lead.firstName[0]}
-                              {lead.lastName[0]}
-                            </div>
-                          </div>
+                          <ProspectAvatar
+                            imageUrl={lead.avatarUrl}
+                            name={lead.fullName}
+                            size="md"
+                            badge={lead.linkedinUrl ? "linkedin" : null}
+                          />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
                               <h4 className="font-semibold text-gray-900 dark:text-white truncate">
@@ -457,26 +474,12 @@ export default function DynamicListDetailPage() {
             {/* Cabecera de la Ficha 360 */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="relative h-12 w-12 shrink-0">
-                  <img
-                    src={getPersonAvatarUrl(selectedLeadFor360.fullName, selectedLeadFor360.avatarUrl)}
-                    alt={selectedLeadFor360.fullName}
-                    className="h-12 w-12 rounded-full object-cover shadow-xs border-2 border-brand-500/30 bg-gray-100 dark:bg-gray-800"
-                    onError={(e) => {
-                      const target = e.target as HTMLElement;
-                      target.style.display = "none";
-                      const fallback = target.nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = "flex";
-                    }}
-                  />
-                  <div
-                    style={{ display: "none" }}
-                    className="h-12 w-12 rounded-full bg-brand-500 text-white items-center justify-center font-bold text-sm shadow-xs"
-                  >
-                    {selectedLeadFor360.firstName[0]}
-                    {selectedLeadFor360.lastName[0]}
-                  </div>
-                </div>
+                <ProspectAvatar
+                  imageUrl={selectedLeadFor360.avatarUrl}
+                  name={selectedLeadFor360.fullName}
+                  size="xl"
+                  badge={selectedLeadFor360.linkedinUrl ? "linkedin" : null}
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
