@@ -157,10 +157,14 @@ export async function POST(req: NextRequest) {
         }
 
         const commentText = comment.text || "";
+        const authorLinkedinUrl = author.profile_url || (author.public_identifier ? `https://www.linkedin.com/in/${author.public_identifier}` : "");
         const detectedCommentLang = detectLeadLanguage({
+          fullName,
           headline,
           location: "",
+          linkedinUrl: authorLinkedinUrl,
           signalSnippet: commentText,
+          competitorName,
         });
 
         leadMap.set(author.id, {
@@ -169,7 +173,7 @@ export async function POST(req: NextRequest) {
           headline: headline || "Profesional en LinkedIn",
           company: effectiveCompany,
           location: "",
-          linkedinUrl: author.profile_url || (author.public_identifier ? `https://www.linkedin.com/in/${author.public_identifier}` : ""),
+          linkedinUrl: authorLinkedinUrl,
           avatarUrl: author.picture_url || (author as any).profile_picture_url || undefined,
           signalSnippet: `Comentó en el post de ${competitorName || "la cuenta monitorizada"}: “${commentText}”`,
           signalType: "comment",
@@ -198,9 +202,13 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const reactionLinkedinUrl = author.profile_url || (author.public_identifier ? `https://www.linkedin.com/in/${author.public_identifier}` : "");
         const detectedReactionLang = detectLeadLanguage({
+          fullName,
           headline,
           location: "",
+          linkedinUrl: reactionLinkedinUrl,
+          competitorName,
         });
 
         leadMap.set(author.id, {
@@ -209,7 +217,7 @@ export async function POST(req: NextRequest) {
           headline: headline || "Profesional en LinkedIn",
           company: effectiveCompany,
           location: "",
-          linkedinUrl: author.profile_url || (author.public_identifier ? `https://www.linkedin.com/in/${author.public_identifier}` : ""),
+          linkedinUrl: reactionLinkedinUrl,
           avatarUrl: author.picture_url || (author as any).profile_picture_url || undefined,
           signalSnippet: `Reaccionó al post de ${competitorName || "la cuenta monitorizada"}`,
           signalType: "reaction",

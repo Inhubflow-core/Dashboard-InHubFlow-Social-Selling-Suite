@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unipile } from "@/lib/unipile/client";
+import { detectLeadLanguage } from "@/lib/signals/language-detector";
 
 function isAccountHealthy(acc: any): boolean {
   if (!acc) return false;
@@ -8,17 +9,23 @@ function isAccountHealthy(acc: any): boolean {
   return false;
 }
 
+export interface SyncedLeadData {
+  photoUrl?: string;
+  location?: string;
+  language?: "en" | "es" | "pt";
+  headline?: string;
+}
+
 /**
  * POST /api/leads/sync-photos
- * Sincroniza y extrae las fotos oficiales y reales de perfil de LinkedIn
- * a través del motor de Unipile (igual que en #b2b).
+ * Sincroniza y extrae las fotos oficiales, la ubicación geográfica real
+ * y recalcula con precisión el idioma del prospecto en LinkedIn.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const targets: Array<{ id: string; linkedinUrl?: string }> = Array.isArray(body.targets)
-      ? body.targets
-      : [];
+    const targets: Array<{ id: string; linkedinUrl?: string; fullName?: string; competitorName?: string }> =
+      Array.isArray(body.targets) ? body.targets : [];
 
     if (targets.length === 0) {
       return NextResponse.json({ updated: {}, syncedCount: 0 });
@@ -55,7 +62,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const updated: Record<string, string> = {};
+    const updated: Record<string, SyncedLeadData> = {};
     let syncedCount = 0;
 
     // Procesar hasta 15 perfiles por lote para respetar cuotas y ritmo seguro
@@ -71,15 +78,38 @@ export async function POST(req: NextRequest) {
           profile.profile_picture_url_large ||
           profile.profile_picture_url ||
           (profile as any).picture_url ||
-          null;
+          undefined;
 
-        if (photoUrl && typeof photoUrl === "string" && !photoUrl.includes("unsplash.com")) {
-          updated[item.id] = photoUrl;
-          syncedCount++;
-        }
+        const effectiveLocation = profile.location && profile.location.trim().length > 1
+          ? profile.location.trim()
+          : undefined;
+
+        const effectiveHeadline = profile.headline && profile.headline.trim().length > 1
+          ? profile.headline.trim()
+          : undefined;
+
+        const detectedLang = detectLeadLanguage({
+          fullName: item.fullName || (profile.first_name ? `${profile.first_name} ${profile.last_name || ""}` : undefined),
+          headline: effectiveHeadline,
+          location: effectiveLocation,
+          linkedinUrl: item.linkedinUrl,
+          competitorName: item.competitorName,
+        });
+
+        const cleanPhoto = (photoUrl && typeof photoUrl === "string" && !photoUrl.includes("unsplash.com"))
+          ? photoUrl
+          : undefined;
+
+        updated[item.id] = {
+          photoUrl: cleanPhoto,
+          location: effectiveLocation,
+          language: detectedLang,
+          headline: effectiveHeadline,
+        };
+        syncedCount++;
       } catch (err) {
         // Silenciar errores individuales de perfil no encontrado o privado
-        console.warn(`[sync-photos] No se pudo resolver foto para lead ${item.id}:`, err instanceof Error ? err.message : String(err));
+        console.warn(`[sync-photos] No se pudo resolver perfil para lead ${item.id}:`, err instanceof Error ? err.message : String(err));
       }
     }
 

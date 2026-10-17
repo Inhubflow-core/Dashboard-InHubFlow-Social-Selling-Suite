@@ -27,17 +27,37 @@ export function getStoredLeads(): Lead360Item[] {
       "lead-360-07",
       "lead-360-08",
     ]);
-    let hadFakeAvatars = false;
+    let hadFixes = false;
     const cleanLeads = parsed
       .filter((l: Lead360Item) => l && l.id && !legacyMockIds.has(l.id))
       .map((l: Lead360Item) => {
-        if (l.avatarUrl && l.avatarUrl.includes("unsplash.com")) {
-          hadFakeAvatars = true;
-          return { ...l, avatarUrl: undefined };
+        let avatar = l.avatarUrl;
+        if (avatar && avatar.includes("unsplash.com")) {
+          hadFixes = true;
+          avatar = undefined;
         }
-        return l;
+
+        // Recalibrar idioma con detector inteligente contextual
+        const correctedLang = detectLeadLanguage({
+          fullName: l.fullName,
+          headline: l.title,
+          location: l.location,
+          linkedinUrl: l.linkedinUrl,
+          competitorName: l.company || l.signalSource || l.listName,
+          defaultLang: l.language,
+        });
+
+        if (correctedLang !== l.language) {
+          hadFixes = true;
+        }
+
+        return {
+          ...l,
+          avatarUrl: avatar,
+          language: correctedLang,
+        };
       });
-    if (cleanLeads.length !== parsed.length || hadFakeAvatars) {
+    if (cleanLeads.length !== parsed.length || hadFixes) {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(cleanLeads));
     }
     return cleanLeads;
@@ -295,14 +315,24 @@ export function useLeadsStore() {
     return result;
   };
 
-  const batchUpdateLeadPhotos = (updates: Record<string, string>) => {
+  const batchUpdateLeadPhotos = (
+    updates: Record<string, string | { photoUrl?: string; location?: string; language?: "en" | "es" | "pt"; headline?: string }>
+  ) => {
     if (!updates || Object.keys(updates).length === 0) return;
     setLeads((prev) => {
       const updated = prev.map((l) => {
-        if (updates[l.id]) {
-          return { ...l, avatarUrl: updates[l.id] };
+        const val = updates[l.id];
+        if (!val) return l;
+        if (typeof val === "string") {
+          return { ...l, avatarUrl: val };
         }
-        return l;
+        return {
+          ...l,
+          avatarUrl: val.photoUrl || l.avatarUrl,
+          location: val.location || l.location,
+          language: val.language || l.language,
+          title: val.headline || l.title,
+        };
       });
       if (typeof window !== "undefined") {
         localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));

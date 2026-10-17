@@ -34,18 +34,23 @@ export default function LeadsPage() {
   const isSyncingPhotosRef = useRef(false);
   useEffect(() => {
     if (!isLoaded || leads.length === 0 || isSyncingPhotosRef.current) return;
-    const missingPhotos = leads
-      .filter((l) => (!l.avatarUrl || l.avatarUrl.includes("unsplash.com")) && Boolean(l.linkedinUrl))
+    const leadsToEnrich = leads
+      .filter((l) => (!l.avatarUrl || l.location === "Remoto / No especificado") && Boolean(l.linkedinUrl))
       .slice(0, 15);
 
-    if (missingPhotos.length === 0) return;
+    if (leadsToEnrich.length === 0) return;
 
     isSyncingPhotosRef.current = true;
     fetch("/api/leads/sync-photos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        targets: missingPhotos.map((l) => ({ id: l.id, linkedinUrl: l.linkedinUrl })),
+        targets: leadsToEnrich.map((l) => ({
+          id: l.id,
+          linkedinUrl: l.linkedinUrl,
+          fullName: l.fullName,
+          competitorName: l.company || l.signalSource,
+        })),
       }),
     })
       .then((res) => res.json())
