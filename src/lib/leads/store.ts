@@ -29,7 +29,32 @@ export function getStoredLeads(): Lead360Item[] {
     ]);
     let hadFixes = false;
     const cleanLeads = parsed
-      .filter((l: Lead360Item) => l && l.id && !legacyMockIds.has(l.id))
+      .filter((l: Lead360Item) => {
+        if (!l || !l.id || legacyMockIds.has(l.id)) return false;
+
+        // Purgar prospectos identificados como empleados del competidor
+        if ((l as any).isEmployee) {
+          hadFixes = true;
+          return false;
+        }
+
+        // Purgar explícitamente empleados confirmados de competidores monitoreados (ej: Davi Magalde en Prospectme)
+        const urlLower = (l.linkedinUrl || "").toLowerCase();
+        const fullNameLower = (l.fullName || "").toLowerCase();
+        const isProspectMeList =
+          (l.listName || "").toLowerCase().includes("prospect") ||
+          (l.signalSource || "").toLowerCase().includes("prospect") ||
+          (l.company || "").toLowerCase().includes("prospect");
+
+        if (isProspectMeList) {
+          if (urlLower.includes("davi-magalde") || fullNameLower.includes("davi magalde")) {
+            hadFixes = true;
+            return false;
+          }
+        }
+
+        return true;
+      })
       .map((l: Lead360Item) => {
         let avatar = l.avatarUrl;
         if (avatar && avatar.includes("unsplash.com")) {
@@ -316,11 +341,21 @@ export function useLeadsStore() {
   };
 
   const batchUpdateLeadPhotos = (
-    updates: Record<string, string | { photoUrl?: string; location?: string; language?: "en" | "es" | "pt"; headline?: string }>
+    updates: Record<string, string | { photoUrl?: string; location?: string; language?: "en" | "es" | "pt"; headline?: string; isEmployee?: boolean }>
   ) => {
     if (!updates || Object.keys(updates).length === 0) return;
     setLeads((prev) => {
-      const updated = prev.map((l) => {
+      // 1. Filtrar cualquier lead detectado como empleado interno
+      const nonEmployees = prev.filter((l) => {
+        const val = updates[l.id];
+        if (val && typeof val === "object" && val.isEmployee === true) {
+          return false;
+        }
+        return true;
+      });
+
+      // 2. Actualizar datos de los leads restantes válidos
+      const updated = nonEmployees.map((l) => {
         const val = updates[l.id];
         if (!val) return l;
         if (typeof val === "string") {
@@ -334,8 +369,27 @@ export function useLeadsStore() {
           title: val.headline || l.title,
         };
       });
+
       if (typeof window !== "undefined") {
         localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+
+        // Si se eliminó algún empleado, recalibrar los contadores de listas de inmediato
+        if (nonEmployees.length !== prev.length) {
+          const storedLists = getStoredLeadLists();
+          const recalibrated = storedLists.map((lg) => ({
+            ...lg,
+            leadsCount: updated.filter(
+              (l) =>
+                l.listId === lg.id ||
+                (lg.competitorName && (
+                  l.company?.toLowerCase().includes(lg.competitorName.toLowerCase()) ||
+                  l.signalSource?.toLowerCase().includes(lg.competitorName.toLowerCase())
+                ))
+            ).length,
+          }));
+          localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibrated));
+          setLists(recalibrated);
+        }
       }
       return updated;
     });

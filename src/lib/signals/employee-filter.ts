@@ -55,6 +55,26 @@ export function companyMatches(
     if (Math.min(actualNorm.length, wantedNorm.length) >= 4) return true;
   }
 
+  // 1.b Coincidencia sin espacios ni signos ("prospect me" === "prospectme")
+  const actualClean = actualNorm.replace(/[^a-z0-9]/g, "");
+  const wantedClean = wantedNorm.replace(/[^a-z0-9]/g, "");
+  if (actualClean && wantedClean) {
+    if (actualClean === wantedClean) return true;
+    if (actualClean.includes(wantedClean) || wantedClean.includes(actualClean)) {
+      if (Math.min(actualClean.length, wantedClean.length) >= 4) return true;
+    }
+  }
+
+  // Comparación adicional con texto crudo normalizado (evita pérdida de marcas cortas como "me")
+  const rawActual = normalizeText(actualCompany).replace(/[^a-z0-9]/g, "");
+  const rawWanted = normalizeText(wantedCompany).replace(/[^a-z0-9]/g, "");
+  if (rawActual && rawWanted) {
+    if (rawActual === rawWanted) return true;
+    if (rawActual.includes(rawWanted) || rawWanted.includes(rawActual)) {
+      if (Math.min(rawActual.length, rawWanted.length) >= 4) return true;
+    }
+  }
+
   const actualTokens = companyTokens(actualCompany);
   const wantedTokens = companyTokens(wantedCompany);
   if (!actualTokens.length || !wantedTokens.length) return false;
@@ -106,8 +126,21 @@ export function extractCompanyFromHeadline(headline: string | null | undefined):
   return null;
 }
 
+export interface EmployeeCheckLead {
+  fullName?: string;
+  headline?: string;
+  company?: string;
+  workExperience?: Array<{
+    company?: string;
+    current?: boolean;
+    end?: string | null;
+    position?: string;
+    [key: string]: unknown;
+  }>;
+}
+
 export function isAuthorEmployeeOrAffiliate(
-  lead: { fullName?: string; headline?: string; company?: string },
+  lead: EmployeeCheckLead,
   targetEntities: string[]
 ): boolean {
   if (!targetEntities.length) return false;
@@ -119,6 +152,7 @@ export function isAuthorEmployeeOrAffiliate(
   for (const target of targetEntities) {
     if (!target || target.trim().length < 2) continue;
     const targetNorm = normalizeText(target);
+    const targetClean = targetNorm.replace(/[^a-z0-9]/g, "");
 
     // 1. Coincidencia directa de empresa
     if (effectiveCompany && companyMatches(effectiveCompany, target)) {
@@ -128,10 +162,37 @@ export function isAuthorEmployeeOrAffiliate(
       return true;
     }
 
-    // 2. Coincidencia textual en el titular / headline del lead (ej: "BDR na Prospectme", "SDR @ Adapta")
+    // 2. Inspección profunda de Experiencia Laboral oficial (LinkedIn work_experience)
+    if (Array.isArray(lead.workExperience) && lead.workExperience.length > 0) {
+      for (const exp of lead.workExperience) {
+        if (!exp) continue;
+        // Puesto actual: current !== false, o cuando end no existe o es "present"
+        const endLower = String(exp.end || "").toLowerCase();
+        const isCurrent = exp.current === true || exp.current !== false && (!exp.end || endLower.includes("present") || endLower.includes("atual"));
+        if (isCurrent && exp.company) {
+          if (companyMatches(exp.company, target)) {
+            return true;
+          }
+        }
+        // Si es el primer puesto del perfil (puesto activo principal reportado en LinkedIn)
+        if (lead.workExperience.indexOf(exp) === 0 && exp.company) {
+          if (companyMatches(exp.company, target)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // 3. Coincidencia textual en el titular / headline del lead (ej: "BDR na Prospectme", "SDR @ Adapta")
     if (targetNorm.length >= 3) {
       if (headlineNorm.includes(targetNorm)) {
         return true;
+      }
+      if (targetClean.length >= 4) {
+        const headlineClean = headlineNorm.replace(/[^a-z0-9]/g, "");
+        if (headlineClean.includes(targetClean)) {
+          return true;
+        }
       }
       const escaped = targetNorm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const boundaryRegex = new RegExp(`(^|[^a-z0-9_])${escaped}([^a-z0-9_]|$)`, "i");
@@ -140,7 +201,7 @@ export function isAuthorEmployeeOrAffiliate(
       }
     }
 
-    // 3. Coincidencia si el lead es el autor mismo del post o la entidad
+    // 4. Coincidencia si el lead es el autor mismo del post o la entidad
     if (nameNorm && targetNorm && (nameNorm.includes(targetNorm) || targetNorm.includes(nameNorm))) {
       if (targetNorm.length >= 4) {
         return true;

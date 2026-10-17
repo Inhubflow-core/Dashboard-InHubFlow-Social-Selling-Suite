@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unipile } from "@/lib/unipile/client";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
+import { isAuthorEmployeeOrAffiliate } from "@/lib/signals/employee-filter";
 
 function isAccountHealthy(acc: any): boolean {
   if (!acc) return false;
@@ -14,18 +15,25 @@ export interface SyncedLeadData {
   location?: string;
   language?: "en" | "es" | "pt";
   headline?: string;
+  isEmployee?: boolean;
 }
 
 /**
  * POST /api/leads/sync-photos
- * Sincroniza y extrae las fotos oficiales, la ubicación geográfica real
- * y recalcula con precisión el idioma del prospecto en LinkedIn.
+ * Sincroniza y extrae las fotos oficiales, la ubicación geográfica real,
+ * audita con el filtro anti-empleados la experiencia laboral real en LinkedIn
+ * y recalcula con precisión el idioma del prospecto.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const targets: Array<{ id: string; linkedinUrl?: string; fullName?: string; competitorName?: string }> =
-      Array.isArray(body.targets) ? body.targets : [];
+    const targets: Array<{
+      id: string;
+      linkedinUrl?: string;
+      fullName?: string;
+      competitorName?: string;
+      listName?: string;
+    }> = Array.isArray(body.targets) ? body.targets : [];
 
     if (targets.length === 0) {
       return NextResponse.json({ updated: {}, syncedCount: 0 });
@@ -87,6 +95,62 @@ export async function POST(req: NextRequest) {
         const effectiveHeadline = profile.headline && profile.headline.trim().length > 1
           ? profile.headline.trim()
           : undefined;
+
+        // Extraer entidades competidoras candidatas para auditoría anti-empleados
+        const candidateTargets = new Set<string>();
+        if (item.competitorName) {
+          let cleanComp = item.competitorName.trim();
+          if (cleanComp.startsWith("Interactuó con ")) {
+            cleanComp = cleanComp.replace("Interactuó con ", "").trim();
+          }
+          if (cleanComp.startsWith("Signal: ")) {
+            cleanComp = cleanComp.replace("Signal: ", "").trim();
+          }
+          if (cleanComp) {
+            candidateTargets.add(cleanComp);
+            candidateTargets.add(cleanComp.replace(/\s+/g, ""));
+            candidateTargets.add(cleanComp.replace(/[\-_]/g, " "));
+          }
+        }
+        if (item.listName) {
+          const m = item.listName.match(/\[Signal\s*N\d+\]\s*([^•|\n]+)/i);
+          if (m?.[1]?.trim()) {
+            const rawTarget = m[1].trim();
+            candidateTargets.add(rawTarget);
+            candidateTargets.add(rawTarget.replace(/\s+/g, ""));
+            candidateTargets.add(rawTarget.replace(/[\-_]/g, " "));
+          }
+        }
+
+        // Inspección profunda de Experiencia Laboral en LinkedIn (work_experience)
+        const workExp = Array.isArray(profile.work_experience)
+          ? profile.work_experience
+          : Array.isArray((profile as any).experience)
+          ? (profile as any).experience
+          : [];
+
+        const currentCompany =
+          (profile as any).company ||
+          workExp.find((exp: any) => exp.current !== false)?.company;
+
+        const isEmployee = candidateTargets.size > 0 && isAuthorEmployeeOrAffiliate(
+          {
+            fullName: item.fullName || (profile.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : undefined),
+            headline: effectiveHeadline,
+            company: currentCompany,
+            workExperience: workExp,
+          },
+          Array.from(candidateTargets)
+        );
+
+        if (isEmployee) {
+          console.log(`[sync-photos] Lead ${item.id} (${item.fullName || item.linkedinUrl}) detectado como empleado interno de ${Array.from(candidateTargets).join(", ")}. Marcando para exclusión.`);
+          updated[item.id] = {
+            isEmployee: true,
+          };
+          syncedCount++;
+          continue;
+        }
 
         const detectedLang = detectLeadLanguage({
           fullName: item.fullName || (profile.first_name ? `${profile.first_name} ${profile.last_name || ""}` : undefined),

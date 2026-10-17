@@ -56,6 +56,7 @@ export default function DynamicListDetailPage() {
           linkedinUrl: l.linkedinUrl,
           fullName: l.fullName,
           competitorName: currentList?.competitorName || l.company || l.signalSource,
+          listName: currentList?.name || l.listName,
         })),
       }),
     })

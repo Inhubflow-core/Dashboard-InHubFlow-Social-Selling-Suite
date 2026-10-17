@@ -50,6 +50,7 @@ export default function LeadsPage() {
           linkedinUrl: l.linkedinUrl,
           fullName: l.fullName,
           competitorName: l.company || l.signalSource,
+          listName: l.listName,
         })),
       }),
     })

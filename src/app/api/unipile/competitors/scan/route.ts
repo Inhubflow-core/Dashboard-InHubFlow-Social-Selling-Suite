@@ -121,10 +121,17 @@ export async function POST(req: NextRequest) {
     );
 
     // Preparar entidades del autor y competidor para el filtro anti-engagement interno
-    const targetEntities = [
-      competitorName,
-      identifier,
-    ].filter((t): t is string => typeof t === "string" && t.trim().length >= 2);
+    const rawEntities = [competitorName, identifier];
+    const targetEntitiesSet = new Set<string>();
+    for (const ent of rawEntities) {
+      if (!ent || typeof ent !== "string" || ent.trim().length < 2) continue;
+      const clean = ent.trim();
+      targetEntitiesSet.add(clean);
+      targetEntitiesSet.add(clean.replace(/\s+/g, ""));
+      targetEntitiesSet.add(clean.replace(/[\-_]/g, " "));
+      targetEntitiesSet.add(clean.replace(/[\-_]/g, ""));
+    }
+    const targetEntities = Array.from(targetEntitiesSet);
 
     let excludedEmployeesCount = 0;
     const leadMap = new Map<string, Record<string, unknown>>();

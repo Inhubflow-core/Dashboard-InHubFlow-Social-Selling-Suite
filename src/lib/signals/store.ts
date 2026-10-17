@@ -87,7 +87,21 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((l: SignalLeadItem) => Boolean(l && l.id && l.fullName));
+    let hadFiltered = false;
+    const cleanLeads = parsed.filter((l: SignalLeadItem) => {
+      if (!l || !l.id || !l.fullName) return false;
+      const urlLower = (l.linkedinUrl || "").toLowerCase();
+      const nameLower = (l.fullName || "").toLowerCase();
+      if (urlLower.includes("davi-magalde") || nameLower.includes("davi magalde")) {
+        hadFiltered = true;
+        return false;
+      }
+      return true;
+    });
+    if (hadFiltered) {
+      localStorage.setItem(LEADS_KEY, JSON.stringify(cleanLeads));
+    }
+    return cleanLeads;
   } catch {
     return [];
   }
