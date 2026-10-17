@@ -234,7 +234,6 @@ export default function LeadsPage() {
                             imageUrl={lead.avatarUrl}
                             name={lead.fullName}
                             size="md"
-                            badge={lead.linkedinUrl ? "linkedin" : null}
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
@@ -348,7 +347,6 @@ export default function LeadsPage() {
                   imageUrl={selectedLeadFor360.avatarUrl}
                   name={selectedLeadFor360.fullName}
                   size="xl"
-                  badge={selectedLeadFor360.linkedinUrl ? "linkedin" : null}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

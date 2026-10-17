@@ -7,7 +7,7 @@ export interface ProspectAvatarProps {
   name?: string | null;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
-  badge?: "linkedin" | "online" | null;
+  badge?: "online" | null;
 }
 
 export function getProspectInitials(name?: string | null): string {
@@ -84,11 +84,6 @@ export default function ProspectAvatar({
 
       {badge === "online" && (
         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-gray-900" />
-      )}
-      {badge === "linkedin" && (
-        <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#0A66C2] text-white flex items-center justify-center text-[8px] font-bold ring-1.5 ring-white dark:ring-gray-900">
-          in
-        </span>
       )}
     </div>
   );
