@@ -400,6 +400,11 @@ export function useLeadsStore() {
     return list;
   };
 
+  const getOrCreateGlobalList = (params: { monitorId: string; searchQuery: string; icpTitles?: string[] }) => {
+    const list = getOrCreateGlobalMonitorList(params);
+    return list;
+  };
+
   return {
     leads,
     lists,
@@ -412,8 +417,11 @@ export function useLeadsStore() {
     importSignalLeads,
     batchUpdateLeadPhotos,
     getOrCreateList,
+    getOrCreateGlobalList,
   };
 }
+
+export const useLeads = useLeadsStore;
 
 export function importSignalLeadsToList(
   targetList: LeadListGroup,
@@ -540,6 +548,40 @@ export function getOrCreateMonitorList(params: {
     createdAt: new Date().toISOString(),
     competitorName: params.competitorName,
     keywords: params.keywords,
+    sourceMonitorId: params.monitorId,
+  };
+
+  const updatedLists = [newList, ...currentLists];
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+  }
+  return newList;
+}
+
+export function getOrCreateGlobalMonitorList(params: {
+  monitorId: string;
+  searchQuery: string;
+  icpTitles?: string[];
+}): LeadListGroup {
+  const currentLists = getStoredLeadLists();
+  const existing = currentLists.find(
+    (l) =>
+      l.sourceMonitorId === params.monitorId ||
+      l.name.toLowerCase().includes(params.searchQuery.toLowerCase())
+  );
+  if (existing) return existing;
+
+  const titles = params.icpTitles?.slice(0, 2).join(", ") || "ICP Decisores";
+  const newList: LeadListGroup = {
+    id: `list-sig-n3-${params.monitorId}`,
+    name: `[Signal N3] ${params.searchQuery.slice(0, 32)} • ${titles}`,
+    description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${params.searchQuery}".`,
+    signalSource: `Debates Globales (${params.searchQuery})`,
+    signalLevel: "level_3",
+    leadsCount: 0,
+    assignedCampaign: "Secuencia de Social Selling",
+    createdAt: new Date().toISOString(),
+    keywords: params.icpTitles,
     sourceMonitorId: params.monitorId,
   };
 
