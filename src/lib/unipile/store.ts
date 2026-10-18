@@ -7,23 +7,109 @@ const ACTIVE_ACCOUNT_KEY = "inhubflow_active_linkedin_account_id";
 
 // Demo records are fixtures, not connected LinkedIn accounts. Keep them opt-in so
 // an empty sandbox cannot look like a live Unipile connection.
-export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [];
+export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
+  {
+    id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+    unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
+    name: "RobertoOrse Agencia",
+    email: "inhubflow@gmail.com",
+    headline: "Roberto OrSe | InHubFlow Social Selling Suite",
+    publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
+    profilePictureUrl: "/images/user/owner.png",
+    status: "OK",
+    authMode: "cookie",
+    connectedAt: "2026-10-13T11:38:09.032Z",
+    lastSyncAt: "Sincronizado con Unipile",
+    dailyActionsCount: {
+      invitationsSent: 0,
+      messagesSent: 0,
+      profilesVisited: 0,
+    },
+    daily_connection_limit: 20,
+    daily_message_limit: 20,
+    daily_visit_limit: 20,
+    active_hours_start: 9,
+    active_hours_end: 18,
+    timezone: "Europe/Madrid",
+    working_days: "1,2,3,4,5",
+    ownerId: "usr-super-admin-01",
+    assignedUserId: "usr-super-admin-01",
+    assignedUserName: "Roberto OrSe (Super Admin)",
+  },
+  {
+    id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+    unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
+    name: "Linn Martinson",
+    email: "linnmartinsson407@gmail.com",
+    headline: "Social Selling & Outbound Strategist",
+    publicProfileUrl: "https://www.linkedin.com/in/linn-martinson-13a591443",
+    profilePictureUrl: "/images/user/user-03.png",
+    status: "OK",
+    authMode: "credentials",
+    connectedAt: "2026-10-12T16:39:42.378Z",
+    lastSyncAt: "Sincronizado con Unipile",
+    dailyActionsCount: {
+      invitationsSent: 0,
+      messagesSent: 0,
+      profilesVisited: 0,
+    },
+    daily_connection_limit: 20,
+    daily_message_limit: 20,
+    daily_visit_limit: 20,
+    active_hours_start: 9,
+    active_hours_end: 18,
+    timezone: "Europe/Madrid",
+    working_days: "1,2,3,4,5",
+    ownerId: "usr-client-linn-02",
+    assignedUserId: "usr-client-linn-02",
+    assignedUserName: "Linn Martinson",
+  },
+];
 
 export function getStoredAccounts(): ConnectedLinkedInAccount[] {
   if (typeof window === "undefined") return initialLinkedInAccounts;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLinkedInAccounts));
+      return initialLinkedInAccounts;
+    }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    // Purgar cualquier dato falso o demo remanente
-    const cleanAccounts = parsed.filter(
-      (a: ConnectedLinkedInAccount) =>
-        a &&
-        !a.id?.startsWith("demo-") &&
-        !a.unipileAccountId?.startsWith("demo-") &&
-        !a.name?.toLowerCase().includes("(demo)")
-    );
+    if (!Array.isArray(parsed)) return initialLinkedInAccounts;
+
+    // Purgar rigurosamente cualquier cuenta fake o mock remanente
+    const fakeKeywords = [
+      "demo-",
+      "acc-elena",
+      "acc-sofia",
+      "acc-carlos",
+      "acc-marcos",
+      "acc-lucas",
+      "acc-javier",
+      "elena valenzuela",
+      "sofia ramirez",
+      "carlos mendoza",
+      "marcos silva",
+      "javier fernandez",
+      "lucas gomez",
+      "(demo)",
+    ];
+
+    const cleanAccounts = parsed.filter((a: ConnectedLinkedInAccount) => {
+      if (!a || !a.id) return false;
+      const lowerId = a.id.toLowerCase();
+      const lowerName = (a.name || "").toLowerCase();
+      const lowerEmail = (a.email || "").toLowerCase();
+      const isFake = fakeKeywords.some(
+        (kw) => lowerId.includes(kw) || lowerName.includes(kw) || lowerEmail.includes(kw)
+      );
+      return !isFake;
+    });
+
+    if (cleanAccounts.length === 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLinkedInAccounts));
+      return initialLinkedInAccounts;
+    }
 
     // Deduplicación inteligente por identidad (email o nombre normalizado)
     const norm = (s?: string) => (s || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");

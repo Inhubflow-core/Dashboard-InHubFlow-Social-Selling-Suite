@@ -26,121 +26,29 @@ export const initialSaaSUsers: SaaSUser[] = [
     planTier: "custom",
     subscriptionStatus: "active",
     avatarUrl: "/images/user/owner.png",
+    assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
     createdAt: "2026-09-01T08:00:00.000Z",
     updatedAt: "2026-10-09T08:00:00.000Z",
   },
   {
-    id: "usr-client-starter-02",
-    email: "carlos@consulting.es",
-    name: "Carlos Mendoza",
+    id: "usr-client-linn-02",
+    email: "linnmartinsson407@gmail.com",
+    name: "Linn Martinson",
     role: "client_admin",
-    companyName: "Mendoza Advisory B2B",
-    slotsLimit: 1,
-    planTier: "starter",
-    subscriptionStatus: "active",
-    avatarUrl: "/images/user/user-02.png",
-    createdAt: "2026-09-15T10:30:00.000Z",
-    updatedAt: "2026-10-05T14:20:00.000Z",
-  },
-  {
-    id: "usr-client-growth-03",
-    email: "elena@agenciagrowth.com",
-    name: "Elena Valenzuela",
-    role: "client_admin",
-    companyName: "Valenzuela Social Agency",
+    companyName: "Martinson Outbound",
     slotsLimit: 5,
     planTier: "growth",
     subscriptionStatus: "active",
     avatarUrl: "/images/user/user-03.png",
-    createdAt: "2026-09-20T11:00:00.000Z",
-    updatedAt: "2026-10-07T09:45:00.000Z",
-  },
-  {
-    id: "usr-client-business-04",
-    email: "marcos@enterprisesales.io",
-    name: "Marcos Silva",
-    role: "client_admin",
-    companyName: "Enterprise Sales Hub",
-    slotsLimit: 10,
-    planTier: "business",
-    subscriptionStatus: "active",
-    avatarUrl: "/images/user/user-04.png",
-    createdAt: "2026-09-28T16:15:00.000Z",
-    updatedAt: "2026-10-08T18:00:00.000Z",
-  },
-  {
-    id: "usr-team-sofia-05",
-    email: "sofia@agenciagrowth.com",
-    name: "Sofia Ramirez (Operador SDR)",
-    role: "member",
-    companyName: "Valenzuela Social Agency",
-    ownerId: "usr-client-growth-03",
-    assignedAccountId: "acc-li-sofia",
-    slotsLimit: 1,
-    planTier: "growth",
-    subscriptionStatus: "active",
-    avatarUrl: "/images/user/user-05.png",
-    createdAt: "2026-09-25T10:00:00.000Z",
-    updatedAt: "2026-10-09T08:00:00.000Z",
-  },
-  {
-    id: "usr-team-javier-06",
-    email: "javier@enterprisesales.io",
-    name: "Javier Fernandez (VP Sales)",
-    role: "member",
-    companyName: "Enterprise Sales Hub",
-    ownerId: "usr-client-business-04",
-    assignedAccountId: "acc-li-javier",
-    slotsLimit: 1,
-    planTier: "business",
-    subscriptionStatus: "active",
-    avatarUrl: "/images/user/user-06.png",
-    createdAt: "2026-10-02T12:00:00.000Z",
-    updatedAt: "2026-10-09T08:00:00.000Z",
+    assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+    createdAt: "2026-10-12T16:39:42.000Z",
+    updatedAt: "2026-10-12T16:39:42.000Z",
   },
 ];
 
-export const initialTeamMembers: TeamMember[] = [
-  {
-    id: "tm-01",
-    name: "Sofia Ramirez",
-    email: "sofia@agenciagrowth.com",
-    role: "member",
-    ownerId: "usr-client-growth-03",
-    assignedAccountId: "acc-li-sofia",
-    accountName: "Sofia Ramirez | SDR",
-    accountEmail: "sofia@agenciagrowth.com",
-    accountAuthenticated: true,
-    createdAt: "2026-09-25T10:00:00.000Z",
-  },
-  {
-    id: "tm-02",
-    name: "Javier Fernandez",
-    email: "javier@enterprisesales.io",
-    role: "admin",
-    ownerId: "usr-client-business-04",
-    assignedAccountId: "acc-li-javier",
-    accountName: "Javier Fernandez | VP Sales",
-    accountEmail: "javier@enterprisesales.io",
-    accountAuthenticated: true,
-    createdAt: "2026-10-02T12:00:00.000Z",
-  },
-];
+export const initialTeamMembers: TeamMember[] = [];
 
-export const initialTeamInvitations: TeamInvitation[] = [
-  {
-    id: "inv-01",
-    email: "lucas@agenciagrowth.com",
-    role: "member",
-    inviteCode: "INV-GROWTH77",
-    ownerId: "usr-client-growth-03",
-    assignedAccountId: null,
-    status: "pending",
-    expiresAt: "2026-10-16T12:00:00.000Z",
-    createdAt: "2026-10-09T08:00:00.000Z",
-    inviteUrl: "https://socialselling.inhubflow.online/invite?code=INV-GROWTH77",
-  },
-];
+export const initialTeamInvitations: TeamInvitation[] = [];
 
 // Listener callbacks for store synchronization
 type Listener = () => void;
@@ -174,17 +82,37 @@ export function getStoredUsers(): SaaSUser[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) return initialSaaSUsers;
 
-    // Sincronizar usuarios base faltantes (como miembros de equipo iniciales)
-    const existingIds = new Set(parsed.map((u: SaaSUser) => u.id));
-    let hasNew = false;
-    const merged = [...parsed];
+    // Purgar rigurosamente usuarios fake de pruebas anteriores
+    const fakeEmails = new Set([
+      "carlos@consulting.es",
+      "elena@agenciagrowth.com",
+      "marcos@enterprisesales.io",
+      "sofia@agenciagrowth.com",
+      "javier@enterprisesales.io",
+      "lucas@agenciagrowth.com",
+    ]);
+    const fakeIds = new Set([
+      "usr-client-starter-02",
+      "usr-client-growth-03",
+      "usr-client-business-04",
+      "usr-team-sofia-05",
+      "usr-team-javier-06",
+    ]);
+
+    const cleanUsers = parsed.filter(
+      (u: SaaSUser) => !fakeEmails.has(u.email?.toLowerCase()) && !fakeIds.has(u.id)
+    );
+
+    // Asegurar que los dos usuarios conectados reales estén presentes
+    const existingIds = new Set(cleanUsers.map((u: SaaSUser) => u.id));
+    const merged = [...cleanUsers];
     for (const initUser of initialSaaSUsers) {
       if (!existingIds.has(initUser.id)) {
         merged.push(initUser);
-        hasNew = true;
       }
     }
-    if (hasNew) {
+
+    if (merged.length !== parsed.length) {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
     }
     return merged;
@@ -207,10 +135,19 @@ export function getCurrentUserId(): string {
   if (typeof window === "undefined") return initialSaaSUsers[0].id;
   try {
     const saved = localStorage.getItem(CURRENT_USER_ID_KEY);
-    if (saved) return saved;
-    const defaultId = initialSaaSUsers[0].id; // Roberto OrSe (Super Admin)
-    localStorage.setItem(CURRENT_USER_ID_KEY, defaultId);
-    return defaultId;
+    const fakeIds = new Set([
+      "usr-client-starter-02",
+      "usr-client-growth-03",
+      "usr-client-business-04",
+      "usr-team-sofia-05",
+      "usr-team-javier-06",
+    ]);
+    if (!saved || fakeIds.has(saved)) {
+      const defaultId = initialSaaSUsers[0].id; // Roberto OrSe (Super Admin)
+      localStorage.setItem(CURRENT_USER_ID_KEY, defaultId);
+      return defaultId;
+    }
+    return saved;
   } catch {
     return initialSaaSUsers[0].id;
   }
@@ -445,14 +382,28 @@ export function getStoredTeamMembers(ownerId?: string): TeamMember[] {
   if (typeof window === "undefined") return initialTeamMembers;
   try {
     const raw = localStorage.getItem(TEAM_MEMBERS_KEY);
-    const members = raw ? JSON.parse(raw) : initialTeamMembers;
+    if (!raw) return [];
+    const members = JSON.parse(raw);
+    if (!Array.isArray(members)) return [];
+
+    const fakeKeywords = ["sofia", "javier", "lucas", "tm-01", "tm-02", "agenciagrowth", "enterprisesales"];
+    const cleanMembers = members.filter((m: TeamMember) => {
+      if (!m || !m.id) return false;
+      const lower = `${m.id} ${m.name || ""} ${m.email || ""}`.toLowerCase();
+      return !fakeKeywords.some((kw) => lower.includes(kw));
+    });
+
+    if (cleanMembers.length !== members.length) {
+      localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify(cleanMembers));
+    }
+
     const targetOwner = ownerId || getCurrentUserId();
     const currentUser = getCurrentUser();
 
     if (currentUser.role === "super_admin") {
-      return members;
+      return cleanMembers;
     }
-    return members.filter((m: TeamMember) => m.ownerId === targetOwner);
+    return cleanMembers.filter((m: TeamMember) => m.ownerId === targetOwner);
   } catch {
     return initialTeamMembers;
   }
@@ -530,14 +481,28 @@ export function getStoredTeamInvitations(ownerId?: string): TeamInvitation[] {
   if (typeof window === "undefined") return initialTeamInvitations;
   try {
     const raw = localStorage.getItem(TEAM_INVITATIONS_KEY);
-    const invites = raw ? JSON.parse(raw) : initialTeamInvitations;
+    if (!raw) return [];
+    const invites = JSON.parse(raw);
+    if (!Array.isArray(invites)) return [];
+
+    const fakeKeywords = ["lucas", "inv-01", "agenciagrowth"];
+    const cleanInvites = invites.filter((i: TeamInvitation) => {
+      if (!i || !i.id) return false;
+      const lower = `${i.id} ${i.email || ""}`.toLowerCase();
+      return !fakeKeywords.some((kw) => lower.includes(kw));
+    });
+
+    if (cleanInvites.length !== invites.length) {
+      localStorage.setItem(TEAM_INVITATIONS_KEY, JSON.stringify(cleanInvites));
+    }
+
     const targetOwner = ownerId || getCurrentUserId();
     const currentUser = getCurrentUser();
 
     if (currentUser.role === "super_admin") {
-      return invites;
+      return cleanInvites;
     }
-    return invites.filter((i: TeamInvitation) => i.ownerId === targetOwner);
+    return cleanInvites.filter((i: TeamInvitation) => i.ownerId === targetOwner);
   } catch {
     return initialTeamInvitations;
   }
