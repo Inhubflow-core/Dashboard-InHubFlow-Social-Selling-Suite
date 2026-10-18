@@ -823,17 +823,6 @@ export default function GlobalSignalsPage() {
                           Ver Leads ({leadsCount})
                         </button>
 
-                        {/* Botón Enlace al Directorio de Leads */}
-                        {targetList && (
-                          <Link
-                            href={`/leads/lists/${targetList.id}`}
-                            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-xs inline-flex items-center gap-1"
-                            title="Abrir la lista dinámica de esta regla en el Directorio de Leads"
-                          >
-                            <span>Lista CRM</span>
-                            <span className="text-[10px]">↗</span>
-                          </Link>
-                        )}
 
                         {/* Botón Eliminar */}
                         <button
