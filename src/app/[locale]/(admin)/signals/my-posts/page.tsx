@@ -699,7 +699,6 @@ export default function MyPostsSignalRadarPage() {
                 <tr>
                   <th className="px-4 py-3 min-w-[240px]">Publicación / Lead Magnet</th>
                   <th className="px-4 py-3 whitespace-nowrap">Palabra Clave</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Comentarios</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
                   <th className="px-4 py-3 whitespace-nowrap">Última Detección</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
@@ -734,10 +733,6 @@ export default function MyPostsSignalRadarPage() {
                       <span className="rounded bg-brand-50 px-2.5 py-1 font-mono font-bold text-xs text-brand-600 dark:bg-brand-950 dark:text-brand-300">
                         {mon.keyword}
                       </span>
-                    </td>
-
-                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-700 dark:text-gray-300 font-medium">
-                      {mon.scannedCommentsCount}
                     </td>
 
                     <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
