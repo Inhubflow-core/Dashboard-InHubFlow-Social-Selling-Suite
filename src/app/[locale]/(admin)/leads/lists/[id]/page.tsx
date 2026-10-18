@@ -87,12 +87,14 @@ export default function DynamicListDetailPage() {
     if (!currentList) return [];
     return leads.filter((l) => {
       const matchesDirect = l.listId === currentList.id;
+      const targetComp = currentList.competitorName ? currentList.competitorName.trim().toLowerCase() : null;
+      const matchesMonitor = Boolean(currentList.sourceMonitorId && (l as any).monitorId === currentList.sourceMonitorId);
       const matchesCompetitor =
-        currentList.competitorName &&
-        (l.company?.toLowerCase().includes(currentList.competitorName.toLowerCase()) ||
-          l.signalSource?.toLowerCase().includes(currentList.competitorName.toLowerCase()));
+        targetComp &&
+        ((l.company && l.company.trim().toLowerCase() === targetComp) ||
+          (l.signalSource && l.signalSource.trim().toLowerCase() === `signal: ${targetComp}`));
 
-      const inList = matchesDirect || Boolean(matchesCompetitor);
+      const inList = matchesDirect || matchesMonitor || Boolean(matchesCompetitor);
       if (!inList) return false;
 
       const matchesSearch =

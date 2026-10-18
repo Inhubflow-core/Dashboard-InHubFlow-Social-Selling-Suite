@@ -182,52 +182,218 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
   try {
     let currentLeads = getStoredLeads();
     let currentLists = getStoredLeadLists();
-
-    const rawSignals = localStorage.getItem("inhubflow_signals_leads");
-    if (!rawSignals) return { leads: currentLeads, lists: currentLists };
-    const signalLeads: SignalLeadItem[] = JSON.parse(rawSignals);
-    if (!Array.isArray(signalLeads) || signalLeads.length === 0) {
-      return { leads: currentLeads, lists: currentLists };
-    }
-
     let modified = false;
-    for (const sLead of signalLeads) {
-      if (!sLead || !sLead.fullName) continue;
 
-      const exists = currentLeads.some(
-        (l) =>
-          (sLead.linkedinUrl && l.linkedinUrl === sLead.linkedinUrl) ||
-          (l.fullName && sLead.fullName && l.fullName.toLowerCase() === sLead.fullName.toLowerCase())
-      );
-      if (exists) continue;
-
-      const compName = sLead.sourceAuthorName || "Competidor";
-      let targetList = currentLists.find(
-        (lg) =>
-          (sLead.monitorId && lg.sourceMonitorId === sLead.monitorId) ||
-          (lg.competitorName && lg.competitorName.toLowerCase() === compName.toLowerCase()) ||
-          lg.name.toLowerCase().includes(compName.toLowerCase())
-      );
-
-      if (!targetList) {
-        targetList = getOrCreateMonitorList({
-          monitorId: sLead.monitorId || `mon-${Date.now()}`,
-          competitorName: compName,
-          keywords: ["leads B2B"],
-        });
-        currentLists = getStoredLeadLists();
+    // 1. Sincronizar monitores N2 existentes desde inhubflow_signals_l2
+    const rawL2 = localStorage.getItem("inhubflow_signals_l2");
+    const l2MonitorsMap = new Map<string, any>();
+    if (rawL2) {
+      try {
+        const l2Monitors = JSON.parse(rawL2);
+        if (Array.isArray(l2Monitors)) {
+          for (const mon of l2Monitors) {
+            if (!mon || !mon.competitorName) continue;
+            l2MonitorsMap.set(mon.id, mon);
+            const targetComp = mon.competitorName.trim().toLowerCase();
+            let existingList = currentLists.find(
+              (l) =>
+                l.sourceMonitorId === mon.id ||
+                (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+                l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
+            );
+            if (!existingList) {
+              const kw = mon.keywordsFilter?.slice(0, 2).join(", ") || "leads B2B";
+              existingList = {
+                id: `list-sig-n2-${mon.id}`,
+                name: `[Signal N2] ${mon.competitorName} • ${kw}`,
+                description: `Lista inteligente auto-alimentada por interacciones en publicaciones de ${mon.competitorName}.`,
+                signalSource: "Competitor Posts (Nivel 2)",
+                signalLevel: "level_2",
+                leadsCount: mon.leadsIdentifiedCount || 0,
+                assignedCampaign: "Secuencia de Social Selling",
+                createdAt: mon.createdAt || new Date().toISOString(),
+                competitorName: mon.competitorName,
+                keywords: mon.keywordsFilter,
+                sourceMonitorId: mon.id,
+              };
+              currentLists = [existingList, ...currentLists];
+              modified = true;
+            } else {
+              let listUpdated = false;
+              if (!existingList.sourceMonitorId) {
+                existingList.sourceMonitorId = mon.id;
+                listUpdated = true;
+              }
+              if (!existingList.competitorName) {
+                existingList.competitorName = mon.competitorName;
+                listUpdated = true;
+              }
+              if (listUpdated) modified = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error sincronizando monitores L2:", e);
       }
-
-      importSignalLeadsToList(targetList, [sLead]);
-      modified = true;
     }
 
+    // 2. Sincronizar monitores N3 existentes desde inhubflow_signals_l3
+    const rawL3 = localStorage.getItem("inhubflow_signals_l3");
+    if (rawL3) {
+      try {
+        const l3Monitors = JSON.parse(rawL3);
+        if (Array.isArray(l3Monitors)) {
+          for (const mon of l3Monitors) {
+            if (!mon || !mon.searchQuery) continue;
+            const targetQuery = mon.searchQuery.trim().toLowerCase();
+            let existingList = currentLists.find(
+              (l) =>
+                l.sourceMonitorId === mon.id ||
+                l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
+            );
+            if (!existingList) {
+              const locLabel = mon.targetCountryFlag && mon.targetCountryName 
+                ? `${mon.targetCountryFlag} ${mon.targetCountryName}` 
+                : mon.targetCountryName || "Global";
+              existingList = {
+                id: `list-sig-n3-${mon.id}`,
+                name: `[Signal N3] ${mon.searchQuery.slice(0, 32)} • ${locLabel}`,
+                description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${mon.searchQuery}" (${locLabel}).`,
+                signalSource: `Debates Globales (${mon.searchQuery})`,
+                signalLevel: "level_3",
+                leadsCount: mon.leadsIdentifiedCount || 0,
+                assignedCampaign: "Secuencia de Social Selling",
+                createdAt: mon.createdAt || new Date().toISOString(),
+                keywords: [mon.searchQuery, locLabel],
+                sourceMonitorId: mon.id,
+              };
+              currentLists = [existingList, ...currentLists];
+              modified = true;
+            } else if (!existingList.sourceMonitorId) {
+              existingList.sourceMonitorId = mon.id;
+              modified = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error sincronizando monitores L3:", e);
+      }
+    }
+
+    // 3. Sincronizar monitores N1 existentes desde inhubflow_signals_l1
+    const rawL1 = localStorage.getItem("inhubflow_signals_l1");
+    if (rawL1) {
+      try {
+        const l1Monitors = JSON.parse(rawL1);
+        if (Array.isArray(l1Monitors)) {
+          for (const mon of l1Monitors) {
+            if (!mon || !mon.postTitle) continue;
+            let existingList = currentLists.find(
+              (l) => l.sourceMonitorId === mon.id || (mon.keyword && l.name.includes(mon.keyword))
+            );
+            if (!existingList) {
+              existingList = {
+                id: `list-sig-n1-${mon.id}`,
+                name: `[Signal N1] ${mon.postTitle.slice(0, 24)}... • Keyword: ${mon.keyword}`,
+                description: `Lista inteligente de prospectos que comentaron "${mon.keyword}" en tu publicación.`,
+                signalSource: "Mis Posts (Nivel 1)",
+                signalLevel: "level_1",
+                leadsCount: mon.leadsCapturedCount || 0,
+                assignedCampaign: "Secuencia Lead Magnet Automatizada (Nivel 1)",
+                createdAt: mon.createdAt || new Date().toISOString(),
+                keywords: [mon.keyword],
+                sourceMonitorId: mon.id,
+              };
+              currentLists = [existingList, ...currentLists];
+              modified = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error sincronizando monitores L1:", e);
+      }
+    }
+
+    // 4. Sincronizar leads de señales descubiertos
+    const rawSignals = localStorage.getItem("inhubflow_signals_leads");
+    if (rawSignals) {
+      try {
+        const signalLeads: SignalLeadItem[] = JSON.parse(rawSignals);
+        if (Array.isArray(signalLeads) && signalLeads.length > 0) {
+          for (const sLead of signalLeads) {
+            if (!sLead || !sLead.fullName) continue;
+
+            const compName = sLead.sourceAuthorName || (sLead.monitorId && l2MonitorsMap.get(sLead.monitorId)?.competitorName) || "";
+            const targetComp = compName ? compName.trim().toLowerCase() : "";
+
+            let targetList = currentLists.find(
+              (lg) =>
+                (sLead.monitorId && lg.sourceMonitorId === sLead.monitorId) ||
+                (targetComp && lg.competitorName && lg.competitorName.trim().toLowerCase() === targetComp) ||
+                (targetComp && lg.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`))
+            );
+
+            if (!targetList && compName) {
+              targetList = getOrCreateMonitorList({
+                monitorId: sLead.monitorId || `mon-${Date.now()}`,
+                competitorName: compName,
+                keywords: ["leads B2B"],
+              });
+              currentLists = getStoredLeadLists();
+              modified = true;
+            }
+
+            if (targetList) {
+              const alreadyInList = currentLeads.some(
+                (l) =>
+                  (sLead.linkedinUrl && l.linkedinUrl === sLead.linkedinUrl && l.listId === targetList?.id) ||
+                  (l.fullName.toLowerCase() === sLead.fullName.toLowerCase() && l.listId === targetList?.id)
+              );
+              if (!alreadyInList) {
+                importSignalLeadsToList(targetList, [sLead]);
+                modified = true;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error procesando signal leads:", e);
+      }
+    }
+
+    // 5. Recalibrar contadores exactos para cada lista
     if (modified) {
       currentLeads = getStoredLeads();
       currentLists = getStoredLeadLists();
     }
 
-    return { leads: currentLeads, lists: currentLists };
+    const recalibratedLists = currentLists.map((lg) => {
+      const targetComp = lg.competitorName ? lg.competitorName.trim().toLowerCase() : null;
+      const countInLeads = currentLeads.filter(
+        (l) =>
+          l.listId === lg.id ||
+          (lg.sourceMonitorId && (l as any).monitorId === lg.sourceMonitorId) ||
+          (targetComp && (
+            (l.company && l.company.trim().toLowerCase() === targetComp) ||
+            (l.signalSource && l.signalSource.trim().toLowerCase() === `signal: ${targetComp}`)
+          ))
+      ).length;
+
+      // Usar el mayor entre los leads concretos en store y el conteo reportado por el monitor
+      let monitorCount = 0;
+      if (lg.sourceMonitorId && l2MonitorsMap.has(lg.sourceMonitorId)) {
+        monitorCount = l2MonitorsMap.get(lg.sourceMonitorId)?.leadsIdentifiedCount || 0;
+      }
+      const finalCount = Math.max(countInLeads, monitorCount, lg.leadsCount || 0);
+
+      return {
+        ...lg,
+        leadsCount: finalCount,
+      };
+    });
+
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibratedLists));
+    return { leads: currentLeads, lists: recalibratedLists };
   } catch (err) {
     console.error("Error al sincronizar señales a CRM:", err);
     return { leads: getStoredLeads(), lists: getStoredLeadLists() };
@@ -397,6 +563,7 @@ export function useLeadsStore() {
 
   const getOrCreateList = (params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
     const list = getOrCreateMonitorList(params);
+    setLists(getStoredLeadLists());
     return list;
   };
 
@@ -408,6 +575,7 @@ export function useLeadsStore() {
     icpTitles?: string[];
   }) => {
     const list = getOrCreateGlobalMonitorList(params);
+    setLists(getStoredLeadLists());
     return list;
   };
 
@@ -502,19 +670,21 @@ export function importSignalLeadsToList(
   localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
 
   // 3. Contar de manera exacta los leads reales que pertenecen a esta lista
+  const targetComp = targetList.competitorName ? targetList.competitorName.trim().toLowerCase() : null;
   const actualCountInStore = updatedLeads.filter(
     (l) =>
       l.listId === targetList.id ||
-      (targetList.competitorName && (
-        l.company?.toLowerCase().includes(targetList.competitorName.toLowerCase()) ||
-        l.signalSource?.toLowerCase().includes(targetList.competitorName.toLowerCase())
+      (targetList.sourceMonitorId && (l as any).monitorId === targetList.sourceMonitorId) ||
+      (targetComp && (
+        (l.company && l.company.trim().toLowerCase() === targetComp) ||
+        (l.signalSource && l.signalSource.trim().toLowerCase() === `signal: ${targetComp}`)
       ))
   ).length;
 
   const existingListIndex = currentLists.findIndex((lg) => lg.id === targetList.id);
   const updatedList: LeadListGroup = {
     ...targetList,
-    leadsCount: actualCountInStore,
+    leadsCount: Math.max(actualCountInStore, targetList.leadsCount || 0),
   };
 
   let updatedLists: LeadListGroup[];
@@ -534,11 +704,12 @@ export function getOrCreateMonitorList(params: {
   keywords?: string[];
 }): LeadListGroup {
   const currentLists = getStoredLeadLists();
+  const targetComp = params.competitorName.trim().toLowerCase();
   const existing = currentLists.find(
     (l) =>
       l.sourceMonitorId === params.monitorId ||
-      (l.competitorName && l.competitorName.toLowerCase() === params.competitorName.toLowerCase()) ||
-      l.name.toLowerCase().includes(params.competitorName.toLowerCase())
+      (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+      l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
   );
   if (existing) return existing;
 
@@ -572,10 +743,11 @@ export function getOrCreateGlobalMonitorList(params: {
   icpTitles?: string[];
 }): LeadListGroup {
   const currentLists = getStoredLeadLists();
+  const targetQuery = params.searchQuery.trim().toLowerCase();
   const existing = currentLists.find(
     (l) =>
       l.sourceMonitorId === params.monitorId ||
-      l.name.toLowerCase().includes(params.searchQuery.toLowerCase())
+      l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
   );
   if (existing) return existing;
 

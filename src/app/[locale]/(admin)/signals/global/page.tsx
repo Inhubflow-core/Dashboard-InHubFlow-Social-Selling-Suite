@@ -342,10 +342,11 @@ export default function GlobalSignalsPage() {
   };
 
   const getListForRule = (rule: Level3GlobalMonitor) => {
+    const targetQuery = rule.searchQuery.trim().toLowerCase();
     return lists.find(
       (l: any) =>
         l.sourceMonitorId === rule.id ||
-        l.name.toLowerCase().includes(rule.searchQuery.toLowerCase())
+        l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
     );
   };
 

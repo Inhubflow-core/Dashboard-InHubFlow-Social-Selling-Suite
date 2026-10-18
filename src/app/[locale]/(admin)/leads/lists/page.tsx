@@ -23,10 +23,11 @@ export default function SignalListsPage() {
       if (lId) setHighlightedListId(lId);
       let found = lists.find((l) => l.id === lId || l.sourceMonitorId === lId);
       if (!found && competitorParam) {
+        const targetComp = competitorParam.trim().toLowerCase();
         found = lists.find(
           (l) =>
-            (l.competitorName && l.competitorName.toLowerCase() === competitorParam.toLowerCase()) ||
-            l.name.toLowerCase().includes(competitorParam.toLowerCase())
+            (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+            l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
         );
       }
       if (found) {
@@ -74,12 +75,14 @@ export default function SignalListsPage() {
   };
 
   const getRealLeadsCount = (list: LeadListGroup) => {
+    const targetComp = list.competitorName ? list.competitorName.trim().toLowerCase() : null;
     const matching = leads.filter(
       (l) =>
         l.listId === list.id ||
-        (list.competitorName && (
-          l.company?.toLowerCase().includes(list.competitorName.toLowerCase()) ||
-          l.signalSource?.toLowerCase().includes(list.competitorName.toLowerCase())
+        (list.sourceMonitorId && (l as any).monitorId === list.sourceMonitorId) ||
+        (targetComp && (
+          (l.company && l.company.trim().toLowerCase() === targetComp) ||
+          (l.signalSource && l.signalSource.trim().toLowerCase() === `signal: ${targetComp}`)
         ))
     );
     return matching.length > 0 ? matching.length : list.leadsCount;

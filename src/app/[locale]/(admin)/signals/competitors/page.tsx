@@ -97,21 +97,21 @@ export default function CompetitorsSignalRadarPage() {
     hasAutoSyncedRef.current = true;
 
     for (const comp of l2Monitors) {
+      const targetList = getOrCreateList({
+        monitorId: comp.id,
+        competitorName: comp.competitorName,
+        keywords: comp.keywordsFilter,
+      });
       const compLeads = leads.filter(
         (l) =>
           l.monitorId === comp.id ||
           (comp.competitorName && l.sourceAuthorName?.toLowerCase() === comp.competitorName.toLowerCase())
       );
       if (compLeads.length > 0) {
-        const targetList = getOrCreateMonitorList({
-          monitorId: comp.id,
-          competitorName: comp.competitorName,
-          keywords: comp.keywordsFilter,
-        });
         importSignalLeads(targetList, compLeads);
       }
     }
-  }, [isLoaded, l2Monitors, leads, importSignalLeads]);
+  }, [isLoaded, l2Monitors, leads, getOrCreateList, importSignalLeads]);
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");
@@ -274,9 +274,10 @@ export default function CompetitorsSignalRadarPage() {
       const newLeadsToAdd: SignalLeadItem[] = (data.items || []).map((lead: any, idx: number) => ({
         id: `sig-lead-c-${Date.now()}-${idx}`,
         monitorId: comp.id,
+        sourceAuthorName: comp.competitorName,
         fullName: lead.fullName,
         headline: lead.headline || "Profesional en LinkedIn",
-        company: lead.company || "",
+        company: lead.company || comp.competitorName,
         location: lead.location || "",
         linkedinUrl: lead.linkedinUrl || "",
         avatarUrl: lead.avatarUrl,
@@ -980,11 +981,12 @@ export default function CompetitorsSignalRadarPage() {
 
                       {/* Botón Ver Lista Directa */}
                       {(() => {
+                        const targetComp = comp.competitorName.trim().toLowerCase();
                         const targetList = allLeadLists.find(
                           (l) =>
                             l.sourceMonitorId === comp.id ||
-                            (l.competitorName && l.competitorName.toLowerCase() === comp.competitorName.toLowerCase()) ||
-                            l.name.toLowerCase().includes(comp.competitorName.toLowerCase())
+                            (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+                            l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
                         );
                         const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
                         const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
