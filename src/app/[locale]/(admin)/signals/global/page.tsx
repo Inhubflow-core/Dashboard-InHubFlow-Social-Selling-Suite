@@ -697,15 +697,15 @@ export default function GlobalSignalsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="pb-3">Tema / Palabra Clave</th>
-                  <th className="pb-3">País Objetivo</th>
-                  <th className="pb-3">Participantes</th>
-                  <th className="pb-3">Leads Extraídos</th>
-                  <th className="pb-3">Último Escaneo</th>
-                  <th className="pb-3">Estado</th>
-                  <th className="pb-3 text-right">Acciones</th>
+                  <th className="px-4 py-3 min-w-[240px]">Tema / Palabra Clave</th>
+                  <th className="px-4 py-3 whitespace-nowrap">País Objetivo</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Participantes</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -719,7 +719,7 @@ export default function GlobalSignalsPage() {
 
                   return (
                     <tr key={rule.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                      <td className="py-4">
+                      <td className="px-4 py-3.5">
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {rule.searchQuery}
                         </p>
@@ -741,14 +741,14 @@ export default function GlobalSignalsPage() {
                         </div>
                       </td>
 
-                      <td className="py-4">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 py-1 text-xs font-medium text-gray-800 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-200">
                           <span className="text-sm">{countryFlag}</span>
                           <span>{countryName}</span>
                         </span>
                       </td>
 
-                      <td className="py-4">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           {hasComments && (
                             <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
@@ -763,7 +763,7 @@ export default function GlobalSignalsPage() {
                         </div>
                       </td>
 
-                      <td className="py-4 font-bold text-brand-600 dark:text-brand-400">
+                      <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
                         {leadsCount > 0 ? (
                           <Link
                             href={targetList ? `/leads/lists/${targetList.id}` : "/leads"}
@@ -777,11 +777,11 @@ export default function GlobalSignalsPage() {
                         )}
                       </td>
 
-                      <td className="py-4 text-gray-500 dark:text-gray-400">
+                      <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
                         {rule.lastScanAt}
                       </td>
 
-                      <td className="py-4">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => toggleLevel3Status(rule.id)}
@@ -795,7 +795,7 @@ export default function GlobalSignalsPage() {
                         </button>
                       </td>
 
-                      <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
                         {/* Botón Escanear Tendencias */}
                         <button
                           type="button"

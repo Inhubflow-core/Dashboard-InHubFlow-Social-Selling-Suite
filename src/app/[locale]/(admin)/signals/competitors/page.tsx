@@ -848,15 +848,15 @@ export default function CompetitorsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="pb-3">Cuenta Objetivo</th>
-                  <th className="pb-3">Palabras Clave de Filtrado</th>
-                  <th className="pb-3">Tipos de Interaccion</th>
-                  <th className="pb-3">Leads Extraidos</th>
-                  <th className="pb-3">Ultimo Escaneo</th>
-                  <th className="pb-3">Estado</th>
-                  <th className="pb-3 text-right">Acciones</th>
+                  <th className="px-4 py-3 min-w-[240px]">Cuenta Objetivo</th>
+                  <th className="px-4 py-3 min-w-[180px]">Palabras Clave</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Interacción</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -864,7 +864,7 @@ export default function CompetitorsSignalRadarPage() {
                   const isPerson = comp.competitorType === "person" || comp.competitorUrl.includes("/in/");
                   return (
                     <tr key={comp.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                      <td className="py-4">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
                           {comp.logoUrl ? (
                             <img
@@ -925,7 +925,7 @@ export default function CompetitorsSignalRadarPage() {
                       </td>
 
 
-                    <td className="py-4">
+                    <td className="px-4 py-3.5">
                       <div className="flex flex-wrap gap-1">
                         {comp.keywordsFilter.map((kw, i) => (
                           <span
@@ -938,19 +938,19 @@ export default function CompetitorsSignalRadarPage() {
                       </div>
                     </td>
 
-                    <td className="py-4 text-gray-600 dark:text-gray-400 text-xs">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-600 dark:text-gray-400 text-xs">
                       {comp.interactionTypes.join(" + ")}
                     </td>
 
-                    <td className="py-4 font-bold text-brand-600 dark:text-brand-400">
+                    <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
                       {comp.leadsIdentifiedCount} leads
                     </td>
 
-                    <td className="py-4 text-gray-500 dark:text-gray-400">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {comp.lastScanAt}
                     </td>
 
-                    <td className="py-4">
+                    <td className="px-4 py-3.5 whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => toggleLevel2Status(comp.id)}
@@ -964,7 +964,7 @@ export default function CompetitorsSignalRadarPage() {
                       </button>
                     </td>
 
-                    <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
+                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
                       {/* Botón de Auditoría en Vivo */}
                       <button
                         type="button"

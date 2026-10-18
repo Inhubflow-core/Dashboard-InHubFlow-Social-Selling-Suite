@@ -695,21 +695,21 @@ export default function MyPostsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="pb-3">Publicacion / Lead Magnet</th>
-                  <th className="pb-3">Palabra Clave</th>
-                  <th className="pb-3">Comentarios</th>
-                  <th className="pb-3">Leads Captados</th>
-                  <th className="pb-3">Ultima Deteccion</th>
-                  <th className="pb-3">Estado</th>
-                  <th className="pb-3 text-right">Acciones</th>
+                  <th className="px-4 py-3 min-w-[240px]">Publicación / Lead Magnet</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Palabra Clave</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Comentarios</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Última Detección</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
                 {l1Monitors.map((mon) => (
                   <tr key={mon.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                    <td className="py-4 max-w-xs">
+                    <td className="px-4 py-3.5 max-w-xs">
                       <p className="font-semibold text-gray-900 dark:text-white truncate">
                         {mon.postTitle}
                       </p>
@@ -730,25 +730,25 @@ export default function MyPostsSignalRadarPage() {
                       )}
                     </td>
 
-                    <td className="py-4">
+                    <td className="px-4 py-3.5 whitespace-nowrap">
                       <span className="rounded bg-brand-50 px-2.5 py-1 font-mono font-bold text-xs text-brand-600 dark:bg-brand-950 dark:text-brand-300">
                         {mon.keyword}
                       </span>
                     </td>
 
-                    <td className="py-4 text-gray-700 dark:text-gray-300 font-medium">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-700 dark:text-gray-300 font-medium">
                       {mon.scannedCommentsCount}
                     </td>
 
-                    <td className="py-4 font-bold text-brand-600 dark:text-brand-400">
+                    <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
                       {mon.leadsCapturedCount} leads
                     </td>
 
-                    <td className="py-4 text-gray-500 dark:text-gray-400">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {mon.lastScanAt}
                     </td>
 
-                    <td className="py-4">
+                    <td className="px-4 py-3.5 whitespace-nowrap">
                       {mon.status === "pending_publish" ? (
                         <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-[11px] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                           ⏳ En Espera
@@ -768,7 +768,7 @@ export default function MyPostsSignalRadarPage() {
                       )}
                     </td>
 
-                    <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
+                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
                       {/* Botón de Escaneo o Vincular URL si está en espera */}
                       {mon.status === "pending_publish" ? (
                         <button
