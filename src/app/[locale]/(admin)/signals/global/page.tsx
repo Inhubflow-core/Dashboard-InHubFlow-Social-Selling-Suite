@@ -8,7 +8,7 @@ import { useSignalRadar } from "@/lib/signals/store";
 import type { ConnectionDegree, IntentLevel, Level3GlobalMonitor, SignalLeadItem } from "@/lib/signals/types";
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export interface CountryOption {

@@ -21,6 +21,7 @@ export default function LanguageSwitcher() {
   useClickOutside(containerRef, () => setIsOpen(false));
 
   const handleSelectLanguage = (nextLocale: Locale) => {
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
     router.replace(pathname, { locale: nextLocale });
     router.refresh();
     setIsOpen(false);
