@@ -700,7 +700,7 @@ export default function MyPostsSignalRadarPage() {
                   <th className="px-4 py-3 min-w-[240px]">Publicación / Lead Magnet</th>
                   <th className="px-4 py-3 whitespace-nowrap">Palabra Clave</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Última Detección</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
                   <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
                 </tr>
