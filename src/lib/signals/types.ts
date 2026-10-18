@@ -64,8 +64,13 @@ export interface Level2CompetitorMonitor {
 export interface Level3GlobalMonitor {
   id: string;
   searchQuery: string; // ej. "Prospeccion en frio B2B"
-  icpTitles: string[]; // ej. ["CEO", "Founder", "VP Sales"]
-  locations: string[]; // ej. ["España", "Mexico", "Colombia"]
+  icpTitles?: string[]; // opcional / retrocompatible
+  locations: string[]; // ej. ["España"] o ["all"]
+  targetCountry?: string; // ej. "ES" | "BR" | "MX" | "all"
+  targetCountryName?: string; // ej. "España"
+  targetCountryFlag?: string; // ej. "🇪🇸"
+  timePeriod?: "past_24h" | "past_week" | "past_month";
+  interactionTypes?: ("comments" | "likes")[];
   minPostReactions: number;
   status: MonitorStatus;
   leadsIdentifiedCount: number;

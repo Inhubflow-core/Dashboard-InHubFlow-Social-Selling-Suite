@@ -9,7 +9,114 @@ import type { ConnectionDegree, IntentLevel, Level3GlobalMonitor, SignalLeadItem
 import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+export interface CountryOption {
+  code: string;
+  name: string;
+  flag: string;
+  keywords: string[];
+}
+
+export const COUNTRY_OPTIONS: CountryOption[] = [
+  { code: "all", name: "Global (Cualquier país)", flag: "🌎", keywords: [] },
+  {
+    code: "latam",
+    name: "Todo Hispanoamérica / LATAM",
+    flag: "🌎",
+    keywords: ["latam", "hispanoamérica", "latinoamérica", "mexico", "méxico", "colombia", "argentina", "chile", "peru", "perú", "uruguay", "ecuador", "panama", "costa rica", "guatemala"],
+  },
+  {
+    code: "BR",
+    name: "Brasil",
+    flag: "🇧🇷",
+    keywords: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte", "porto alegre", "campinas", "florianópolis"],
+  },
+  {
+    code: "ES",
+    name: "España",
+    flag: "🇪🇸",
+    keywords: ["españa", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "málaga", "zaragoza"],
+  },
+  {
+    code: "MX",
+    name: "México",
+    flag: "🇲🇽",
+    keywords: ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "puebla", "querétaro"],
+  },
+  {
+    code: "CO",
+    name: "Colombia",
+    flag: "🇨🇴",
+    keywords: ["colombia", "bogotá", "bogota", "medellín", "medellin", "cali", "barranquilla"],
+  },
+  {
+    code: "AR",
+    name: "Argentina",
+    flag: "🇦🇷",
+    keywords: ["argentina", "buenos aires", "córdoba", "cordoba", "rosario", "mendoza"],
+  },
+  {
+    code: "CL",
+    name: "Chile",
+    flag: "🇨🇱",
+    keywords: ["chile", "santiago", "valparaíso", "concepción"],
+  },
+  {
+    code: "PE",
+    name: "Perú",
+    flag: "🇵🇪",
+    keywords: ["perú", "peru", "lima", "arequipa", "trujillo"],
+  },
+  {
+    code: "US",
+    name: "Estados Unidos",
+    flag: "🇺🇸",
+    keywords: ["united states", "usa", "miami", "florida", "california", "new york", "texas", "austin"],
+  },
+  {
+    code: "PT",
+    name: "Portugal",
+    flag: "🇵🇹",
+    keywords: ["portugal", "lisboa", "porto", "braga"],
+  },
+  {
+    code: "UY",
+    name: "Uruguay",
+    flag: "🇺🇾",
+    keywords: ["uruguay", "montevideo"],
+  },
+  {
+    code: "EC",
+    name: "Ecuador",
+    flag: "🇪🇨",
+    keywords: ["ecuador", "quito", "guayaquil"],
+  },
+  {
+    code: "PA",
+    name: "Panamá",
+    flag: "🇵🇦",
+    keywords: ["panamá", "panama"],
+  },
+  {
+    code: "CR",
+    name: "Costa Rica",
+    flag: "🇨🇷",
+    keywords: ["costa rica", "san josé"],
+  },
+  {
+    code: "DO",
+    name: "Rep. Dominicana",
+    flag: "🇩🇴",
+    keywords: ["república dominicana", "santo domingo"],
+  },
+  {
+    code: "GT",
+    name: "Guatemala",
+    flag: "🇬🇹",
+    keywords: ["guatemala"],
+  },
+];
 
 export default function GlobalSignalsPage() {
   const {
@@ -58,7 +165,8 @@ export default function GlobalSignalsPage() {
       const targetList = getOrCreateGlobalList({
         monitorId: monitor.id,
         searchQuery: monitor.searchQuery,
-        icpTitles: monitor.icpTitles,
+        countryName: monitor.targetCountryName,
+        countryFlag: monitor.targetCountryFlag,
       });
       const monitorLeads = leads.filter((l) => l.monitorId === monitor.id);
       if (monitorLeads.length > 0) {
@@ -72,36 +180,56 @@ export default function GlobalSignalsPage() {
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
-  // Form states
-  const [searchQuery, setSearchQuery] = useState("Prospeccion en frio B2B OR Falta de pipeline");
-  const [icpTitlesInput, setIcpTitlesInput] = useState(
-    "CEO, Founder, VP Sales, Head of Growth, Director Comercial"
+  // Form states simplificados
+  const [searchQuery, setSearchQuery] = useState("Prospección B2B");
+  const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
+    COUNTRY_OPTIONS.find((c) => c.code === "ES") || COUNTRY_OPTIONS[0]
   );
-  const [locationsInput, setLocationsInput] = useState("España, Mexico, Colombia, Chile, Brasil");
-  const [minReactions, setMinReactions] = useState(15);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [timePeriod, setTimePeriod] = useState<"past_24h" | "past_week" | "past_month">("past_week");
+  const [trackComments, setTrackComments] = useState(true);
+  const [trackLikes, setTrackLikes] = useState(false);
+  const [minReactions, setMinReactions] = useState(10);
+  const [excludeInternalEngagement, setExcludeInternalEngagement] = useState(true);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const totalGlobalLeads = l3Monitors.reduce((acc, m) => acc + m.leadsIdentifiedCount, 0);
+
+  const filteredCountries = COUNTRY_OPTIONS.filter((c) =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   const handleAddRule = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    const titles = icpTitlesInput
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    const locs = locationsInput
-      .split(",")
-      .map((l) => l.trim())
-      .filter(Boolean);
+    const interactions: ("comments" | "likes")[] = [];
+    if (trackComments) interactions.push("comments");
+    if (trackLikes) interactions.push("likes");
 
     const newMonitor: Level3GlobalMonitor = {
       id: `mon-l3-${Date.now()}`,
       searchQuery: searchQuery.trim(),
-      icpTitles: titles.length > 0 ? titles : ["CEO", "Founder"],
-      locations: locs.length > 0 ? locs : ["España", "LATAM"],
-      minPostReactions: Number(minReactions) || 15,
+      locations: selectedCountry.keywords.length > 0 ? selectedCountry.keywords : [selectedCountry.code],
+      targetCountry: selectedCountry.code,
+      targetCountryName: selectedCountry.name,
+      targetCountryFlag: selectedCountry.flag,
+      timePeriod,
+      interactionTypes: interactions.length > 0 ? interactions : ["comments"],
+      minPostReactions: Number(minReactions) || 10,
       status: "active",
       leadsIdentifiedCount: 0,
       lastScanAt: "Recién configurado",
@@ -112,13 +240,14 @@ export default function GlobalSignalsPage() {
     const targetList = getOrCreateGlobalList({
       monitorId: newMonitor.id,
       searchQuery: newMonitor.searchQuery,
-      icpTitles: newMonitor.icpTitles,
+      countryName: newMonitor.targetCountryName,
+      countryFlag: newMonitor.targetCountryFlag,
     });
 
     setIsAddingRule(false);
     setScanFeedback({
       type: "success",
-      text: `Regla global creada para monitorear "${newMonitor.searchQuery}". Se vinculó la lista dinámica "${targetList.name}".`,
+      text: `Monitor temático global creado para "${newMonitor.searchQuery}" (${selectedCountry.flag} ${selectedCountry.name}). Se vinculó la lista dinámica "${targetList.name}".`,
       listId: targetList.id,
     });
   };
@@ -134,8 +263,10 @@ export default function GlobalSignalsPage() {
         body: JSON.stringify({
           accountId: rawAccId,
           searchQuery: rule.searchQuery,
-          icpTitles: rule.icpTitles,
           locations: rule.locations,
+          targetCountry: rule.targetCountry,
+          interactionTypes: rule.interactionTypes || ["comments"],
+          timePeriod: rule.timePeriod || "past_week",
           minPostReactions: rule.minPostReactions,
           limit: 8,
         }),
@@ -152,12 +283,12 @@ export default function GlobalSignalsPage() {
         fullName: lead.fullName,
         headline: lead.headline || "Profesional en LinkedIn",
         company: lead.company || "",
-        location: lead.location || "Remoto / No especificado",
+        location: lead.location || (rule.targetCountryName ? rule.targetCountryName : "Remoto / No especificado"),
         linkedinUrl: lead.linkedinUrl || "",
         avatarUrl: lead.avatarUrl,
         connectionDegree: (lead.connectionDegree || "2nd") as ConnectionDegree,
         intentLevel: (lead.intentLevel || "medium_high") as IntentLevel,
-        signalSnippet: lead.signalSnippet || `Participó en debate sobre ${rule.searchQuery}`,
+        signalSnippet: lead.signalSnippet || `Participó en debate viral sobre "${rule.searchQuery}"`,
         detectedAt: new Date().toISOString(),
         status: "new" as const,
         language: lead.language,
@@ -171,7 +302,8 @@ export default function GlobalSignalsPage() {
       const targetList = getOrCreateGlobalList({
         monitorId: rule.id,
         searchQuery: rule.searchQuery,
-        icpTitles: rule.icpTitles,
+        countryName: rule.targetCountryName,
+        countryFlag: rule.targetCountryFlag,
       });
 
       // Sincronizar todos los leads descubiertos con la lista del CRM
@@ -186,7 +318,7 @@ export default function GlobalSignalsPage() {
 
       setScanFeedback({
         type: "success",
-        text: `Escaneo global finalizado: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales y se extrajeron ${added.length} decisores calificados según tu ICP para "${rule.searchQuery}".`,
+        text: `Escaneo global finalizado: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales y se extrajeron ${added.length} personas interesadas en "${rule.searchQuery}".`,
         listId: targetList.id,
       });
     } catch (err: any) {
@@ -221,25 +353,25 @@ export default function GlobalSignalsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Reglas de Tendencias Activas
+            Temas Globales en Escucha
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {l3Monitors.length} Monitores Globales
+            {l3Monitors.length} Monitores Activos
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            Escaneo en vivo de debates en toda la red
+            Rastreo temático de publicaciones virales
           </span>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Decisores ICP Calificados
+            Contactos con Interés Temático
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {totalGlobalLeads} Prospectos
           </p>
           <span className="text-xs text-blue-600 font-semibold dark:text-blue-400">
-            Filtro de Cargo y Geografía Aplicado
+            Extraídos de debates y publicaciones virales
           </span>
         </div>
 
@@ -251,19 +383,19 @@ export default function GlobalSignalsPage() {
             Visita + Soft Connect
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Genera notificaciones de visita antes de conectar
+            Rompehielos basado en lo que comentaron
           </span>
         </div>
       </div>
 
-      {/* Explicación de la Estrategia */}
+      {/* Explicación de la Estrategia (Mismo diseño de Nivel 1 y 2) */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-blue-200 bg-blue-25/40 dark:border-blue-900 dark:bg-blue-950/20">
         <div>
           <h4 className="text-sm font-bold text-blue-900 dark:text-blue-200">
-            Mecánica de Escaneo Global de LinkedIn (Nivel 3)
+            Mecánica de Escaneo Temático Global (Nivel 3)
           </h4>
           <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 max-w-2xl">
-            Detecta publicaciones virales y debates con alta tracción en LinkedIn sobre temáticas de dolor o necesidad donde tu solución aporta valor. Extrae a los comentaristas e interactuantes y filtra solo a los decisores cuyo cargo y geografía coincidan exactamente con tu ICP.
+            Monitorea publicaciones virales y debates con alta tracción en LinkedIn sobre un tema específico (ej. Prospección B2B, Inteligencia Artificial, Agencias). Extrae a las personas que interactuaron en un país concreto para conectar con ellas de forma orgánica.
           </p>
         </div>
         <button
@@ -275,31 +407,119 @@ export default function GlobalSignalsPage() {
         </button>
       </div>
 
-      {/* Formulario para Agregar Regla Global */}
+      {/* Formulario para Agregar Regla Global Simplificado */}
       {isAddingRule && (
         <ComponentCard
-          title="Configurador de Regla Global en LinkedIn"
-          desc="Especifica términos de búsqueda temática, cargos ICP y geografías para monitorear posts relevantes en toda la red."
+          title="Configurador de Monitor Temático Global"
+          desc="Especifica la palabra clave o tema y selecciona el país objetivo para capturar a quienes comentan en publicaciones populares."
         >
           <form onSubmit={handleAddRule} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Campo 1: Términos o Tema de Búsqueda */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Términos de Búsqueda (Keywords o Frases Clave)
+                  Tema o Palabra Clave del Debate
                 </label>
                 <input
                   type="text"
                   required
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Ej. Prospeccion B2B OR Falta de pipeline"
+                  placeholder="Ej. Prospección B2B, Social Selling, Automatización, IA..."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  LinkedIn buscará publicaciones que hablen sobre este tema en el feed.
+                </span>
+              </div>
+
+              {/* Campo 2: País / Mercado Objetivo con Desplegable Visual y Banderas */}
+              <div className="relative" ref={countryDropdownRef}>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  País o Mercado Objetivo
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  className="w-full flex items-center justify-between rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 bg-white hover:border-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white transition"
+                >
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="text-base">{selectedCountry.flag}</span>
+                    <span>{selectedCountry.name}</span>
+                  </span>
+                  <span className="text-gray-400 text-xs">▼</span>
+                </button>
+
+                {/* Dropdown de Países con Banderas */}
+                {isCountryDropdownOpen && (
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
+                    <div className="p-1.5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
+                      <input
+                        type="text"
+                        placeholder="Buscar país..."
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="py-1">
+                      {filteredCountries.map((c) => {
+                        const isSelected = selectedCountry.code === c.code;
+                        return (
+                          <div
+                            key={c.code}
+                            onClick={() => {
+                              setSelectedCountry(c);
+                              setIsCountryDropdownOpen(false);
+                              setCountrySearch("");
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition ${
+                              isSelected
+                                ? "bg-brand-50 text-brand-700 font-semibold dark:bg-brand-950/40 dark:text-brand-300"
+                                : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="text-base">{c.flag}</span>
+                              <span>{c.name}</span>
+                            </span>
+                            {isSelected && <span className="text-brand-600 font-bold">✓</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Filtra que los autores y comentaristas pertenezcan a este mercado.
+                </span>
+              </div>
+            </div>
+
+            {/* Fila 2: Frescura Temporal y Umbral de Reacciones */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Frescura del Post (Período)
+                </label>
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as any)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 bg-white focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                >
+                  <option value="past_week">Última semana (Recomendado - Mayor actualidad)</option>
+                  <option value="past_month">Último mes (Mayor volumen de publicaciones)</option>
+                  <option value="past_24h">Últimas 24 horas (Tiempo real / Viral reciente)</option>
+                </select>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Captura prospectos con el problema fresco en mente.
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Umbral Mínimo de Reacciones en el Post
+                  Tracción Mínima (Reacciones en el Post)
                 </label>
                 <input
                   type="number"
@@ -309,34 +529,57 @@ export default function GlobalSignalsPage() {
                   onChange={(e) => setMinReactions(Number(e.target.value))}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Descarta publicaciones frías sin debate activo.
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Fila 3: Filtros de Interacción & Calidad (Estilo Nivel 2) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Cargos Objetivo ICP (Separados por coma)
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">
+                  Tipo de Participantes a Extraer
                 </label>
-                <input
-                  type="text"
-                  value={icpTitlesInput}
-                  onChange={(e) => setIcpTitlesInput(e.target.value)}
-                  placeholder="CEO, Founder, VP Sales, Head of Growth..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={trackComments}
+                      onChange={(e) => setTrackComments(e.target.checked)}
+                      className="rounded border-gray-300 text-brand-500 cursor-pointer"
+                    />
+                    <span>Comentaristas (Máxima intención de debate)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={trackLikes}
+                      onChange={(e) => setTrackLikes(e.target.checked)}
+                      className="rounded border-gray-300 text-brand-500 cursor-pointer"
+                    />
+                    <span>Reacciones / Likes</span>
+                  </label>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Países y Ubicaciones (Separados por coma)
+              <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={excludeInternalEngagement}
+                    onChange={(e) => setExcludeInternalEngagement(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 cursor-pointer"
+                  />
+                  <div className="min-w-0">
+                    <span className="block text-xs font-bold text-gray-800 dark:text-gray-200">
+                      Excluir autor y sus colaboradores
+                    </span>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
+                      Filtro anti-empleados: Descarta al creador del post y empleados de su misma empresa.
+                    </span>
+                  </div>
                 </label>
-                <input
-                  type="text"
-                  value={locationsInput}
-                  onChange={(e) => setLocationsInput(e.target.value)}
-                  placeholder="España, Mexico, Colombia, Chile, Brasil..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
               </div>
             </div>
 
@@ -425,7 +668,7 @@ export default function GlobalSignalsPage() {
         </div>
       )}
 
-      {/* Tabla de Reglas Globales Activas */}
+      {/* Tabla de Reglas Globales Activas (Estilo Nivel 1 y 2) */}
       <ComponentCard title={`Monitores Globales Activos (${l3Monitors.length})`}>
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando reglas...</p>
@@ -435,7 +678,7 @@ export default function GlobalSignalsPage() {
               No tienes reglas globales activas en Signal Radar Nivel 3.
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Configura palabras clave y operadores para rastrear debates virales en toda la red de LinkedIn y capturar prospectos calificados con cargos ICP específicos.
+              Configura un tema de debate y un país objetivo para rastrear publicaciones virales en LinkedIn y capturar prospectos calificados interesados en esa problemática.
             </p>
             <button
               type="button"
@@ -450,9 +693,9 @@ export default function GlobalSignalsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
                 <tr>
-                  <th className="pb-3">Términos de Búsqueda</th>
-                  <th className="pb-3">Cargos ICP Filtrados</th>
-                  <th className="pb-3">Geografía</th>
+                  <th className="pb-3">Tema / Palabra Clave</th>
+                  <th className="pb-3">País Objetivo</th>
+                  <th className="pb-3">Participantes</th>
                   <th className="pb-3">Leads Extraídos</th>
                   <th className="pb-3">Último Escaneo</th>
                   <th className="pb-3">Estado</th>
@@ -463,6 +706,11 @@ export default function GlobalSignalsPage() {
                 {l3Monitors.map((rule) => {
                   const targetList = getListForRule(rule);
                   const leadsCount = getRuleLeads(rule.id).length;
+                  const countryFlag = rule.targetCountryFlag || "🌎";
+                  const countryName = rule.targetCountryName || (rule.locations.length > 0 ? rule.locations.join(", ") : "Global");
+                  const hasComments = !rule.interactionTypes || rule.interactionTypes.includes("comments");
+                  const hasLikes = rule.interactionTypes?.includes("likes");
+
                   return (
                     <tr key={rule.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
                       <td className="py-4">
@@ -474,21 +722,26 @@ export default function GlobalSignalsPage() {
                         </span>
                       </td>
 
-                      <td className="py-4 max-w-xs">
-                        <div className="flex flex-wrap gap-1">
-                          {rule.icpTitles.map((t, i) => (
-                            <span
-                              key={i}
-                              className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
+                      <td className="py-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 py-1 text-xs font-medium text-gray-800 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-200">
+                          <span className="text-sm">{countryFlag}</span>
+                          <span>{countryName}</span>
+                        </span>
                       </td>
 
-                      <td className="py-4 text-gray-600 dark:text-gray-400 text-xs">
-                        {rule.locations.join(", ")}
+                      <td className="py-4">
+                        <div className="flex items-center gap-1.5">
+                          {hasComments && (
+                            <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                              Comentarios
+                            </span>
+                          )}
+                          {hasLikes && (
+                            <span className="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                              Likes
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-4 font-bold text-brand-600 dark:text-brand-400">
@@ -530,7 +783,7 @@ export default function GlobalSignalsPage() {
                           disabled={isScanningId === rule.id}
                           onClick={() => handleScanGlobalRule(rule)}
                           className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                          title="Buscar debates virales y prospectos ICP en LinkedIn"
+                          title="Buscar publicaciones virales en LinkedIn y extraer personas interesadas"
                         >
                           {isScanningId === rule.id ? (
                             <>
@@ -586,20 +839,21 @@ export default function GlobalSignalsPage() {
         )}
       </ComponentCard>
 
-      {/* Modal para Visualizar Leads Extraídos Globalmente */}
+      {/* Modal para Visualizar Leads Extraídos Globalmente (Diseño unificado Nivel 1 y 2) */}
       {selectedRuleForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                  LinkedIn Global: {selectedRuleForLeads.searchQuery}
+                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1 w-fit">
+                  <span>{selectedRuleForLeads.targetCountryFlag || "🌎"}</span>
+                  <span>LinkedIn Global: {selectedRuleForLeads.searchQuery}</span>
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Prospectos ICP Extraídos de Debates Globales
+                  Contactos Interesados Extraídos del Debate
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Decisores calificados que participaron en publicaciones virales sobre esta problemática.
+                  Personas que participaron activamente en publicaciones virales sobre este tema.
                 </p>
               </div>
               <button
@@ -615,7 +869,7 @@ export default function GlobalSignalsPage() {
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
                 <div className="py-8 text-center space-y-3">
                   <p className="text-xs text-gray-500">
-                    Aún no hay prospectos extraídos para esta regla global. Haz clic en &quot;Escanear Tendencias&quot; para iniciar la indexación en vivo en LinkedIn.
+                    Aún no hay prospectos extraídos para este tema. Haz clic en &quot;Escanear Tendencias&quot; para iniciar la indexación en vivo en LinkedIn.
                   </p>
                   <div className="flex items-center justify-center gap-3 pt-2">
                     <button

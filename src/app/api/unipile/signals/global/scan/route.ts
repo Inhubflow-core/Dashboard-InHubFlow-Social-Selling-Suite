@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
       searchQuery,
       icpTitles = [],
       locations = [],
+      targetCountry = "all",
+      interactionTypes = ["comments"],
+      timePeriod = "past_week",
       minPostReactions = 10,
       limit = 8,
     } = body;
@@ -61,6 +64,9 @@ export async function POST(req: NextRequest) {
     const cleanLocations = Array.isArray(locations)
       ? locations.map((l: string) => String(l || "").trim()).filter(Boolean)
       : [];
+
+    const trackComments = !Array.isArray(interactionTypes) || interactionTypes.includes("comments");
+    const trackLikes = Array.isArray(interactionTypes) && interactionTypes.includes("likes");
 
     if (!unipile.isConfigured()) {
       return NextResponse.json(
@@ -97,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Buscar publicaciones relevantes en LinkedIn con Unipile
-    console.log(`[GlobalScan] Buscando publicaciones globales en LinkedIn para "${cleanQuery}" (cuenta: ${accountId})...`);
+    console.log(`[GlobalScan] Buscando publicaciones globales en LinkedIn para "${cleanQuery}" (cuenta: ${accountId}, país: ${targetCountry})...`);
     let searchResponse: any;
     try {
       searchResponse = await unipile.searchLinkedIn({
@@ -142,8 +148,12 @@ export async function POST(req: NextRequest) {
         if (!postId) return { post, comments: [], reactions: [] };
 
         const [commentsRes, reactionsRes] = await Promise.all([
-          unipile.getPostComments(postId, accountId, 40).catch(() => ({ items: [] })),
-          unipile.getPostReactions(postId, accountId, 40).catch(() => ({ items: [] })),
+          trackComments
+            ? unipile.getPostComments(postId, accountId, 40).catch(() => ({ items: [] }))
+            : Promise.resolve({ items: [] }),
+          trackLikes
+            ? unipile.getPostReactions(postId, accountId, 40).catch(() => ({ items: [] }))
+            : Promise.resolve({ items: [] }),
         ]);
 
         return {
