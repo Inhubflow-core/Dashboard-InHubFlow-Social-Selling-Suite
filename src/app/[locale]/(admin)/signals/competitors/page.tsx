@@ -960,7 +960,7 @@ export default function CompetitorsSignalRadarPage() {
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                         }`}
                       >
-                        {comp.status === "active" ? "Monitoreando" : "Pausado"}
+                        {comp.status === "active" ? "Activo" : "Pausado"}
                       </button>
                     </td>
 

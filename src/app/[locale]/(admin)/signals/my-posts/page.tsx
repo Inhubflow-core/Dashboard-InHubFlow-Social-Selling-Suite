@@ -758,7 +758,7 @@ export default function MyPostsSignalRadarPage() {
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                           }`}
                         >
-                          {mon.status === "active" ? "Activo (Escuchando)" : "Pausado"}
+                          {mon.status === "active" ? "Activo" : "Pausado"}
                         </button>
                       )}
                     </td>
