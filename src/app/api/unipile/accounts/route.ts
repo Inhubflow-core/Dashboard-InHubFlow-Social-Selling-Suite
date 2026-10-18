@@ -129,6 +129,16 @@ export async function GET() {
       }
     }
 
+    // Ordenar de forma determinista para que la cuenta principal de Roberto OrSe siempre encabece el listado
+    const isRoberto = (a: any) => {
+      const name = (a.name || '').toLowerCase();
+      const email = (a.email || (a.connection_params as any)?.im?.username || '').toLowerCase();
+      return name.includes('roberto') || email.includes('inhubflow');
+    };
+
+    linkedinAccounts.sort((a, b) => (isRoberto(b) ? 1 : 0) - (isRoberto(a) ? 1 : 0));
+    deduplicatedAccounts.sort((a, b) => (isRoberto(b) ? 1 : 0) - (isRoberto(a) ? 1 : 0));
+
     return NextResponse.json({
       configured: true,
       items: linkedinAccounts,

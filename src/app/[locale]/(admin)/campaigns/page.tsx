@@ -33,8 +33,11 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { getActiveAccountForUser } from "@/lib/unipile/store";
 
 export default function CampaignsPage() {
+  const { currentUser } = useAuth();
   const [workflow, setWorkflow] = useState<CampaignWorkflow | null>(null);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -185,6 +188,7 @@ export default function CampaignsPage() {
   const handleTriggerRunnerTest = async () => {
     setIsExecutingTest(true);
     try {
+      const activeAcc = getActiveAccountForUser(currentUser);
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,6 +196,7 @@ export default function CampaignsPage() {
           leadName: "Mariana Costa",
           linkedinUrl: "https://www.linkedin.com/in/mariana-costa-tech",
           connectionDegree: "2nd",
+          accountId: activeAcc?.unipileAccountId || activeAcc?.id,
         }),
       });
       const data = await res.json();

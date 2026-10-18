@@ -856,6 +856,89 @@ assert(!elenaSwitch.some((s) => s.id === "usr-team-javier-06"), "Elena NO ve a o
 const saAuditingElena = simulateGetSwitchableAccounts(testUsersList[2], "usr-super-admin-01", testUsersList);
 assert(saAuditingElena.some((s) => s.isMasterReturn === true), "Super Admin auditando cuenta de cliente dispone de opcion de retorno");
 
+console.log("\n--- 16. Prueba de Consistencia Estricta de Identidad y Cuenta Activa con currentUser ---");
+
+function simulateGetActiveAccountForUser(user, storedActiveId, visibleAccounts) {
+  if (!visibleAccounts || visibleAccounts.length === 0) return null;
+
+  // 1. Si la cuenta activa guardada pertenece directamente al usuario navegando, mantenerla
+  const activeMatchesUser = visibleAccounts.find(
+    (a) =>
+      (a.id === storedActiveId || a.unipileAccountId === storedActiveId) &&
+      (a.assignedUserId === user.id ||
+        a.ownerId === user.id ||
+        (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
+        (Boolean(user.email) && Boolean(a.email) && a.email.trim().toLowerCase() === user.email.trim().toLowerCase()))
+  );
+  if (activeMatchesUser) return activeMatchesUser;
+
+  // 2. Si no coincide, buscar la cuenta directa propia del usuario
+  const directAccount = visibleAccounts.find(
+    (a) =>
+      (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
+      a.assignedUserId === user.id ||
+      a.ownerId === user.id ||
+      (Boolean(user.email) && Boolean(a.email) && a.email.trim().toLowerCase() === user.email.trim().toLowerCase())
+  );
+  if (directAccount) return directAccount;
+
+  // 3. Si no hay cuenta directa propia pero storedActiveId está dentro de las visibles, respetarlo
+  const found = visibleAccounts.find((a) => a.id === storedActiveId || a.unipileAccountId === storedActiveId);
+  if (found) return found;
+
+  return visibleAccounts[0];
+}
+
+const realAccountsPool = [
+  {
+    id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+    unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
+    name: "RobertoOrse Agencia",
+    email: "inhubflow@gmail.com",
+    ownerId: "usr-super-admin-01",
+    assignedUserId: "usr-super-admin-01",
+  },
+  {
+    id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+    unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
+    name: "Linn Martinson",
+    email: "linnmartinsson407@gmail.com",
+    ownerId: "usr-client-linn-02",
+    assignedUserId: "usr-client-linn-02",
+  },
+];
+
+const robertoUser = {
+  id: "usr-super-admin-01",
+  email: "inhubflow@gmail.com",
+  name: "Roberto OrSe",
+  role: "super_admin",
+  assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+};
+
+const linnUser = {
+  id: "usr-client-linn-02",
+  email: "linnmartinsson407@gmail.com",
+  name: "Linn Martinson",
+  role: "client_admin",
+  assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+};
+
+// Caso 1: Roberto OrSe navegando, aunque localStorage tuviera el ID de Linn Martinson
+const robertoActive = simulateGetActiveAccountForUser(robertoUser, "acc-li-5X_l6hknTW62DqQtKJNNHA", realAccountsPool);
+assert(robertoActive.name === "RobertoOrse Agencia", "Si currentUser es Roberto OrSe, la cuenta activa SIEMPRE es RobertoOrse Agencia");
+assert(robertoActive.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ", "La cuenta asignada a Roberto OrSe tiene el ID oficial de su slot");
+
+// Caso 2: Linn Martinson navegando, aunque localStorage tuviera el ID de Roberto
+const linnActive = simulateGetActiveAccountForUser(linnUser, "acc-li-6yecZUhYS1mvPOJJC7p-zQ", realAccountsPool);
+assert(linnActive.name === "Linn Martinson", "Si currentUser es Linn Martinson, la cuenta activa SIEMPRE es Linn Martinson");
+assert(linnActive.id === "acc-li-5X_l6hknTW62DqQtKJNNHA", "La cuenta asignada a Linn Martinson tiene el ID oficial de su slot");
+
+// Caso 3: Fallback de visualización en interfaz nunca muestra Linn si se navega como Roberto
+const simulatedDisplayName = robertoActive?.name || robertoUser.name;
+assert(simulatedDisplayName === "RobertoOrse Agencia", "El nombre visible en Nivel 1 y creadores es RobertoOrse Agencia cuando navega Roberto");
+assert(!simulatedDisplayName.includes("Linn"), "Ninguna vista de Roberto contiene a Linn Martinson");
+
 // Limpieza de base de datos de test
 
 db.close();

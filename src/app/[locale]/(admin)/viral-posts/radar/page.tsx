@@ -2,8 +2,13 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { getStoredAccounts } from "@/lib/unipile/store";
+import {
+  getActiveAccountForUser,
+  getVisibleAccountsForUser,
+  setActiveAccountId,
+} from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
+import { useAuth } from "@/context/AuthContext";
 import {
   isExcludedCorporateAuthor,
   isFreelanceOrServiceSpam,
@@ -138,6 +143,7 @@ export function detectUserMarket(): DetectedMarketInfo {
 export default function ViralRadarPage() {
   const router = useRouter();
   const locale = useLocale();
+  const { currentUser } = useAuth();
 
   // Cuentas de LinkedIn
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -225,37 +231,30 @@ export default function ViralRadarPage() {
     selectedFormat,
   ]);
 
-  // Cargar cuentas en vivo desde la API de Unipile
+  // Cargar cuentas reactivas según el usuario autenticado
   useEffect(() => {
+    const syncAccounts = () => {
+      const visible = getVisibleAccountsForUser(currentUser);
+      setAvailableAccounts(visible as any);
+      const active = getActiveAccountForUser(currentUser);
+      if (active) {
+        setActiveAccount(active as any);
+        setActiveAccountName(active.name);
+      }
+    };
+
+    syncAccounts();
+
     fetch("/api/unipile/accounts")
       .then((r) => r.json())
-      .then((data) => {
-        const liveItems = data.items || [];
-        if (liveItems.length > 0) {
-          setAvailableAccounts(liveItems);
-          // Priorizar cuenta con estado OK (como Linn Martinson o RobertoOrSe)
-          const healthy = liveItems.find(
-            (a: any) =>
-              a.status === "OK" ||
-              a.status === "CONNECTED" ||
-              (Array.isArray(a.sources) && a.sources.some((s: any) => s.status === "OK"))
-          ) || liveItems[0];
-          setActiveAccount(healthy);
-          setActiveAccountName(healthy.name);
-        } else {
-          const stored = getStoredAccounts();
-          const healthyStored = stored.find((a) => a.status === "OK") || stored[0] || null;
-          setActiveAccount(healthyStored as any);
-          if (healthyStored) setActiveAccountName(healthyStored.name);
-        }
+      .then(() => {
+        syncAccounts();
       })
-      .catch(() => {
-        const stored = getStoredAccounts();
-        const healthyStored = stored.find((a) => a.status === "OK") || stored[0] || null;
-        setActiveAccount(healthyStored as any);
-        if (healthyStored) setActiveAccountName(healthyStored.name);
-      });
-  }, []);
+      .catch(() => {});
+
+    window.addEventListener("storage", syncAccounts);
+    return () => window.removeEventListener("storage", syncAccounts);
+  }, [currentUser]);
 
   // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico, ofertas de empleo y seleccionando el Top 12)
   const handleLiveSearch = useCallback(
@@ -543,7 +542,7 @@ export default function ViralRadarPage() {
     "Cold Email",
   ];
 
-  const currentDisplayName = activeAccountName || activeAccount?.name || "Linn Martinson";
+  const currentDisplayName = activeAccountName || activeAccount?.name || currentUser.name || "InHubFlow Creator";
 
   return (
     <div className="space-y-6">
@@ -581,6 +580,7 @@ export default function ViralRadarPage() {
                       if (selected) {
                         setActiveAccount(selected);
                         setActiveAccountName(selected.name);
+                        setActiveAccountId(selected.id);
                         handleLiveSearch(searchKeyword, selected.id);
                       }
                     }}

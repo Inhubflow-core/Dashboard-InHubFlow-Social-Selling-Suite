@@ -45,6 +45,7 @@ export default function LeadsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        accountId: typeof window !== "undefined" ? localStorage.getItem("inhubflow_active_linkedin_account_id") || undefined : undefined,
         targets: leadsToEnrich.map((l) => ({
           id: l.id,
           linkedinUrl: l.linkedinUrl,

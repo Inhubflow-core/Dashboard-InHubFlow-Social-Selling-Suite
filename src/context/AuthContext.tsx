@@ -13,6 +13,7 @@ import {
   getSwitchableAccountsForUser,
 } from "@/lib/saas/store";
 import { getPlanConfig } from "@/lib/saas/plans";
+import { getActiveAccountForUser, setActiveAccountId } from "@/lib/unipile/store";
 
 interface AuthContextType {
   currentUser: SaaSUser;
@@ -87,6 +88,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMasterUserId(null);
     }
     setCurrentUserId(userId);
+    const targetUser = getStoredUsers().find((u) => u.id === userId);
+    if (targetUser) {
+      const targetAcc = getActiveAccountForUser(targetUser);
+      if (targetAcc) {
+        setActiveAccountId(targetAcc.id);
+      }
+    }
   };
 
   const updateUserPlan = (planTier: PlanTier, customSlots?: number) => {

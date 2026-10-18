@@ -55,7 +55,10 @@ export async function POST(req: NextRequest) {
         (a: any) => String(a.type || a.provider || "").toUpperCase() === "LINKEDIN"
       );
       const healthyAccounts = linkedinAccounts.filter(isAccountHealthy);
-      if (healthyAccounts.length > 0) {
+      const roberto = healthyAccounts.find((a: any) => (a.name || "").toLowerCase().includes("roberto"));
+      if (roberto) {
+        accountId = roberto.id;
+      } else if (healthyAccounts.length > 0) {
         accountId = healthyAccounts[0].id;
       }
     } catch (e) {

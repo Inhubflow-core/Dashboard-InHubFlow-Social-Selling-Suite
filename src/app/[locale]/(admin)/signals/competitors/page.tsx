@@ -5,7 +5,11 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { extractIdentifier } from "@/lib/signals/employee-filter";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { Level2CompetitorMonitor, SignalLeadItem } from "@/lib/signals/types";
-import { getStoredAccounts } from "@/lib/unipile/store";
+import {
+  getActiveAccountForUser,
+  getVisibleAccountsForUser,
+  setActiveAccountId,
+} from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { getOrCreateMonitorList, useLeadsStore } from "@/lib/leads/store";
 import type { LeadListGroup } from "@/lib/leads/types";
@@ -13,8 +17,10 @@ import { detectLeadLanguage, LANGUAGE_LABELS } from "@/lib/signals/language-dete
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CompetitorsSignalRadarPage() {
+  const { currentUser } = useAuth();
   const {
     l2Monitors,
     leads,
@@ -27,31 +33,30 @@ export default function CompetitorsSignalRadarPage() {
     sanitizeLeadsForMonitor,
   } = useSignalRadar();
 
-  // Cuentas de LinkedIn
-  const [availableAccounts, setAvailableAccounts] = useState<UnipileAccount[]>([]);
-  const [activeAccount, setActiveAccount] = useState<UnipileAccount | null>(null);
+  // Cuentas de LinkedIn reactivas según el usuario autenticado
+  const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
+  const [activeAccount, setActiveAccount] = useState<any>(null);
 
   useEffect(() => {
+    const syncAccounts = () => {
+      const visible = getVisibleAccountsForUser(currentUser);
+      const active = getActiveAccountForUser(currentUser);
+      setAvailableAccounts(visible);
+      setActiveAccount(active);
+    };
+
+    syncAccounts();
+
     fetch("/api/unipile/accounts")
       .then((r) => r.json())
-      .then((data) => {
-        const liveItems = data.accounts?.length ? data.accounts : (data.items || []);
-        if (liveItems.length > 0) {
-          setAvailableAccounts(liveItems);
-          const healthy = liveItems.find((a: any) => a.status === "OK" || a.status === "CONNECTED") || liveItems[0];
-          setActiveAccount(healthy);
-        } else {
-          const fallback = getStoredAccounts();
-          setAvailableAccounts(fallback);
-          if (fallback.length > 0) setActiveAccount(fallback[0]);
-        }
+      .then(() => {
+        syncAccounts();
       })
-      .catch(() => {
-        const fallback = getStoredAccounts();
-        setAvailableAccounts(fallback);
-        if (fallback.length > 0) setActiveAccount(fallback[0]);
-      });
-  }, []);
+      .catch(() => {});
+
+    window.addEventListener("storage", syncAccounts);
+    return () => window.removeEventListener("storage", syncAccounts);
+  }, [currentUser]);
 
   // Auto-sanitización retroactiva de leads existentes contra engagement interno
   const [hasSanitizedExisting, setHasSanitizedExisting] = useState(false);
@@ -327,7 +332,7 @@ export default function CompetitorsSignalRadarPage() {
     );
   };
 
-  const currentDisplayName = activeAccount?.name || "Cuenta Principal de LinkedIn";
+  const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
 
   return (
     <div className="space-y-6">
@@ -776,7 +781,10 @@ export default function CompetitorsSignalRadarPage() {
               value={activeAccount?.id || ""}
               onChange={(e) => {
                 const sel = availableAccounts.find((a) => a.id === e.target.value);
-                if (sel) setActiveAccount(sel);
+                if (sel) {
+                  setActiveAccount(sel);
+                  setActiveAccountId(sel.id);
+                }
               }}
               className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >

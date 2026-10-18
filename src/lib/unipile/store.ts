@@ -251,8 +251,49 @@ export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccoun
   const visible = getVisibleAccountsForUser(user);
   if (visible.length === 0) return null;
   const activeId = getActiveAccountId();
-  const found = visible.find((a) => a.id === activeId);
-  return found || visible[0];
+
+  // 1. Si la cuenta activa guardada pertenece directamente al usuario navegando, mantenerla
+  const activeMatchesUser = visible.find(
+    (a) =>
+      (a.id === activeId || a.unipileAccountId === activeId) &&
+      (a.assignedUserId === user.id ||
+        a.ownerId === user.id ||
+        (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
+        (Boolean(user.email) && Boolean(a.email) && a.email!.trim().toLowerCase() === user.email.trim().toLowerCase()))
+  );
+  if (activeMatchesUser) {
+    return activeMatchesUser;
+  }
+
+  // 2. Si no coincide (por ejemplo, conmutó de usuario), buscar la cuenta directa de este usuario
+  const directAccount = visible.find(
+    (a) =>
+      (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
+      a.assignedUserId === user.id ||
+      a.ownerId === user.id ||
+      (Boolean(user.email) && Boolean(a.email) && a.email!.trim().toLowerCase() === user.email.trim().toLowerCase())
+  );
+  if (directAccount) {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(ACTIVE_ACCOUNT_KEY, directAccount.id);
+      } catch {}
+    }
+    return directAccount;
+  }
+
+  // 3. Si no hay cuenta directa propia pero activeId está dentro de las visibles, respetarlo
+  const found = visible.find((a) => a.id === activeId || a.unipileAccountId === activeId);
+  if (found) return found;
+
+  // 4. Fallback a la primera visible
+  const first = visible[0];
+  if (first && typeof window !== "undefined") {
+    try {
+      localStorage.setItem(ACTIVE_ACCOUNT_KEY, first.id);
+    } catch {}
+  }
+  return first;
 }
 
 export function getActiveAccountId(): string {
@@ -273,6 +314,7 @@ export function setActiveAccountId(id: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(ACTIVE_ACCOUNT_KEY, id);
+    window.dispatchEvent(new Event("storage"));
   } catch {
     // ignore
   }

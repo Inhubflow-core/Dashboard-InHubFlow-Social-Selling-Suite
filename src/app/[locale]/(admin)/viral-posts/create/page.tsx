@@ -2,7 +2,11 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { getStoredAccounts } from "@/lib/unipile/store";
+import {
+  getActiveAccountForUser,
+  getVisibleAccountsForUser,
+  setActiveAccountId,
+} from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { exportCarouselToPdf } from "@/lib/viral-posts/carousel-exporter";
 import { getStoredKnowledgeSources } from "@/lib/sdr/store";
@@ -14,9 +18,11 @@ import {
 import type { CarouselSlide, CreatedPost, PostFormat } from "@/lib/viral-posts/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CreateViralPostPage() {
   const router = useRouter();
+  const { currentUser } = useAuth();
   const { addPost } = useCreatedPosts();
 
   // Cuentas de LinkedIn disponibles
@@ -44,12 +50,12 @@ export default function CreateViralPostPage() {
 
   // Carrusel slides state
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [carouselTheme, setCarouselTheme] = useState({
+  const [carouselTheme, setCarouselTheme] = useState(() => ({
     primaryColor: "#0099ff",
     fontFamily: "Outfit",
-    authorName: "Linn Martinson",
-    authorHandle: "@linnmartinson",
-  });
+    authorName: currentUser.name,
+    authorHandle: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+  }));
 
   const [slides, setSlides] = useState<CarouselSlide[]>([
     {
@@ -57,8 +63,8 @@ export default function CreateViralPostPage() {
       isCover: true,
       title: "Cómo Convertir Comentarios en Clientes B2B",
       subtitle: "Framework Inbound de 4 Pasos para LinkedIn",
-      content: ["InHubFlow Social Selling", "Por Linn Martinson"],
-      footerText: "@linnmartinson",
+      content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
+      footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
     },
     {
       slideNumber: 2,
@@ -103,20 +109,26 @@ export default function CreateViralPostPage() {
     },
   ]);
 
-  // Cargar cuentas de LinkedIn conectadas
+  // Cargar cuentas de LinkedIn conectadas reactivamente
   useEffect(() => {
-    const accs = getStoredAccounts();
-    setAccounts(accs);
-    const active = accs.find((a) => a.status === "OK") || accs[0];
-    if (active) {
-      setSelectedAccountId(active.id);
-      setCarouselTheme((prev) => ({
-        ...prev,
-        authorName: active.name || "InHubFlow Creator",
-        authorHandle: `@${(active.name || "inhubflow").toLowerCase().replace(/\s+/g, "")}`,
-      }));
-    }
-  }, []);
+    const syncAccounts = () => {
+      const visible = getVisibleAccountsForUser(currentUser);
+      setAccounts(visible as any);
+      const active = getActiveAccountForUser(currentUser);
+      if (active) {
+        setSelectedAccountId(active.id);
+        setCarouselTheme((prev) => ({
+          ...prev,
+          authorName: active.name || currentUser.name,
+          authorHandle: `@${(active.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+        }));
+      }
+    };
+
+    syncAccounts();
+    window.addEventListener("storage", syncAccounts);
+    return () => window.removeEventListener("storage", syncAccounts);
+  }, [currentUser]);
 
   // Al cargar, verificar si venimos con un post seleccionado del Radar Viral
   useEffect(() => {
@@ -390,7 +402,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     {accounts.length > 1 && (
                       <select
                         value={selectedAccountId}
-                        onChange={(e) => setSelectedAccountId(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedAccountId(e.target.value);
+                          setActiveAccountId(e.target.value);
+                        }}
                         className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                       >
                         {accounts.map((acc) => (
@@ -746,18 +761,16 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               {/* Cabecera de perfil */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
-                  {activeAccObj?.name
-                    ? activeAccObj.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()
-                    : "LM"}
+                  {(activeAccObj?.name || currentUser.name)
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                    {activeAccObj ? activeAccObj.name : "Linn Martinson"}
+                    {activeAccObj ? activeAccObj.name : currentUser.name}
                   </h4>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">
                     {activeAccObj ? "Perfil de LinkedIn Conectado • 1er" : "B2B Growth & Lead Gen Specialist • 1er"}

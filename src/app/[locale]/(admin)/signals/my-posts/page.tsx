@@ -4,14 +4,20 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { Level1Monitor, SignalLeadItem } from "@/lib/signals/types";
-import { getStoredAccounts } from "@/lib/unipile/store";
+import {
+  getActiveAccountForUser,
+  getVisibleAccountsForUser,
+  setActiveAccountId,
+} from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MyPostsSignalRadarPage() {
+  const { currentUser } = useAuth();
   const {
     l1Monitors,
     leads,
@@ -23,31 +29,30 @@ export default function MyPostsSignalRadarPage() {
     recordDiscoveredLeads,
   } = useSignalRadar();
 
-  // Cuentas de LinkedIn
-  const [availableAccounts, setAvailableAccounts] = useState<UnipileAccount[]>([]);
-  const [activeAccount, setActiveAccount] = useState<UnipileAccount | null>(null);
+  // Cuentas de LinkedIn reactivas según el usuario autenticado
+  const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
+  const [activeAccount, setActiveAccount] = useState<any>(null);
 
   useEffect(() => {
+    const syncAccounts = () => {
+      const visible = getVisibleAccountsForUser(currentUser);
+      const active = getActiveAccountForUser(currentUser);
+      setAvailableAccounts(visible);
+      setActiveAccount(active);
+    };
+
+    syncAccounts();
+
     fetch("/api/unipile/accounts")
       .then((r) => r.json())
-      .then((data) => {
-        const liveItems = data.items || [];
-        if (liveItems.length > 0) {
-          setAvailableAccounts(liveItems);
-          const healthy = liveItems.find((a: any) => a.status === "OK" || a.status === "CONNECTED") || liveItems[0];
-          setActiveAccount(healthy);
-        } else {
-          const fallback = getStoredAccounts();
-          setAvailableAccounts(fallback);
-          if (fallback.length > 0) setActiveAccount(fallback[0]);
-        }
+      .then(() => {
+        syncAccounts();
       })
-      .catch(() => {
-        const fallback = getStoredAccounts();
-        setAvailableAccounts(fallback);
-        if (fallback.length > 0) setActiveAccount(fallback[0]);
-      });
-  }, []);
+      .catch(() => {});
+
+    window.addEventListener("storage", syncAccounts);
+    return () => window.removeEventListener("storage", syncAccounts);
+  }, [currentUser]);
 
   const { posts: createdPosts } = useCreatedPosts();
   const [selectedCreatedPost, setSelectedCreatedPost] = useState<CreatedPost | null>(null);
@@ -262,7 +267,7 @@ export default function MyPostsSignalRadarPage() {
     return leads.filter((l) => l.monitorId === monitorId);
   };
 
-  const currentDisplayName = activeAccount?.name || "Cuenta Principal de LinkedIn";
+  const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
 
   return (
     <div className="space-y-6">
@@ -635,7 +640,10 @@ export default function MyPostsSignalRadarPage() {
               value={activeAccount?.id || ""}
               onChange={(e) => {
                 const sel = availableAccounts.find((a) => a.id === e.target.value);
-                if (sel) setActiveAccount(sel);
+                if (sel) {
+                  setActiveAccount(sel);
+                  setActiveAccountId(sel.id);
+                }
               }}
               className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >

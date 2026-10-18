@@ -3,6 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { NodeConfigData, CampaignWorkflow } from "./types";
 import { getStoredWorkflow, saveStoredWorkflow } from "./store";
 import { translateOutreachMessage } from "@/lib/ai/outreach-translator";
+import { getActiveAccountId } from "@/lib/unipile/store";
 
 export interface CampaignExecutionLog {
   id: string;
@@ -102,7 +103,7 @@ export async function executeCampaignStepForLead(params: {
   log: CampaignExecutionLog;
 }> {
   const { workflow, leadState } = params;
-  const accountId = params.accountId || "5X_l6hknTW62DqQtKJNNHA";
+  const accountId = params.accountId || (typeof window !== "undefined" ? getActiveAccountId() : "") || "6yecZUhYS1mvPOJJC7p-zQ";
 
   let nodes: Node[] = [];
   let edges: Edge[] = [];
