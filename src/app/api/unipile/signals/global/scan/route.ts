@@ -144,7 +144,15 @@ export async function POST(req: NextRequest) {
     // 2. Extraer comentarios y reacciones de los posts en paralelo
     const interactions = await Promise.all(
       postsToProcess.map(async (post) => {
-        const postId = post.id || post.social_id || post.share_url;
+        // Unipile requiere el URN social_id (ej: urn:li:ugcPost:... o urn:li:activity:...)
+        const postId =
+          post.social_id ||
+          (post.id && String(post.id).startsWith("urn:")
+            ? post.id
+            : post.id
+            ? `urn:li:ugcPost:${post.id}`
+            : post.share_url);
+
         if (!postId) return { post, comments: [], reactions: [] };
 
         const [commentsRes, reactionsRes] = await Promise.all([
@@ -168,21 +176,30 @@ export async function POST(req: NextRequest) {
 
     for (const item of interactions) {
       const post = item.post;
-      const postAuthorName = post.author?.name || "";
+      const postAuthorName = typeof post.author === "string" ? post.author : post.author?.name || "";
       const postAuthorCompany = post.author?.headline || "";
       const targetEntities = [postAuthorName, postAuthorCompany].filter(Boolean);
 
       // A. Procesar comentaristas (Intención Alta / Debate Activo)
       for (const comment of item.comments) {
-        const author = comment.author;
-        if (!author?.id || leadMap.has(author.id)) continue;
+        // En Unipile, comment.author puede ser string y la metadata estar en author_details
+        const rawAuthor: any = comment.author;
+        const authorDetails: any = (comment as any).author_details || {};
+        const authorObj: any = typeof rawAuthor === "object" && rawAuthor !== null ? rawAuthor : {};
 
+        const authorId = authorDetails.id || authorObj.id || (comment as any).author_id;
+        if (!authorId || leadMap.has(authorId)) continue;
+
+        const rawAuthorStr = typeof rawAuthor === "string" ? rawAuthor.trim() : "";
         const fullName =
-          author.name ||
-          [author.first_name, author.last_name].filter(Boolean).join(" ") ||
+          rawAuthorStr ||
+          authorDetails.name ||
+          authorObj.name ||
+          [authorDetails.first_name || authorObj.first_name, authorDetails.last_name || authorObj.last_name].filter(Boolean).join(" ") ||
           "Miembro de LinkedIn";
-        const headline = author.headline || "";
-        const location = (author as any).location || "";
+
+        const headline = authorDetails.headline || authorObj.headline || "";
+        const location = authorDetails.location || authorObj.location || "";
 
         // Filtro Anti-Empleados del autor del post
         if (
@@ -192,7 +209,7 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Filtro ICP por Cargo
+        // Filtro ICP por Cargo (si se especificó alguno)
         if (cleanTitles.length > 0 && !matchesIcp(headline, cleanTitles)) {
           continue;
         }
@@ -203,12 +220,20 @@ export async function POST(req: NextRequest) {
         }
 
         const linkedinUrl =
-          author.profile_url ||
-          (author.public_identifier
-            ? `https://www.linkedin.com/in/${author.public_identifier}`
+          authorDetails.profile_url ||
+          authorObj.profile_url ||
+          (authorDetails.public_identifier
+            ? `https://www.linkedin.com/in/${authorDetails.public_identifier}`
+            : authorObj.public_identifier
+            ? `https://www.linkedin.com/in/${authorObj.public_identifier}`
             : "");
 
-        const rawPic = author.picture_url || (author as any).profile_picture_url;
+        const rawPic =
+          authorDetails.profile_picture_url ||
+          authorDetails.picture_url ||
+          authorObj.profile_picture_url ||
+          authorObj.picture_url;
+
         const avatarUrl =
           rawPic && typeof rawPic === "string" && !rawPic.includes("unsplash.com")
             ? rawPic
@@ -223,8 +248,8 @@ export async function POST(req: NextRequest) {
           signalSnippet: commentText,
         });
 
-        leadMap.set(author.id, {
-          providerId: author.id,
+        leadMap.set(authorId, {
+          providerId: authorId,
           fullName,
           headline: headline || "Profesional en LinkedIn",
           company: "",
@@ -233,8 +258,8 @@ export async function POST(req: NextRequest) {
           avatarUrl,
           signalSnippet: `Comentó en debate sobre ${cleanQuery}: “${commentText.slice(0, 120)}${commentText.length > 120 ? "..." : ""}”`,
           intentLevel: "medium_high",
-          connectionDegree: "2nd",
-          sourcePostId: post.id,
+          connectionDegree: authorDetails.network_distance || authorObj.network_distance || "2nd",
+          sourcePostId: post.social_id || post.id,
           sourcePostTitle: (post.text || cleanQuery).slice(0, 80),
           language: detectedLang,
         });
@@ -271,9 +296,10 @@ export async function POST(req: NextRequest) {
               ? `https://www.linkedin.com/in/${author.public_identifier}`
               : "");
 
+          const rawPic = author.picture_url || (author as any).profile_picture_url;
           const avatarUrl =
-            author.picture_url && !author.picture_url.includes("unsplash.com")
-              ? author.picture_url
+            rawPic && typeof rawPic === "string" && !rawPic.includes("unsplash.com")
+              ? rawPic
               : undefined;
 
           const detectedLang = detectLeadLanguage({
@@ -281,6 +307,7 @@ export async function POST(req: NextRequest) {
             headline,
             location,
             linkedinUrl,
+            signalSnippet: headline,
           });
 
           leadMap.set(author.id, {
@@ -291,10 +318,10 @@ export async function POST(req: NextRequest) {
             location: location || "Remoto / No especificado",
             linkedinUrl,
             avatarUrl,
-            signalSnippet: `Reaccionó al debate viral sobre ${cleanQuery}`,
+            signalSnippet: `Reaccionó al post sobre ${cleanQuery}: “${(post.text || cleanQuery).slice(0, 80)}...”`,
             intentLevel: "medium",
-            connectionDegree: "2nd",
-            sourcePostId: post.id,
+            connectionDegree: (author as any).network_distance || "2nd",
+            sourcePostId: post.social_id || post.id,
             sourcePostTitle: (post.text || cleanQuery).slice(0, 80),
             language: detectedLang,
           });
