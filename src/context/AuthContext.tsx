@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
-import type { SaaSUser, UserCapacity, PlanTier } from "@/lib/saas/types";
+import type { SaaSUser, UserCapacity, PlanTier, SwitchableAccountItem } from "@/lib/saas/types";
 import {
   getCurrentUser,
   setCurrentUserId,
@@ -10,6 +10,7 @@ import {
   updateSubscriber,
   subscribeToSaaSStore,
   canAddAccountForUser,
+  getSwitchableAccountsForUser,
 } from "@/lib/saas/store";
 import { getPlanConfig } from "@/lib/saas/plans";
 
@@ -19,6 +20,7 @@ interface AuthContextType {
   isClientAdmin: boolean;
   capacity: UserCapacity;
   allUsers: SaaSUser[];
+  switchableUsers: SwitchableAccountItem[];
   canConnectAccount: boolean;
   switchUser: (userId: string) => void;
   updateUserPlan: (planTier: PlanTier, customSlots?: number) => void;
@@ -31,6 +33,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setUser] = useState<SaaSUser>(() => getCurrentUser());
   const [allUsers, setAllUsers] = useState<SaaSUser[]>(() => getStoredUsers());
   const [capacity, setCapacity] = useState<UserCapacity>(() => getUserCapacity());
+  const [masterUserId, setMasterUserId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return "usr-super-admin-01";
+    return localStorage.getItem("inhubflow_master_user_id") || "usr-super-admin-01";
+  });
 
   const syncState = () => {
     const user = getCurrentUser();
@@ -60,7 +66,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return canAddAccountForUser(currentUser.id);
   }, [currentUser, capacity]);
 
+  const switchableUsers = useMemo(() => {
+    return getSwitchableAccountsForUser(currentUser, masterUserId);
+  }, [currentUser, masterUserId, allUsers]);
+
   const switchUser = (userId: string) => {
+    const isCurrentlyMaster =
+      currentUser.role === "super_admin" ||
+      currentUser.email.trim().toLowerCase() === "inhubflow@gmail.com";
+
+    if (isCurrentlyMaster && userId !== currentUser.id) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("inhubflow_master_user_id", currentUser.id);
+      }
+      setMasterUserId(currentUser.id);
+    } else if (userId === "usr-super-admin-01" || userId === masterUserId) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("inhubflow_master_user_id");
+      }
+      setMasterUserId(null);
+    }
     setCurrentUserId(userId);
   };
 
@@ -81,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isClientAdmin,
         capacity,
         allUsers,
+        switchableUsers,
         canConnectAccount,
         switchUser,
         updateUserPlan,

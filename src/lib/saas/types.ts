@@ -92,3 +92,18 @@ export interface GlobalSaaSStats {
   growthCount: number;
   businessCount: number;
 }
+
+export interface SwitchableAccountItem {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  companyName?: string;
+  planTier: PlanTier;
+  slotsLimit: number;
+  avatarUrl?: string;
+  badgeLabel: string;
+  subtitle: string;
+  isCurrent: boolean;
+  isMasterReturn?: boolean;
+}

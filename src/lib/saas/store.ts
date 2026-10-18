@@ -6,6 +6,7 @@ import type {
   TeamInvitation,
   PlanTier,
   SubscriptionStatus,
+  SwitchableAccountItem,
 } from "./types";
 import { getPlanConfig, getMaxTeamInvitationsAllowed } from "./plans";
 
@@ -82,6 +83,21 @@ export const initialSaaSUsers: SaaSUser[] = [
     createdAt: "2026-09-25T10:00:00.000Z",
     updatedAt: "2026-10-09T08:00:00.000Z",
   },
+  {
+    id: "usr-team-javier-06",
+    email: "javier@enterprisesales.io",
+    name: "Javier Fernandez (VP Sales)",
+    role: "member",
+    companyName: "Enterprise Sales Hub",
+    ownerId: "usr-client-business-04",
+    assignedAccountId: "acc-li-javier",
+    slotsLimit: 1,
+    planTier: "business",
+    subscriptionStatus: "active",
+    avatarUrl: "/images/user/user-06.png",
+    createdAt: "2026-10-02T12:00:00.000Z",
+    updatedAt: "2026-10-09T08:00:00.000Z",
+  },
 ];
 
 export const initialTeamMembers: TeamMember[] = [
@@ -156,7 +172,22 @@ export function getStoredUsers(): SaaSUser[] {
       return initialSaaSUsers;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialSaaSUsers;
+    if (!Array.isArray(parsed) || parsed.length === 0) return initialSaaSUsers;
+
+    // Sincronizar usuarios base faltantes (como miembros de equipo iniciales)
+    const existingIds = new Set(parsed.map((u: SaaSUser) => u.id));
+    let hasNew = false;
+    const merged = [...parsed];
+    for (const initUser of initialSaaSUsers) {
+      if (!existingIds.has(initUser.id)) {
+        merged.push(initUser);
+        hasNew = true;
+      }
+    }
+    if (hasNew) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
+    }
+    return merged;
   } catch {
     return initialSaaSUsers;
   }
@@ -572,3 +603,189 @@ export function createTeamInvitation(data: {
   saveStoredTeamInvitations(updated);
   return newInvite;
 }
+
+/**
+ * Retorna las cuentas/slots conmutables según el rol y aislamiento:
+ * 1. Super Admin: Ve su cuenta Master + todas las cuentas de clientes que compraron suscripción (client_admin).
+ * 2. Admin (Client Admin): Ve ÚNICAMENTE los slots de su propio equipo (su cuenta Admin + colaboradores de su workspace).
+ * 3. Member: Ve únicamente su propio slot asignado.
+ * 4. Si el Super Admin está navegando en la cuenta de un cliente (auditoría), siempre dispone de la opción de volver a Super Admin.
+ */
+export function getSwitchableAccountsForUser(
+  currentUser: SaaSUser,
+  masterUserId?: string | null
+): SwitchableAccountItem[] {
+  const users = getStoredUsers();
+  const superAdminUser =
+    users.find(
+      (u) =>
+        u.role === "super_admin" ||
+        u.email.toLowerCase() === "inhubflow@gmail.com"
+    ) || users[0];
+
+  const isMasterSession =
+    Boolean(masterUserId && masterUserId === superAdminUser.id) ||
+    currentUser.role === "super_admin" ||
+    currentUser.email.toLowerCase() === "inhubflow@gmail.com";
+
+  const isBrowsingAsAnother = isMasterSession && currentUser.id !== superAdminUser.id;
+
+  // 1. CASO SUPER ADMIN NAVEGANDO COMO MASTER:
+  if (
+    currentUser.role === "super_admin" ||
+    (!isBrowsingAsAnother && currentUser.email.toLowerCase() === "inhubflow@gmail.com")
+  ) {
+    const masterItem: SwitchableAccountItem = {
+      id: superAdminUser.id,
+      name: superAdminUser.name,
+      email: superAdminUser.email,
+      role: superAdminUser.role,
+      companyName: superAdminUser.companyName,
+      planTier: superAdminUser.planTier,
+      slotsLimit: superAdminUser.slotsLimit,
+      avatarUrl: superAdminUser.avatarUrl,
+      badgeLabel: "Super Admin",
+      subtitle: "Master • Acceso Total",
+      isCurrent: true,
+    };
+
+    const subscribers: SwitchableAccountItem[] = users
+      .filter((u) => u.role === "client_admin" && u.id !== superAdminUser.id)
+      .map((u) => {
+        const uPlan = getPlanConfig(u.planTier);
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          companyName: u.companyName,
+          planTier: u.planTier,
+          slotsLimit: u.slotsLimit,
+          avatarUrl: u.avatarUrl,
+          badgeLabel: `${uPlan.name} (${u.slotsLimit} Slots)`,
+          subtitle: u.companyName || u.email,
+          isCurrent: false,
+        };
+      });
+
+    return [masterItem, ...subscribers];
+  }
+
+  // 2. CASO CLIENT ADMIN (o Super Admin navegando como Client Admin):
+  if (currentUser.role === "client_admin") {
+    const list: SwitchableAccountItem[] = [];
+
+    // Botón para regresar a Super Admin si está en modo auditoría
+    if (isBrowsingAsAnother) {
+      list.push({
+        id: superAdminUser.id,
+        name: `Volver a ${superAdminUser.name} (Super Admin)`,
+        email: superAdminUser.email,
+        role: "super_admin",
+        planTier: "custom",
+        slotsLimit: 999,
+        badgeLabel: "Super Admin",
+        subtitle: "Salir de modo auditoría",
+        isCurrent: false,
+        isMasterReturn: true,
+      });
+    }
+
+    // Slot 1: Admin Principal
+    const totalSlots = Math.max(1, currentUser.slotsLimit || 1);
+    list.push({
+      id: currentUser.id,
+      name: currentUser.name,
+      email: currentUser.email,
+      role: currentUser.role,
+      companyName: currentUser.companyName,
+      planTier: currentUser.planTier,
+      slotsLimit: currentUser.slotsLimit,
+      avatarUrl: currentUser.avatarUrl,
+      badgeLabel: `Admin Principal (Slot 1/${totalSlots})`,
+      subtitle: currentUser.companyName || "Workspace Admin",
+      isCurrent: true,
+    });
+
+    // Slots de colaboradores de su propio equipo
+    const teamUsers = users.filter((u) => u.ownerId === currentUser.id);
+    const teamMembers = getStoredTeamMembers(currentUser.id);
+    const seenEmails = new Set<string>([currentUser.email.toLowerCase()]);
+    let slotNum = 2;
+
+    for (const tu of teamUsers) {
+      if (!seenEmails.has(tu.email.toLowerCase())) {
+        seenEmails.add(tu.email.toLowerCase());
+        list.push({
+          id: tu.id,
+          name: tu.name,
+          email: tu.email,
+          role: tu.role,
+          companyName: tu.companyName,
+          planTier: tu.planTier,
+          slotsLimit: 1,
+          avatarUrl: tu.avatarUrl,
+          badgeLabel: `Operador SDR (Slot ${slotNum}/${totalSlots})`,
+          subtitle: tu.email,
+          isCurrent: false,
+        });
+        slotNum++;
+      }
+    }
+
+    for (const tm of teamMembers) {
+      if (!seenEmails.has(tm.email.toLowerCase())) {
+        seenEmails.add(tm.email.toLowerCase());
+        list.push({
+          id: tm.id,
+          name: tm.name,
+          email: tm.email,
+          role: "member",
+          companyName: currentUser.companyName,
+          planTier: currentUser.planTier,
+          slotsLimit: 1,
+          badgeLabel: `Operador SDR (Slot ${slotNum}/${totalSlots})`,
+          subtitle: tm.accountName || tm.email,
+          isCurrent: false,
+        });
+        slotNum++;
+      }
+    }
+
+    return list;
+  }
+
+  // 3. CASO MEMBER / OPERADOR SDR:
+  const list: SwitchableAccountItem[] = [];
+  if (isBrowsingAsAnother) {
+    list.push({
+      id: superAdminUser.id,
+      name: `Volver a ${superAdminUser.name} (Super Admin)`,
+      email: superAdminUser.email,
+      role: "super_admin",
+      planTier: "custom",
+      slotsLimit: 999,
+      badgeLabel: "Super Admin",
+      subtitle: "Salir de modo auditoría",
+      isCurrent: false,
+      isMasterReturn: true,
+    });
+  }
+
+  list.push({
+    id: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+    role: currentUser.role,
+    companyName: currentUser.companyName,
+    planTier: currentUser.planTier,
+    slotsLimit: 1,
+    avatarUrl: currentUser.avatarUrl,
+    badgeLabel: "Slot Asignado",
+    subtitle: currentUser.companyName || "Operador de Equipo",
+    isCurrent: true,
+  });
+
+  return list;
+}
+

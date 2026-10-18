@@ -4,7 +4,7 @@ import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import LanguageSwitcher from "@/components/header/LanguageSwitcher";
 import UserDropdown from "@/components/header/UserDropdown";
-import LinkedInHeaderBadge from "@/components/header/LinkedInHeaderBadge";
+import ActiveWorkspaceUserBadge from "@/components/header/ActiveWorkspaceUserBadge";
 import { useSidebar } from "@/context/SidebarContext";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/utils";
@@ -124,7 +124,7 @@ const AppHeader: React.FC = () => {
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
             <PlanHeaderBadge />
-            <LinkedInHeaderBadge />
+            <ActiveWorkspaceUserBadge />
             <LanguageSwitcher />
 
             {/* <!-- Dark Mode Toggler --> */}

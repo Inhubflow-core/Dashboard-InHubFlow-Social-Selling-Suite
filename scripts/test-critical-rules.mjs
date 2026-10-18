@@ -789,8 +789,72 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
   assert(Boolean(people[0].logoUrl && people[0].logoUrl.startsWith("https://")), "Dispone de fotos reales de alta resolución para referentes de LinkedIn");
 }
 
+// -----------------------------------------------------------------------------
+// PRUEBA 15: Conmutación de Cuentas y Aislamiento de Slots por Rol
+// -----------------------------------------------------------------------------
+console.log("\n--- 15. Prueba de Conmutación de Cuentas y Slots de Equipo ---");
 
+const testUsersList = [
+  { id: "usr-super-admin-01", email: "inhubflow@gmail.com", name: "Roberto OrSe", role: "super_admin", slotsLimit: 999, planTier: "custom" },
+  { id: "usr-client-starter-02", email: "carlos@consulting.es", name: "Carlos Mendoza", role: "client_admin", companyName: "Mendoza Advisory", slotsLimit: 1, planTier: "starter" },
+  { id: "usr-client-growth-03", email: "elena@agenciagrowth.com", name: "Elena Valenzuela", role: "client_admin", companyName: "Valenzuela Social Agency", slotsLimit: 5, planTier: "growth" },
+  { id: "usr-client-business-04", email: "marcos@enterprisesales.io", name: "Marcos Silva", role: "client_admin", companyName: "Enterprise Sales Hub", slotsLimit: 10, planTier: "business" },
+  { id: "usr-team-sofia-05", email: "sofia@agenciagrowth.com", name: "Sofia Ramirez", role: "member", ownerId: "usr-client-growth-03", slotsLimit: 1, planTier: "growth" },
+  { id: "usr-team-javier-06", email: "javier@enterprisesales.io", name: "Javier Fernandez", role: "member", ownerId: "usr-client-business-04", slotsLimit: 1, planTier: "business" },
+];
 
+function simulateGetSwitchableAccounts(currentUser, masterUserId, users) {
+  const superAdminUser = users.find((u) => u.role === "super_admin");
+  const isMasterSession = Boolean(masterUserId && masterUserId === superAdminUser.id) || currentUser.role === "super_admin";
+  const isBrowsingAsAnother = isMasterSession && currentUser.id !== superAdminUser.id;
+
+  if (currentUser.role === "super_admin" || (!isBrowsingAsAnother && currentUser.email === "inhubflow@gmail.com")) {
+    const masterItem = { id: superAdminUser.id, name: superAdminUser.name, role: "super_admin", isCurrent: true };
+    const subscribers = users.filter((u) => u.role === "client_admin").map((u) => ({ id: u.id, name: u.name, role: u.role, isCurrent: false }));
+    return [masterItem, ...subscribers];
+  }
+
+  if (currentUser.role === "client_admin") {
+    const list = [];
+    if (isBrowsingAsAnother) {
+      list.push({ id: superAdminUser.id, name: `Volver a ${superAdminUser.name}`, isMasterReturn: true });
+    }
+    list.push({ id: currentUser.id, name: currentUser.name, badgeLabel: "Admin Principal (Slot 1)", isCurrent: true });
+    const team = users.filter((u) => u.ownerId === currentUser.id);
+    let s = 2;
+    for (const t of team) {
+      list.push({ id: t.id, name: t.name, badgeLabel: `Operador SDR (Slot ${s})`, isCurrent: false });
+      s++;
+    }
+    return list;
+  }
+
+  const list = [];
+  if (isBrowsingAsAnother) {
+    list.push({ id: superAdminUser.id, name: `Volver a ${superAdminUser.name}`, isMasterReturn: true });
+  }
+  list.push({ id: currentUser.id, name: currentUser.name, badgeLabel: "Slot Asignado", isCurrent: true });
+  return list;
+}
+
+// 1. Super Admin ve la cuenta master + clientes suscriptores
+const saSwitch = simulateGetSwitchableAccounts(testUsersList[0], null, testUsersList);
+assert(saSwitch.length === 4, "Super Admin ve su cuenta Master + las 3 cuentas de suscriptores que compraron planes");
+assert(saSwitch.some((s) => s.id === "usr-super-admin-01"), "Super Admin incluye su cuenta Master");
+assert(saSwitch.some((s) => s.id === "usr-client-growth-03"), "Super Admin incluye suscriptor Elena Valenzuela");
+assert(!saSwitch.some((s) => s.id === "usr-team-sofia-05"), "Super Admin no mezcla operadores individuales en la lista principal de suscriptores");
+
+// 2. Admin (Elena) ve ÚNICAMENTE los slots de su equipo
+const elenaSwitch = simulateGetSwitchableAccounts(testUsersList[2], null, testUsersList);
+assert(elenaSwitch.length === 2, "Admin de Plan Growth (Elena) ve los slots de su propio equipo (Elena + Sofia)");
+assert(elenaSwitch.some((s) => s.id === "usr-client-growth-03"), "Elena ve su propio slot de Admin Principal");
+assert(elenaSwitch.some((s) => s.id === "usr-team-sofia-05"), "Elena ve el slot de su colaboradora Sofia");
+assert(!elenaSwitch.some((s) => s.id === "usr-client-business-04"), "Elena NO ve a otros clientes externos como Marcos Silva");
+assert(!elenaSwitch.some((s) => s.id === "usr-team-javier-06"), "Elena NO ve a operadores de otros clientes como Javier Fernandez");
+
+// 3. Super Admin auditando a Elena dispone de retorno a Super Admin
+const saAuditingElena = simulateGetSwitchableAccounts(testUsersList[2], "usr-super-admin-01", testUsersList);
+assert(saAuditingElena.some((s) => s.isMasterReturn === true), "Super Admin auditando cuenta de cliente dispone de opcion de retorno");
 
 // Limpieza de base de datos de test
 

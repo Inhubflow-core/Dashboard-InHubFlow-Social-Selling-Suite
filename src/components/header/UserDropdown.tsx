@@ -23,7 +23,7 @@ export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("userDropdown");
 
-  const { currentUser, isSuperAdmin, capacity, allUsers, switchUser } = useAuth();
+  const { currentUser, isSuperAdmin, capacity, switchableUsers, switchUser } = useAuth();
   const plan = getPlanConfig(currentUser.planTier);
 
   const toggleDropdown = () => {
@@ -168,18 +168,47 @@ export default function UserDropdown() {
 
         {/* Selector de Cuentas / Workspace */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
-          <div className="px-2.5 mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-            {t("switchAccount")}
+          <div className="flex items-center justify-between px-2.5 mb-1.5">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              {isSuperAdmin
+                ? "Conmutar Suscriptores"
+                : currentUser.role === "client_admin"
+                ? `Slots de mi Equipo (${capacity.usedSlots}/${capacity.totalSlots})`
+                : "Mi Slot Asignado"}
+            </span>
+            <span className="text-[9px] font-semibold text-[#0099ff] bg-[#0099ff]/10 px-1.5 py-0.5 rounded">
+              {isSuperAdmin ? "Planes SaaS" : `${capacity.totalSlots} Slots`}
+            </span>
           </div>
-          <div className="space-y-1">
-            {allUsers.map((u) => {
-              const isSelected = u.id === currentUser.id;
-              const uPlan = getPlanConfig(u.planTier);
+
+          <div className="space-y-1 max-h-56 overflow-y-auto">
+            {switchableUsers.map((item) => {
+              const isSelected = item.isCurrent;
+
+              if (item.isMasterReturn) {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSwitchUser(item.id)}
+                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-start text-xs font-semibold bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 transition-colors border border-amber-500/30 mb-1"
+                  >
+                    <div className="truncate flex items-center gap-1.5">
+                      <ShieldCheck className="size-3.5 shrink-0 text-amber-500" />
+                      <div className="truncate">
+                        <span className="block truncate font-bold">{item.name}</span>
+                        <span className="block text-[10px] text-amber-600/80 dark:text-amber-400/80">
+                          {item.subtitle}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
 
               return (
                 <button
-                  key={u.id}
-                  onClick={() => handleSwitchUser(u.id)}
+                  key={item.id}
+                  onClick={() => handleSwitchUser(item.id)}
                   className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-start text-xs transition-colors ${
                     isSelected
                       ? "bg-[#0099ff]/10 text-[#0099ff] font-semibold"
@@ -187,9 +216,9 @@ export default function UserDropdown() {
                   }`}
                 >
                   <div className="truncate">
-                    <span className="block truncate">{u.name}</span>
+                    <span className="block truncate font-medium">{item.name}</span>
                     <span className="block text-[10px] text-gray-400 dark:text-gray-500">
-                      {u.role === "super_admin" ? t("superAdmin") : `${uPlan.name} (${u.slotsLimit} ${t("slots")})`}
+                      {item.badgeLabel} {item.subtitle ? `• ${item.subtitle}` : ""}
                     </span>
                   </div>
                   {isSelected && <Check className="size-3.5 shrink-0 text-[#0099ff]" />}
