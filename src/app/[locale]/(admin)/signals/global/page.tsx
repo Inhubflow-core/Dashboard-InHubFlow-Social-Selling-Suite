@@ -411,12 +411,12 @@ export default function GlobalSignalsPage() {
       </div>
 
       {/* Explicación de la Estrategia (Mismo diseño de Nivel 1 y 2) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-blue-200 bg-blue-25/40 dark:border-blue-900 dark:bg-blue-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
         <div>
-          <h4 className="text-sm font-bold text-blue-900 dark:text-blue-200">
+          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
             Mecánica de Escaneo Temático Global (Nivel 3)
           </h4>
-          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 max-w-2xl">
+          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
             Monitorea publicaciones virales y debates con alta tracción en LinkedIn sobre un tema específico (ej. Prospección B2B, Inteligencia Artificial, Agencias). Extrae a las personas que interactuaron en un país concreto para conectar con ellas de forma orgánica.
           </p>
         </div>

@@ -385,13 +385,13 @@ export default function CompetitorsSignalRadarPage() {
       </div>
 
       {/* Explicación de la Estrategia */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-purple-200 bg-purple-25/40 dark:border-purple-900 dark:bg-purple-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
         <div>
-          <h4 className="text-sm font-bold text-purple-900 dark:text-purple-200">
-            Mecanica de Prospeccion a Competidores (Nivel 2)
+          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
+            Mecánica de Prospección a Competidores (Nivel 2)
           </h4>
-          <p className="text-xs text-purple-700 dark:text-purple-300 mt-1 max-w-2xl">
-            Cuando un prospecto interactua con un competidor directo (ej. Adapta IA), expresa necesidad activa. El monitor extrae su perfil y dispara una secuencia relacional suave reconociendo el tema sin hacer un pitch agresivo.
+          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
+            Cuando un prospecto interactúa con un competidor directo (ej. Adapta IA), expresa necesidad activa. El monitor extrae su perfil y dispara una secuencia relacional suave reconociendo el tema sin hacer un pitch agresivo.
           </p>
         </div>
         <button
