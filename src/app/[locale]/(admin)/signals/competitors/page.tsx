@@ -852,7 +852,6 @@ export default function CompetitorsSignalRadarPage() {
                 <tr>
                   <th className="px-4 py-3 min-w-[240px]">Cuenta Objetivo</th>
                   <th className="px-4 py-3 min-w-[180px]">Palabras Clave</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Interacción</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
@@ -936,10 +935,6 @@ export default function CompetitorsSignalRadarPage() {
                           </span>
                         ))}
                       </div>
-                    </td>
-
-                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-600 dark:text-gray-400 text-xs">
-                      {comp.interactionTypes.join(" + ")}
                     </td>
 
                     <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
