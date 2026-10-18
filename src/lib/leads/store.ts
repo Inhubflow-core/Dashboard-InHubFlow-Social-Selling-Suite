@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
 import type { SignalLeadItem } from "@/lib/signals/types";
@@ -499,12 +499,14 @@ export function useLeadsStore() {
     }
   };
 
-  const importSignalLeads = (targetList: LeadListGroup, signalLeads: SignalLeadItem[]) => {
+  const importSignalLeads = useCallback((targetList: LeadListGroup, signalLeads: SignalLeadItem[]) => {
     const result = importSignalLeadsToList(targetList, signalLeads);
-    setLeads(getStoredLeads());
-    setLists(getStoredLeadLists());
+    if (result.addedCount > 0) {
+      setLeads(getStoredLeads());
+      setLists(getStoredLeadLists());
+    }
     return result;
-  };
+  }, []);
 
   const batchUpdateLeadPhotos = (
     updates: Record<string, string | { photoUrl?: string; location?: string; language?: "en" | "es" | "pt"; headline?: string; isEmployee?: boolean }>
@@ -561,23 +563,29 @@ export function useLeadsStore() {
     });
   };
 
-  const getOrCreateList = (params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
+  const getOrCreateList = useCallback((params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
+    const prevLists = getStoredLeadLists();
     const list = getOrCreateMonitorList(params);
-    setLists(getStoredLeadLists());
+    if (!prevLists.some((l) => l.id === list.id)) {
+      setLists(getStoredLeadLists());
+    }
     return list;
-  };
+  }, []);
 
-  const getOrCreateGlobalList = (params: {
+  const getOrCreateGlobalList = useCallback((params: {
     monitorId: string;
     searchQuery: string;
     countryName?: string;
     countryFlag?: string;
     icpTitles?: string[];
   }) => {
+    const prevLists = getStoredLeadLists();
     const list = getOrCreateGlobalMonitorList(params);
-    setLists(getStoredLeadLists());
+    if (!prevLists.some((l) => l.id === list.id)) {
+      setLists(getStoredLeadLists());
+    }
     return list;
-  };
+  }, []);
 
   return {
     leads,

@@ -111,7 +111,7 @@ export default function CompetitorsSignalRadarPage() {
         importSignalLeads(targetList, compLeads);
       }
     }
-  }, [isLoaded, l2Monitors, leads, getOrCreateList, importSignalLeads]);
+  }, [isLoaded, l2Monitors.length]);
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");

@@ -158,9 +158,12 @@ export default function GlobalSignalsPage() {
       });
   }, []);
 
-  // Asegurar que cada regla L3 tenga su lista dinámica en el Directorio de Leads
+  // Asegurar que cada regla L3 tenga su lista dinámica en el Directorio de Leads (solo una vez)
+  const hasAutoSyncedGlobalRef = useRef(false);
   useEffect(() => {
-    if (!isLoaded || l3Monitors.length === 0) return;
+    if (!isLoaded || l3Monitors.length === 0 || hasAutoSyncedGlobalRef.current) return;
+    hasAutoSyncedGlobalRef.current = true;
+
     for (const monitor of l3Monitors) {
       const targetList = getOrCreateGlobalList({
         monitorId: monitor.id,
@@ -173,7 +176,7 @@ export default function GlobalSignalsPage() {
         importSignalLeads(targetList, monitorLeads);
       }
     }
-  }, [isLoaded, l3Monitors, leads, getOrCreateGlobalList, importSignalLeads]);
+  }, [isLoaded, l3Monitors.length]);
 
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [selectedRuleForLeads, setSelectedRuleForLeads] = useState<Level3GlobalMonitor | null>(null);
