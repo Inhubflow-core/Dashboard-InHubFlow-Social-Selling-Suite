@@ -8,7 +8,7 @@ import { getStoredAccounts } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 
 export default function MyPostsSignalRadarPage() {
@@ -810,13 +810,6 @@ export default function MyPostsSignalRadarPage() {
                         Ver Leads ({getMonitorLeads(mon.id).length})
                       </button>
 
-                      {/* Enlace a Campañas */}
-                      <Link
-                        href="/campaigns"
-                        className="rounded-md border border-gray-200 px-2.5 py-1 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 text-xs inline-block"
-                      >
-                        Secuencia
-                      </Link>
 
                       {/* Botón Eliminar */}
                       <button
