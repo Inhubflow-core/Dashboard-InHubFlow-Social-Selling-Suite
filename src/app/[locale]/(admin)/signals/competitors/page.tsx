@@ -9,6 +9,7 @@ import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
   setActiveAccountId,
+  accountMatchesUser,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { getOrCreateMonitorList, useLeadsStore } from "@/lib/leads/store";
@@ -41,7 +42,13 @@ export default function CompetitorsSignalRadarPage() {
     const syncAccounts = () => {
       const visible = getVisibleAccountsForUser(currentUser);
       const active = getActiveAccountForUser(currentUser);
-      setAvailableAccounts(visible);
+      const ownAccounts = visible.filter(
+        (a) =>
+          accountMatchesUser(a, currentUser) ||
+          (currentUser.role !== "super_admin" && a.ownerId === currentUser.id)
+      );
+      const accountsList = ownAccounts.length > 0 ? ownAccounts : visible;
+      setAvailableAccounts(accountsList);
       setActiveAccount(active);
     };
 

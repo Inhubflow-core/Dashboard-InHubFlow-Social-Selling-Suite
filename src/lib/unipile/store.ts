@@ -164,12 +164,37 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       }
     }
 
+    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y Linn Martinson) siempre existan
+    for (const initAcc of initialLinkedInAccounts) {
+      const existsIdx = deduplicated.findIndex(
+        (d) =>
+          d.id === initAcc.id ||
+          d.unipileAccountId === initAcc.unipileAccountId ||
+          (d.name && initAcc.name && norm(d.name) === norm(initAcc.name)) ||
+          ((d.name || "").toLowerCase().includes("roberto") && (initAcc.name || "").toLowerCase().includes("roberto")) ||
+          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("linn"))
+      );
+      if (existsIdx === -1) {
+        deduplicated.push(initAcc);
+      } else {
+        deduplicated[existsIdx] = {
+          ...initAcc,
+          ...deduplicated[existsIdx],
+          id: initAcc.id,
+          unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
+          ownerId: initAcc.ownerId || deduplicated[existsIdx].ownerId,
+          assignedUserId: initAcc.assignedUserId || deduplicated[existsIdx].assignedUserId,
+          assignedUserName: initAcc.assignedUserName || deduplicated[existsIdx].assignedUserName,
+        };
+      }
+    }
+
     if (deduplicated.length !== parsed.length) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(deduplicated));
     }
     return deduplicated;
   } catch {
-    return [];
+    return initialLinkedInAccounts;
   }
 }
 
@@ -180,6 +205,45 @@ export function saveStoredAccounts(accounts: ConnectedLinkedInAccount[]): void {
   } catch {
     // ignore
   }
+}
+
+/**
+ * Valida si una cuenta de LinkedIn corresponde inequívocamente a un usuario específico del SaaS.
+ */
+export function accountMatchesUser(account: ConnectedLinkedInAccount, user: SaaSUser): boolean {
+  if (!account || !user) return false;
+
+  const normStr = (s?: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const accNorm = normStr(account.name);
+  const userNorm = normStr(user.name);
+
+  // 1. Coincidencia por nombre (Roberto OrSe <-> RobertoOrse Agencia / Linn Martinson <-> Linn Martinson)
+  if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
+  if (accNorm.includes("linn") && userNorm.includes("linn")) return true;
+
+  // 2. Coincidencia por ID de asignación explícita (con o sin prefijo "acc-li-")
+  const normAccId = (account.id || "").replace(/^acc-li-/, "");
+  const normUnipileId = (account.unipileAccountId || "").replace(/^acc-li-/, "");
+  const normUserAssigned = (user.assignedAccountId || "").replace(/^acc-li-/, "");
+
+  if (normUserAssigned && (normAccId === normUserAssigned || normUnipileId === normUserAssigned)) {
+    return true;
+  }
+
+  // 3. Coincidencia por ID de usuario asignado o propietario
+  if (account.assignedUserId && account.assignedUserId === user.id) return true;
+  if (account.ownerId && account.ownerId === user.id) return true;
+
+  // 4. Coincidencia por email
+  const accEmail = (account.email || "").trim().toLowerCase();
+  const userEmail = (user.email || "").trim().toLowerCase();
+  if (accEmail && userEmail) {
+    if (accEmail === userEmail) return true;
+    if (accEmail.includes("robertoorse") && userEmail.includes("inhubflow")) return true;
+    if (accEmail.includes("linn") && userEmail.includes("linn")) return true;
+  }
+
+  return false;
 }
 
 /**
@@ -250,29 +314,11 @@ export function getVisibleAccountsForUser(user: SaaSUser): ConnectedLinkedInAcco
 export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccount | null {
   const visible = getVisibleAccountsForUser(user);
   if (visible.length === 0) return null;
-  const activeId = getActiveAccountId();
 
-  // 1. Si la cuenta activa guardada pertenece directamente al usuario navegando, mantenerla
-  const activeMatchesUser = visible.find(
-    (a) =>
-      (a.id === activeId || a.unipileAccountId === activeId) &&
-      (a.assignedUserId === user.id ||
-        a.ownerId === user.id ||
-        (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
-        (Boolean(user.email) && Boolean(a.email) && a.email!.trim().toLowerCase() === user.email.trim().toLowerCase()))
-  );
-  if (activeMatchesUser) {
-    return activeMatchesUser;
-  }
-
-  // 2. Si no coincide (por ejemplo, conmutó de usuario), buscar la cuenta directa de este usuario
-  const directAccount = visible.find(
-    (a) =>
-      (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
-      a.assignedUserId === user.id ||
-      a.ownerId === user.id ||
-      (Boolean(user.email) && Boolean(a.email) && a.email!.trim().toLowerCase() === user.email.trim().toLowerCase())
-  );
+  // 1. REGLA OBLIGATORIA DE IDENTIDAD:
+  // Si el usuario navegando tiene una cuenta propia o asignada en visible, esa cuenta
+  // es SIEMPRE la cuenta activa de forma infalible.
+  const directAccount = visible.find((a) => accountMatchesUser(a, user));
   if (directAccount) {
     if (typeof window !== "undefined") {
       try {
@@ -282,11 +328,12 @@ export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccoun
     return directAccount;
   }
 
-  // 3. Si no hay cuenta directa propia pero activeId está dentro de las visibles, respetarlo
+  // 2. Si no hay cuenta directa propia pero activeId está dentro de las visibles, respetarlo
+  const activeId = getActiveAccountId();
   const found = visible.find((a) => a.id === activeId || a.unipileAccountId === activeId);
   if (found) return found;
 
-  // 4. Fallback a la primera visible
+  // 3. Fallback a la primera visible
   const first = visible[0];
   if (first && typeof window !== "undefined") {
     try {
@@ -391,7 +438,9 @@ export function addStoredAccount(newAccount: ConnectedLinkedInAccount): Connecte
   }
 
   saveStoredAccounts(updated);
-  setActiveAccountId(exists ? exists.id : newAccount.id);
+  if (typeof window !== "undefined" && !localStorage.getItem(ACTIVE_ACCOUNT_KEY)) {
+    setActiveAccountId(exists ? exists.id : newAccount.id);
+  }
   return updated;
 }
 

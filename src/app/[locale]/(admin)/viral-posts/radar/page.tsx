@@ -6,6 +6,7 @@ import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
   setActiveAccountId,
+  accountMatchesUser,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useAuth } from "@/context/AuthContext";
@@ -235,8 +236,14 @@ export default function ViralRadarPage() {
   useEffect(() => {
     const syncAccounts = () => {
       const visible = getVisibleAccountsForUser(currentUser);
-      setAvailableAccounts(visible as any);
       const active = getActiveAccountForUser(currentUser);
+      const ownAccounts = visible.filter(
+        (a) =>
+          accountMatchesUser(a, currentUser) ||
+          (currentUser.role !== "super_admin" && a.ownerId === currentUser.id)
+      );
+      const accountsList = ownAccounts.length > 0 ? ownAccounts : visible;
+      setAvailableAccounts(accountsList as any);
       if (active) {
         setActiveAccount(active as any);
         setActiveAccountName(active.name);

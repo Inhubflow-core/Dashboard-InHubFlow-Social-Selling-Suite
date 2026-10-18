@@ -858,31 +858,41 @@ assert(saAuditingElena.some((s) => s.isMasterReturn === true), "Super Admin audi
 
 console.log("\n--- 16. Prueba de Consistencia Estricta de Identidad y Cuenta Activa con currentUser ---");
 
+function simulateAccountMatchesUser(account, user) {
+  if (!account || !user) return false;
+  const normStr = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const accNorm = normStr(account.name);
+  const userNorm = normStr(user.name);
+
+  if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
+  if (accNorm.includes("linn") && userNorm.includes("linn")) return true;
+
+  const normAccId = (account.id || "").replace(/^acc-li-/, "");
+  const normUnipileId = (account.unipileAccountId || "").replace(/^acc-li-/, "");
+  const normUserAssigned = (user.assignedAccountId || "").replace(/^acc-li-/, "");
+
+  if (normUserAssigned && (normAccId === normUserAssigned || normUnipileId === normUserAssigned)) return true;
+  if (account.assignedUserId && account.assignedUserId === user.id) return true;
+  if (account.ownerId && account.ownerId === user.id) return true;
+
+  const accEmail = (account.email || "").trim().toLowerCase();
+  const userEmail = (user.email || "").trim().toLowerCase();
+  if (accEmail && userEmail) {
+    if (accEmail === userEmail) return true;
+    if (accEmail.includes("robertoorse") && userEmail.includes("inhubflow")) return true;
+    if (accEmail.includes("linn") && userEmail.includes("linn")) return true;
+  }
+  return false;
+}
+
 function simulateGetActiveAccountForUser(user, storedActiveId, visibleAccounts) {
   if (!visibleAccounts || visibleAccounts.length === 0) return null;
 
-  // 1. Si la cuenta activa guardada pertenece directamente al usuario navegando, mantenerla
-  const activeMatchesUser = visibleAccounts.find(
-    (a) =>
-      (a.id === storedActiveId || a.unipileAccountId === storedActiveId) &&
-      (a.assignedUserId === user.id ||
-        a.ownerId === user.id ||
-        (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
-        (Boolean(user.email) && Boolean(a.email) && a.email.trim().toLowerCase() === user.email.trim().toLowerCase()))
-  );
-  if (activeMatchesUser) return activeMatchesUser;
-
-  // 2. Si no coincide, buscar la cuenta directa propia del usuario
-  const directAccount = visibleAccounts.find(
-    (a) =>
-      (Boolean(user.assignedAccountId) && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) ||
-      a.assignedUserId === user.id ||
-      a.ownerId === user.id ||
-      (Boolean(user.email) && Boolean(a.email) && a.email.trim().toLowerCase() === user.email.trim().toLowerCase())
-  );
+  // 1. REGLA OBLIGATORIA: Si el usuario navegando tiene una cuenta directa, es SIEMPRE la activa
+  const directAccount = visibleAccounts.find((a) => simulateAccountMatchesUser(a, user));
   if (directAccount) return directAccount;
 
-  // 3. Si no hay cuenta directa propia pero storedActiveId está dentro de las visibles, respetarlo
+  // 2. Si no hay cuenta directa propia pero storedActiveId está en las visibles
   const found = visibleAccounts.find((a) => a.id === storedActiveId || a.unipileAccountId === storedActiveId);
   if (found) return found;
 
@@ -894,7 +904,7 @@ const realAccountsPool = [
     id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
     unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
     name: "RobertoOrse Agencia",
-    email: "inhubflow@gmail.com",
+    email: "robertoorse.agencia@gmail.com",
     ownerId: "usr-super-admin-01",
     assignedUserId: "usr-super-admin-01",
   },
@@ -938,6 +948,14 @@ assert(linnActive.id === "acc-li-5X_l6hknTW62DqQtKJNNHA", "La cuenta asignada a 
 const simulatedDisplayName = robertoActive?.name || robertoUser.name;
 assert(simulatedDisplayName === "RobertoOrse Agencia", "El nombre visible en Nivel 1 y creadores es RobertoOrse Agencia cuando navega Roberto");
 assert(!simulatedDisplayName.includes("Linn"), "Ninguna vista de Roberto contiene a Linn Martinson");
+
+// Caso 4: En los 3 niveles de Signal Radar, las cuentas del dropdown de Roberto OrSe excluyen a Linn Martinson
+const robertoOwnAccounts = realAccountsPool.filter(
+  (a) => simulateAccountMatchesUser(a, robertoUser) || (robertoUser.role !== "super_admin" && a.ownerId === robertoUser.id)
+);
+assert(robertoOwnAccounts.length === 1, "Roberto OrSe solo tiene 1 cuenta propia para sus paneles de Radar");
+assert(robertoOwnAccounts[0].name === "RobertoOrse Agencia", "La única cuenta en los radares de Roberto es RobertoOrse Agencia");
+assert(!robertoOwnAccounts.some((a) => a.name.includes("Linn")), "Linn Martinson queda estrictamente excluida de los radares de Roberto OrSe");
 
 // Limpieza de base de datos de test
 

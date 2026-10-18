@@ -6,6 +6,7 @@ import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
   setActiveAccountId,
+  accountMatchesUser,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { exportCarouselToPdf } from "@/lib/viral-posts/carousel-exporter";
@@ -113,8 +114,14 @@ export default function CreateViralPostPage() {
   useEffect(() => {
     const syncAccounts = () => {
       const visible = getVisibleAccountsForUser(currentUser);
-      setAccounts(visible as any);
       const active = getActiveAccountForUser(currentUser);
+      const ownAccounts = visible.filter(
+        (a) =>
+          accountMatchesUser(a, currentUser) ||
+          (currentUser.role !== "super_admin" && a.ownerId === currentUser.id)
+      );
+      const accountsList = ownAccounts.length > 0 ? ownAccounts : visible;
+      setAccounts(accountsList as any);
       if (active) {
         setSelectedAccountId(active.id);
         setCarouselTheme((prev) => ({
