@@ -294,6 +294,7 @@ export default function GlobalSignalsPage() {
         language: lead.language,
         signalLevel: "level_3" as const,
         sourcePostTitle: lead.sourcePostTitle,
+        sourcePostUrl: lead.sourcePostUrl,
       }));
 
       const added = recordDiscoveredLeads(harvestedLeads);
@@ -311,14 +312,19 @@ export default function GlobalSignalsPage() {
       importSignalLeads(targetList, allLeadsForMonitor);
 
       const newCapturedCount = rule.leadsIdentifiedCount + added.length;
+      const updatedPosts = (data.selectedPosts && data.selectedPosts.length > 0)
+        ? data.selectedPosts
+        : rule.lastScannedPosts || [];
+
       updateLevel3Monitor(rule.id, {
         leadsIdentifiedCount: newCapturedCount,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        lastScannedPosts: updatedPosts,
       });
 
       setScanFeedback({
         type: "success",
-        text: `Escaneo global finalizado: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales y se extrajeron ${added.length} personas interesadas en "${rule.searchQuery}".`,
+        text: `Escaneo global finalizado: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales en ${rule.targetCountryName || "la región"} y se extrajeron ${added.length} prospectos locales verificados para "${rule.searchQuery}".`,
         listId: targetList.id,
       });
     } catch (err: any) {
@@ -717,9 +723,22 @@ export default function GlobalSignalsPage() {
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {rule.searchQuery}
                         </p>
-                        <span className="text-[10px] text-gray-400">
-                          Umbral: Min {rule.minPostReactions} reacciones
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-gray-400">
+                            Min {rule.minPostReactions} reacciones
+                          </span>
+                          {rule.lastScannedPosts && rule.lastScannedPosts.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRuleForLeads(rule)}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                              title="Ver los links de las publicaciones seleccionadas en LinkedIn"
+                            >
+                              <span>• {rule.lastScannedPosts.length} posts analizados</span>
+                              <span>↗</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-4">
@@ -865,6 +884,48 @@ export default function GlobalSignalsPage() {
               </button>
             </div>
 
+            {/* Publicaciones Seleccionadas en LinkedIn */}
+            {selectedRuleForLeads.lastScannedPosts && selectedRuleForLeads.lastScannedPosts.length > 0 && (
+              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                    <span>🔗</span>
+                    <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
+                  </span>
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400">
+                    Tracción en {selectedRuleForLeads.targetCountryName || "la región"}
+                  </span>
+                </div>
+                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                  {selectedRuleForLeads.lastScannedPosts.map((post, pIdx) => (
+                    <div
+                      key={post.id || pIdx}
+                      className="flex items-center justify-between gap-3 text-xs bg-white dark:bg-gray-800/80 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                          {post.authorName ? <span className="font-bold text-gray-900 dark:text-white mr-1.5">{post.authorName}:</span> : null}
+                          &quot;{post.text}&quot;
+                        </p>
+                        <span className="text-[10px] text-gray-400">
+                          {post.reactionsCount} reacciones • {post.commentsCount} comentarios
+                        </span>
+                      </div>
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 inline-flex items-center gap-1 rounded bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition"
+                      >
+                        <span>Ver Post</span>
+                        <span>↗</span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
                 <div className="py-8 text-center space-y-3">
@@ -920,6 +981,18 @@ export default function GlobalSignalsPage() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
+                        {lead.sourcePostUrl && (
+                          <a
+                            href={lead.sourcePostUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-lg border border-blue-200 bg-blue-50/50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300 inline-flex items-center gap-1"
+                            title="Ver el post de LinkedIn donde comentó o reaccionó"
+                          >
+                            <span>Post Debate</span>
+                            <span className="text-[10px]">↗</span>
+                          </a>
+                        )}
                         {lead.linkedinUrl && (
                           <a
                             href={lead.linkedinUrl}

@@ -3,6 +3,22 @@ import { unipile } from "@/lib/unipile/client";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
 import { isAuthorEmployeeOrAffiliate, normalizeText } from "@/lib/signals/employee-filter";
 
+const COUNTRY_DEFINITIONS: Record<string, { name: string; flag: string; keywords: string[] }> = {
+  CL: { name: "Chile", flag: "🇨🇱", keywords: ["chile", "santiago", "valparaíso", "valparaiso", "concepción", "concepcion", "antofagasta", "viña", "vina", "temuco", "iquique"] },
+  ES: { name: "España", flag: "🇪🇸", keywords: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "málaga", "malaga", "zaragoza", "alicante"] },
+  MX: { name: "México", flag: "🇲🇽", keywords: ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "puebla", "querétaro", "queretaro", "tijuana", "mérida", "merida"] },
+  CO: { name: "Colombia", flag: "🇨🇴", keywords: ["colombia", "bogotá", "bogota", "medellín", "medellin", "cali", "barranquilla", "bucaramanga", "cartagena"] },
+  AR: { name: "Argentina", flag: "🇦🇷", keywords: ["argentina", "buenos aires", "córdoba", "cordoba", "rosario", "mendoza", "la plata", "mar del plata"] },
+  PE: { name: "Perú", flag: "🇵🇪", keywords: ["perú", "peru", "lima", "arequipa", "trujillo", "chiclayo", "piura", "cusco"] },
+  BR: { name: "Brasil", flag: "🇧🇷", keywords: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte", "porto alegre", "campinas", "recife", "salvador", "florianópolis", "florianopolis"] },
+  UY: { name: "Uruguay", flag: "🇺🇾", keywords: ["uruguay", "montevideo", "punta del este"] },
+  PA: { name: "Panamá", flag: "🇵🇦", keywords: ["panamá", "panama", "ciudad de panamá", "ciudad de panama"] },
+  EC: { name: "Ecuador", flag: "🇪🇨", keywords: ["ecuador", "quito", "guayaquil", "cuenca"] },
+  CR: { name: "Costa Rica", flag: "🇨🇷", keywords: ["costa rica", "san josé", "san jose"] },
+  DO: { name: "Rep. Dominicana", flag: "🇩🇴", keywords: ["república dominicana", "republica dominicana", "santo domingo", "santiago de los caballeros"] },
+  GT: { name: "Guatemala", flag: "🇬🇹", keywords: ["guatemala", "ciudad de guatemala"] },
+};
+
 function isAccountHealthy(acc: any): boolean {
   if (!acc) return false;
   if (acc.status === "OK" || acc.status === "CONNECTED") return true;
@@ -24,14 +40,20 @@ function matchesIcp(headline: string | null | undefined, icpTitles: string[]): b
   });
 }
 
-function matchesLocation(location: string | null | undefined, locations: string[]): boolean {
-  if (!locations || locations.length === 0) return true;
-  if (!location || location.trim().length === 0) return true; // No descartar si LinkedIn no expone la ubicación en la vista de comentarios
+function checkLocationMatch(
+  textToCheck: string | null | undefined,
+  keywords: string[]
+): boolean {
+  if (!keywords || keywords.length === 0) return true;
+  if (!textToCheck) return false;
 
-  const normLoc = normalizeText(location);
-  return locations.some((loc) => {
-    const normL = normalizeText(loc);
-    return normL && (normLoc.includes(normL) || normL.includes(normLoc));
+  const norm = normalizeText(textToCheck);
+  return keywords.some((kw) => {
+    const normKw = normalizeText(kw);
+    if (!normKw) return false;
+    const escaped = normKw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(^|[^a-z0-9_])${escaped}([^a-z0-9_]|$)`, "i");
+    return regex.test(norm) || norm.includes(normKw);
   });
 }
 
@@ -61,7 +83,14 @@ export async function POST(req: NextRequest) {
     const cleanTitles = Array.isArray(icpTitles)
       ? icpTitles.map((t: string) => String(t || "").trim()).filter(Boolean)
       : [];
-    const cleanLocations = Array.isArray(locations)
+
+    const countryCode = String(targetCountry || "all").toUpperCase();
+    const countryDef = countryCode !== "ALL" ? COUNTRY_DEFINITIONS[countryCode] : null;
+
+    // Construir lista de palabras clave de ubicación (país + ciudades clave)
+    const targetKeywords = countryDef
+      ? countryDef.keywords
+      : Array.isArray(locations)
       ? locations.map((l: string) => String(l || "").trim()).filter(Boolean)
       : [];
 
@@ -103,15 +132,39 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Buscar publicaciones relevantes en LinkedIn con Unipile
-    console.log(`[GlobalScan] Buscando publicaciones globales en LinkedIn para "${cleanQuery}" (cuenta: ${accountId}, país: ${targetCountry})...`);
-    let searchResponse: any;
+    // Si se especificó un país (ej. Chile), contextualizamos la búsqueda con el país para hallar debates locales
+    const queryWithCountry = countryDef ? `${cleanQuery} ${countryDef.name}` : cleanQuery;
+    console.log(`[GlobalScan] Buscando publicaciones en LinkedIn: "${queryWithCountry}" (cuenta: ${accountId}, país: ${countryDef ? countryDef.name : "Global"})...`);
+
+    let rawPosts: any[] = [];
     try {
-      searchResponse = await unipile.searchLinkedIn({
+      const searchRes = await unipile.searchLinkedIn({
         account_id: accountId,
         category: "posts",
-        keywords: cleanQuery,
-        limit: Math.min(20, Math.max(5, Number(limit) || 8)),
+        keywords: queryWithCountry,
+        limit: Math.min(25, Math.max(5, Number(limit) || 10)),
       });
+      rawPosts = Array.isArray(searchRes?.items) ? searchRes.items : [];
+
+      // Si la búsqueda con país arrojó pocos resultados, buscar también la temática directa
+      if (rawPosts.length < 3 && countryDef) {
+        console.log(`[GlobalScan] Búsqueda combinada arrojó ${rawPosts.length} posts. Buscando también "${cleanQuery}"...`);
+        const fallbackRes = await unipile.searchLinkedIn({
+          account_id: accountId,
+          category: "posts",
+          keywords: cleanQuery,
+          limit: 10,
+        });
+        const fallbackPosts = Array.isArray(fallbackRes?.items) ? fallbackRes.items : [];
+        const seenIds = new Set(rawPosts.map((p) => (p as any).social_id || p.id));
+        for (const p of fallbackPosts) {
+          const pid = (p as any).social_id || p.id;
+          if (pid && !seenIds.has(pid)) {
+            seenIds.add(pid);
+            rawPosts.push(p);
+          }
+        }
+      }
     } catch (searchErr: any) {
       console.warn(`[GlobalScan] Error en búsqueda de posts para "${cleanQuery}":`, searchErr?.message || searchErr);
       return NextResponse.json(
@@ -120,13 +173,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rawPosts: any[] = Array.isArray(searchResponse?.items) ? searchResponse.items : [];
     if (rawPosts.length === 0) {
       return NextResponse.json({
         success: true,
         items: [],
         totalPostsAnalyzed: 0,
         totalLeadsFound: 0,
+        selectedPosts: [],
         message: `No se encontraron publicaciones recientes para "${cleanQuery}" en LinkedIn.`,
       });
     }
@@ -135,11 +188,27 @@ export async function POST(req: NextRequest) {
     const targetMinReactions = Number(minPostReactions) || 10;
     const qualifiedPosts = rawPosts.filter((post) => {
       const count = Number(post.reaction_counter ?? post.reactions_count ?? 0);
-      return count >= targetMinReactions || count === 0; // Si el contador no viene provisto, se incluye
+      return count >= targetMinReactions || count === 0;
     });
 
     const postsToProcess = (qualifiedPosts.length > 0 ? qualifiedPosts : rawPosts).slice(0, 6);
-    console.log(`[GlobalScan] Procesando interacciones de ${postsToProcess.length} posts globales calificados...`);
+    console.log(`[GlobalScan] Procesando interacciones de ${postsToProcess.length} posts calificados...`);
+
+    // Mapear posts seleccionados para mostrarlos con link directo en la interfaz
+    const selectedPosts = postsToProcess.map((post) => {
+      const postSocialId = post.social_id || post.id;
+      const shareUrl =
+        post.share_url ||
+        `https://www.linkedin.com/feed/update/${encodeURIComponent(postSocialId)}`;
+      return {
+        id: postSocialId,
+        url: shareUrl,
+        text: (post.text || "").slice(0, 160),
+        authorName: typeof post.author === "string" ? post.author : post.author?.name || "Autor en LinkedIn",
+        reactionsCount: Number(post.reaction_counter ?? post.reactions_count ?? 0),
+        commentsCount: Number(post.comment_counter ?? post.comments_count ?? 0),
+      };
+    });
 
     // 2. Extraer comentarios y reacciones de los posts en paralelo
     const interactions = await Promise.all(
@@ -174,15 +243,70 @@ export async function POST(req: NextRequest) {
 
     const leadMap = new Map<string, Record<string, unknown>>();
 
+    async function verifyLeadLocation(params: {
+      headline?: string;
+      commentLocation?: string;
+      commentText?: string;
+      profileUrl?: string;
+      publicIdentifier?: string;
+    }): Promise<{ isMatch: boolean; resolvedLocation: string }> {
+      const { headline, commentLocation, commentText, profileUrl, publicIdentifier } = params;
+
+      // Si es global ("all"), no se restringe por país
+      if (!countryDef || targetKeywords.length === 0) {
+        return { isMatch: true, resolvedLocation: commentLocation || "Remoto / Global" };
+      }
+
+      // 1. Revisar si el titular, comentario o ubicación directa menciona el país o ciudades clave
+      if (checkLocationMatch(headline, targetKeywords)) {
+        return { isMatch: true, resolvedLocation: `${countryDef.name} (${countryDef.flag})` };
+      }
+      if (checkLocationMatch(commentLocation, targetKeywords)) {
+        return { isMatch: true, resolvedLocation: commentLocation! };
+      }
+      if (checkLocationMatch(commentText, targetKeywords)) {
+        return { isMatch: true, resolvedLocation: `${countryDef.name} (${countryDef.flag})` };
+      }
+
+      // 2. Extraer identificador de LinkedIn para resolver perfil completo con Unipile
+      let cleanIdentifier = publicIdentifier || "";
+      if (!cleanIdentifier && profileUrl) {
+        const match = profileUrl.match(/\/in\/([^/?#]+)/i);
+        if (match?.[1]) cleanIdentifier = match[1];
+      }
+
+      if (cleanIdentifier && accountId && !unipile.isSandboxMode()) {
+        try {
+          const profile = await unipile.resolveProfile(cleanIdentifier, accountId);
+          if (profile && profile.location) {
+            const matchesCountry = checkLocationMatch(profile.location, targetKeywords);
+            if (matchesCountry) {
+              return { isMatch: true, resolvedLocation: profile.location };
+            } else {
+              // Descarta si la ubicación oficial es de otro país
+              return { isMatch: false, resolvedLocation: profile.location };
+            }
+          }
+        } catch {
+          // Si falla la llamada de perfil puntual, continuar
+        }
+      }
+
+      // Si no hay confirmación del país para una regla específica, descartar para pureza
+      return { isMatch: false, resolvedLocation: "No verificado" };
+    }
+
     for (const item of interactions) {
       const post = item.post;
       const postAuthorName = typeof post.author === "string" ? post.author : post.author?.name || "";
       const postAuthorCompany = post.author?.headline || "";
       const targetEntities = [postAuthorName, postAuthorCompany].filter(Boolean);
+      const postShareUrl =
+        post.share_url ||
+        `https://www.linkedin.com/feed/update/${encodeURIComponent(post.social_id || post.id)}`;
 
       // A. Procesar comentaristas (Intención Alta / Debate Activo)
       for (const comment of item.comments) {
-        // En Unipile, comment.author puede ser string y la metadata estar en author_details
         const rawAuthor: any = comment.author;
         const authorDetails: any = (comment as any).author_details || {};
         const authorObj: any = typeof rawAuthor === "object" && rawAuthor !== null ? rawAuthor : {};
@@ -214,11 +338,7 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Filtro por Ubicación
-        if (cleanLocations.length > 0 && !matchesLocation(location, cleanLocations)) {
-          continue;
-        }
-
+        const commentText = comment.text || "";
         const linkedinUrl =
           authorDetails.profile_url ||
           authorObj.profile_url ||
@@ -227,6 +347,22 @@ export async function POST(req: NextRequest) {
             : authorObj.public_identifier
             ? `https://www.linkedin.com/in/${authorObj.public_identifier}`
             : "");
+
+        const pubId = authorDetails.public_identifier || authorObj.public_identifier;
+
+        // Verificación Estricta de la Ubicación de la Persona
+        const { isMatch: isLocMatch, resolvedLocation } = await verifyLeadLocation({
+          headline,
+          commentLocation: location,
+          commentText,
+          profileUrl: linkedinUrl,
+          publicIdentifier: pubId,
+        });
+
+        if (!isLocMatch) {
+          console.log(`[GlobalScan] Descartado lead "${fullName}" (${headline}) por no coincidir con el país ${countryDef?.name || targetCountry}. Ubicación: ${resolvedLocation}`);
+          continue;
+        }
 
         const rawPic =
           authorDetails.profile_picture_url ||
@@ -239,11 +375,10 @@ export async function POST(req: NextRequest) {
             ? rawPic
             : undefined;
 
-        const commentText = comment.text || "";
         const detectedLang = detectLeadLanguage({
           fullName,
           headline,
-          location,
+          location: resolvedLocation,
           linkedinUrl,
           signalSnippet: commentText,
         });
@@ -253,14 +388,16 @@ export async function POST(req: NextRequest) {
           fullName,
           headline: headline || "Profesional en LinkedIn",
           company: "",
-          location: location || "Remoto / No especificado",
+          location: resolvedLocation,
           linkedinUrl,
           avatarUrl,
           signalSnippet: `Comentó en debate sobre ${cleanQuery}: “${commentText.slice(0, 120)}${commentText.length > 120 ? "..." : ""}”`,
           intentLevel: "medium_high",
           connectionDegree: authorDetails.network_distance || authorObj.network_distance || "2nd",
           sourcePostId: post.social_id || post.id,
-          sourcePostTitle: (post.text || cleanQuery).slice(0, 80),
+          sourcePostUrl: postShareUrl,
+          sourcePostTitle: (post.text || cleanQuery).slice(0, 100),
+          sourceAuthorName: postAuthorName || "Autor en LinkedIn",
           language: detectedLang,
         });
       }
@@ -286,15 +423,23 @@ export async function POST(req: NextRequest) {
             continue;
           }
 
-          if (cleanLocations.length > 0 && !matchesLocation(location, cleanLocations)) {
-            continue;
-          }
-
           const linkedinUrl =
             author.profile_url ||
             (author.public_identifier
               ? `https://www.linkedin.com/in/${author.public_identifier}`
               : "");
+
+          // Verificación Estricta de la Ubicación de la Persona que Reaccionó
+          const { isMatch: isLocMatch, resolvedLocation } = await verifyLeadLocation({
+            headline,
+            commentLocation: location,
+            profileUrl: linkedinUrl,
+            publicIdentifier: author.public_identifier,
+          });
+
+          if (!isLocMatch) {
+            continue;
+          }
 
           const rawPic = author.picture_url || (author as any).profile_picture_url;
           const avatarUrl =
@@ -305,7 +450,7 @@ export async function POST(req: NextRequest) {
           const detectedLang = detectLeadLanguage({
             fullName,
             headline,
-            location,
+            location: resolvedLocation,
             linkedinUrl,
             signalSnippet: headline,
           });
@@ -315,14 +460,16 @@ export async function POST(req: NextRequest) {
             fullName,
             headline: headline || "Profesional en LinkedIn",
             company: "",
-            location: location || "Remoto / No especificado",
+            location: resolvedLocation,
             linkedinUrl,
             avatarUrl,
             signalSnippet: `Reaccionó al post sobre ${cleanQuery}: “${(post.text || cleanQuery).slice(0, 80)}...”`,
             intentLevel: "medium",
             connectionDegree: (author as any).network_distance || "2nd",
             sourcePostId: post.social_id || post.id,
-            sourcePostTitle: (post.text || cleanQuery).slice(0, 80),
+            sourcePostUrl: postShareUrl,
+            sourcePostTitle: (post.text || cleanQuery).slice(0, 100),
+            sourceAuthorName: postAuthorName || "Autor en LinkedIn",
             language: detectedLang,
           });
         }
@@ -330,13 +477,14 @@ export async function POST(req: NextRequest) {
     }
 
     const items = Array.from(leadMap.values());
-    console.log(`[GlobalScan] Escaneo finalizado. Total prospectos ICP calificados encontrados: ${items.length}`);
+    console.log(`[GlobalScan] Escaneo finalizado. Total prospectos calificados del país encontrados: ${items.length}`);
 
     return NextResponse.json({
       success: true,
       items,
       totalPostsAnalyzed: postsToProcess.length,
       totalLeadsFound: items.length,
+      selectedPosts,
       mode: unipile.isSandboxMode() ? "sandbox" : "live",
     });
   } catch (err: any) {

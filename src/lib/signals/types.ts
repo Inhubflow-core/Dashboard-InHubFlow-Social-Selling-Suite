@@ -21,6 +21,7 @@ export interface SignalLeadItem {
   language?: "en" | "es" | "pt";
   signalLevel?: SignalLevel;
   sourcePostTitle?: string;
+  sourcePostUrl?: string;
   sourceAuthorName?: string;
   sourceAuthorUrl?: string;
 }
@@ -76,4 +77,12 @@ export interface Level3GlobalMonitor {
   leadsIdentifiedCount: number;
   lastScanAt: string;
   createdAt: string;
+  lastScannedPosts?: Array<{
+    id: string;
+    url: string;
+    text: string;
+    authorName?: string;
+    reactionsCount?: number;
+    commentsCount?: number;
+  }>;
 }
