@@ -151,18 +151,21 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
           (m.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
 
         if (isPedro) {
-          if (!m.lastScannedPosts || m.lastScannedPosts.length < 10 || !m.leaderAvatarUrl) {
+          const hasInvalidUrl =
+            !updated.leaderUrl ||
+            updated.leaderUrl.includes("coach-ventas") ||
+            (updated.lastScannedPosts && updated.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas")));
+
+          if (hasInvalidUrl || !m.lastScannedPosts || m.lastScannedPosts.length === 0 || !m.leaderAvatarUrl?.includes("licdn.com")) {
             hadModifications = true;
             updated = {
               ...updated,
-              leaderName: updated.leaderName || "Pedro Valladolid 🚀",
-              leaderUrl: updated.leaderUrl || "https://www.linkedin.com/in/pedrovalladolid-coach-ventas",
+              leaderName: "Pedro Valladolid Borao 🚀",
+              leaderUrl: "https://www.linkedin.com/in/pedrovalladolid",
               leaderAvatarUrl:
-                updated.leaderAvatarUrl ||
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+                "https://media.licdn.com/dms/image/v2/D4D03AQEyYxxPmFjYlQ/profile-displayphoto-scale_100_100/B4DZptsVEEGkAc-/0/1762776929591?e=1793836800&v=beta&t=putzi_PR0YO_c1zwaJoqsrQtWbwHkoJJ69yQ9-xLDSY",
               leaderHeadline:
-                updated.leaderHeadline ||
-                "Top Voice LinkedIn | Formador de Equipos Comerciales B2B & Dirección de Ventas",
+                "Mentor Empresarial para Pymes · Ventas · Rentabilidad · Metodología CRECE® y VENDE®",
               nicheTopic: updated.nicheTopic || "Ventas B2B & Dirección Comercial",
               lastScannedPosts: pedroValladolidRealPosts,
               lastScanAt: m.lastScanAt || "17:15",

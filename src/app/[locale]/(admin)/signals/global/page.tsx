@@ -23,6 +23,7 @@ import type { UnipileAccount } from "@/lib/unipile/types";
 import { Link } from "@/i18n/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { pedroValladolidRealPosts } from "@/lib/signals/mock-data";
 import { Pencil, X } from "lucide-react";
 
 export interface CountryOption {
@@ -199,6 +200,40 @@ export default function GlobalSignalsPage() {
       }
     }
   }, [isLoaded, l3Monitors.length]);
+
+  // Auto-saneamiento reactivo de URLs de LinkedIn (Pedro Valladolid y posts) para purgar caché obsoleta
+  useEffect(() => {
+    if (!isLoaded || l3Monitors.length === 0) return;
+
+    for (const monitor of l3Monitors) {
+      const isPedro =
+        (monitor.leaderName || "").toLowerCase().includes("pedro") ||
+        (monitor.searchQuery || "").toLowerCase().includes("pedro") ||
+        (monitor.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
+
+      if (isPedro) {
+        const needsFix =
+          !monitor.leaderUrl ||
+          monitor.leaderUrl.includes("coach-ventas") ||
+          !monitor.leaderAvatarUrl?.includes("licdn.com") ||
+          !monitor.lastScannedPosts ||
+          monitor.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas"));
+
+        if (needsFix) {
+          updateLevel3Monitor(monitor.id, {
+            leaderName: "Pedro Valladolid Borao 🚀",
+            leaderUrl: "https://www.linkedin.com/in/pedrovalladolid",
+            leaderAvatarUrl:
+              "https://media.licdn.com/dms/image/v2/D4D03AQEyYxxPmFjYlQ/profile-displayphoto-scale_100_100/B4DZptsVEEGkAc-/0/1762776929591?e=1793836800&v=beta&t=putzi_PR0YO_c1zwaJoqsrQtWbwHkoJJ69yQ9-xLDSY",
+            leaderHeadline:
+              "Mentor Empresarial para Pymes · Ventas · Rentabilidad · Metodología CRECE® y VENDE®",
+            nicheTopic: monitor.nicheTopic || "Ventas B2B & Dirección Comercial",
+            lastScannedPosts: pedroValladolidRealPosts,
+          });
+        }
+      }
+    }
+  }, [isLoaded, l3Monitors, updateLevel3Monitor]);
 
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [selectedRuleForLeads, setSelectedRuleForLeads] = useState<Level3GlobalMonitor | null>(null);
@@ -465,6 +500,21 @@ export default function GlobalSignalsPage() {
   };
 
   const getRuleScannedPosts = (rule: Level3GlobalMonitor) => {
+    const isPedro =
+      (rule.leaderName || "").toLowerCase().includes("pedro") ||
+      (rule.searchQuery || "").toLowerCase().includes("pedro") ||
+      (rule.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
+
+    if (isPedro) {
+      const hasInvalidPost =
+        !rule.lastScannedPosts ||
+        rule.lastScannedPosts.length === 0 ||
+        rule.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas"));
+      if (hasInvalidPost) {
+        return pedroValladolidRealPosts;
+      }
+    }
+
     if (rule.lastScannedPosts && rule.lastScannedPosts.length > 0) {
       return rule.lastScannedPosts;
     }
@@ -971,7 +1021,15 @@ export default function GlobalSignalsPage() {
                   const activeBatch = selectedBatchSize[rule.id] || rule.batchLeadLimit || 50;
 
                   const displayName = rule.leaderName || rule.searchQuery;
-                  const profileUrl = rule.leaderUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(displayName)}`;
+                  const isPedro =
+                    (rule.leaderName || "").toLowerCase().includes("pedro") ||
+                    (rule.searchQuery || "").toLowerCase().includes("pedro") ||
+                    (rule.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
+                  const profileUrl = isPedro
+                    ? "https://www.linkedin.com/in/pedrovalladolid"
+                    : rule.leaderUrl && !rule.leaderUrl.includes("coach-ventas")
+                    ? rule.leaderUrl
+                    : `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(displayName)}`;
 
                   return (
                     <Fragment key={rule.id}>
