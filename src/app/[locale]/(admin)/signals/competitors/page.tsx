@@ -17,7 +17,7 @@ import type { LeadListGroup } from "@/lib/leads/types";
 import { detectLeadLanguage, LANGUAGE_LABELS } from "@/lib/signals/language-detector";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Pencil, X } from "lucide-react";
 
@@ -106,7 +106,15 @@ export default function CompetitorsSignalRadarPage() {
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
-  // Auto-sincronización única al montar leads de monitores hacia sus listas inteligentes
+  const getCompetitorLeads = useCallback((monitorId: string, competitorName?: string): SignalLeadItem[] => {
+    return leads.filter(
+      (l) =>
+        l.monitorId === monitorId ||
+        (competitorName && l.sourceAuthorName?.toLowerCase() === competitorName.toLowerCase())
+    );
+  }, [leads]);
+
+  // Auto-sincronización única al montar leads de monitores hacia sus listas inteligentes y calibración de contadores
   const hasAutoSyncedRef = useRef(false);
   useEffect(() => {
     if (!isLoaded || l2Monitors.length === 0 || hasAutoSyncedRef.current) return;
@@ -118,16 +126,17 @@ export default function CompetitorsSignalRadarPage() {
         competitorName: comp.competitorName,
         keywords: comp.keywordsFilter,
       });
-      const compLeads = leads.filter(
-        (l) =>
-          l.monitorId === comp.id ||
-          (comp.competitorName && l.sourceAuthorName?.toLowerCase() === comp.competitorName.toLowerCase())
-      );
+      const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
       if (compLeads.length > 0) {
         importSignalLeads(targetList, compLeads);
+        if (comp.leadsIdentifiedCount !== compLeads.length) {
+          updateLevel2Monitor(comp.id, {
+            leadsIdentifiedCount: compLeads.length,
+          });
+        }
       }
     }
-  }, [isLoaded, l2Monitors.length]);
+  }, [isLoaded, l2Monitors, leads.length, getCompetitorLeads, getOrCreateList, importSignalLeads, updateLevel2Monitor]);
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");
@@ -208,7 +217,10 @@ export default function CompetitorsSignalRadarPage() {
     setIsSearchDropdownOpen(false);
   };
 
-  const totalCompetitorLeads = l2Monitors.reduce((acc, m) => acc + m.leadsIdentifiedCount, 0);
+  const totalCompetitorLeads = l2Monitors.reduce((acc, m) => {
+    const cl = getCompetitorLeads(m.id, m.competitorName);
+    return acc + (cl.length > 0 ? cl.length : m.leadsIdentifiedCount);
+  }, 0);
 
   const handleAddCompetitor = (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,8 +335,15 @@ export default function CompetitorsSignalRadarPage() {
       // Guardar únicamente publicaciones reales obtenidas por la API de LinkedIn
       const scannedPosts: ScannedCompetitorPost[] = rawPosts;
 
+      const currentCompLeads = leads.filter(
+        (l) =>
+          l.monitorId === comp.id ||
+          (comp.competitorName && l.sourceAuthorName?.toLowerCase() === comp.competitorName.toLowerCase())
+      );
+      const exactTotal = currentCompLeads.length + added.length;
+
       updateLevel2Monitor(comp.id, {
-        leadsIdentifiedCount: comp.leadsIdentifiedCount + added.length,
+        leadsIdentifiedCount: exactTotal,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         lastScanAtIso: new Date().toISOString(),
         lastScannedPosts: scannedPosts,
@@ -386,14 +405,6 @@ export default function CompetitorsSignalRadarPage() {
       }, (index + 1) * 5000);
     });
   }, [isLoaded, l2Monitors.length, activeAccount?.id]);
-
-  const getCompetitorLeads = (monitorId: string, competitorName?: string): SignalLeadItem[] => {
-    return leads.filter(
-      (l) =>
-        l.monitorId === monitorId ||
-        (competitorName && l.sourceAuthorName?.toLowerCase() === competitorName.toLowerCase())
-    );
-  };
 
   const getCompetitorScannedPosts = (comp: Level2CompetitorMonitor): ScannedCompetitorPost[] => {
     if (!comp.lastScannedPosts || comp.lastScannedPosts.length === 0) {
@@ -1069,7 +1080,11 @@ export default function CompetitorsSignalRadarPage() {
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400 align-top">
-                          {comp.leadsIdentifiedCount} leads
+                          {(() => {
+                            const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
+                            const count = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
+                            return `${count} leads`;
+                          })()}
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
