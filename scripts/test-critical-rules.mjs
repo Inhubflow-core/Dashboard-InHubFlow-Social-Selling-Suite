@@ -795,7 +795,7 @@ console.log("\n--- 14. Prueba de Signal Radar (Nivel 1, 2 y 3) ---");
 console.log("\n--- 15. Prueba de Conmutación de Cuentas y Slots de Equipo ---");
 
 const testUsersList = [
-  { id: "usr-super-admin-01", email: "inhubflow@gmail.com", name: "Roberto OrSe", role: "super_admin", slotsLimit: 999, planTier: "custom" },
+  { id: "usr-super-admin-01", email: "inhubflow@gmail.com", name: "SuperAdmin", role: "super_admin", slotsLimit: 999, planTier: "custom" },
   { id: "usr-client-starter-02", email: "carlos@consulting.es", name: "Carlos Mendoza", role: "client_admin", companyName: "Mendoza Advisory", slotsLimit: 1, planTier: "starter" },
   { id: "usr-client-growth-03", email: "elena@agenciagrowth.com", name: "Elena Valenzuela", role: "client_admin", companyName: "Valenzuela Social Agency", slotsLimit: 5, planTier: "growth" },
   { id: "usr-client-business-04", email: "marcos@enterprisesales.io", name: "Marcos Silva", role: "client_admin", companyName: "Enterprise Sales Hub", slotsLimit: 10, planTier: "business" },
@@ -864,24 +864,35 @@ function simulateAccountMatchesUser(account, user) {
   const accNorm = normStr(account.name);
   const userNorm = normStr(user.name);
 
-  if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
-  if (accNorm.includes("linn") && userNorm.includes("linn")) return true;
-
+  // 1. Asignación explícita por ID
   const normAccId = (account.id || "").replace(/^acc-li-/, "");
   const normUnipileId = (account.unipileAccountId || "").replace(/^acc-li-/, "");
   const normUserAssigned = (user.assignedAccountId || "").replace(/^acc-li-/, "");
-
   if (normUserAssigned && (normAccId === normUserAssigned || normUnipileId === normUserAssigned)) return true;
-  if (account.assignedUserId && account.assignedUserId === user.id) return true;
-  if (account.ownerId && account.ownerId === user.id) return true;
 
+  // 2. Coincidencia por ID de usuario asignado
+  if (account.assignedUserId && account.assignedUserId === user.id) return true;
+
+  // 3. Coincidencia por email
   const accEmail = (account.email || "").trim().toLowerCase();
   const userEmail = (user.email || "").trim().toLowerCase();
   if (accEmail && userEmail) {
     if (accEmail === userEmail) return true;
-    if (accEmail.includes("robertoorse") && userEmail.includes("inhubflow")) return true;
-    if (accEmail.includes("linn") && userEmail.includes("linn")) return true;
+    if (accEmail.includes("robertoorse") && userEmail.includes("robertoorse")) return true;
+    if ((accEmail.includes("linn") || accEmail.includes("lynn")) && (userEmail.includes("linn") || userEmail.includes("lynn"))) return true;
   }
+
+  // 4. Coincidencia por nombre para roles no super_admin
+  if (user.role !== "super_admin") {
+    if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
+    if ((accNorm.includes("linn") || accNorm.includes("lynn")) && (userNorm.includes("linn") || userNorm.includes("lynn"))) return true;
+  }
+
+  // 5. Coincidencia por ownerId para client_admin si la cuenta no está asignada a otro miembro
+  if (user.role === "client_admin" && account.ownerId === user.id && (!account.assignedUserId || account.assignedUserId === user.id)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -905,57 +916,76 @@ const realAccountsPool = [
     unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
     name: "RobertoOrse Agencia",
     email: "robertoorse.agencia@gmail.com",
-    ownerId: "usr-super-admin-01",
-    assignedUserId: "usr-super-admin-01",
+    ownerId: "usr-client-roberto-agencia",
+    assignedUserId: "usr-client-roberto-agencia",
   },
   {
     id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
     unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
-    name: "Linn Martinson",
+    name: "Lynn Martinson",
     email: "linnmartinsson407@gmail.com",
-    ownerId: "usr-client-linn-02",
-    assignedUserId: "usr-client-linn-02",
+    ownerId: "usr-client-roberto-agencia",
+    assignedUserId: "usr-team-lynn-01",
   },
 ];
 
-const robertoUser = {
+const superAdminUser = {
   id: "usr-super-admin-01",
   email: "inhubflow@gmail.com",
-  name: "Roberto OrSe",
+  name: "SuperAdmin",
   role: "super_admin",
+  slotsLimit: 999,
+  assignedAccountId: null,
+};
+
+const robertoUser = {
+  id: "usr-client-roberto-agencia",
+  email: "robertoorse.agencia@gmail.com",
+  name: "Roberto OrSe Agencia",
+  role: "client_admin",
+  slotsLimit: 10,
+  planTier: "business",
   assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
 };
 
 const linnUser = {
-  id: "usr-client-linn-02",
+  id: "usr-team-lynn-01",
   email: "linnmartinsson407@gmail.com",
-  name: "Linn Martinson",
-  role: "client_admin",
+  name: "Lynn Martinson",
+  role: "member",
+  ownerId: "usr-client-roberto-agencia",
+  slotsLimit: 1,
   assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
 };
 
-// Caso 1: Roberto OrSe navegando, aunque localStorage tuviera el ID de Linn Martinson
+// Caso 1: SuperAdmin validado como entidad única independiente
+assert(superAdminUser.name === "SuperAdmin", "inhubflow@gmail.com se llama formalmente 'SuperAdmin'");
+assert(superAdminUser.role === "super_admin", "inhubflow@gmail.com ostenta rol de Super Admin");
+
+// Caso 2: Roberto OrSe Agencia navegando, cuenta activa es RobertoOrse Agencia
 const robertoActive = simulateGetActiveAccountForUser(robertoUser, "acc-li-5X_l6hknTW62DqQtKJNNHA", realAccountsPool);
-assert(robertoActive.name === "RobertoOrse Agencia", "Si currentUser es Roberto OrSe, la cuenta activa SIEMPRE es RobertoOrse Agencia");
-assert(robertoActive.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ", "La cuenta asignada a Roberto OrSe tiene el ID oficial de su slot");
+assert(robertoActive.name === "RobertoOrse Agencia", "Si currentUser es Roberto OrSe Agencia, la cuenta activa SIEMPRE es RobertoOrse Agencia");
+assert(robertoActive.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ", "La cuenta asignada a Roberto OrSe Agencia tiene el ID oficial de su slot");
+assert(robertoUser.slotsLimit === 10, "Roberto OrSe Agencia dispone de 10 slots (Plan Business)");
 
-// Caso 2: Linn Martinson navegando, aunque localStorage tuviera el ID de Roberto
+// Caso 3: Lynn Martinson navegando, cuenta activa es Lynn Martinson y es miembro de equipo de Roberto
 const linnActive = simulateGetActiveAccountForUser(linnUser, "acc-li-6yecZUhYS1mvPOJJC7p-zQ", realAccountsPool);
-assert(linnActive.name === "Linn Martinson", "Si currentUser es Linn Martinson, la cuenta activa SIEMPRE es Linn Martinson");
-assert(linnActive.id === "acc-li-5X_l6hknTW62DqQtKJNNHA", "La cuenta asignada a Linn Martinson tiene el ID oficial de su slot");
+assert(linnActive.name === "Lynn Martinson", "Si currentUser es Lynn Martinson, la cuenta activa SIEMPRE es Lynn Martinson");
+assert(linnActive.id === "acc-li-5X_l6hknTW62DqQtKJNNHA", "La cuenta asignada a Lynn Martinson tiene el ID oficial de su slot");
+assert(linnUser.ownerId === "usr-client-roberto-agencia", "Lynn Martinson forma parte estricta del equipo de Roberto OrSe Agencia");
 
-// Caso 3: Fallback de visualización en interfaz nunca muestra Linn si se navega como Roberto
+// Caso 4: Fallback de visualización en interfaz nunca muestra Lynn si se navega como Roberto
 const simulatedDisplayName = robertoActive?.name || robertoUser.name;
 assert(simulatedDisplayName === "RobertoOrse Agencia", "El nombre visible en Nivel 1 y creadores es RobertoOrse Agencia cuando navega Roberto");
-assert(!simulatedDisplayName.includes("Linn"), "Ninguna vista de Roberto contiene a Linn Martinson");
+assert(!simulatedDisplayName.includes("Lynn") && !simulatedDisplayName.includes("Linn"), "Ninguna vista de Roberto contiene a Lynn Martinson");
 
-// Caso 4: En los 3 niveles de Signal Radar, las cuentas del dropdown de Roberto OrSe excluyen a Linn Martinson
+// Caso 5: En los paneles de Radar propios de Roberto OrSe Agencia, solo opera con su cuenta asignada
 const robertoOwnAccounts = realAccountsPool.filter(
-  (a) => simulateAccountMatchesUser(a, robertoUser) || (robertoUser.role !== "super_admin" && a.ownerId === robertoUser.id)
+  (a) => simulateAccountMatchesUser(a, robertoUser)
 );
-assert(robertoOwnAccounts.length === 1, "Roberto OrSe solo tiene 1 cuenta propia para sus paneles de Radar");
+assert(robertoOwnAccounts.length === 1, "Roberto OrSe Agencia solo tiene 1 cuenta propia activa para sus paneles de Radar");
 assert(robertoOwnAccounts[0].name === "RobertoOrse Agencia", "La única cuenta en los radares de Roberto es RobertoOrse Agencia");
-assert(!robertoOwnAccounts.some((a) => a.name.includes("Linn")), "Linn Martinson queda estrictamente excluida de los radares de Roberto OrSe");
+assert(!robertoOwnAccounts.some((a) => a.name.includes("Lynn") || a.name.includes("Linn")), "Lynn Martinson queda excluida de los radares de Roberto");
 
 // Caso 5: Detección de estado de conexión real de Linn Martinson (CREDENTIALS)
 const linnRealAccount = {

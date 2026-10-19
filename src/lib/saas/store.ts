@@ -19,34 +19,61 @@ export const initialSaaSUsers: SaaSUser[] = [
   {
     id: "usr-super-admin-01",
     email: "inhubflow@gmail.com",
-    name: "Roberto OrSe",
+    name: "SuperAdmin",
     role: "super_admin",
     companyName: "InHubFlow Headquarters",
     slotsLimit: 999,
     planTier: "custom",
     subscriptionStatus: "active",
     avatarUrl: "/images/user/owner.png",
-    assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+    assignedAccountId: null,
     createdAt: "2026-09-01T08:00:00.000Z",
-    updatedAt: "2026-10-09T08:00:00.000Z",
+    updatedAt: "2026-10-19T08:00:00.000Z",
   },
   {
-    id: "usr-client-linn-02",
-    email: "linnmartinsson407@gmail.com",
-    name: "Linn Martinson",
+    id: "usr-client-roberto-agencia",
+    email: "robertoorse.agencia@gmail.com",
+    name: "Roberto OrSe Agencia",
     role: "client_admin",
-    companyName: "Martinson Outbound",
-    slotsLimit: 5,
-    planTier: "growth",
+    companyName: "Roberto OrSe Agencia",
+    slotsLimit: 10,
+    planTier: "business",
+    subscriptionStatus: "active",
+    avatarUrl: "/images/user/owner.png",
+    assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+    createdAt: "2026-10-01T08:00:00.000Z",
+    updatedAt: "2026-10-19T08:00:00.000Z",
+  },
+  {
+    id: "usr-team-lynn-01",
+    email: "linnmartinsson407@gmail.com",
+    name: "Lynn Martinson",
+    role: "member",
+    ownerId: "usr-client-roberto-agencia",
+    companyName: "Roberto OrSe Agencia",
+    slotsLimit: 1,
+    planTier: "business",
     subscriptionStatus: "active",
     avatarUrl: "",
     assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
     createdAt: "2026-10-12T16:39:42.000Z",
-    updatedAt: "2026-10-12T16:39:42.000Z",
+    updatedAt: "2026-10-19T08:00:00.000Z",
   },
 ];
 
-export const initialTeamMembers: TeamMember[] = [];
+export const initialTeamMembers: TeamMember[] = [
+  {
+    id: "usr-team-lynn-01",
+    name: "Lynn Martinson",
+    email: "linnmartinsson407@gmail.com",
+    role: "member",
+    ownerId: "usr-client-roberto-agencia",
+    assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+    accountName: "Lynn Martinson",
+    accountAuthenticated: false,
+    createdAt: "2026-10-12T16:39:42.000Z",
+  },
+];
 
 export const initialTeamInvitations: TeamInvitation[] = [];
 
@@ -97,13 +124,58 @@ export function getStoredUsers(): SaaSUser[] {
       "usr-client-business-04",
       "usr-team-sofia-05",
       "usr-team-javier-06",
+      "usr-client-linn-02",
     ]);
 
-    const cleanUsers = parsed.filter(
-      (u: SaaSUser) => !fakeEmails.has(u.email?.toLowerCase()) && !fakeIds.has(u.id)
-    );
+    const cleanUsers = parsed
+      .filter((u: SaaSUser) => !fakeEmails.has(u.email?.toLowerCase()) && !fakeIds.has(u.id))
+      .map((u: SaaSUser) => {
+        const emailLower = (u.email || "").toLowerCase().trim();
+        // 1. inhubflow@gmail.com -> SuperAdmin (Super Admin)
+        if (emailLower === "inhubflow@gmail.com") {
+          return {
+            ...u,
+            id: "usr-super-admin-01",
+            name: "SuperAdmin",
+            role: "super_admin" as const,
+            slotsLimit: 999,
+            companyName: "InHubFlow Headquarters",
+            assignedAccountId: null,
+          };
+        }
+        // 2. robertoorse.agencia@gmail.com -> Roberto OrSe Agencia (Admin, 10 slots)
+        if (emailLower === "robertoorse.agencia@gmail.com" || (u.name || "").toLowerCase().includes("robertoorse")) {
+          return {
+            ...u,
+            id: "usr-client-roberto-agencia",
+            name: "Roberto OrSe Agencia",
+            email: "robertoorse.agencia@gmail.com",
+            role: "client_admin" as const,
+            planTier: "business" as const,
+            slotsLimit: 10,
+            companyName: "Roberto OrSe Agencia",
+            assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+          };
+        }
+        // 3. linnmartinsson407@gmail.com -> Lynn Martinson (Team SDR del equipo de Roberto OrSe Agencia)
+        if (emailLower === "linnmartinsson407@gmail.com" || (u.name || "").toLowerCase().includes("martinson")) {
+          return {
+            ...u,
+            id: "usr-team-lynn-01",
+            name: "Lynn Martinson",
+            email: "linnmartinsson407@gmail.com",
+            role: "member" as const,
+            ownerId: "usr-client-roberto-agencia",
+            planTier: "business" as const,
+            companyName: "Roberto OrSe Agencia",
+            slotsLimit: 1,
+            assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+          };
+        }
+        return u;
+      });
 
-    // Asegurar que los dos usuarios conectados reales estén presentes
+    // Asegurar que las 3 cuentas canónicas estén siempre presentes
     const existingIds = new Set(cleanUsers.map((u: SaaSUser) => u.id));
     const merged = [...cleanUsers];
     for (const initUser of initialSaaSUsers) {
@@ -141,9 +213,10 @@ export function getCurrentUserId(): string {
       "usr-client-business-04",
       "usr-team-sofia-05",
       "usr-team-javier-06",
+      "usr-client-linn-02",
     ]);
     if (!saved || fakeIds.has(saved)) {
-      const defaultId = initialSaaSUsers[0].id; // Roberto OrSe (Super Admin)
+      const defaultId = initialSaaSUsers[0].id; // SuperAdmin
       localStorage.setItem(CURRENT_USER_ID_KEY, defaultId);
       return defaultId;
     }
@@ -382,18 +455,31 @@ export function getStoredTeamMembers(ownerId?: string): TeamMember[] {
   if (typeof window === "undefined") return initialTeamMembers;
   try {
     const raw = localStorage.getItem(TEAM_MEMBERS_KEY);
-    if (!raw) return [];
-    const members = JSON.parse(raw);
-    if (!Array.isArray(members)) return [];
+    let members: TeamMember[] = [];
+    if (!raw) {
+      members = initialTeamMembers;
+      localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify(initialTeamMembers));
+    } else {
+      const parsed = JSON.parse(raw);
+      members = Array.isArray(parsed) ? parsed : initialTeamMembers;
+    }
 
     const fakeKeywords = ["sofia", "javier", "lucas", "tm-01", "tm-02", "agenciagrowth", "enterprisesales"];
-    const cleanMembers = members.filter((m: TeamMember) => {
+    let cleanMembers = members.filter((m: TeamMember) => {
       if (!m || !m.id) return false;
       const lower = `${m.id} ${m.name || ""} ${m.email || ""}`.toLowerCase();
       return !fakeKeywords.some((kw) => lower.includes(kw));
     });
 
-    if (cleanMembers.length !== members.length) {
+    // Asegurar que initialTeamMembers esté integrado
+    const existingIds = new Set(cleanMembers.map((m) => m.id));
+    for (const initMember of initialTeamMembers) {
+      if (!existingIds.has(initMember.id)) {
+        cleanMembers.push(initMember);
+      }
+    }
+
+    if (cleanMembers.length !== members.length || !raw) {
       localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify(cleanMembers));
     }
 

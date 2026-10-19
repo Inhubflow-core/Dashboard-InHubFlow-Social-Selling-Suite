@@ -45,7 +45,7 @@ export default function SlotsCapacityCard({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-gray-900 dark:text-white">
-                  Super Administrador · Roberto OrSe
+                  Super Administrador · SuperAdmin
                 </span>
                 <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#0099ff]">
                   Slots Ilimitados

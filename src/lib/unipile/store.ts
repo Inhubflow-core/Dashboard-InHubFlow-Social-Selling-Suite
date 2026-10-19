@@ -12,7 +12,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
     unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
     name: "RobertoOrse Agencia",
-    email: "inhubflow@gmail.com",
+    email: "robertoorse.agencia@gmail.com",
     headline: "Roberto OrSe | InHubFlow Social Selling Suite",
     publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
     profilePictureUrl: "/images/user/owner.png",
@@ -32,14 +32,14 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     active_hours_end: 18,
     timezone: "Europe/Madrid",
     working_days: "1,2,3,4,5",
-    ownerId: "usr-super-admin-01",
-    assignedUserId: "usr-super-admin-01",
-    assignedUserName: "Roberto OrSe (Super Admin)",
+    ownerId: "usr-client-roberto-agencia",
+    assignedUserId: "usr-client-roberto-agencia",
+    assignedUserName: "Roberto OrSe Agencia (Admin)",
   },
   {
     id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
     unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
-    name: "Linn Martinson",
+    name: "Lynn Martinson",
     email: "linnmartinsson407@gmail.com",
     headline: "Social Selling & Outbound Strategist",
     publicProfileUrl: "https://www.linkedin.com/in/linn-martinson-13a591443",
@@ -60,9 +60,9 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     active_hours_end: 18,
     timezone: "Europe/Madrid",
     working_days: "1,2,3,4,5",
-    ownerId: "usr-client-linn-02",
-    assignedUserId: "usr-client-linn-02",
-    assignedUserName: "Linn Martinson",
+    ownerId: "usr-client-roberto-agencia",
+    assignedUserId: "usr-team-lynn-01",
+    assignedUserName: "Lynn Martinson (Team SDR)",
   },
 ];
 
@@ -164,7 +164,7 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       }
     }
 
-    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y Linn Martinson) siempre existan
+    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y Lynn Martinson) siempre existan y estén actualizadas
     for (const initAcc of initialLinkedInAccounts) {
       const existsIdx = deduplicated.findIndex(
         (d) =>
@@ -172,26 +172,27 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
           d.unipileAccountId === initAcc.unipileAccountId ||
           (d.name && initAcc.name && norm(d.name) === norm(initAcc.name)) ||
           ((d.name || "").toLowerCase().includes("roberto") && (initAcc.name || "").toLowerCase().includes("roberto")) ||
-          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("linn"))
+          ((d.name || "").toLowerCase().includes("lynn") && (initAcc.name || "").toLowerCase().includes("lynn")) ||
+          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("lynn"))
       );
       if (existsIdx === -1) {
         deduplicated.push(initAcc);
       } else {
-        const isLinn = initAcc.name.toLowerCase().includes("linn");
-        // Si es Linn Martinson y Unipile reportó CREDENTIALS o el valor guardado es obsoleto, reflejar CREDENTIALS
-        const targetStatus = isLinn
-          ? (deduplicated[existsIdx].status === "OK" ? "CREDENTIALS" : (deduplicated[existsIdx].status || "CREDENTIALS"))
-          : (deduplicated[existsIdx].status || initAcc.status);
+        const isLynn = initAcc.name.toLowerCase().includes("lynn") || initAcc.name.toLowerCase().includes("linn");
+        // Lynn Martinson tiene estado CREDENTIALS (requiere atención / luz naranja)
+        const targetStatus = isLynn ? "CREDENTIALS" : (deduplicated[existsIdx].status || initAcc.status);
 
         deduplicated[existsIdx] = {
           ...initAcc,
           ...deduplicated[existsIdx],
           id: initAcc.id,
+          name: initAcc.name,
+          email: initAcc.email,
           unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
           status: targetStatus,
-          ownerId: initAcc.ownerId || deduplicated[existsIdx].ownerId,
-          assignedUserId: initAcc.assignedUserId || deduplicated[existsIdx].assignedUserId,
-          assignedUserName: initAcc.assignedUserName || deduplicated[existsIdx].assignedUserName,
+          ownerId: initAcc.ownerId,
+          assignedUserId: initAcc.assignedUserId,
+          assignedUserName: initAcc.assignedUserName,
         };
       }
     }
@@ -226,11 +227,7 @@ export function accountMatchesUser(account: ConnectedLinkedInAccount, user: SaaS
   const accNorm = normStr(account.name);
   const userNorm = normStr(user.name);
 
-  // 1. Coincidencia por nombre (Roberto OrSe <-> RobertoOrse Agencia / Linn Martinson <-> Linn Martinson)
-  if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
-  if (accNorm.includes("linn") && userNorm.includes("linn")) return true;
-
-  // 2. Coincidencia por ID de asignación explícita (con o sin prefijo "acc-li-")
+  // 1. Coincidencia por ID de asignación explícita (con o sin prefijo "acc-li-")
   const normAccId = (account.id || "").replace(/^acc-li-/, "");
   const normUnipileId = (account.unipileAccountId || "").replace(/^acc-li-/, "");
   const normUserAssigned = (user.assignedAccountId || "").replace(/^acc-li-/, "");
@@ -239,17 +236,27 @@ export function accountMatchesUser(account: ConnectedLinkedInAccount, user: SaaS
     return true;
   }
 
-  // 3. Coincidencia por ID de usuario asignado o propietario
+  // 2. Coincidencia por ID de usuario asignado
   if (account.assignedUserId && account.assignedUserId === user.id) return true;
-  if (account.ownerId && account.ownerId === user.id) return true;
 
-  // 4. Coincidencia por email
+  // 3. Coincidencia por email
   const accEmail = (account.email || "").trim().toLowerCase();
   const userEmail = (user.email || "").trim().toLowerCase();
   if (accEmail && userEmail) {
     if (accEmail === userEmail) return true;
-    if (accEmail.includes("robertoorse") && userEmail.includes("inhubflow")) return true;
-    if (accEmail.includes("linn") && userEmail.includes("linn")) return true;
+    if (accEmail.includes("robertoorse") && userEmail.includes("robertoorse")) return true;
+    if ((accEmail.includes("linn") || accEmail.includes("lynn")) && (userEmail.includes("linn") || userEmail.includes("lynn"))) return true;
+  }
+
+  // 4. Coincidencia por nombre para roles no super_admin
+  if (user.role !== "super_admin") {
+    if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
+    if ((accNorm.includes("linn") || accNorm.includes("lynn")) && (userNorm.includes("linn") || userNorm.includes("lynn"))) return true;
+  }
+
+  // 5. Coincidencia por ownerId para client_admin si la cuenta no está asignada a otro miembro
+  if (user.role === "client_admin" && account.ownerId === user.id && (!account.assignedUserId || account.assignedUserId === user.id)) {
+    return true;
   }
 
   return false;
@@ -257,19 +264,19 @@ export function accountMatchesUser(account: ConnectedLinkedInAccount, user: SaaS
 
 /**
  * Filtra las cuentas según el rol y permisos del usuario (exactamente como inhubflow-b2b):
- * 1. Super Admin: Ve TODAS las cuentas de toda la plataforma (Roberto OrSe).
- * 2. Admin de Cuenta / Workspace Owner: Ve su propia cuenta y las de TODOS los miembros de su equipo (Team).
- * 3. Miembro del Equipo (Operador SDR / Team): SOLO puede ver su PROPIO slot asignado.
+ * 1. Super Admin: Ve TODAS las cuentas de toda la plataforma (SuperAdmin).
+ * 2. Admin de Cuenta / Workspace Owner (Roberto OrSe Agencia): Ve su propia cuenta y las de TODOS los miembros de su equipo (Team).
+ * 3. Miembro del Equipo (Operador SDR / Team, ej. Lynn Martinson): SOLO puede ver su PROPIO slot asignado.
  */
 export function getVisibleAccountsForUser(user: SaaSUser): ConnectedLinkedInAccount[] {
   const accounts = getStoredAccounts();
 
-  // 1. Super Admin: Roberto ve todas las cuentas globales de la plataforma
+  // 1. Super Admin: Ve todas las cuentas globales de la plataforma
   if (user.role === "super_admin" || user.email.toLowerCase() === "inhubflow@gmail.com") {
     return accounts;
   }
 
-  // 2. Miembro del Equipo (Team / Member): SOLO puede ver su PROPIO slot asignado
+  // 2. Miembro del Equipo (Team / Member, ej. Lynn Martinson): SOLO puede ver su PROPIO slot asignado
   if (user.role === "member" || (user.ownerId && user.ownerId !== user.id)) {
     return accounts.filter((a) => {
       const matchesAssignedUser = Boolean(a.assignedUserId && a.assignedUserId === user.id);
@@ -280,7 +287,7 @@ export function getVisibleAccountsForUser(user: SaaSUser): ConnectedLinkedInAcco
     });
   }
 
-  // 3. Admin (Client Admin): Puede ver todas las cuentas de su workspace y de su equipo (Team)
+  // 3. Admin (Client Admin, ej. Roberto OrSe Agencia): Ve todas las cuentas de su workspace y equipo
   const teamMembers = typeof window !== "undefined" ? getStoredTeamMembers(user.id) : [];
   const teamMemberUserIds = new Set(teamMembers.map((m) => m.id));
   const teamAssignedAccountIds = new Set(
@@ -289,18 +296,10 @@ export function getVisibleAccountsForUser(user: SaaSUser): ConnectedLinkedInAcco
 
   return accounts
     .filter((a) => {
-      // Si la cuenta corresponde inequívocamente al propio usuario, SIEMPRE visible
+      // Si la cuenta corresponde inequívocamente al propio Admin, SIEMPRE visible
       if (accountMatchesUser(a, user)) return true;
 
-      // Si la cuenta pertenece al Super Admin (Roberto) y el usuario actual NO es Super Admin, NUNCA visible
-      const isRobertoAcc =
-        (a.name || "").toLowerCase().includes("roberto") ||
-        (a.email || "").toLowerCase().includes("robertoorse") ||
-        a.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ" ||
-        a.unipileAccountId === "6yecZUhYS1mvPOJJC7p-zQ";
-      if (isRobertoAcc) return false;
-
-      // Cuenta propia del Admin o asignada a su usuario
+      // Cuenta propia del Admin o perteneciente a su workspace
       if (a.ownerId === user.id || a.assignedUserId === user.id) return true;
       if (user.assignedAccountId && (a.id === user.assignedAccountId || a.unipileAccountId === user.assignedAccountId)) return true;
 
@@ -421,10 +420,10 @@ export function addStoredAccount(newAccount: ConnectedLinkedInAccount): Connecte
       .map((a) => {
         if (a.id !== exists.id) return a;
         const isRoberto = (a.name || "").toLowerCase().includes("roberto") || (newAccount.name || "").toLowerCase().includes("roberto");
-        const isLinn = (a.name || "").toLowerCase().includes("linn") || (newAccount.name || "").toLowerCase().includes("linn");
-        const targetOwnerId = a.ownerId || newAccount.ownerId || (isRoberto ? "usr-super-admin-01" : isLinn ? "usr-client-linn-02" : undefined);
-        const targetUserId = a.assignedUserId || newAccount.assignedUserId || (isRoberto ? "usr-super-admin-01" : isLinn ? "usr-client-linn-02" : undefined);
-        const targetUserName = a.assignedUserName || newAccount.assignedUserName || (isRoberto ? "Roberto OrSe (Super Admin)" : isLinn ? "Linn Martinson" : undefined);
+        const isLynn = (a.name || "").toLowerCase().includes("lynn") || (a.name || "").toLowerCase().includes("linn") || (newAccount.name || "").toLowerCase().includes("lynn") || (newAccount.name || "").toLowerCase().includes("linn");
+        const targetOwnerId = a.ownerId || newAccount.ownerId || (isRoberto || isLynn ? "usr-client-roberto-agencia" : undefined);
+        const targetUserId = a.assignedUserId || newAccount.assignedUserId || (isRoberto ? "usr-client-roberto-agencia" : isLynn ? "usr-team-lynn-01" : undefined);
+        const targetUserName = a.assignedUserName || newAccount.assignedUserName || (isRoberto ? "Roberto OrSe Agencia (Admin)" : isLynn ? "Lynn Martinson (Team SDR)" : undefined);
 
         return {
           ...a,
