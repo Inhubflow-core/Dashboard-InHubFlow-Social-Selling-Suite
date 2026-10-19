@@ -103,16 +103,6 @@ const navItems: NavItem[] = [
       { key: "pipelineCalendar", path: "/pipeline/calendar" },
     ],
   },
-  {
-    icon: <PlugInIcon />,
-    key: "linkedinAccounts",
-    path: "/linkedin-accounts",
-  },
-  {
-    icon: <CreditCard className="size-5" />,
-    key: "plans",
-    path: "/plans",
-  },
 ];
 
 const settingsItems: NavItem[] = [
@@ -121,6 +111,8 @@ const settingsItems: NavItem[] = [
     key: "settings",
     subItems: [
       { key: "workspaceSettings", path: "/settings" },
+      { key: "linkedinAccounts", path: "/linkedin-accounts" },
+      { key: "plans", path: "/plans" },
       { key: "securitySettings", path: "/settings/security" },
     ],
   },
@@ -158,9 +150,22 @@ const AppSidebar: React.FC = () => {
   const isMember = currentUser?.role === "member";
   const visibleNavItems = useMemo(() => {
     if (isMember) {
-      return navItems.filter((item) => item.key !== "team" && item.key !== "plans");
+      return navItems.filter((item) => item.key !== "team");
     }
     return navItems;
+  }, [isMember]);
+
+  const visibleSettingsItems = useMemo(() => {
+    return settingsItems.map((item) => {
+      if (item.subItems) {
+        let sub = item.subItems;
+        if (isMember) {
+          sub = sub.filter((s) => s.key !== "plans");
+        }
+        return { ...item, subItems: sub };
+      }
+      return item;
+    });
   }, [isMember]);
 
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
@@ -177,7 +182,7 @@ const AppSidebar: React.FC = () => {
 
   // Auto-abrir la categoría si la ruta actual coincide con alguno de sus subitems
   useEffect(() => {
-    const allItems = [...visibleNavItems, ...settingsItems, ...supportItems];
+    const allItems = [...visibleNavItems, ...visibleSettingsItems, ...supportItems];
     for (const nav of allItems) {
       if (nav.subItems && nav.subItems.some((sub) => isActive(sub.path))) {
         setOpenSubmenus((prev) => {
@@ -186,7 +191,7 @@ const AppSidebar: React.FC = () => {
         });
       }
     }
-  }, [pathname, isActive, visibleNavItems]);
+  }, [pathname, isActive, visibleNavItems, visibleSettingsItems]);
 
   const handleSubmenuToggle = (key: string) => {
     if (!isExpanded && !isHovered) {
@@ -494,24 +499,22 @@ const AppSidebar: React.FC = () => {
             </div>
 
             {/* Grupo Configuración */}
-            {!isMember && (
-              <div>
-                <h2
-                  className={`mb-4 flex text-xs leading-5 text-gray-400 uppercase ${
-                    !isExpanded && !isHovered
-                      ? "xl:justify-center"
-                      : "justify-start"
-                  }`}
-                >
-                  {isExpanded || isHovered || isMobileOpen ? (
-                    t("groups.settings")
-                  ) : (
-                    <HorizontaLDots />
-                  )}
-                </h2>
-                {renderMenuItems(settingsItems, "settings")}
-              </div>
-            )}
+            <div>
+              <h2
+                className={`mb-4 flex text-xs leading-5 text-gray-400 uppercase ${
+                  !isExpanded && !isHovered
+                    ? "xl:justify-center"
+                    : "justify-start"
+                }`}
+              >
+                {isExpanded || isHovered || isMobileOpen ? (
+                  t("groups.settings")
+                ) : (
+                  <HorizontaLDots />
+                )}
+              </h2>
+              {renderMenuItems(visibleSettingsItems, "settings")}
+            </div>
 
             {/* Grupo Soporte, Ayuda & Recursos */}
             <div>
