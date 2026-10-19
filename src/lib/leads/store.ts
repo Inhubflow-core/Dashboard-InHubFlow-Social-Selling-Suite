@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
-import type { SignalLeadItem } from "@/lib/signals/types";
+import { calculateSignalScore, type SignalLeadItem } from "@/lib/signals/types";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
@@ -76,8 +76,30 @@ export function getStoredLeads(): Lead360Item[] {
           hadFixes = true;
         }
 
+        // Calibrar puntuación hacia la escala oficial (100: Lead Magnet, 90: Comentó, 80: Reposteó, 70: Reaccionó)
+        let normalizedScore = l.intentScore;
+        if (l.signalLevel === "level_1" || l.intentScore === 95 || l.signalSource?.toLowerCase().includes("mis posts")) {
+          normalizedScore = 100;
+        } else if (
+          l.intentScore === 85 ||
+          l.timeline?.some((t) => t.detail?.toLowerCase().includes("comentó") || t.detail?.toLowerCase().includes("comento"))
+        ) {
+          normalizedScore = 90;
+        } else if (
+          l.timeline?.some((t) => t.detail?.toLowerCase().includes("reposteó") || t.detail?.toLowerCase().includes("compartió"))
+        ) {
+          normalizedScore = 80;
+        } else if (!normalizedScore || normalizedScore < 70) {
+          normalizedScore = 70;
+        }
+
+        if (normalizedScore !== l.intentScore) {
+          hadFixes = true;
+        }
+
         return {
           ...l,
+          intentScore: normalizedScore,
           avatarUrl: avatar,
           language: correctedLang,
         };
@@ -690,7 +712,14 @@ export function importSignalLeadsToList(
       avatarUrl: cleanAvatar,
       signalSource: targetList.signalSource || `Signal: ${targetList.competitorName || "Competidor"}`,
       signalLevel: targetList.signalLevel || "level_2",
-      intentScore: sLead.intentLevel === "very_high" ? 95 : sLead.intentLevel === "medium_high" ? 85 : 70,
+      intentScore: calculateSignalScore({
+        intentScore: sLead.intentScore,
+        signalType: sLead.signalType,
+        intentLevel: sLead.intentLevel,
+        signalLevel: targetList.signalLevel || sLead.signalLevel,
+        signalSnippet: sLead.signalSnippet,
+        attachedResource: sLead.attachedResource,
+      }),
       stage: "lead_captured",
       sequenceStatus: "in_progress",
       listId: targetList.id,

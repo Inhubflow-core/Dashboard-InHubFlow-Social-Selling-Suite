@@ -14,6 +14,8 @@ export interface SignalLeadItem {
   avatarUrl?: string;
   connectionDegree: ConnectionDegree;
   intentLevel: IntentLevel;
+  intentScore?: number; // 100: Keyword (Lead Magnet), 90: Comentó, 80: Reposteó, 70: Reaccionó
+  signalType?: "keyword" | "comment" | "repost" | "reaction";
   signalSnippet: string; // ej. Comentó: "SISTEMA por favor"
   detectedAt: string;
   status: "new" | "invitation_sent" | "connected" | "dm_sent" | "replied";
@@ -99,4 +101,48 @@ export interface Level3GlobalMonitor {
     reactionsCount?: number;
     commentsCount?: number;
   }>;
+}
+
+/**
+ * Calcula la puntuación oficial de prospección B2B y Social Selling (0 a 100):
+ * - 100 / 100: Palabra clave en Lead Magnet propio (Nivel 1) (Full intención)
+ * - 90 / 100 🥇: Quien COMENTÓ en publicación de competidor o debate (Medalla de Oro)
+ * - 80 / 100 🥈: Quien REPOSTEÓ / COMPARTIÓ (Medalla de Plata)
+ * - 70 / 100 🥉: Quien DIO LIKE / REACCIÓN (Medalla de Bronce)
+ */
+export function calculateSignalScore(lead: {
+  intentScore?: number;
+  signalType?: "keyword" | "comment" | "repost" | "reaction";
+  intentLevel?: IntentLevel;
+  signalLevel?: SignalLevel;
+  signalSnippet?: string;
+  attachedResource?: string;
+}): number {
+  if (typeof lead.intentScore === "number" && lead.intentScore > 0) {
+    return lead.intentScore;
+  }
+  if (
+    lead.signalType === "keyword" ||
+    lead.signalLevel === "level_1" ||
+    lead.intentLevel === "very_high" ||
+    Boolean(lead.attachedResource)
+  ) {
+    return 100;
+  }
+  if (
+    lead.signalType === "comment" ||
+    lead.intentLevel === "medium_high" ||
+    lead.signalSnippet?.toLowerCase().includes("comentó") ||
+    lead.signalSnippet?.toLowerCase().includes("comento")
+  ) {
+    return 90;
+  }
+  if (
+    lead.signalType === "repost" ||
+    lead.signalSnippet?.toLowerCase().includes("reposteó") ||
+    lead.signalSnippet?.toLowerCase().includes("compartió")
+  ) {
+    return 80;
+  }
+  return 70; // Reacción / like
 }

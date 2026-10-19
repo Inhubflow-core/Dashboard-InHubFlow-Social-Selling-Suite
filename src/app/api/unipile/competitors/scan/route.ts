@@ -203,6 +203,8 @@ export async function POST(req: NextRequest) {
           avatarUrl: author.picture_url || (author as any).profile_picture_url || undefined,
           signalSnippet: `Comentó en el post de ${competitorName || "la cuenta monitorizada"}: “${commentText}”`,
           signalType: "comment",
+          intentLevel: "medium_high",
+          intentScore: 90,
           sourcePostId: interaction.post.id,
           language: detectedCommentLang,
         });
@@ -250,6 +252,8 @@ export async function POST(req: NextRequest) {
           avatarUrl: author.picture_url || (author as any).profile_picture_url || undefined,
           signalSnippet: `Reaccionó al post de ${competitorName || "la cuenta monitorizada"}`,
           signalType: "reaction",
+          intentLevel: "medium",
+          intentScore: 70,
           sourcePostId: interaction.post.id,
           language: detectedReactionLang,
         });

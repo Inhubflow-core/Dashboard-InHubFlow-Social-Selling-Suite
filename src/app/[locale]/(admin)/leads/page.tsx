@@ -3,6 +3,7 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
+import LeadScoreBadge from "@/components/leads/LeadScoreBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -292,9 +293,7 @@ export default function LeadsPage() {
 
                       {/* Columna: Puntuación */}
                       <td className="py-3.5 px-2 whitespace-nowrap text-center">
-                        <span className="font-bold text-xs text-brand-600 dark:text-brand-400">
-                          {lead.intentScore}/100
-                        </span>
+                        <LeadScoreBadge score={lead.intentScore} />
                       </td>
 
                       {/* Columna: Etapa CRM */}
@@ -420,10 +419,8 @@ export default function LeadsPage() {
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-gray-400 uppercase font-semibold block">Puntuacion de Intencion</span>
-                <span className="font-bold text-brand-600 dark:text-brand-400">
-                  {selectedLeadFor360.intentScore} / 100
-                </span>
+                <span className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">Puntuación de Intención</span>
+                <LeadScoreBadge score={selectedLeadFor360.intentScore} size="md" />
               </div>
             </div>
 
