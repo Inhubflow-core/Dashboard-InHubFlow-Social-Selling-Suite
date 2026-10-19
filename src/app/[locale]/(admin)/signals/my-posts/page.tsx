@@ -16,6 +16,7 @@ import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { Pencil, X } from "lucide-react";
 
 export default function MyPostsSignalRadarPage() {
   const { currentUser } = useAuth();
@@ -29,6 +30,8 @@ export default function MyPostsSignalRadarPage() {
     toggleLevel1Status,
     recordDiscoveredLeads,
   } = useSignalRadar();
+
+  const [editingMonitor, setEditingMonitor] = useState<Level1Monitor | null>(null);
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -821,6 +824,16 @@ export default function MyPostsSignalRadarPage() {
                       </button>
 
 
+                      {/* Botón Editar Monitor */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingMonitor(mon)}
+                        className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
+                        title="Editar monitor"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+
                       {/* Botón Eliminar */}
                       <button
                         type="button"
@@ -1009,6 +1022,174 @@ export default function MyPostsSignalRadarPage() {
                   className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
                   Guardar y Activar Monitor
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Editar Monitor Nivel 1 */}
+      {editingMonitor && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="relative w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 my-8">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                  <Pencil className="size-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-900 dark:text-white leading-tight">
+                    Editar Monitor de Publicación (Nivel 1)
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Ajusta la palabra clave, enlaces o plantillas relacionales de este monitor.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingMonitor(null)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                title="Cerrar"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const postTitle = (form.elements.namedItem("postTitle") as HTMLInputElement).value;
+                const postUrl = (form.elements.namedItem("postUrl") as HTMLInputElement).value;
+                const keyword = (form.elements.namedItem("keyword") as HTMLInputElement).value.toUpperCase().trim();
+                const attachedPdfName = (form.elements.namedItem("attachedPdfName") as HTMLInputElement).value;
+                const publicReplyTemplate = (form.elements.namedItem("publicReplyTemplate") as HTMLTextAreaElement).value;
+                const nonConnectedNoteTemplate = (form.elements.namedItem("nonConnectedNoteTemplate") as HTMLTextAreaElement).value;
+                const autoLikeComment = (form.elements.namedItem("autoLikeComment") as HTMLInputElement).checked;
+
+                updateLevel1Monitor(editingMonitor.id, {
+                  postTitle,
+                  postUrl,
+                  keyword,
+                  attachedPdfName,
+                  publicReplyTemplate,
+                  nonConnectedNoteTemplate,
+                  autoLikeComment,
+                });
+
+                setEditingMonitor(null);
+                setScanFeedback({
+                  type: "success",
+                  text: `Monitor "${postTitle}" actualizado exitosamente.`,
+                });
+              }}
+              className="mt-4 space-y-4"
+            >
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Título de la Publicación / Lead Magnet
+                </label>
+                <input
+                  name="postTitle"
+                  type="text"
+                  defaultValue={editingMonitor.postTitle}
+                  required
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  URL Oficial de LinkedIn
+                </label>
+                <input
+                  name="postUrl"
+                  type="text"
+                  defaultValue={editingMonitor.postUrl}
+                  placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                    Palabra Clave de Activación
+                  </label>
+                  <input
+                    name="keyword"
+                    type="text"
+                    defaultValue={editingMonitor.keyword}
+                    required
+                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs font-mono font-bold text-brand-600 dark:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                    Recurso Adjunto (PDF / Guía)
+                  </label>
+                  <input
+                    name="attachedPdfName"
+                    type="text"
+                    defaultValue={editingMonitor.attachedPdfName}
+                    required
+                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Respuesta Pública al Comentario
+                </label>
+                <textarea
+                  name="publicReplyTemplate"
+                  rows={2}
+                  defaultValue={editingMonitor.publicReplyTemplate}
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                  Plantilla de Mensaje Privado / Nota
+                </label>
+                <textarea
+                  name="nonConnectedNoteTemplate"
+                  rows={2}
+                  defaultValue={editingMonitor.nonConnectedNoteTemplate}
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  name="autoLikeComment"
+                  type="checkbox"
+                  id="editAutoLike"
+                  defaultChecked={editingMonitor.autoLikeComment}
+                  className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
+                />
+                <label htmlFor="editAutoLike" className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer font-medium">
+                  Auto-dar like al comentario del prospecto
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingMonitor(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition cursor-pointer"
+                >
+                  Guardar Cambios
                 </button>
               </div>
             </form>

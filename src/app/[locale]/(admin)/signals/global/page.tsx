@@ -16,6 +16,7 @@ import type { UnipileAccount } from "@/lib/unipile/types";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { Pencil, X } from "lucide-react";
 
 export interface CountryOption {
   code: string;
@@ -139,6 +140,7 @@ export default function GlobalSignalsPage() {
   const { importSignalLeads, getOrCreateGlobalList, lists } = useLeads();
 
   const { currentUser } = useAuth();
+  const [editingRule, setEditingRule] = useState<Level3GlobalMonitor | null>(null);
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
   const [activeAccount, setActiveAccount] = useState<any>(null);
@@ -842,6 +844,15 @@ export default function GlobalSignalsPage() {
                           Ver Leads ({leadsCount})
                         </button>
 
+                        {/* Botón Editar Regla */}
+                        <button
+                          type="button"
+                          onClick={() => setEditingRule(rule)}
+                          className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
+                          title="Editar regla global"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
 
                         {/* Botón Eliminar */}
                         <button
@@ -1039,6 +1050,179 @@ export default function GlobalSignalsPage() {
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edición de Regla Global Nivel 3 */}
+      {editingRule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+              <div className="flex items-center gap-2">
+                <Pencil className="size-5 text-brand-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  Editar Regla de Búsqueda Global
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingRule(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Temática o Palabra Clave en LinkedIn
+                </label>
+                <input
+                  type="text"
+                  value={editingRule.searchQuery}
+                  onChange={(e) =>
+                    setEditingRule({ ...editingRule, searchQuery: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="Ej: Prospección B2B, Agentes IA, Cold Email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  País o Región Objetivo
+                </label>
+                <select
+                  value={editingRule.targetCountry || "all"}
+                  onChange={(e) => {
+                    const found = COUNTRY_OPTIONS.find((c) => c.code === e.target.value);
+                    setEditingRule({
+                      ...editingRule,
+                      targetCountry: e.target.value,
+                      targetCountryName: found ? found.name : editingRule.targetCountryName,
+                      targetCountryFlag: found ? found.flag : editingRule.targetCountryFlag,
+                    });
+                  }}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                >
+                  {COUNTRY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    Frescura del Post (Período)
+                  </label>
+                  <select
+                    value={editingRule.timePeriod || "past_week"}
+                    onChange={(e) =>
+                      setEditingRule({
+                        ...editingRule,
+                        timePeriod: e.target.value as any,
+                      })
+                    }
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  >
+                    <option value="past_week">Última semana (Recomendado)</option>
+                    <option value="past_month">Último mes</option>
+                    <option value="past_24h">Últimas 24 horas</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    Tracción Mínima (Reacciones)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="1000"
+                    value={editingRule.minPostReactions || 10}
+                    onChange={(e) =>
+                      setEditingRule({
+                        ...editingRule,
+                        minPostReactions: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Tipo de Participantes a Extraer
+                </span>
+                <div className="flex items-center gap-4 text-xs text-gray-700 dark:text-gray-300">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(editingRule.interactionTypes || ["comments", "likes"]).includes("comments")}
+                      onChange={(e) => {
+                        const current = editingRule.interactionTypes || ["comments", "likes"];
+                        const next = e.target.checked
+                          ? Array.from(new Set([...current, "comments" as const]))
+                          : current.filter((t) => t !== "comments");
+                        setEditingRule({ ...editingRule, interactionTypes: next });
+                      }}
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    Comentaristas (Máxima intención de debate)
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(editingRule.interactionTypes || ["comments", "likes"]).includes("likes")}
+                      onChange={(e) => {
+                        const current = editingRule.interactionTypes || ["comments", "likes"];
+                        const next = e.target.checked
+                          ? Array.from(new Set([...current, "likes" as const]))
+                          : current.filter((t) => t !== "likes");
+                        setEditingRule({ ...editingRule, interactionTypes: next });
+                      }}
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    Reacciones / Likes
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setEditingRule(null)}
+                className="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const sel = COUNTRY_OPTIONS.find((c) => c.code === editingRule.targetCountry);
+                  updateLevel3Monitor(editingRule.id, {
+                    searchQuery: editingRule.searchQuery,
+                    targetCountry: editingRule.targetCountry,
+                    targetCountryName: sel ? sel.name : editingRule.targetCountryName,
+                    targetCountryFlag: sel ? sel.flag : editingRule.targetCountryFlag,
+                    timePeriod: editingRule.timePeriod || "past_week",
+                    minPostReactions: Number(editingRule.minPostReactions) || 10,
+                    interactionTypes: editingRule.interactionTypes || ["comments", "likes"],
+                  });
+                  setEditingRule(null);
+                }}
+                className="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
+              >
+                Guardar Cambios
               </button>
             </div>
           </div>

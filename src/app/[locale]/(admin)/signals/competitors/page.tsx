@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { Pencil, X } from "lucide-react";
 
 export default function CompetitorsSignalRadarPage() {
   const { currentUser } = useAuth();
@@ -33,6 +34,8 @@ export default function CompetitorsSignalRadarPage() {
     recordDiscoveredLeads,
     sanitizeLeadsForMonitor,
   } = useSignalRadar();
+
+  const [editingMonitor, setEditingMonitor] = useState<Level2CompetitorMonitor | null>(null);
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -1019,6 +1022,16 @@ export default function CompetitorsSignalRadarPage() {
                         );
                       })()}
 
+                      {/* Botón Editar Monitor */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingMonitor(comp)}
+                        className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
+                        title="Editar monitor de competidor"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+
                       {/* Botón Eliminar */}
                       <button
                         type="button"
@@ -1041,6 +1054,185 @@ export default function CompetitorsSignalRadarPage() {
           </div>
         )}
       </ComponentCard>
+
+      {/* Modal de Edición de Monitor Nivel 2 */}
+      {editingMonitor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+              <div className="flex items-center gap-2">
+                <Pencil className="size-5 text-brand-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  Editar Monitor de Competidor
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingMonitor(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Nombre del Competidor o Autor
+                </label>
+                <input
+                  type="text"
+                  value={editingMonitor.competitorName}
+                  onChange={(e) =>
+                    setEditingMonitor({ ...editingMonitor, competitorName: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  URL del Perfil o Página de LinkedIn
+                </label>
+                <input
+                  type="text"
+                  value={editingMonitor.competitorUrl}
+                  onChange={(e) =>
+                    setEditingMonitor({ ...editingMonitor, competitorUrl: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Filtro de Palabras Clave (separadas por comas)
+                </label>
+                <input
+                  type="text"
+                  value={editingMonitor.keywordsFilter.join(", ")}
+                  onChange={(e) =>
+                    setEditingMonitor({
+                      ...editingMonitor,
+                      keywordsFilter: e.target.value
+                        .split(",")
+                        .map((k) => k.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  placeholder="Ej: Agentes IA, Prospección, Automatización"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Deja vacío para auditar todos los posts del competidor sin filtro de temáticas.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Tipos de Interacciones a Monitorear
+                </span>
+                <div className="flex items-center gap-4 text-xs text-gray-700 dark:text-gray-300">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingMonitor.interactionTypes.includes("comments")}
+                      onChange={(e) => {
+                        const types = e.target.checked
+                          ? Array.from(new Set([...editingMonitor.interactionTypes, "comments" as const]))
+                          : editingMonitor.interactionTypes.filter((t) => t !== "comments");
+                        setEditingMonitor({ ...editingMonitor, interactionTypes: types });
+                      }}
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    Comentarios (Alta intención)
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingMonitor.interactionTypes.includes("likes")}
+                      onChange={(e) => {
+                        const types = e.target.checked
+                          ? Array.from(new Set([...editingMonitor.interactionTypes, "likes" as const]))
+                          : editingMonitor.interactionTypes.filter((t) => t !== "likes");
+                        setEditingMonitor({ ...editingMonitor, interactionTypes: types });
+                      }}
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    Reacciones / Likes
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
+                <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingMonitor.excludeAuthorEmployees ?? true}
+                    onChange={(e) =>
+                      setEditingMonitor({
+                        ...editingMonitor,
+                        excludeAuthorEmployees: e.target.checked,
+                      })
+                    }
+                    className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  <span>
+                    Excluir empleados del competidor y miembros de mi propio equipo (Engagement Bait Filter)
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Plantilla de Mensaje de Prospección / Conexión
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingMonitor.outreachTemplate}
+                  onChange={(e) =>
+                    setEditingMonitor({
+                      ...editingMonitor,
+                      outreachTemplate: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Variables disponibles: {"{{first_name}}"}, {"{{competitor_name}}"}, {"{{topic}}"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setEditingMonitor(null)}
+                className="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateLevel2Monitor(editingMonitor.id, {
+                    competitorName: editingMonitor.competitorName,
+                    competitorUrl: editingMonitor.competitorUrl,
+                    keywordsFilter: editingMonitor.keywordsFilter,
+                    excludeAuthorEmployees: editingMonitor.excludeAuthorEmployees,
+                    interactionTypes: editingMonitor.interactionTypes,
+                    outreachTemplate: editingMonitor.outreachTemplate,
+                  });
+                  setEditingMonitor(null);
+                }}
+                className="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
