@@ -106,7 +106,7 @@ export interface Level3GlobalMonitor {
 /**
  * Calcula la puntuación oficial de prospección B2B y Social Selling (0 a 100):
  * - 100 / 100: Palabra clave en Lead Magnet propio (Nivel 1) (Full intención)
- * - 90 / 100 🥇: Quien COMENTÓ en publicación de competidor o debate (Medalla de Oro)
+ * - 90 / 100 🥇: Quien COMENTÓ en publicación de competidor o temática viral (Medalla de Oro)
  * - 80 / 100 🥈: Quien REPOSTEÓ / COMPARTIÓ (Medalla de Plata)
  * - 70 / 100 🥉: Quien DIO LIKE / REACCIÓN (Medalla de Bronce)
  */

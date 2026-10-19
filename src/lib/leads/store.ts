@@ -315,8 +315,8 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
               existingList = {
                 id: `list-sig-n3-${mon.id}`,
                 name: mon.searchQuery,
-                description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${mon.searchQuery}" (${locLabel}).`,
-                signalSource: `Debates Globales (${mon.searchQuery})`,
+                description: `Lista inteligente auto-alimentada por publicaciones e interacciones globales en LinkedIn sobre "${mon.searchQuery}" (${locLabel}).`,
+                signalSource: `Interacciones Globales (${mon.searchQuery})`,
                 signalLevel: "level_3",
                 leadsCount: mon.leadsIdentifiedCount || 0,
                 assignedCampaign: "Secuencia de Social Selling",
@@ -834,8 +834,8 @@ export function getOrCreateGlobalMonitorList(params: {
   const newList: LeadListGroup = {
     id: `list-sig-n3-${params.monitorId}`,
     name: params.searchQuery,
-    description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${params.searchQuery}" (${locLabel}).`,
-    signalSource: `Debates Globales (${params.searchQuery})`,
+    description: `Lista inteligente auto-alimentada por publicaciones e interacciones globales en LinkedIn sobre "${params.searchQuery}" (${locLabel}).`,
+    signalSource: `Interacciones Globales (${params.searchQuery})`,
     signalLevel: "level_3",
     leadsCount: 0,
     assignedCampaign: "Secuencia de Social Selling",

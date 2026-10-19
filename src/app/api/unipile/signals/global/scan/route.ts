@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     if (!searchQuery || typeof searchQuery !== "string" || !searchQuery.trim()) {
       return NextResponse.json(
-        { error: "searchQuery es obligatorio para escanear debates globales." },
+        { error: "searchQuery es obligatorio para escanear interacciones globales." },
         { status: 400 }
       );
     }
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Buscar publicaciones relevantes en LinkedIn con Unipile
-    // Si se especificó un país (ej. Chile), contextualizamos la búsqueda con el país para hallar debates locales
+    // Si se especificó un país (ej. Chile), contextualizamos la búsqueda con el país para hallar publicaciones locales
     const queryWithCountry = countryDef ? `${cleanQuery} ${countryDef.name}` : cleanQuery;
     console.log(`[GlobalScan] Buscando publicaciones en LinkedIn: "${queryWithCountry}" (cuenta: ${accountId}, país: ${countryDef ? countryDef.name : "Global"})...`);
 
@@ -308,7 +308,7 @@ export async function POST(req: NextRequest) {
         post.share_url ||
         `https://www.linkedin.com/feed/update/${encodeURIComponent(post.social_id || post.id)}`;
 
-      // A. Procesar comentaristas (Intención Alta / Debate Activo)
+      // A. Procesar comentaristas (Intención Alta / Alta Interacción)
       for (const comment of item.comments) {
         if (leadMap.size >= effectiveLimit) break;
         const rawAuthor: any = comment.author;
@@ -395,7 +395,7 @@ export async function POST(req: NextRequest) {
           location: resolvedLocation,
           linkedinUrl,
           avatarUrl,
-          signalSnippet: `Comentó en debate sobre ${cleanQuery}: “${commentText.slice(0, 120)}${commentText.length > 120 ? "..." : ""}”`,
+          signalSnippet: `Comentó en publicación sobre ${cleanQuery}: “${commentText.slice(0, 120)}${commentText.length > 120 ? "..." : ""}”`,
           signalType: "comment",
           intentLevel: "medium_high",
           intentScore: 90,

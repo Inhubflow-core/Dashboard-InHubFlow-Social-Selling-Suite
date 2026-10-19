@@ -309,7 +309,7 @@ export default function GlobalSignalsPage() {
         avatarUrl: lead.avatarUrl,
         connectionDegree: (lead.connectionDegree || "2nd") as ConnectionDegree,
         intentLevel: (lead.intentLevel || "medium_high") as IntentLevel,
-        signalSnippet: lead.signalSnippet || `Participó en debate viral sobre "${rule.searchQuery}"`,
+        signalSnippet: lead.signalSnippet || `Interactuó en publicación viral sobre "${rule.searchQuery}"`,
         detectedAt: new Date().toISOString(),
         status: "new" as const,
         language: lead.language,
@@ -351,7 +351,7 @@ export default function GlobalSignalsPage() {
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al auditar debates globales: ${err.message || "Error al conectar con LinkedIn"}`,
+        text: `Error al auditar publicaciones globales: ${err.message || "Error al conectar con LinkedIn"}`,
       });
     } finally {
       setIsScanningId(null);
@@ -426,7 +426,7 @@ export default function GlobalSignalsPage() {
             {totalGlobalLeads} Prospectos
           </p>
           <span className="text-xs text-blue-600 font-semibold dark:text-blue-400">
-            Extraídos de debates y publicaciones virales
+            Extraídos de publicaciones virales e interacciones
           </span>
         </div>
 
@@ -450,7 +450,7 @@ export default function GlobalSignalsPage() {
             Mecánica de Escaneo Temático Global (Nivel 3)
           </h4>
           <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
-            Monitorea publicaciones virales y debates con alta tracción en LinkedIn sobre un tema específico (ej. Prospección B2B, Inteligencia Artificial, Agencias). Extrae a las personas que interactuaron en un país concreto para conectar con ellas de forma orgánica.
+            Monitorea publicaciones virales e interacciones con alta tracción en LinkedIn sobre un tema específico (ej. Prospección B2B, Inteligencia Artificial, Agencias). Extrae a las personas que interactuaron en un país concreto para conectar con ellas de forma orgánica.
           </p>
         </div>
         <button
@@ -473,7 +473,7 @@ export default function GlobalSignalsPage() {
               {/* Campo 1: Términos o Tema de Búsqueda */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Tema o Palabra Clave del Debate
+                  Tema o Palabra Clave de Interés
                 </label>
                 <input
                   type="text"
@@ -585,7 +585,7 @@ export default function GlobalSignalsPage() {
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">
-                  Descarta publicaciones frías sin debate activo.
+                  Descarta publicaciones frías sin interacciones activas.
                 </span>
               </div>
             </div>
@@ -604,7 +604,7 @@ export default function GlobalSignalsPage() {
                       onChange={(e) => setTrackComments(e.target.checked)}
                       className="rounded border-gray-300 text-brand-500 cursor-pointer"
                     />
-                    <span>Comentaristas (Máxima intención de debate)</span>
+                    <span>Comentaristas (Máxima intención de interacción)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
                     <input
@@ -736,7 +736,7 @@ export default function GlobalSignalsPage() {
               No tienes reglas globales activas en Signal Radar Nivel 3.
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Configura un tema de debate y un país objetivo para rastrear publicaciones virales en LinkedIn y capturar prospectos calificados interesados en esa problemática.
+              Configura una temática y un país objetivo para rastrear publicaciones virales en LinkedIn y capturar prospectos calificados interesados en esa problemática.
             </p>
             <button
               type="button"
@@ -789,7 +789,7 @@ export default function GlobalSignalsPage() {
                                   {rule.searchQuery}
                                 </p>
                                 <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                  Debate Global
+                                  Interacciones Globales
                                 </span>
                                 <span className="rounded-full px-1.5 py-0.2 text-[9px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                                   {countryFlag} {countryName}
@@ -799,7 +799,7 @@ export default function GlobalSignalsPage() {
                                 </span>
                               </div>
 
-                              {/* Autores referentes que postearon sobre este debate */}
+                              {/* Autores referentes que postearon sobre esta temática */}
                               {ruleAuthors.length > 0 ? (
                                 <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">
                                   <span className="font-semibold text-gray-700 dark:text-gray-300">Autores que postearon:</span>{" "}
@@ -845,7 +845,7 @@ export default function GlobalSignalsPage() {
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Auditar&quot; para rastrear debates virales.
+                                  Sin posts escaneados. Pulsa &quot;Auditar&quot; para rastrear publicaciones con interacciones.
                                 </span>
                               )}
                             </div>
@@ -888,7 +888,7 @@ export default function GlobalSignalsPage() {
                             <span>0 leads</span>
                           )}
                           <span className="block text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                            🥇 90 • Debate Activo
+                            🥇 90 • Interacción Alta
                           </span>
                         </td>
 
@@ -956,7 +956,7 @@ export default function GlobalSignalsPage() {
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
                               className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                              title={`Auditar debates virales y extraer lote seguro de hasta ${activeBatch} personas`}
+                              title={`Auditar publicaciones virales y extraer lote seguro de hasta ${activeBatch} personas`}
                             >
                               {isScanningId === rule.id ? (
                                 <>
@@ -1085,10 +1085,10 @@ export default function GlobalSignalsPage() {
                   <span>LinkedIn Global: {selectedRuleForLeads.searchQuery}</span>
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Contactos Interesados Extraídos del Debate
+                  Prospectos Calificados por Interacción
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Personas que participaron activamente en publicaciones virales sobre este tema.
+                  Personas que interactuaron activamente en publicaciones virales sobre este tema.
                 </p>
               </div>
               <button
@@ -1180,7 +1180,7 @@ export default function GlobalSignalsPage() {
                               Grado {lead.connectionDegree}
                             </span>
                             <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-400">
-                              Debate Activo
+                              Interacción Alta
                             </span>
                             {lead.language && (
                               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-600 dark:bg-gray-800 dark:text-gray-400">
@@ -1206,7 +1206,7 @@ export default function GlobalSignalsPage() {
                             className="rounded-lg border border-blue-200 bg-blue-50/50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300 inline-flex items-center gap-1"
                             title="Ver el post de LinkedIn donde comentó o reaccionó"
                           >
-                            <span>Post Debate</span>
+                            <span>Ver Post</span>
                             <span className="text-[10px]">↗</span>
                           </a>
                         )}
@@ -1374,7 +1374,7 @@ export default function GlobalSignalsPage() {
                       }}
                       className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    Comentaristas (Máxima intención de debate)
+                    Comentaristas (Máxima intención de interacción)
                   </label>
                   <label className="inline-flex items-center gap-2 cursor-pointer">
                     <input
