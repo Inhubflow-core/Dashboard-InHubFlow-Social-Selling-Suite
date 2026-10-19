@@ -57,8 +57,21 @@ export async function GET() {
           // Si el perfil no se puede consultar de inmediato, mantener los datos base de la cuenta
         }
 
+        const isCashgrow =
+          acc.id === "7VSGKBGlTNGRbzZKuh6VpQ" ||
+          (email && email.toLowerCase().includes("cashgrow")) ||
+          name.toLowerCase().includes("cashgrow") ||
+          name.toLowerCase().includes("lynn") ||
+          name.toLowerCase().includes("linn");
+
+        if (isCashgrow) {
+          name = "ADS CASHGROW";
+          email = "ads.cashgrow.app@gmail.com";
+          headline = "Gerente de vendas da empresa ADS CASHGROW";
+        }
+
         return {
-          id: `acc-li-${acc.id}`,
+          id: isCashgrow ? `acc-li-7VSGKBGlTNGRbzZKuh6VpQ` : `acc-li-${acc.id}`,
           unipileAccountId: acc.id,
           name,
           email,
@@ -81,6 +94,9 @@ export async function GET() {
           active_hours_end: 18,
           timezone: 'Europe/Madrid',
           working_days: '1,2,3,4,5',
+          ownerId: "usr-client-roberto-agencia",
+          assignedUserId: isCashgrow ? "usr-team-lynn-01" : undefined,
+          assignedUserName: isCashgrow ? "ADS CASHGROW (Team)" : undefined,
         };
       })
     );

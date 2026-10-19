@@ -268,7 +268,7 @@ export default function PlansPricingPage() {
               Como funciona la administracion multi-operador y los 3 roles?
             </h4>
             <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-              La plataforma maneja 3 roles: Super Admin (SuperAdmin), Admin (ej. Roberto OrSe Agencia, titular que suscribe el workspace con slots) y Team (operadores colaboradores invitados, ej. Lynn Martinson). En el Plan Starter (1 slot) el uso es exclusivo para el Admin (0 cupos de equipo). En el Plan Growth (5 slots), el Admin puede invitar a hasta 4 operadores Team (1 Admin + 4 Team = 5 slots). En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores Team (1 Admin + 9 Team = 10 slots).
+              La plataforma maneja 3 roles: Super Admin (SuperAdmin), Admin (ej. Roberto OrSe Agencia, titular que suscribe el workspace con slots) y Team (operadores colaboradores invitados, ej. ADS CASHGROW). En el Plan Starter (1 slot) el uso es exclusivo para el Admin (0 cupos de equipo). En el Plan Growth (5 slots), el Admin puede invitar a hasta 4 operadores Team (1 Admin + 4 Team = 5 slots). En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores Team (1 Admin + 9 Team = 10 slots).
             </p>
           </div>
         </div>

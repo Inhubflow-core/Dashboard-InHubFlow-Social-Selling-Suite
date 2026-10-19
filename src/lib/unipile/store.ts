@@ -37,16 +37,16 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     assignedUserName: "Roberto OrSe Agencia (Admin)",
   },
   {
-    id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
-    unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
-    name: "Lynn Martinson",
-    email: "linnmartinsson407@gmail.com",
-    headline: "Social Selling & Outbound Strategist",
-    publicProfileUrl: "https://www.linkedin.com/in/linn-martinson-13a591443",
+    id: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
+    unipileAccountId: "7VSGKBGlTNGRbzZKuh6VpQ",
+    name: "ADS CASHGROW",
+    email: "ads.cashgrow.app@gmail.com",
+    headline: "Gerente de vendas da empresa ADS CASHGROW",
+    publicProfileUrl: "https://www.linkedin.com/in/cashgrow-app-532374445",
     profilePictureUrl: "",
-    status: "CREDENTIALS",
-    authMode: "credentials",
-    connectedAt: "2026-10-12T16:39:42.378Z",
+    status: "OK",
+    authMode: "cookie",
+    connectedAt: "2026-10-19T20:18:25.412Z",
     lastSyncAt: "Sincronizado con InHubFlow Cloud",
     dailyActionsCount: {
       invitationsSent: 0,
@@ -62,7 +62,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     working_days: "1,2,3,4,5",
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-team-lynn-01",
-    assignedUserName: "Lynn Martinson (Team SDR)",
+    assignedUserName: "ADS CASHGROW (Team)",
   },
 ];
 
@@ -164,7 +164,7 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       }
     }
 
-    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y Lynn Martinson) siempre existan y estén actualizadas
+    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y ADS CASHGROW) siempre existan y estén actualizadas
     for (const initAcc of initialLinkedInAccounts) {
       const existsIdx = deduplicated.findIndex(
         (d) =>
@@ -172,20 +172,23 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
           d.unipileAccountId === initAcc.unipileAccountId ||
           (d.name && initAcc.name && norm(d.name) === norm(initAcc.name)) ||
           ((d.name || "").toLowerCase().includes("roberto") && (initAcc.name || "").toLowerCase().includes("roberto")) ||
-          ((d.name || "").toLowerCase().includes("lynn") && (initAcc.name || "").toLowerCase().includes("lynn")) ||
-          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("lynn"))
+          ((d.name || "").toLowerCase().includes("cashgrow") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
+          ((d.name || "").toLowerCase().includes("lynn") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
+          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
+          (d.email && initAcc.email && d.email.toLowerCase().includes("cashgrow") && initAcc.email.toLowerCase().includes("cashgrow"))
       );
       if (existsIdx === -1) {
         deduplicated.push(initAcc);
       } else {
-        const isLynn = initAcc.name.toLowerCase().includes("lynn") || initAcc.name.toLowerCase().includes("linn");
-        // Lynn Martinson tiene estado CREDENTIALS (requiere atención / luz naranja)
-        const targetStatus = isLynn ? "CREDENTIALS" : (deduplicated[existsIdx].status || initAcc.status);
+        const targetStatus = deduplicated[existsIdx].status || initAcc.status;
 
-        // Preservar el nombre editado por el usuario; migrar el viejo valor por defecto con 's' minúscula
+        // Preservar el nombre editado por el usuario; migrar el viejo valor por defecto o nombres antiguos
         const existingName = deduplicated[existsIdx].name;
         const resolvedName =
-          existingName && existingName !== "RobertoOrse Agencia"
+          existingName &&
+          existingName !== "RobertoOrse Agencia" &&
+          !existingName.toLowerCase().includes("lynn") &&
+          !existingName.toLowerCase().includes("linn")
             ? existingName
             : initAcc.name;
 
@@ -194,7 +197,10 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
           ...deduplicated[existsIdx],
           id: initAcc.id,
           name: resolvedName,
-          email: deduplicated[existsIdx].email || initAcc.email,
+          email:
+            deduplicated[existsIdx].email && !deduplicated[existsIdx].email.includes("linnmartinsson")
+              ? deduplicated[existsIdx].email
+              : initAcc.email,
           unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
           status: targetStatus,
           ownerId: initAcc.ownerId,
@@ -252,13 +258,19 @@ export function accountMatchesUser(account: ConnectedLinkedInAccount, user: SaaS
   if (accEmail && userEmail) {
     if (accEmail === userEmail) return true;
     if (accEmail.includes("robertoorse") && userEmail.includes("robertoorse")) return true;
-    if ((accEmail.includes("linn") || accEmail.includes("lynn")) && (userEmail.includes("linn") || userEmail.includes("lynn"))) return true;
+    if (
+      (accEmail.includes("cashgrow") || accEmail.includes("linn") || accEmail.includes("lynn")) &&
+      (userEmail.includes("cashgrow") || userEmail.includes("linn") || userEmail.includes("lynn"))
+    ) return true;
   }
 
   // 4. Coincidencia por nombre para roles no super_admin
   if (user.role !== "super_admin") {
     if (accNorm.includes("roberto") && userNorm.includes("roberto")) return true;
-    if ((accNorm.includes("linn") || accNorm.includes("lynn")) && (userNorm.includes("linn") || userNorm.includes("lynn"))) return true;
+    if (
+      (accNorm.includes("cashgrow") || accNorm.includes("linn") || accNorm.includes("lynn")) &&
+      (userNorm.includes("cashgrow") || userNorm.includes("linn") || userNorm.includes("lynn"))
+    ) return true;
   }
 
   // 5. Coincidencia por ownerId para client_admin si la cuenta no está asignada a otro miembro
@@ -427,10 +439,16 @@ export function addStoredAccount(newAccount: ConnectedLinkedInAccount): Connecte
       .map((a) => {
         if (a.id !== exists.id) return a;
         const isRoberto = (a.name || "").toLowerCase().includes("roberto") || (newAccount.name || "").toLowerCase().includes("roberto");
-        const isLynn = (a.name || "").toLowerCase().includes("lynn") || (a.name || "").toLowerCase().includes("linn") || (newAccount.name || "").toLowerCase().includes("lynn") || (newAccount.name || "").toLowerCase().includes("linn");
-        const targetOwnerId = a.ownerId || newAccount.ownerId || (isRoberto || isLynn ? "usr-client-roberto-agencia" : undefined);
-        const targetUserId = a.assignedUserId || newAccount.assignedUserId || (isRoberto ? "usr-client-roberto-agencia" : isLynn ? "usr-team-lynn-01" : undefined);
-        const targetUserName = a.assignedUserName || newAccount.assignedUserName || (isRoberto ? "Roberto OrSe Agencia (Admin)" : isLynn ? "Lynn Martinson (Team SDR)" : undefined);
+        const isTeam =
+          (a.name || "").toLowerCase().includes("cashgrow") ||
+          (newAccount.name || "").toLowerCase().includes("cashgrow") ||
+          (a.name || "").toLowerCase().includes("lynn") ||
+          (a.name || "").toLowerCase().includes("linn") ||
+          (newAccount.name || "").toLowerCase().includes("lynn") ||
+          (newAccount.name || "").toLowerCase().includes("linn");
+        const targetOwnerId = a.ownerId || newAccount.ownerId || (isRoberto || isTeam ? "usr-client-roberto-agencia" : undefined);
+        const targetUserId = a.assignedUserId || newAccount.assignedUserId || (isRoberto ? "usr-client-roberto-agencia" : isTeam ? "usr-team-lynn-01" : undefined);
+        const targetUserName = a.assignedUserName || newAccount.assignedUserName || (isRoberto ? "Roberto OrSe Agencia (Admin)" : isTeam ? "ADS CASHGROW (Team)" : undefined);
 
         return {
           ...a,

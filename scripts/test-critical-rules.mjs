@@ -926,10 +926,10 @@ const realAccountsPool = [
     assignedUserId: "usr-client-roberto-agencia",
   },
   {
-    id: "acc-li-5X_l6hknTW62DqQtKJNNHA",
-    unipileAccountId: "5X_l6hknTW62DqQtKJNNHA",
-    name: "Lynn Martinson",
-    email: "linnmartinsson407@gmail.com",
+    id: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
+    unipileAccountId: "7VSGKBGlTNGRbzZKuh6VpQ",
+    name: "ADS CASHGROW",
+    email: "ads.cashgrow.app@gmail.com",
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-team-lynn-01",
   },
@@ -954,14 +954,14 @@ const robertoUser = {
   assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
 };
 
-const linnUser = {
+const cashgrowUser = {
   id: "usr-team-lynn-01",
-  email: "linnmartinsson407@gmail.com",
-  name: "Lynn Martinson",
+  email: "ads.cashgrow.app@gmail.com",
+  name: "ADS CASHGROW",
   role: "member",
   ownerId: "usr-client-roberto-agencia",
   slotsLimit: 1,
-  assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+  assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
 };
 
 // Caso 1: SuperAdmin validado como entidad única independiente
@@ -969,21 +969,21 @@ assert(superAdminUser.name === "SuperAdmin", "inhubflow@gmail.com se llama forma
 assert(superAdminUser.role === "super_admin", "inhubflow@gmail.com ostenta rol de Super Admin");
 
 // Caso 2: Roberto OrSe Agencia navegando, cuenta activa es RobertoOrse Agencia
-const robertoActive = simulateGetActiveAccountForUser(robertoUser, "acc-li-5X_l6hknTW62DqQtKJNNHA", realAccountsPool);
+const robertoActive = simulateGetActiveAccountForUser(robertoUser, "acc-li-7VSGKBGlTNGRbzZKuh6VpQ", realAccountsPool);
 assert(robertoActive.name === "RobertoOrse Agencia", "Si currentUser es Roberto OrSe Agencia, la cuenta activa SIEMPRE es RobertoOrse Agencia");
 assert(robertoActive.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ", "La cuenta asignada a Roberto OrSe Agencia tiene el ID oficial de su slot");
 assert(robertoUser.slotsLimit === 10, "Roberto OrSe Agencia dispone de 10 slots (Plan Business)");
 
-// Caso 3: Lynn Martinson navegando, cuenta activa es Lynn Martinson y es miembro de equipo de Roberto
-const linnActive = simulateGetActiveAccountForUser(linnUser, "acc-li-6yecZUhYS1mvPOJJC7p-zQ", realAccountsPool);
-assert(linnActive.name === "Lynn Martinson", "Si currentUser es Lynn Martinson, la cuenta activa SIEMPRE es Lynn Martinson");
-assert(linnActive.id === "acc-li-5X_l6hknTW62DqQtKJNNHA", "La cuenta asignada a Lynn Martinson tiene el ID oficial de su slot");
-assert(linnUser.ownerId === "usr-client-roberto-agencia", "Lynn Martinson forma parte estricta del equipo de Roberto OrSe Agencia");
+// Caso 3: ADS CASHGROW navegando, cuenta activa es ADS CASHGROW y es miembro de equipo de Roberto
+const cashgrowActive = simulateGetActiveAccountForUser(cashgrowUser, "acc-li-6yecZUhYS1mvPOJJC7p-zQ", realAccountsPool);
+assert(cashgrowActive.name === "ADS CASHGROW", "Si currentUser es ADS CASHGROW, la cuenta activa SIEMPRE es ADS CASHGROW");
+assert(cashgrowActive.id === "acc-li-7VSGKBGlTNGRbzZKuh6VpQ", "La cuenta asignada a ADS CASHGROW tiene el ID oficial de su slot");
+assert(cashgrowUser.ownerId === "usr-client-roberto-agencia", "ADS CASHGROW forma parte estricta del equipo de Roberto OrSe Agencia");
 
-// Caso 4: Fallback de visualización en interfaz nunca muestra Lynn si se navega como Roberto
+// Caso 4: Fallback de visualización en interfaz nunca muestra ADS CASHGROW si se navega como Roberto
 const simulatedDisplayName = robertoActive?.name || robertoUser.name;
 assert(simulatedDisplayName === "RobertoOrse Agencia", "El nombre visible en Nivel 1 y creadores es RobertoOrse Agencia cuando navega Roberto");
-assert(!simulatedDisplayName.includes("Lynn") && !simulatedDisplayName.includes("Linn"), "Ninguna vista de Roberto contiene a Lynn Martinson");
+assert(!simulatedDisplayName.includes("ADS CASHGROW") && !simulatedDisplayName.includes("Lynn"), "Ninguna vista de Roberto contiene a miembros de equipo");
 
 // Caso 5: En los paneles de Radar propios de Roberto OrSe Agencia, solo opera con su cuenta asignada
 const robertoOwnAccounts = realAccountsPool.filter(
@@ -991,19 +991,23 @@ const robertoOwnAccounts = realAccountsPool.filter(
 );
 assert(robertoOwnAccounts.length === 1, "Roberto OrSe Agencia solo tiene 1 cuenta propia activa para sus paneles de Radar");
 assert(robertoOwnAccounts[0].name === "RobertoOrse Agencia", "La única cuenta en los radares de Roberto es RobertoOrse Agencia");
-assert(!robertoOwnAccounts.some((a) => a.name.includes("Lynn") || a.name.includes("Linn")), "Lynn Martinson queda excluida de los radares de Roberto");
+assert(!robertoOwnAccounts.some((a) => a.name.includes("CASHGROW") || a.name.includes("Lynn")), "ADS CASHGROW queda excluida de los radares de Roberto");
 
-// Caso 5: Detección de estado de conexión real de Linn Martinson (CREDENTIALS)
-const linnRealAccount = {
+// Caso 6: Detección de estado de conexión real de ADS CASHGROW (OK / CREDENTIALS)
+const cashgrowAccountOk = {
+  ...realAccountsPool[1],
+  status: "OK",
+};
+const isCashgrowHealthy = cashgrowAccountOk.status === "OK";
+assert(isCashgrowHealthy, "ADS CASHGROW está conectada activamente cuando su estado es OK");
+
+const cashgrowAttention = {
   ...realAccountsPool[1],
   status: "CREDENTIALS",
 };
-const isLinnHealthy = linnRealAccount.status === "OK";
-const isLinnAttention = ["CREDENTIALS", "CHECKPOINT", "STOPPED", "ERROR"].includes(linnRealAccount.status);
-assert(!isLinnHealthy, "Linn Martinson no está conectada activamente cuando su estado es CREDENTIALS");
-assert(isLinnAttention, "Linn Martinson es detectada como cuenta que requiere atención inmediata");
+const isAttentionRequired = ["CREDENTIALS", "CHECKPOINT", "STOPPED", "ERROR"].includes(cashgrowAttention.status);
+assert(isAttentionRequired, "ADS CASHGROW es detectada como cuenta que requiere atención si su estado es CREDENTIALS");
 
-// Caso 6: Validación de luz indicadora naranja en header para cuenta que requiere reconexión
 function computeBadgeColorAndText(account) {
   const isHealthy = Boolean(account && account.status === "OK");
   const needsAttention = Boolean(
@@ -1015,9 +1019,9 @@ function computeBadgeColorAndText(account) {
   };
 }
 
-const linnBadge = computeBadgeColorAndText(linnRealAccount);
-assert(linnBadge.dotColor === "amber", "El badge de Linn Martinson muestra luz naranja/ámbar de advertencia");
-assert(linnBadge.subtitleText === "Reconexión requerida", "El badge de Linn Martinson muestra 'Reconexión requerida'");
+const cashgrowBadge = computeBadgeColorAndText(cashgrowAccountOk);
+assert(cashgrowBadge.dotColor === "emerald", "El badge de ADS CASHGROW conectado muestra luz verde");
+assert(cashgrowBadge.subtitleText === "LinkedIn Conectado", "El badge de ADS CASHGROW conectado muestra 'LinkedIn Conectado'");
 
 const robertoHealthyAccount = { ...realAccountsPool[0], status: "OK" };
 const robertoBadge = computeBadgeColorAndText(robertoHealthyAccount);

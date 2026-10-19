@@ -47,8 +47,8 @@ export const initialSaaSUsers: SaaSUser[] = [
   },
   {
     id: "usr-team-lynn-01",
-    email: "linnmartinsson407@gmail.com",
-    name: "Lynn Martinson",
+    email: "ads.cashgrow.app@gmail.com",
+    name: "ADS CASHGROW",
     role: "member",
     ownerId: "usr-client-roberto-agencia",
     companyName: "Roberto OrSe Agencia",
@@ -56,7 +56,7 @@ export const initialSaaSUsers: SaaSUser[] = [
     planTier: "business",
     subscriptionStatus: "active",
     avatarUrl: "",
-    assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+    assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
     createdAt: "2026-10-12T16:39:42.000Z",
     updatedAt: "2026-10-19T08:00:00.000Z",
   },
@@ -65,13 +65,13 @@ export const initialSaaSUsers: SaaSUser[] = [
 export const initialTeamMembers: TeamMember[] = [
   {
     id: "usr-team-lynn-01",
-    name: "Lynn Martinson",
-    email: "linnmartinsson407@gmail.com",
+    name: "ADS CASHGROW",
+    email: "ads.cashgrow.app@gmail.com",
     role: "member",
     ownerId: "usr-client-roberto-agencia",
-    assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
-    accountName: "Lynn Martinson",
-    accountAuthenticated: false,
+    assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
+    accountName: "ADS CASHGROW",
+    accountAuthenticated: true,
     createdAt: "2026-10-12T16:39:42.000Z",
   },
 ];
@@ -159,19 +159,24 @@ export function getStoredUsers(): SaaSUser[] {
             assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
           };
         }
-        // 3. linnmartinsson407@gmail.com -> Lynn Martinson (Team SDR del equipo de Roberto OrSe Agencia)
-        if (emailLower === "linnmartinsson407@gmail.com" || (u.name || "").toLowerCase().includes("martinson")) {
+        // 3. ads.cashgrow.app@gmail.com -> ADS CASHGROW (Team del equipo de Roberto OrSe Agencia)
+        if (
+          emailLower === "linnmartinsson407@gmail.com" ||
+          emailLower === "ads.cashgrow.app@gmail.com" ||
+          (u.name || "").toLowerCase().includes("martinson") ||
+          (u.name || "").toLowerCase().includes("cashgrow")
+        ) {
           return {
             ...u,
             id: "usr-team-lynn-01",
-            name: "Lynn Martinson",
-            email: "linnmartinsson407@gmail.com",
+            name: "ADS CASHGROW",
+            email: "ads.cashgrow.app@gmail.com",
             role: "member" as const,
             ownerId: "usr-client-roberto-agencia",
             planTier: "business" as const,
             companyName: "Roberto OrSe Agencia",
             slotsLimit: 1,
-            assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
+            assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
           };
         }
         return u;
@@ -512,6 +517,23 @@ export function getStoredTeamMembers(ownerId?: string): TeamMember[] {
       if (!m || !m.id) return false;
       const lower = `${m.id} ${m.name || ""} ${m.email || ""}`.toLowerCase();
       return !fakeKeywords.some((kw) => lower.includes(kw));
+    });
+
+    // Migrar y asegurar que cualquier entrada de Lynn/Cashgrow use la identidad activa ADS CASHGROW
+    cleanMembers = cleanMembers.map((m: TeamMember) => {
+      const lower = `${m.id} ${m.name || ""} ${m.email || ""}`.toLowerCase();
+      if (lower.includes("lynn") || lower.includes("linn") || lower.includes("cashgrow") || m.id === "usr-team-lynn-01") {
+        return {
+          ...m,
+          id: "usr-team-lynn-01",
+          name: "ADS CASHGROW",
+          email: "ads.cashgrow.app@gmail.com",
+          assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
+          accountName: "ADS CASHGROW",
+          accountAuthenticated: true,
+        };
+      }
+      return m;
     });
 
     // Asegurar que initialTeamMembers esté integrado
