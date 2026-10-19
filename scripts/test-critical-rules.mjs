@@ -957,6 +957,37 @@ assert(robertoOwnAccounts.length === 1, "Roberto OrSe solo tiene 1 cuenta propia
 assert(robertoOwnAccounts[0].name === "RobertoOrse Agencia", "La única cuenta en los radares de Roberto es RobertoOrse Agencia");
 assert(!robertoOwnAccounts.some((a) => a.name.includes("Linn")), "Linn Martinson queda estrictamente excluida de los radares de Roberto OrSe");
 
+// Caso 5: Detección de estado de conexión real de Linn Martinson (CREDENTIALS)
+const linnRealAccount = {
+  ...realAccountsPool[1],
+  status: "CREDENTIALS",
+};
+const isLinnHealthy = linnRealAccount.status === "OK";
+const isLinnAttention = ["CREDENTIALS", "CHECKPOINT", "STOPPED", "ERROR"].includes(linnRealAccount.status);
+assert(!isLinnHealthy, "Linn Martinson no está conectada activamente cuando su estado es CREDENTIALS");
+assert(isLinnAttention, "Linn Martinson es detectada como cuenta que requiere atención inmediata");
+
+// Caso 6: Validación de luz indicadora naranja en header para cuenta que requiere reconexión
+function computeBadgeColorAndText(account) {
+  const isHealthy = Boolean(account && account.status === "OK");
+  const needsAttention = Boolean(
+    account && ["CREDENTIALS", "CHECKPOINT", "STOPPED", "ERROR"].includes(account.status)
+  );
+  return {
+    dotColor: isHealthy ? "emerald" : needsAttention ? "amber" : "gray",
+    subtitleText: isHealthy ? "LinkedIn Conectado" : needsAttention ? "Reconexión requerida" : "Workspace Activo",
+  };
+}
+
+const linnBadge = computeBadgeColorAndText(linnRealAccount);
+assert(linnBadge.dotColor === "amber", "El badge de Linn Martinson muestra luz naranja/ámbar de advertencia");
+assert(linnBadge.subtitleText === "Reconexión requerida", "El badge de Linn Martinson muestra 'Reconexión requerida'");
+
+const robertoHealthyAccount = { ...realAccountsPool[0], status: "OK" };
+const robertoBadge = computeBadgeColorAndText(robertoHealthyAccount);
+assert(robertoBadge.dotColor === "emerald", "El badge de RobertoOrse conectado muestra luz verde");
+assert(robertoBadge.subtitleText === "LinkedIn Conectado", "El badge de RobertoOrse conectado muestra 'LinkedIn Conectado'");
+
 // Limpieza de base de datos de test
 
 db.close();

@@ -7,6 +7,7 @@ import {
   getVisibleAccountsForUser,
   setActiveAccountId,
   accountMatchesUser,
+  addStoredAccount,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useAuth } from "@/context/AuthContext";
@@ -254,13 +255,22 @@ export default function ViralRadarPage() {
 
     fetch("/api/unipile/accounts")
       .then((r) => r.json())
-      .then(() => {
+      .then((data) => {
+        if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+          data.accounts.forEach((remoteAcc: any) => {
+            addStoredAccount(remoteAcc);
+          });
+        }
         syncAccounts();
       })
       .catch(() => {});
 
     window.addEventListener("storage", syncAccounts);
-    return () => window.removeEventListener("storage", syncAccounts);
+    window.addEventListener("inhubflow-account-update", syncAccounts);
+    return () => {
+      window.removeEventListener("storage", syncAccounts);
+      window.removeEventListener("inhubflow-account-update", syncAccounts);
+    };
   }, [currentUser]);
 
   // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico, ofertas de empleo y seleccionando el Top 12)
