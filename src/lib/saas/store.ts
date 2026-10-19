@@ -41,7 +41,7 @@ export const initialSaaSUsers: SaaSUser[] = [
     planTier: "business",
     subscriptionStatus: "active",
     avatarUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U",
-    assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+    assignedAccountId: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
     createdAt: "2026-10-01T08:00:00.000Z",
     updatedAt: "2026-10-19T08:00:00.000Z",
   },
@@ -156,7 +156,7 @@ export function getStoredUsers(): SaaSUser[] {
             slotsLimit: 10,
             companyName: "Roberto OrSe Agencia",
             avatarUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U",
-            assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+            assignedAccountId: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
           };
         }
         // 3. ads.cashgrow.app@gmail.com -> ADS CASHGROW (Team del equipo de Roberto OrSe Agencia)

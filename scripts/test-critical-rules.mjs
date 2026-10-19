@@ -918,8 +918,8 @@ function simulateGetActiveAccountForUser(user, storedActiveId, visibleAccounts) 
 
 const realAccountsPool = [
   {
-    id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
-    unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
+    id: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
+    unipileAccountId: "HfrdagEmSrONX8jqE9IYjQ",
     name: "RobertoOrse Agencia",
     email: "robertoorse.agencia@gmail.com",
     ownerId: "usr-client-roberto-agencia",
@@ -951,7 +951,7 @@ const robertoUser = {
   role: "client_admin",
   slotsLimit: 10,
   planTier: "business",
-  assignedAccountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
+  assignedAccountId: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
 };
 
 const cashgrowUser = {
@@ -971,11 +971,11 @@ assert(superAdminUser.role === "super_admin", "inhubflow@gmail.com ostenta rol d
 // Caso 2: Roberto OrSe Agencia navegando, cuenta activa es RobertoOrse Agencia
 const robertoActive = simulateGetActiveAccountForUser(robertoUser, "acc-li-7VSGKBGlTNGRbzZKuh6VpQ", realAccountsPool);
 assert(robertoActive.name === "RobertoOrse Agencia", "Si currentUser es Roberto OrSe Agencia, la cuenta activa SIEMPRE es RobertoOrse Agencia");
-assert(robertoActive.id === "acc-li-6yecZUhYS1mvPOJJC7p-zQ", "La cuenta asignada a Roberto OrSe Agencia tiene el ID oficial de su slot");
+assert(robertoActive.id === "acc-li-HfrdagEmSrONX8jqE9IYjQ", "La cuenta asignada a Roberto OrSe Agencia tiene el ID oficial de su slot");
 assert(robertoUser.slotsLimit === 10, "Roberto OrSe Agencia dispone de 10 slots (Plan Business)");
 
 // Caso 3: ADS CASHGROW navegando, cuenta activa es ADS CASHGROW y es miembro de equipo de Roberto
-const cashgrowActive = simulateGetActiveAccountForUser(cashgrowUser, "acc-li-6yecZUhYS1mvPOJJC7p-zQ", realAccountsPool);
+const cashgrowActive = simulateGetActiveAccountForUser(cashgrowUser, "acc-li-HfrdagEmSrONX8jqE9IYjQ", realAccountsPool);
 assert(cashgrowActive.name === "ADS CASHGROW", "Si currentUser es ADS CASHGROW, la cuenta activa SIEMPRE es ADS CASHGROW");
 assert(cashgrowActive.id === "acc-li-7VSGKBGlTNGRbzZKuh6VpQ", "La cuenta asignada a ADS CASHGROW tiene el ID oficial de su slot");
 assert(cashgrowUser.ownerId === "usr-client-roberto-agencia", "ADS CASHGROW forma parte estricta del equipo de Roberto OrSe Agencia");

@@ -9,8 +9,8 @@ const ACTIVE_ACCOUNT_KEY = "inhubflow_active_linkedin_account_id";
 // an empty sandbox cannot look like a live Unipile connection.
 export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
   {
-    id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
-    unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
+    id: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
+    unipileAccountId: "HfrdagEmSrONX8jqE9IYjQ",
     name: "RobertoOrSe Agencia",
     email: "robertoorse.agencia@gmail.com",
     headline: "Roberto OrSe | InHubFlow Social Selling Suite",
