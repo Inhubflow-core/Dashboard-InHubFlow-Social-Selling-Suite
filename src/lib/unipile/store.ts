@@ -15,7 +15,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     email: "robertoorse.agencia@gmail.com",
     headline: "Roberto OrSe | InHubFlow Social Selling Suite",
     publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-    profilePictureUrl: "/images/user/owner.png",
+    profilePictureUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U",
     status: "OK",
     authMode: "cookie",
     connectedAt: "2026-10-13T11:38:09.032Z",

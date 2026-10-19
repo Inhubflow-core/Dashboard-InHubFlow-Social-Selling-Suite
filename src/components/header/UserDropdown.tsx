@@ -62,6 +62,41 @@ export default function UserDropdown() {
     closeDropdown();
   };
 
+  const renderAvatar = (user: typeof sessionUser, size = 40) => {
+    const isSuperAdmin = user.role === "super_admin" || user.email.toLowerCase() === "inhubflow@gmail.com";
+    const isRoberto = (user.name || "").toLowerCase().includes("roberto");
+    let photo = user.avatarUrl;
+    if (isRoberto && (!photo || photo.includes("owner.png"))) {
+      photo = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+    }
+
+    if (photo && photo.startsWith("http")) {
+      return (
+        <img
+          src={photo}
+          alt={user.name}
+          className="size-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            (e.currentTarget as HTMLElement).style.display = "none";
+          }}
+        />
+      );
+    }
+    if (photo && isSuperAdmin) {
+      return (
+        <Image
+          width={size}
+          height={size}
+          src={photo}
+          alt={user.name}
+          className="size-full object-cover"
+        />
+      );
+    }
+    return <span>{user.name.charAt(0).toUpperCase()}</span>;
+  };
+
   return (
     <div className="relative">
       <button
@@ -70,17 +105,7 @@ export default function UserDropdown() {
         title={`Cuenta Titular Logada: ${sessionUser.name}`}
       >
         <span className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
-          {sessionUser.avatarUrl && sessionUser.avatarUrl.includes("owner") ? (
-            <Image
-              width={40}
-              height={40}
-              src={sessionUser.avatarUrl}
-              alt={sessionUser.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span>{sessionUser.name.charAt(0).toUpperCase()}</span>
-          )}
+          {renderAvatar(sessionUser, 40)}
         </span>
 
         <div className="hidden text-left xl:block me-2">
@@ -108,17 +133,7 @@ export default function UserDropdown() {
         <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
-              {sessionUser.avatarUrl && sessionUser.avatarUrl.includes("owner") ? (
-                <Image
-                  src={sessionUser.avatarUrl}
-                  alt={sessionUser.name}
-                  width={40}
-                  height={40}
-                  className="size-full rounded-xl object-cover"
-                />
-              ) : (
-                <span>{sessionUser.name.charAt(0).toUpperCase()}</span>
-              )}
+              {renderAvatar(sessionUser, 40)}
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">

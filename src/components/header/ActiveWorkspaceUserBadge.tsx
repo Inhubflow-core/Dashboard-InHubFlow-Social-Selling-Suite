@@ -78,6 +78,27 @@ export default function ActiveWorkspaceUserBadge() {
     ? "text-amber-600 dark:text-amber-400 font-semibold"
     : "text-gray-400 font-medium";
 
+  // Resolución de foto del usuario activo:
+  // SuperAdmin usa /images/user/owner.png
+  // Roberto OrSe Agencia usa la foto real de su cuenta de LinkedIn (el imagotipo/logo 'ro')
+  const isSuperAdminUser = currentUser.role === "super_admin" || currentUser.email.toLowerCase() === "inhubflow@gmail.com";
+  const isRobertoUser = (currentUser.name || "").toLowerCase().includes("roberto");
+  const linkedInPhoto = activeLinkedInAccount?.profilePictureUrl;
+  const userPhoto = currentUser.avatarUrl;
+
+  let photoToRender: string | null = null;
+  if (isSuperAdminUser) {
+    photoToRender = userPhoto || "/images/user/owner.png";
+  } else {
+    if (linkedInPhoto && !linkedInPhoto.includes("owner.png")) {
+      photoToRender = linkedInPhoto;
+    } else if (userPhoto && !userPhoto.includes("owner.png")) {
+      photoToRender = userPhoto;
+    } else if (isRobertoUser) {
+      photoToRender = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+    }
+  }
+
   const tooltipText = isHealthy
     ? `Estás conectado como: ${currentUser.name} (LinkedIn Conectado y Activo)`
     : needsAttention
@@ -96,14 +117,26 @@ export default function ActiveWorkspaceUserBadge() {
     >
       <div className="relative shrink-0">
         <div className="size-8.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-200 overflow-hidden shadow-xs">
-          {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
-            <Image
-              src={currentUser.avatarUrl}
-              alt={currentUser.name}
-              width={34}
-              height={34}
-              className="size-full object-cover"
-            />
+          {photoToRender ? (
+            photoToRender.startsWith("http") ? (
+              <img
+                src={photoToRender}
+                alt={currentUser.name}
+                className="size-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <Image
+                src={photoToRender}
+                alt={currentUser.name}
+                width={34}
+                height={34}
+                className="size-full object-cover"
+              />
+            )
           ) : (
             <span>{currentUser.name.charAt(0).toUpperCase()}</span>
           )}
