@@ -45,6 +45,16 @@ export interface Level1Monitor {
   scheduledAt?: string;
 }
 
+export interface ScannedCompetitorPost {
+  id: string;
+  url: string;
+  text: string;
+  authorName?: string;
+  reactionsCount?: number;
+  commentsCount?: number;
+  scannedAt?: string;
+}
+
 export interface Level2CompetitorMonitor {
   id: string;
   competitorName: string;
@@ -59,6 +69,7 @@ export interface Level2CompetitorMonitor {
   leadsIdentifiedCount: number;
   lastScanAt: string;
   createdAt: string;
+  lastScannedPosts?: ScannedCompetitorPost[];
 }
 
 

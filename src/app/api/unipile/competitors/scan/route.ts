@@ -234,9 +234,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const scannedPosts = postsToProcess.slice(0, limit).map((post: any) => {
+      const postId = post.id || post.post_id || "";
+      const postUrl =
+        post.share_url ||
+        post.url ||
+        (postId ? `https://www.linkedin.com/feed/update/${postId}` : competitorUrl);
+      const text = String(post.text || post.commentary || "Publicación auditada en LinkedIn").trim();
+      return {
+        id: postId || `post-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        url: postUrl,
+        text: text.length > 150 ? text.slice(0, 150) + "..." : text,
+        authorName: competitorName,
+        reactionsCount: Number(post.reactions_count || post.num_likes || 0),
+        commentsCount: Number(post.comments_count || post.num_comments || 0),
+        scannedAt: new Date().toISOString(),
+      };
+    });
+
     return NextResponse.json({
       items: Array.from(leadMap.values()),
       postsScanned: postsToProcess.length,
+      scannedPosts,
       excludedEmployeesCount,
       source: "unipile_live",
     });
