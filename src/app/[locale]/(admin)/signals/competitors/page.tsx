@@ -318,26 +318,8 @@ export default function CompetitorsSignalRadarPage() {
       const importRes = importSignalLeads(targetList, newLeadsToAdd);
 
       const rawPosts = Array.isArray(data.scannedPosts) ? data.scannedPosts : [];
-      const basePostsUrl = comp.competitorUrl.includes("/company/")
-        ? `${comp.competitorUrl.replace(/\/$/, "")}/posts/`
-        : `${comp.competitorUrl.replace(/\/$/, "")}/recent-activity/all/`;
-      const fallbackPosts: ScannedCompetitorPost[] = [
-        {
-          id: `post-${comp.id}-1`,
-          url: basePostsUrl,
-          text: `Estrategias de ${comp.keywordsFilter.join(", ")} y prospección B2B`,
-          authorName: comp.competitorName,
-          reactionsCount: 18,
-          commentsCount: 6,
-          scannedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ];
-      const scannedPosts: ScannedCompetitorPost[] =
-        rawPosts.length > 0
-          ? rawPosts
-          : comp.lastScannedPosts && comp.lastScannedPosts.length > 0
-          ? comp.lastScannedPosts
-          : fallbackPosts;
+      // Guardar únicamente publicaciones reales obtenidas por la API de LinkedIn
+      const scannedPosts: ScannedCompetitorPost[] = rawPosts;
 
       updateLevel2Monitor(comp.id, {
         leadsIdentifiedCount: comp.leadsIdentifiedCount + added.length,
@@ -367,96 +349,31 @@ export default function CompetitorsSignalRadarPage() {
   };
 
   const getCompetitorScannedPosts = (comp: Level2CompetitorMonitor): ScannedCompetitorPost[] => {
-    const compLower = comp.competitorName.toLowerCase();
-    const compUrlLower = comp.competitorUrl.toLowerCase();
-    const isProspectme = compLower.includes("prospectme") || compUrlLower.includes("prospectme");
-    const isClaudiaCuri = compLower.includes("claudia curi") || compUrlLower.includes("claudiacuri");
+    if (!comp.lastScannedPosts || comp.lastScannedPosts.length === 0) {
+      return [];
+    }
 
-    // Saneamiento de URLs históricas en caso de que vinieran con el formato antiguo roto de LinkedIn
-    if (comp.lastScannedPosts && comp.lastScannedPosts.length > 0) {
-      const sanitized = comp.lastScannedPosts.map((p) => ({
+    // Filtrar publicaciones que provengan de plantillas inventadas que pudieran estar cacheadas en localStorage
+    return comp.lastScannedPosts
+      .filter((p) => {
+        const textLower = (p.text || "").toLowerCase();
+        if (
+          textLower.includes("como estruturar um fluxo de prospecção outbound") ||
+          textLower.includes("automação com ia vs personalização") ||
+          textLower.includes("os 4 maiores gargalos que fazem sua equipe") ||
+          textLower.includes("metodologia inbox to meeting") ||
+          textLower.includes("o maior erro na abordagem comercial") ||
+          (textLower.includes("publicación sobre") && textLower.includes("auditada en linkedin")) ||
+          textLower.includes("estrategias de prospección b2b y prospección b2b")
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p) => ({
         ...p,
         url: p.url.replace(/\/detail\/recent-activity\/shares\/?/, "/recent-activity/all/"),
       }));
-
-      // Si es ProspectMe y tiene publicaciones ficticias antiguas (ej. 3 posts con 42/67 reacciones),
-      // o Claudia Curi con URL de shares, devolvemos los datos reales limpios
-      const hasOldFictitiousProspectMe =
-        isProspectme &&
-        (sanitized.length > 2 || sanitized.some((p) => p.reactionsCount === 42 || p.reactionsCount === 67));
-
-      const hasBrokenClaudia =
-        isClaudiaCuri &&
-        sanitized.some((p) => p.url.includes("shares") || p.text.includes("Estrategias de prospección B2B y prospección B2B"));
-
-      if (!hasOldFictitiousProspectMe && !hasBrokenClaudia) {
-        return sanitized;
-      }
-    }
-
-    if (isProspectme) {
-      return [
-        {
-          id: `post-${comp.id}-p1`,
-          url: "https://www.linkedin.com/company/prospectmebr/posts/",
-          text: "Como estruturar um fluxo de prospecção outbound B2B multicanal de alta conversão sem queimar o domínio da sua empresa.",
-          authorName: "Prospectme",
-          reactionsCount: 16,
-          commentsCount: 5,
-          scannedAt: comp.lastScanAt || "Publicación reciente",
-        },
-        {
-          id: `post-${comp.id}-p2`,
-          url: "https://www.linkedin.com/company/prospectmebr/posts/",
-          text: "Automação com IA vs Personalização manual: dados reais de abordagens comerciais e geração de reuniões qualificadas no B2B.",
-          authorName: "Prospectme",
-          reactionsCount: 22,
-          commentsCount: 8,
-          scannedAt: comp.lastScanAt || "Publicación reciente",
-        },
-      ];
-    }
-
-    if (isClaudiaCuri) {
-      return [
-        {
-          id: `post-${comp.id}-c1`,
-          url: "https://www.linkedin.com/in/claudiacuri-prospeccion/recent-activity/all/",
-          text: "Estratégias de prospecção B2B ativa no LinkedIn: metodologia Inbox to Meeting para agendar reuniões com decisores.",
-          authorName: "Claudia Curi",
-          reactionsCount: 29,
-          commentsCount: 14,
-          scannedAt: comp.lastScanAt || "Publicación reciente",
-        },
-        {
-          id: `post-${comp.id}-c2`,
-          url: "https://www.linkedin.com/in/claudiacuri-prospeccion/recent-activity/all/",
-          text: "O maior erro na abordagem comercial no LinkedIn: enviar mensagens em massa sem entender o momento de compra do prospect.",
-          authorName: "Claudia Curi",
-          reactionsCount: 35,
-          commentsCount: 18,
-          scannedAt: comp.lastScanAt || "Publicación reciente",
-        },
-      ];
-    }
-
-    if (comp.leadsIdentifiedCount > 0) {
-      const basePostsUrl = comp.competitorUrl.includes("/company/")
-        ? `${comp.competitorUrl.replace(/\/$/, "")}/posts/`
-        : `${comp.competitorUrl.replace(/\/$/, "")}/recent-activity/all/`;
-      return [
-        {
-          id: `post-${comp.id}-default`,
-          url: basePostsUrl,
-          text: `Publicación sobre ${comp.keywordsFilter.join(", ")} auditada en LinkedIn`,
-          authorName: comp.competitorName,
-          reactionsCount: 14,
-          commentsCount: 6,
-          scannedAt: comp.lastScanAt || "Auditoría reciente",
-        },
-      ];
-    }
-    return [];
   };
 
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
@@ -1062,7 +979,7 @@ export default function CompetitorsSignalRadarPage() {
                               </a>
 
                               {/* Botón para desplegar / ocultar publicaciones de LinkedIn */}
-                              {scannedPosts.length > 0 && (
+                              {scannedPosts.length > 0 ? (
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -1082,6 +999,10 @@ export default function CompetitorsSignalRadarPage() {
                                   </span>
                                   <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
+                              ) : (
+                                <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                  Sin posts escaneados. Pulsa &quot;Auditar Ahora&quot; para extraer posts reales.
+                                </span>
                               )}
                             </div>
                           </div>

@@ -88,6 +88,16 @@ export async function POST(req: NextRequest) {
       } catch (e) {
         console.warn("[CompetitorsScan] No se pudo resolver ID numérico de empresa:", e);
       }
+    } else if (!isCompany) {
+      // Para perfiles personales, resolver provider_id interno para evitar error 422 invalid_recipient
+      try {
+        const userProfile = await unipile.resolveProfile(identifier, accountId);
+        if (userProfile?.provider_id) {
+          identifier = userProfile.provider_id;
+        }
+      } catch (e) {
+        console.warn("[CompetitorsScan] No se pudo resolver provider_id para perfil personal:", e);
+      }
     }
 
     const posts = await unipile.getUserPosts({
@@ -239,23 +249,37 @@ export async function POST(req: NextRequest) {
       : `${competitorUrl.replace(/\/$/, "")}/recent-activity/all/`;
 
     const scannedPosts = postsToProcess.slice(0, limit).map((post: any) => {
-      const postId = post.id || post.post_id || "";
+      const postId = String(post.id || post.post_id || "").trim();
+      let directPostUrl = "";
+      if (postId) {
+        if (postId.startsWith("urn:li:activity:")) {
+          directPostUrl = `https://www.linkedin.com/feed/update/${postId}/`;
+        } else if (/^\d+$/.test(postId)) {
+          directPostUrl = `https://www.linkedin.com/feed/update/urn:li:activity:${postId}/`;
+        } else if (postId.startsWith("urn:li:")) {
+          directPostUrl = `https://www.linkedin.com/feed/update/${postId}/`;
+        }
+      }
+
       let postUrl =
         post.share_url ||
         post.url ||
-        (postId ? `https://www.linkedin.com/feed/update/${postId}` : fallbackFeedUrl);
+        directPostUrl ||
+        fallbackFeedUrl;
+
       if (typeof postUrl === "string") {
         postUrl = postUrl.replace(/\/detail\/recent-activity\/shares\/?/, "/recent-activity/all/");
       }
-      const text = String(post.text || post.commentary || "Publicación auditada en LinkedIn").trim();
+      const rawText = String(post.text || post.commentary || "").trim();
+      const text = rawText || "Publicación auditada en LinkedIn";
       return {
         id: postId || `post-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         url: postUrl,
         text: text.length > 150 ? text.slice(0, 150) + "..." : text,
         authorName: competitorName,
-        reactionsCount: Number(post.reactions_count || post.num_likes || 0),
-        commentsCount: Number(post.comments_count || post.num_comments || 0),
-        scannedAt: new Date().toISOString(),
+        reactionsCount: Number(post.reactions_count ?? post.reaction_counter ?? post.num_likes ?? 0),
+        commentsCount: Number(post.comments_count ?? post.comment_counter ?? post.num_comments ?? 0),
+        scannedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
     });
 
