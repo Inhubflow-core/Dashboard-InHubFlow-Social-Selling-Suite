@@ -286,6 +286,13 @@ export default function MyPostsSignalRadarPage() {
   };
 
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
+  const currentUserPhoto =
+    activeAccount?.profilePictureUrl ||
+    (activeAccount as any)?.avatarUrl ||
+    currentUser?.avatarUrl ||
+    "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+  const currentUserProfileUrl =
+    activeAccount?.publicProfileUrl || "https://www.linkedin.com/in/robertoorse-agencia";
 
   return (
     <div className="space-y-6">
@@ -742,10 +749,10 @@ export default function MyPostsSignalRadarPage() {
                         {/* 1. Cuenta / Publicación */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
-                            {/* Avatar de la cuenta propia */}
-                            {activeAccount?.avatarUrl ? (
+                            {/* Avatar con foto real de perfil de LinkedIn */}
+                            {currentUserPhoto ? (
                               <img
-                                src={activeAccount.avatarUrl}
+                                src={currentUserPhoto}
                                 alt={currentDisplayName}
                                 className="h-8 w-8 object-cover rounded-full bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5"
                                 onError={(e) => {
@@ -756,7 +763,7 @@ export default function MyPostsSignalRadarPage() {
                               />
                             ) : null}
                             <div
-                              style={{ display: activeAccount?.avatarUrl ? "none" : "flex" }}
+                              style={{ display: currentUserPhoto ? "none" : "flex" }}
                               className="h-8 w-8 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs rounded-full bg-purple-600 mt-0.5"
                             >
                               {currentDisplayName.charAt(0).toUpperCase()}
@@ -780,24 +787,14 @@ export default function MyPostsSignalRadarPage() {
                                 )}
                               </div>
 
-                              <p className="text-xs text-gray-800 dark:text-gray-200 font-medium truncate mt-0.5" title={mon.postTitle}>
-                                {mon.postTitle}
-                              </p>
-
-                              {mon.postUrl ? (
-                                <a
-                                  href={mon.postUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm"
-                                >
-                                  {mon.postUrl}
-                                </a>
-                              ) : (
-                                <span className="text-[11px] text-gray-400 dark:text-gray-500 italic block">
-                                  Borrador sin enlace oficial de LinkedIn
-                                </span>
-                              )}
+                              <a
+                                href={currentUserProfileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm mt-0.5"
+                              >
+                                {currentUserProfileUrl}
+                              </a>
 
                               {/* Botón para desplegar / ocultar publicación monitoreada */}
                               <button
