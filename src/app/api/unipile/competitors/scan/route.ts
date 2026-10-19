@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const interactionTypes = Array.isArray(body.interactionTypes)
       ? body.interactionTypes.filter((value: unknown): value is "likes" | "comments" => value === "likes" || value === "comments")
       : ["comments"];
-    const limit = Math.min(25, Math.max(1, Number(body.limit) || 10));
+    const limit = Math.min(5, Math.max(1, Number(body.limit) || 4));
     const excludeAuthorEmployees = body.excludeAuthorEmployees !== false;
 
     const rawKeywords = Array.isArray(body.keywordsFilter)
@@ -116,19 +116,26 @@ export async function POST(req: NextRequest) {
       : posts;
     const postsToProcess = matchingPosts.length > 0 ? matchingPosts : posts;
 
-    const interactions = await Promise.all(
-      postsToProcess.slice(0, limit).map(async (post) => {
-        const [comments, reactions] = await Promise.all([
-          isRelevantInteraction(interactionTypes, "comments")
-            ? unipile.getPostComments(post.id, accountId, 100).catch(() => ({ items: [] }))
-            : Promise.resolve({ items: [] }),
-          isRelevantInteraction(interactionTypes, "likes")
-            ? unipile.getPostReactions(post.id, accountId, 100).catch(() => ({ items: [] }))
-            : Promise.resolve({ items: [] }),
-        ]);
-        return { post, comments: comments.items || [], reactions: reactions.items || [] };
-      })
-    );
+    const safePostsToProcess = postsToProcess.slice(0, limit);
+    const interactions: Array<{ post: any; comments: any[]; reactions: any[] }> = [];
+
+    for (let pIdx = 0; pIdx < safePostsToProcess.length; pIdx++) {
+      const post = safePostsToProcess[pIdx];
+      // Emular ritmo humano de lectura entre publicaciones (1.5s - 2.5s)
+      if (pIdx > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
+      }
+
+      const [comments, reactions] = await Promise.all([
+        isRelevantInteraction(interactionTypes, "comments")
+          ? unipile.getPostComments(post.id, accountId, 25).catch(() => ({ items: [] }))
+          : Promise.resolve({ items: [] }),
+        isRelevantInteraction(interactionTypes, "likes")
+          ? unipile.getPostReactions(post.id, accountId, 25).catch(() => ({ items: [] }))
+          : Promise.resolve({ items: [] }),
+      ]);
+      interactions.push({ post, comments: comments.items || [], reactions: reactions.items || [] });
+    }
 
     // Preparar entidades del autor y competidor para el filtro anti-engagement interno
     const rawEntities = [competitorName, identifier];
@@ -248,7 +255,7 @@ export async function POST(req: NextRequest) {
       ? `${competitorUrl.replace(/\/$/, "")}/posts/`
       : `${competitorUrl.replace(/\/$/, "")}/recent-activity/all/`;
 
-    const scannedPosts = postsToProcess.slice(0, limit).map((post: any) => {
+    const scannedPosts = safePostsToProcess.map((post: any) => {
       const postId = String(post.id || post.post_id || "").trim();
       let directPostUrl = "";
       if (postId) {
