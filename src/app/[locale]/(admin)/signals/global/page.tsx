@@ -627,15 +627,15 @@ export default function GlobalSignalsPage() {
       )}
 
       {/* Barra de Cuenta Conectada & Estado de Escucha */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
             Cuenta de LinkedIn activa para escaneo global:
           </span>
-          <span className="font-bold text-gray-900 dark:text-white">
+          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
           </span>
-          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400" suppressHydrationWarning>
             {activeAccount?.status === "OK" ? "CONECTADA" : "ACTIVA"}
           </span>
         </div>

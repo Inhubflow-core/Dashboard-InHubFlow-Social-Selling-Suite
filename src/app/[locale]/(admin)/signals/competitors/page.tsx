@@ -763,15 +763,16 @@ export default function CompetitorsSignalRadarPage() {
       )}
 
       {/* Barra de Cuenta Conectada & Estado de Escucha */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
             Cuenta de LinkedIn activa para auditoría:
           </span>
-          <span className="font-bold text-gray-900 dark:text-white">
+          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
           </span>
           <span
+            suppressHydrationWarning
             className={`rounded px-2 py-0.5 text-[10px] font-bold ${
               activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
                 ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
