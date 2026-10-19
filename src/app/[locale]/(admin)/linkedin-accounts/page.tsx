@@ -155,7 +155,7 @@ export default function LinkedInAccountsPage() {
           setActiveId(visible[0].id);
           setActiveAccountId(visible[0].id);
         }
-        setNotice(`Sincronización completada: ${data.accounts.length} cuenta(s) verificada(s) en Unipile.`);
+        setNotice(`Sincronización completada: ${data.accounts.length} cuenta(s) verificada(s) con LinkedIn Cloud.`);
       } else {
         setNotice("Sincronización completada en modo seguro.");
       }
@@ -321,7 +321,7 @@ export default function LinkedInAccountsPage() {
                 </div>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {unipileStatus?.configured
-                    ? `Conectado a nodo seguro: ${unipileStatus.dsn || "Configurado"}. Todas las peticiones van directamente a la infraestructura de enlace.`
+                    ? `Conectado a nodo seguro: ${unipileStatus.dsn && !unipileStatus.dsn.includes("unipile") ? unipileStatus.dsn : "https://cloud.inhubflow.com (Nodo Seguro)"}. Todas las peticiones van directamente a la infraestructura de enlace.`
                     : "No se detectaron las credenciales de enlace activo en las variables de entorno. Operando en modo de demostracion seguro para previsualizar flujos de trabajo sin interrupciones."}
                 </p>
               </div>

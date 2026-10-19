@@ -293,7 +293,7 @@ export default function ConnectLinkedInModal({
       unipileAccountId: remoteAccountId || `up_acc_${Date.now()}`,
       name: form.name.trim() || initialAccount?.name || authEmail.split("@")[0] || "Cuenta LinkedIn",
       email: form.email.trim() || initialAccount?.email || authEmail.trim(),
-      headline: initialAccount?.headline || "Perfil sincronizado con Unipile API",
+      headline: initialAccount?.headline || "Perfil sincronizado con InHubFlow LinkedIn Cloud",
       profilePictureUrl: initialAccount?.profilePictureUrl || "/images/user/owner.png",
       publicProfileUrl: initialAccount?.publicProfileUrl,
       status: "OK",

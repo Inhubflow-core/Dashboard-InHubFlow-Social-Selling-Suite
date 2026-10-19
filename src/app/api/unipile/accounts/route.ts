@@ -68,7 +68,7 @@ export async function GET() {
           status,
           authMode: (im?.connection_method === 'credentials' ? 'credentials' : 'hosted') as ConnectedLinkedInAccount['authMode'],
           connectedAt: acc.created_at || new Date().toISOString(),
-          lastSyncAt: 'Sincronizado con Unipile',
+          lastSyncAt: 'Sincronizado con InHubFlow Cloud',
           dailyActionsCount: {
             invitationsSent: 0,
             messagesSent: 0,
@@ -148,7 +148,7 @@ export async function GET() {
     console.error('[api/unipile/accounts] Error listando cuentas:', error);
     return NextResponse.json(
       {
-        error: 'No se pudieron consultar las cuentas desde Unipile',
+        error: 'No se pudieron consultar las cuentas de LinkedIn',
         message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

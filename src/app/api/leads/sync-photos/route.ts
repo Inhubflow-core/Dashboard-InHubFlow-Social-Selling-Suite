@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         updated: {},
         syncedCount: 0,
-        message: "Motor Unipile no configurado en este entorno",
+        message: "Motor Cloud no configurado en este entorno",
       });
     }
 

@@ -181,7 +181,7 @@ export default function CompetitorsSignalRadarPage() {
         setSearchResults(data.items || []);
         setIsSearchDropdownOpen(true);
         if (data.reason === "unipile_not_configured") {
-          setScanFeedback({ type: "error", text: "La búsqueda real requiere Unipile configurado. No se mostrarán resultados simulados." });
+          setScanFeedback({ type: "error", text: "La búsqueda real requiere el motor Cloud configurado. No se mostrarán resultados simulados." });
         } else if (data.reason === "linkedin_account_not_connected") {
           setScanFeedback({ type: "error", text: "Conecta una cuenta activa de LinkedIn para buscar resultados reales." });
         } else {

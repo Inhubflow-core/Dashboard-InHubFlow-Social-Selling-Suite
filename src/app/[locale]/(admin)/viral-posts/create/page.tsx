@@ -293,7 +293,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error || "Error al publicar en LinkedIn a través de Unipile.");
+          throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InHubFlow.");
         }
 
         linkedinPostId = data.postId;

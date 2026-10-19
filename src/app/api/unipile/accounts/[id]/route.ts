@@ -41,7 +41,7 @@ export async function DELETE(
   } catch (error: unknown) {
     return NextResponse.json(
       {
-        error: 'No se pudo desconectar la cuenta de Unipile',
+        error: 'No se pudo desconectar la cuenta de LinkedIn',
         message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

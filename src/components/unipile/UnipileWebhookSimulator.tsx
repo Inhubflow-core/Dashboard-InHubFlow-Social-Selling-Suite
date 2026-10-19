@@ -178,7 +178,7 @@ export default function UnipileWebhookSimulator() {
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                  Sandbox de Integracion Unipile & Emulador de Webhooks
+                  Sandbox de Integración Cloud InHubFlow & Emulador de Webhooks
                 </h4>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                   <span className="size-1.5 rounded-full bg-emerald-500"></span>
@@ -186,7 +186,7 @@ export default function UnipileWebhookSimulator() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                Todo el flujo de LinkedIn (Inbox, Signal Radar, SDR IA y Webhooks) esta completamente listo y blindado para probar. Cuando actives tu cuenta oficial de Unipile, la plataforma pasara automaticamente a produccion.
+                Todo el flujo de LinkedIn (Inbox, Signal Radar, SDR IA y Webhooks) está completamente listo y blindado para probar. La plataforma sincroniza de forma segura y automatizada en producción.
               </p>
             </div>
           </div>

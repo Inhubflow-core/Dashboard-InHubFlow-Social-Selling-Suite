@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Error al autenticar la cuenta de LinkedIn con Unipile.",
+        error: "Error al autenticar la cuenta de LinkedIn con InHubFlow Cloud.",
         message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

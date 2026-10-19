@@ -71,7 +71,7 @@ function CallbackContent() {
             </h1>
 
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              Tu cuenta de LinkedIn ha sido autenticada y vinculada correctamente con Unipile.
+              Tu cuenta de LinkedIn ha sido autenticada y vinculada correctamente con InHubFlow.
             </p>
 
             <div className="mt-6 flex flex-col items-center gap-3">

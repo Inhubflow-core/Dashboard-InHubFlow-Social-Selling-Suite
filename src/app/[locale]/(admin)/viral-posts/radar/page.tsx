@@ -569,7 +569,7 @@ export default function ViralRadarPage() {
       {/* Panel de Control de Búsqueda y Parámetros */}
       <ComponentCard
         title="Explorador de Publicaciones de Alto Impacto"
-        desc={`Indexación directa de publicaciones vía Unipile con la cuenta de LinkedIn: ${currentDisplayName}.`}
+        desc={`Indexación directa de publicaciones vía InHubFlow LinkedIn Cloud con la cuenta: ${currentDisplayName}.`}
       >
         <div className="space-y-4">
           <div className="space-y-3">

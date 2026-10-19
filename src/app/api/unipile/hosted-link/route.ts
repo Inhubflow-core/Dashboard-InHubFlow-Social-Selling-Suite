@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
       // Si aún no está configurado con claves en .env, devolvemos enlace simulado seguro para pruebas de interfaz
       return NextResponse.json({
         mock: true,
-        url: `https://mock.unipile.com/hosted/linkedin-connect?account=${encodeURIComponent(name || 'linkedin-account')}&redirect=${encodeURIComponent(successUrl || `${baseUrl}/linkedin-accounts?status=success`)}`,
-        message: 'Modo demostracion activo: configura UNIPILE_DSN y UNIPILE_API_KEY en variables de entorno para enlaces de produccion.',
+        url: `https://auth.inhubflow.com/hosted/linkedin-connect?account=${encodeURIComponent(name || 'linkedin-account')}&redirect=${encodeURIComponent(successUrl || `${baseUrl}/linkedin-accounts?status=success`)}`,
+        message: 'Modo demostración activo: configura las credenciales de enlace en variables de entorno para conexiones en producción.',
       });
     }
 

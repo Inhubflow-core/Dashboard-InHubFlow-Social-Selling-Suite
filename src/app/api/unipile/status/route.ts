@@ -8,11 +8,11 @@ export async function GET() {
   return NextResponse.json({
     configured: isConfigured,
     mode: isConfigured ? 'live' : 'sandbox',
-    dsn: isConfigured ? dsn.replace(/\/\/([^:]+):[^@]+@/, '//$1:***@') : 'https://api.unipile.com (Sandbox Emulado)',
+    dsn: isConfigured ? 'https://cloud.inhubflow.com (Nodo Seguro)' : 'https://cloud.inhubflow.com (Sandbox Seguro)',
     provider: 'LINKEDIN',
     trialNotice: isConfigured
-      ? 'Credenciales de Unipile conectadas a entorno de produccion.'
-      : 'Modo Sandbox Activo: Probando todas las funciones sin consumir los 7 dias de prueba gratuitos.',
+      ? 'Credenciales de enlace LinkedIn Cloud conectadas a entorno de produccion.'
+      : 'Modo Sandbox Activo: Probando todas las funciones con el motor seguro InHubFlow.',
     webhookEndpoint: '/api/unipile/webhook',
   });
 }

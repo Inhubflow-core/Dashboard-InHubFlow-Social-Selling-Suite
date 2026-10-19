@@ -75,7 +75,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("[Publish Post API] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Error al emitir publicación en LinkedIn a través de Unipile." },
+      { error: error.message || "Error al emitir publicación en LinkedIn a través del motor InHubFlow." },
       { status: 500 }
     );
   }
