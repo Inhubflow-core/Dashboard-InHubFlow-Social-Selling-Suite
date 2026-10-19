@@ -234,12 +234,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const fallbackFeedUrl = isCompany
+      ? `${competitorUrl.replace(/\/$/, "")}/posts/`
+      : `${competitorUrl.replace(/\/$/, "")}/recent-activity/all/`;
+
     const scannedPosts = postsToProcess.slice(0, limit).map((post: any) => {
       const postId = post.id || post.post_id || "";
-      const postUrl =
+      let postUrl =
         post.share_url ||
         post.url ||
-        (postId ? `https://www.linkedin.com/feed/update/${postId}` : competitorUrl);
+        (postId ? `https://www.linkedin.com/feed/update/${postId}` : fallbackFeedUrl);
+      if (typeof postUrl === "string") {
+        postUrl = postUrl.replace(/\/detail\/recent-activity\/shares\/?/, "/recent-activity/all/");
+      }
       const text = String(post.text || post.commentary || "Publicación auditada en LinkedIn").trim();
       return {
         id: postId || `post-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
