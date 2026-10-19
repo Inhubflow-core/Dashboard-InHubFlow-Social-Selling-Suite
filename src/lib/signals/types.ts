@@ -82,15 +82,21 @@ export interface Level2CompetitorMonitor {
 
 export interface Level3GlobalMonitor {
   id: string;
-  searchQuery: string; // ej. "Prospeccion en frio B2B"
+  searchQuery: string; // ej. "Pedro Valladolid 🚀" o "Ventas B2B"
+  leaderName?: string; // Nombre del Top Voice o Referente
+  leaderUrl?: string; // URL oficial al perfil de LinkedIn (/in/...)
+  leaderAvatarUrl?: string; // Foto real de perfil de LinkedIn
+  leaderHeadline?: string; // Titular en LinkedIn
+  nicheTopic?: string; // Especialidad o nicho (ej. "Ventas B2B & Dirección Comercial")
   icpTitles?: string[]; // opcional / retrocompatible
-  locations: string[]; // ej. ["España"] o ["all"]
+  locations?: string[]; // ej. ["España"] o ["all"]
   targetCountry?: string; // ej. "ES" | "BR" | "MX" | "all"
   targetCountryName?: string; // ej. "España"
   targetCountryFlag?: string; // ej. "🇪🇸"
   timePeriod?: "past_24h" | "past_week" | "past_month";
   interactionTypes?: ("comments" | "likes")[];
-  minPostReactions: number;
+  minPostReactions?: number;
+  batchLeadLimit?: 25 | 50 | 100;
   status: MonitorStatus;
   leadsIdentifiedCount: number;
   lastScanAt: string;
@@ -104,6 +110,7 @@ export interface Level3GlobalMonitor {
     authorName?: string;
     reactionsCount?: number;
     commentsCount?: number;
+    scannedAt?: string;
   }>;
 }
 

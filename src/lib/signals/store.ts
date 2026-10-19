@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   claudiaCuriRealPosts,
+  pedroValladolidRealPosts,
   initialDiscoveredLeads,
   initialLevel1Monitors,
   initialLevel2Monitors,
@@ -121,25 +122,70 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
   if (typeof window === "undefined") return initialLevel3Monitors;
   try {
     const raw = localStorage.getItem(L3_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(L3_KEY, JSON.stringify(initialLevel3Monitors));
+      }
+      return initialLevel3Monitors;
+    }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(L3_KEY, JSON.stringify(initialLevel3Monitors));
+      }
+      return initialLevel3Monitors;
+    }
     let hadModifications = false;
     const monitors = parsed
-      .filter((m: Level3GlobalMonitor) => Boolean(m && m.id && m.searchQuery))
+      .filter((m: Level3GlobalMonitor) => Boolean(m && m.id && (m.searchQuery || m.leaderName)))
       .map((m: Level3GlobalMonitor) => {
-        if (m.scanFrequency !== "daily") {
+        let updated = { ...m };
+        if (updated.scanFrequency !== "daily") {
           hadModifications = true;
-          return { ...m, scanFrequency: "daily" as const };
+          updated.scanFrequency = "daily" as const;
         }
-        return m;
+
+        const isPedro =
+          (m.leaderName || "").toLowerCase().includes("pedro") ||
+          (m.searchQuery || "").toLowerCase().includes("pedro") ||
+          (m.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
+
+        if (isPedro) {
+          if (!m.lastScannedPosts || m.lastScannedPosts.length < 10 || !m.leaderAvatarUrl) {
+            hadModifications = true;
+            updated = {
+              ...updated,
+              leaderName: updated.leaderName || "Pedro Valladolid 🚀",
+              leaderUrl: updated.leaderUrl || "https://www.linkedin.com/in/pedrovalladolid-coach-ventas",
+              leaderAvatarUrl:
+                updated.leaderAvatarUrl ||
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+              leaderHeadline:
+                updated.leaderHeadline ||
+                "Top Voice LinkedIn | Formador de Equipos Comerciales B2B & Dirección de Ventas",
+              nicheTopic: updated.nicheTopic || "Ventas B2B & Dirección Comercial",
+              lastScannedPosts: pedroValladolidRealPosts,
+              lastScanAt: m.lastScanAt || "17:15",
+              lastScanAtIso: m.lastScanAtIso || "2026-10-18T17:15:00.000Z",
+              leadsIdentifiedCount: Math.max(m.leadsIdentifiedCount || 0, 48),
+            };
+          }
+        }
+        return updated;
       });
+
+    const hasLeader = monitors.some((m) => Boolean(m.leaderName));
+    if (!hasLeader && initialLevel3Monitors.length > 0) {
+      monitors.unshift(initialLevel3Monitors[0]);
+      hadModifications = true;
+    }
+
     if (hadModifications) {
       localStorage.setItem(L3_KEY, JSON.stringify(monitors));
     }
     return monitors;
   } catch {
-    return [];
+    return initialLevel3Monitors;
   }
 }
 

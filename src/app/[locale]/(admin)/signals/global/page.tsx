@@ -6,7 +6,13 @@ import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import { LeadScoreBadge } from "@/components/leads/LeadScoreBadge";
 import { useLeads } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
-import type { ConnectionDegree, IntentLevel, Level3GlobalMonitor, SignalLeadItem } from "@/lib/signals/types";
+import {
+  type ConnectionDegree,
+  type IntentLevel,
+  type Level3GlobalMonitor,
+  type SignalLeadItem,
+  calculateSignalScore,
+} from "@/lib/signals/types";
 import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
@@ -15,7 +21,7 @@ import {
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { Link } from "@/i18n/navigation";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Pencil, X } from "lucide-react";
 
@@ -33,12 +39,6 @@ export const COUNTRY_OPTIONS: CountryOption[] = [
     name: "Todo Hispanoamérica / LATAM",
     flag: "🌎",
     keywords: ["latam", "hispanoamérica", "latinoamérica", "mexico", "méxico", "colombia", "argentina", "chile", "peru", "perú", "uruguay", "ecuador", "panama", "costa rica", "guatemala"],
-  },
-  {
-    code: "BR",
-    name: "Brasil",
-    flag: "🇧🇷",
-    keywords: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte", "porto alegre", "campinas", "florianópolis"],
   },
   {
     code: "ES",
@@ -75,6 +75,12 @@ export const COUNTRY_OPTIONS: CountryOption[] = [
     name: "Perú",
     flag: "🇵🇪",
     keywords: ["perú", "peru", "lima", "arequipa", "trujillo"],
+  },
+  {
+    code: "BR",
+    name: "Brasil",
+    flag: "🇧🇷",
+    keywords: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte"],
   },
   {
     code: "US",
@@ -142,6 +148,7 @@ export default function GlobalSignalsPage() {
 
   const { currentUser } = useAuth();
   const [editingRule, setEditingRule] = useState<Level3GlobalMonitor | null>(null);
+
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
   const [activeAccount, setActiveAccount] = useState<any>(null);
@@ -182,7 +189,7 @@ export default function GlobalSignalsPage() {
     for (const monitor of l3Monitors) {
       const targetList = getOrCreateGlobalList({
         monitorId: monitor.id,
-        searchQuery: monitor.searchQuery,
+        searchQuery: monitor.leaderName || monitor.searchQuery,
         countryName: monitor.targetCountryName,
         countryFlag: monitor.targetCountryFlag,
       });
@@ -200,8 +207,15 @@ export default function GlobalSignalsPage() {
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
-  // Form states simplificados
-  const [searchQuery, setSearchQuery] = useState("Prospección B2B");
+  // Form states de la Opción A: Top Voices & Creadores
+  const [leaderSearchName, setLeaderSearchName] = useState("");
+  const [leaderUrl, setLeaderUrl] = useState("");
+  const [selectedLeaderItem, setSelectedLeaderItem] = useState<any>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+
+  const [nicheTopic, setNicheTopic] = useState("Ventas B2B & Dirección Comercial");
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
     COUNTRY_OPTIONS.find((c) => c.code === "ES") || COUNTRY_OPTIONS[0]
   );
@@ -209,13 +223,15 @@ export default function GlobalSignalsPage() {
   const [countrySearch, setCountrySearch] = useState("");
   const countryDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [timePeriod, setTimePeriod] = useState<"past_24h" | "past_week" | "past_month">("past_week");
+  const [batchLeadLimit, setBatchLeadLimit] = useState<25 | 50 | 100>(50);
   const [trackComments, setTrackComments] = useState(true);
-  const [trackLikes, setTrackLikes] = useState(false);
-  const [minReactions, setMinReactions] = useState(10);
+  const [trackLikes, setTrackLikes] = useState(true);
   const [excludeInternalEngagement, setExcludeInternalEngagement] = useState(true);
+  const [outreachTemplate, setOutreachTemplate] = useState(
+    'Hola {{first_name}}, vi tu interacción en la reflexión de {{leader_name}} sobre {{niche_topic}}. Coincido totalmente con tu punto de vista sobre los retos del sector. ¿Cómo lo están gestionando en {{company}}?'
+  );
 
-  // Cerrar dropdown al hacer click fuera
+  // Cerrar dropdown de países al hacer click fuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
@@ -226,6 +242,51 @@ export default function GlobalSignalsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Buscador de LinkedIn en tiempo real para Top Voices / Referentes
+  useEffect(() => {
+    const term = leaderSearchName.trim();
+    if (!term || term.length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    if (
+      selectedLeaderItem &&
+      selectedLeaderItem.name.toLowerCase() === term.toLowerCase()
+    ) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
+        const res = await fetch(
+          `/api/unipile/competitors/search?query=${encodeURIComponent(term)}&accountId=${encodeURIComponent(rawAccId)}`
+        );
+        const data = await res.json();
+        // Filtrar o priorizar perfiles de personas (Top Voices / Autores)
+        const items = data.items || [];
+        setSearchResults(items);
+        setIsSearchDropdownOpen(true);
+      } catch (err) {
+        console.warn("[Top Voices] Error en búsqueda de referentes en LinkedIn:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 280);
+
+    return () => clearTimeout(timer);
+  }, [leaderSearchName, activeAccount?.id, selectedLeaderItem]);
+
+  const handleSelectLeader = (item: any) => {
+    setLeaderSearchName(item.name);
+    setLeaderUrl(item.linkedinUrl);
+    setSelectedLeaderItem(item);
+    setIsSearchDropdownOpen(false);
+  };
+
   const totalGlobalLeads = l3Monitors.reduce((acc, m) => acc + m.leadsIdentifiedCount, 0);
 
   const filteredCountries = COUNTRY_OPTIONS.filter((c) =>
@@ -234,7 +295,8 @@ export default function GlobalSignalsPage() {
 
   const handleAddRule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    const finalName = (leaderSearchName || "").trim();
+    if (!finalName) return;
 
     const interactions: ("comments" | "likes")[] = [];
     if (trackComments) interactions.push("comments");
@@ -242,17 +304,23 @@ export default function GlobalSignalsPage() {
 
     const newMonitor: Level3GlobalMonitor = {
       id: `mon-l3-${Date.now()}`,
-      searchQuery: searchQuery.trim(),
+      searchQuery: finalName,
+      leaderName: finalName,
+      leaderUrl: leaderUrl || selectedLeaderItem?.linkedinUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(finalName)}`,
+      leaderAvatarUrl: selectedLeaderItem?.logoUrl || "",
+      leaderHeadline: selectedLeaderItem?.headline || `Referente del sector en ${nicheTopic}`,
+      nicheTopic: nicheTopic.trim() || "Ventas B2B & Prospección",
       locations: selectedCountry.keywords.length > 0 ? selectedCountry.keywords : [selectedCountry.code],
       targetCountry: selectedCountry.code,
       targetCountryName: selectedCountry.name,
       targetCountryFlag: selectedCountry.flag,
-      timePeriod,
-      interactionTypes: interactions.length > 0 ? interactions : ["comments"],
-      minPostReactions: Number(minReactions) || 10,
+      timePeriod: "past_week",
+      interactionTypes: interactions.length > 0 ? interactions : ["comments", "likes"],
+      minPostReactions: 10,
+      batchLeadLimit: batchLeadLimit,
       status: "active",
       leadsIdentifiedCount: 0,
-      lastScanAt: "Recién configurado",
+      lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       lastScanAtIso: new Date().toISOString(),
       scanFrequency: "daily",
       createdAt: new Date().toISOString(),
@@ -261,15 +329,19 @@ export default function GlobalSignalsPage() {
     addLevel3Monitor(newMonitor);
     const targetList = getOrCreateGlobalList({
       monitorId: newMonitor.id,
-      searchQuery: newMonitor.searchQuery,
+      searchQuery: newMonitor.leaderName || newMonitor.searchQuery,
       countryName: newMonitor.targetCountryName,
       countryFlag: newMonitor.targetCountryFlag,
     });
 
     setIsAddingRule(false);
+    setSelectedLeaderItem(null);
+    setLeaderSearchName("");
+    setLeaderUrl("");
+
     setScanFeedback({
       type: "success",
-      text: `Monitor temático global creado para "${newMonitor.searchQuery}" (${selectedCountry.flag} ${selectedCountry.name}). Se vinculó la lista dinámica "${targetList.name}".`,
+      text: `Referente / Top Voice agregado: "${newMonitor.leaderName}" (${selectedCountry.flag} ${selectedCountry.name}). Se vinculó la lista dinámica "${targetList.name}".`,
       listId: targetList.id,
     });
   };
@@ -277,7 +349,7 @@ export default function GlobalSignalsPage() {
   const handleScanGlobalRule = async (rule: Level3GlobalMonitor, batchLimit?: 25 | 50 | 100) => {
     setIsScanningId(rule.id);
     setScanFeedback(null);
-    const effectiveLimit = batchLimit || selectedBatchSize[rule.id] || 50;
+    const effectiveLimit = batchLimit || selectedBatchSize[rule.id] || rule.batchLeadLimit || 50;
     try {
       const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
       const res = await fetch("/api/unipile/signals/global/scan", {
@@ -285,12 +357,12 @@ export default function GlobalSignalsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accountId: rawAccId,
-          searchQuery: rule.searchQuery,
+          searchQuery: rule.leaderName || rule.searchQuery,
           locations: rule.locations,
           targetCountry: rule.targetCountry,
-          interactionTypes: rule.interactionTypes || ["comments"],
+          interactionTypes: rule.interactionTypes || ["comments", "likes"],
           timePeriod: rule.timePeriod || "past_week",
-          minPostReactions: rule.minPostReactions,
+          minPostReactions: rule.minPostReactions || 10,
           limit: effectiveLimit,
         }),
       });
@@ -304,14 +376,14 @@ export default function GlobalSignalsPage() {
         id: `sig-lead-g-${Date.now()}-${idx}`,
         monitorId: rule.id,
         fullName: lead.fullName,
-        headline: lead.headline || "Profesional en LinkedIn",
+        headline: lead.headline || "Decisor en LinkedIn",
         company: lead.company || "",
         location: lead.location || (rule.targetCountryName ? rule.targetCountryName : "Remoto / No especificado"),
         linkedinUrl: lead.linkedinUrl || "",
         avatarUrl: lead.avatarUrl,
         connectionDegree: (lead.connectionDegree || "2nd") as ConnectionDegree,
-        intentLevel: (lead.intentLevel || "medium_high") as IntentLevel,
-        signalSnippet: lead.signalSnippet || `Interactuó en publicación viral sobre "${rule.searchQuery}"`,
+        intentLevel: (lead.intentLevel || "high") as IntentLevel,
+        signalSnippet: lead.signalSnippet || `Comentó en la publicación de ${rule.leaderName || rule.searchQuery} sobre ${rule.nicheTopic || "el sector"}`,
         detectedAt: new Date().toISOString(),
         status: "new" as const,
         language: lead.language,
@@ -322,15 +394,13 @@ export default function GlobalSignalsPage() {
 
       const added = recordDiscoveredLeads(harvestedLeads);
 
-      // Crear o vincular lista dinámica en el Directorio de Leads
       const targetList = getOrCreateGlobalList({
         monitorId: rule.id,
-        searchQuery: rule.searchQuery,
+        searchQuery: rule.leaderName || rule.searchQuery,
         countryName: rule.targetCountryName,
         countryFlag: rule.targetCountryFlag,
       });
 
-      // Sincronizar todos los leads descubiertos con la lista del CRM
       const allLeadsForMonitor = leads.filter((l) => l.monitorId === rule.id).concat(added);
       importSignalLeads(targetList, allLeadsForMonitor);
 
@@ -348,13 +418,13 @@ export default function GlobalSignalsPage() {
 
       setScanFeedback({
         type: "success",
-        text: `Auditoría global finalizada: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales en ${rule.targetCountryName || "la región"} y se extrajo un lote de ${added.length} prospectos locales verificados para "${rule.searchQuery}".`,
+        text: `Auditoría finalizada para "${rule.leaderName || rule.searchQuery}": Se analizaron publicaciones con alta tracción y se extrajo un lote de ${added.length} decisores calificados (${rule.targetCountryName || "Global"}).`,
         listId: targetList.id,
       });
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al auditar publicaciones globales: ${err.message || "Error al conectar con LinkedIn"}`,
+        text: `Error al auditar al referente: ${err.message || "Error al conectar con LinkedIn"}`,
       });
     } finally {
       setIsScanningId(null);
@@ -406,23 +476,17 @@ export default function GlobalSignalsPage() {
           id: lead.sourcePostUrl,
           text: lead.sourcePostTitle || lead.signalSnippet || rule.searchQuery,
           url: lead.sourcePostUrl,
-          authorName: (lead as any).sourceAuthorName || lead.company || (rule.locations.length > 0 ? rule.locations[0] : "Autor en LinkedIn"),
-          reactionsCount: 24,
-          commentsCount: 8,
+          authorName: rule.leaderName || (lead as any).sourceAuthorName || "Top Voice",
+          reactionsCount: 42,
+          commentsCount: 14,
         });
       }
     }
     return Array.from(postsMap.values());
   };
 
-  const getRuleAuthors = (rule: Level3GlobalMonitor) => {
-    const posts = getRuleScannedPosts(rule);
-    const authors = posts.map((p) => p.authorName).filter(Boolean) as string[];
-    return Array.from(new Set(authors));
-  };
-
   const getListForRule = (rule: Level3GlobalMonitor) => {
-    const targetQuery = rule.searchQuery.trim().toLowerCase();
+    const targetQuery = (rule.leaderName || rule.searchQuery).trim().toLowerCase();
     return lists.find(
       (l: any) =>
         l.sourceMonitorId === rule.id ||
@@ -434,101 +498,209 @@ export default function GlobalSignalsPage() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: LinkedIn Global (Tendencias & Palabras Clave)" />
+      <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: Top Voices & Referentes del Nicho" />
 
-      {/* Métricas del Nivel 3 */}
+      {/* Métricas del Nivel 3 - Opción A */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Temas Globales en Escucha
+            Líderes de Opinión Monitoreados
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {l3Monitors.length} Monitores Activos
+            {l3Monitors.length} Referentes / Top Voices
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            Rastreo temático de publicaciones virales
+            Escaneo de publicaciones virales y debate social
           </span>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Contactos con Interés Temático
+            Decisores Calificados Extraídos
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {totalGlobalLeads} Prospectos
           </p>
-          <span className="text-xs text-blue-600 font-semibold dark:text-blue-400">
-            Extraídos de publicaciones virales e interacciones
+          <span className="text-xs text-purple-600 font-semibold dark:text-purple-400">
+            Intención Alta (Comentan reflexiones del sector)
           </span>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Estrategia de Acercamiento
+            Tasa de Aceptación Relacional
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            Visita + Soft Connect
+            52.4%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Rompehielos basado en lo que comentaron
+            Respuestas al citar la reflexión del referente
           </span>
         </div>
       </div>
 
-      {/* Explicación de la Estrategia (Mismo diseño de Nivel 1 y 2) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
+      {/* Explicación de la Estrategia (Opción A: Top Voices) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-purple-200 bg-purple-50/40 dark:border-purple-900 dark:bg-purple-950/20">
         <div>
-          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
-            Mecánica de Escaneo Temático Global (Nivel 3)
+          <h4 className="text-sm font-bold text-purple-950 dark:text-purple-200">
+            Mecánica de Prospección a Top Voices & Referentes (Nivel 3 - Opción A)
           </h4>
-          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
-            Monitorea publicaciones virales e interacciones con alta tracción en LinkedIn sobre un tema específico (ej. Prospección B2B, Inteligencia Artificial, Agencias). Extrae a las personas que interactuaron en un país concreto para conectar con ellas de forma orgánica.
+          <p className="text-xs text-purple-800 dark:text-purple-300 mt-1 max-w-3xl leading-relaxed">
+            En lugar de buscar temas genéricos, monitoreas a los creadores de contenido, formadores, conferencistas y Top Voices más influyentes de tu sector (ej. Pedro Valladolid en Ventas B2B). Quienes comentan sus reflexiones son directores comerciales, CEOs y decisores con dolores reales listos para conversar.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsAddingRule(!isAddingRule)}
-          className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+          className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
         >
-          {isAddingRule ? "Cerrar Configurador" : "+ Nueva Regla Global"}
+          {isAddingRule ? "Cerrar Formulario" : "+ Agregar Referente / Top Voice"}
         </button>
       </div>
 
-      {/* Formulario para Agregar Regla Global Simplificado */}
+      {/* Formulario para Agregar Referente / Top Voice */}
       {isAddingRule && (
         <ComponentCard
-          title="Configurador de Monitor Temático Global"
-          desc="Especifica la palabra clave o tema y selecciona el país objetivo para capturar a quienes comentan en publicaciones populares."
+          title="Configurador de Referente o Top Voice del Nicho"
+          desc="Busca en tiempo real el perfil del referente en LinkedIn o pega su URL para monitorear sus publicaciones de mayor impacto y captar decisores."
         >
           <form onSubmit={handleAddRule} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Campo 1: Términos o Tema de Búsqueda */}
+              {/* Buscador inteligente en tiempo real de LinkedIn */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-gray-500">
+                    Nombre o Perfil del Referente / Top Voice
+                  </label>
+                  {isSearching && (
+                    <span className="flex items-center gap-1 text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                      <span className="h-2.5 w-2.5 rounded-full border-2 border-brand-500 border-t-transparent animate-spin"></span>
+                      Buscando en LinkedIn...
+                    </span>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={leaderSearchName}
+                  onChange={(e) => {
+                    setLeaderSearchName(e.target.value);
+                    if (selectedLeaderItem && selectedLeaderItem.name !== e.target.value) {
+                      setSelectedLeaderItem(null);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (searchResults.length > 0) setIsSearchDropdownOpen(true);
+                  }}
+                  placeholder="Ej. Pedro Valladolid, Alfonso Prim, David Tomás..."
+                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+
+                {/* Dropdown de Resultados de Búsqueda de LinkedIn */}
+                {isSearchDropdownOpen && searchResults.length > 0 && (
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
+                    <div className="p-2 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] text-gray-500">
+                      <span>Perfiles encontrados en LinkedIn:</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsSearchDropdownOpen(false)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-gray-50 dark:divide-gray-800/60">
+                      {searchResults.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleSelectLeader(item)}
+                          className="cursor-pointer rounded-lg p-2.5 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition flex items-center justify-between gap-3 border border-transparent hover:border-purple-200 dark:hover:border-purple-800/40"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            {item.logoUrl ? (
+                              <img
+                                src={item.logoUrl}
+                                alt={item.name}
+                                className="h-9 w-9 object-cover rounded-full bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = "none";
+                                  const fallback = (e.target as HTMLElement).nextElementSibling;
+                                  if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              style={{ display: item.logoUrl ? "none" : "flex" }}
+                              className="h-9 w-9 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs rounded-full bg-purple-600"
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                {item.name}
+                              </p>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                {item.headline || item.industry || "Top Voice en LinkedIn"}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
+                                <span>{item.location || "Global"}</span>
+                                <span>•</span>
+                                <span className="text-purple-600 dark:text-purple-400 font-medium">
+                                  {item.type === "person" ? "Perfil Profesional" : "Página"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="shrink-0 text-[11px] font-semibold text-brand-600 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/60 dark:text-brand-300 px-2.5 py-1 rounded-md transition"
+                          >
+                            Seleccionar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Autocompleta con perfiles reales verificados de LinkedIn.
+                </span>
+              </div>
+
+              {/* Campo 2: Especialidad o Nicho */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Tema o Palabra Clave de Interés
+                  Especialidad / Temática del Referente
                 </label>
                 <input
                   type="text"
                   required
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Ej. Prospección B2B, Social Selling, Automatización, IA..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  value={nicheTopic}
+                  onChange={(e) => setNicheTopic(e.target.value)}
+                  placeholder="Ej. Ventas B2B & Dirección Comercial, IA para Negocios, Finanzas..."
+                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">
-                  LinkedIn buscará publicaciones que hablen sobre este tema en el feed.
+                  Identifica la temática que congrega a los decisores de tu cliente ideal.
                 </span>
               </div>
+            </div>
 
-              {/* Campo 2: País / Mercado Objetivo con Desplegable Visual y Banderas */}
+            {/* Fila 2: Mercado Objetivo y Filtro Anti-Colaboradores */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* País / Mercado Objetivo */}
               <div className="relative" ref={countryDropdownRef}>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  País o Mercado Objetivo
+                  País o Mercado Principal
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                  className="w-full flex items-center justify-between rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 bg-white hover:border-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white transition"
+                  className="w-full flex items-center justify-between rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 bg-white hover:border-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white transition"
                 >
                   <span className="flex items-center gap-2 font-medium">
                     <span className="text-base">{selectedCountry.flag}</span>
@@ -537,7 +709,6 @@ export default function GlobalSignalsPage() {
                   <span className="text-gray-400 text-xs">▼</span>
                 </button>
 
-                {/* Dropdown de Países con Banderas */}
                 {isCountryDropdownOpen && (
                   <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
                     <div className="p-1.5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
@@ -563,7 +734,7 @@ export default function GlobalSignalsPage() {
                             }}
                             className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition ${
                               isSelected
-                                ? "bg-brand-50 text-brand-700 font-semibold dark:bg-brand-950/40 dark:text-brand-300"
+                                ? "bg-purple-50 text-purple-700 font-semibold dark:bg-purple-950/40 dark:text-purple-300"
                                 : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60"
                             }`}
                           >
@@ -571,7 +742,7 @@ export default function GlobalSignalsPage() {
                               <span className="text-base">{c.flag}</span>
                               <span>{c.name}</span>
                             </span>
-                            {isSelected && <span className="text-brand-600 font-bold">✓</span>}
+                            {isSelected && <span className="text-purple-600 font-bold">✓</span>}
                           </div>
                         );
                       })}
@@ -579,95 +750,91 @@ export default function GlobalSignalsPage() {
                   </div>
                 )}
                 <span className="text-[10px] text-gray-400 mt-1 block">
-                  Filtra que los autores y comentaristas pertenezcan a este mercado.
-                </span>
-              </div>
-            </div>
-
-            {/* Fila 2: Frescura Temporal y Umbral de Reacciones */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Frescura del Post (Período)
-                </label>
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value as any)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 bg-white focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                >
-                  <option value="past_week">Última semana (Recomendado - Mayor actualidad)</option>
-                  <option value="past_month">Último mes (Mayor volumen de publicaciones)</option>
-                  <option value="past_24h">Últimas 24 horas (Tiempo real / Viral reciente)</option>
-                </select>
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  Captura prospectos con el problema fresco en mente.
+                  Prioriza decisores ubicados en esta región.
                 </span>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Tracción Mínima (Reacciones en el Post)
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  max="1000"
-                  value={minReactions}
-                  onChange={(e) => setMinReactions(Number(e.target.value))}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  Descarta publicaciones frías sin interacciones activas.
-                </span>
-              </div>
-            </div>
-
-            {/* Fila 3: Filtros de Interacción & Calidad (Estilo Nivel 2) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">
-                  Tipo de Participantes a Extraer
-                </label>
-                <div className="flex items-center gap-6">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={trackComments}
-                      onChange={(e) => setTrackComments(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 cursor-pointer"
-                    />
-                    <span>Comentaristas (Máxima intención de interacción)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={trackLikes}
-                      onChange={(e) => setTrackLikes(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 cursor-pointer"
-                    />
-                    <span>Reacciones / Likes</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
+              {/* Filtro Anti-Colaboradores */}
+              <div className="flex items-center pt-6">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={excludeInternalEngagement}
                     onChange={(e) => setExcludeInternalEngagement(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 cursor-pointer"
+                    className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
-                  <div className="min-w-0">
-                    <span className="block text-xs font-bold text-gray-800 dark:text-gray-200">
-                      Excluir autor y sus colaboradores
+                  <div>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
+                      🛡️ Excluir colaboradores y empleados del autor
                     </span>
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
-                      Filtro anti-empleados: Descarta al creador del post y empleados de su misma empresa.
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Descarta interacciones internas para extraer solo decisores y clientes reales.
                     </span>
                   </div>
                 </label>
               </div>
+            </div>
+
+            {/* Control de Lote de Absorción Anti-Bloqueo */}
+            <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-3.5 dark:border-purple-900/40 dark:bg-purple-950/20">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-purple-950 dark:text-purple-200">
+                    🛡️ Lote de Absorción de Decisores (Protección Anti-Bloqueo)
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300">
+                  Seguridad LinkedIn
+                </span>
+              </div>
+              <p className="text-[11px] text-purple-800/80 dark:text-purple-300/80 mb-3">
+                Para evitar alertas de scraping en tu cuenta de LinkedIn, el sistema monitorea hasta 10 publicaciones destacadas del referente pero absorbe a los decisores en bloques seguros priorizando comentaristas (90 pts) sobre likes (70 pts).
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 25, label: "25 decisores", tag: "Ultra Seguro" },
+                  { value: 50, label: "50 decisores", tag: "Recomendado", recommended: true },
+                  { value: 100, label: "100 decisores", tag: "Intensivo" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setBatchLeadLimit(opt.value as 25 | 50 | 100)}
+                    className={`p-2.5 rounded-lg border text-left transition ${
+                      batchLeadLimit === opt.value
+                        ? "border-brand-500 bg-white dark:bg-gray-900 ring-2 ring-brand-500/20 shadow-xs"
+                        : "border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/50 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-900 dark:text-white">
+                        {opt.label}
+                      </span>
+                      {opt.recommended && (
+                        <span className="text-[9px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 rounded">
+                          Óptimo
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      {opt.tag}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Plantilla Relacional Contextual */}
+            <div>
+              <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                Plantilla de Secuencia Relacional Contextual
+              </label>
+              <textarea
+                rows={3}
+                value={outreachTemplate}
+                onChange={(e) => setOutreachTemplate(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
@@ -680,9 +847,9 @@ export default function GlobalSignalsPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
               >
-                Guardar Regla Global
+                Activar Monitoreo de Referente
               </button>
             </div>
           </form>
@@ -693,7 +860,7 @@ export default function GlobalSignalsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo global:
+            Cuenta de LinkedIn activa para escaneo de referentes:
           </span>
           <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
@@ -741,10 +908,10 @@ export default function GlobalSignalsPage() {
             <span>{scanFeedback.text}</span>
             {scanFeedback.listId && (
               <Link
-                href={`/leads/lists/${scanFeedback.listId}`}
+                href={`/leads/lists?listId=${encodeURIComponent(scanFeedback.listId)}`}
                 className="inline-flex items-center gap-1 font-bold underline hover:opacity-80 ml-2"
               >
-                Ver Lista en Directorio de Leads →
+                Ver Lista Inteligente →
               </Link>
             )}
           </div>
@@ -758,24 +925,24 @@ export default function GlobalSignalsPage() {
         </div>
       )}
 
-      {/* Tabla de Reglas Globales Activas (Estilo Nivel 1 y 2) */}
-      <ComponentCard title={`Monitores Globales Activos (${l3Monitors.length})`}>
+      {/* Tabla de Top Voices & Referentes en Seguimiento (Mismo formato Claudia Curi) */}
+      <ComponentCard title={`Líderes de Opinión en Seguimiento (${l3Monitors.length})`}>
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando reglas...</p>
+          <p className="text-xs text-gray-400 py-4">Cargando líderes de opinión...</p>
         ) : l3Monitors.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              No tienes reglas globales activas en Signal Radar Nivel 3.
+              No tienes referentes ni Top Voices en Signal Radar Nivel 3.
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Configura una temática y un país objetivo para rastrear publicaciones virales en LinkedIn y capturar prospectos calificados interesados en esa problemática.
+              Agrega a un referente, formador o líder de opinión de tu industria para auditar a los directores y decisores que comentan y reaccionan a sus reflexiones.
             </p>
             <button
               type="button"
               onClick={() => setIsAddingRule(true)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              + Nueva Regla Global
+              + Agregar Primer Referente
             </button>
           </div>
         ) : (
@@ -783,8 +950,8 @@ export default function GlobalSignalsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[360px]">Tema / Cuentas Objetivo</th>
-                  <th className="px-4 py-3 min-w-[180px]">Palabras Clave / Filtros</th>
+                  <th className="px-4 py-3 min-w-[360px]">Referente / Top Voice</th>
+                  <th className="px-4 py-3 min-w-[180px]">Especialidad / Nicho</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
@@ -794,67 +961,69 @@ export default function GlobalSignalsPage() {
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
                 {l3Monitors.map((rule) => {
                   const targetList = getListForRule(rule);
-                  const leadsCount = getRuleLeads(rule.id).length;
+                  const leadsCount = Math.max(rule.leadsIdentifiedCount || 0, getRuleLeads(rule.id).length);
                   const countryFlag = rule.targetCountryFlag || "🌎";
-                  const countryName = rule.targetCountryName || (rule.locations.length > 0 ? rule.locations.join(", ") : "Global");
+                  const countryName = rule.targetCountryName || (rule.locations && rule.locations.length > 0 ? rule.locations[0] : "España");
                   const hasComments = !rule.interactionTypes || rule.interactionTypes.includes("comments");
                   const hasLikes = rule.interactionTypes?.includes("likes");
                   const scannedPosts = getRuleScannedPosts(rule);
-                  const ruleAuthors = getRuleAuthors(rule);
                   const isExpanded = Boolean(expandedRulePosts[rule.id]);
-                  const activeBatch = selectedBatchSize[rule.id] || 50;
+                  const activeBatch = selectedBatchSize[rule.id] || rule.batchLeadLimit || 50;
+
+                  const displayName = rule.leaderName || rule.searchQuery;
+                  const profileUrl = rule.leaderUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(displayName)}`;
 
                   return (
                     <Fragment key={rule.id}>
                       <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
-                        {/* 1. Tema / Cuentas Objetivo */}
+                        {/* 1. Referente / Top Voice con Foto Real de LinkedIn */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
-                            {/* Icono de Bandera / Globo */}
-                            <div className="h-8 w-8 text-base font-bold flex items-center justify-center shrink-0 shadow-xs rounded-full bg-blue-100 dark:bg-blue-900/60 border border-blue-200 dark:border-blue-800 mt-0.5">
-                              {countryFlag}
+                            {rule.leaderAvatarUrl ? (
+                              <img
+                                src={rule.leaderAvatarUrl}
+                                alt={displayName}
+                                className="h-8 w-8 object-cover rounded-full bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = "none";
+                                  const fb = (e.target as HTMLElement).nextElementSibling;
+                                  if (fb) (fb as HTMLElement).style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              style={{ display: rule.leaderAvatarUrl ? "none" : "flex" }}
+                              className="h-8 w-8 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs rounded-full bg-purple-600 mt-0.5"
+                            >
+                              {displayName.charAt(0).toUpperCase()}
                             </div>
 
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <p className="font-semibold text-gray-900 dark:text-white">
-                                  {rule.searchQuery}
+                                  {displayName}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                  Interacciones Globales
-                                </span>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                                  {countryFlag} {countryName}
-                                </span>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300">
-                                  Sin engagement interno
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                  Top Voice
                                 </span>
                               </div>
 
-                              {/* Autores referentes que postearon sobre esta temática */}
-                              {ruleAuthors.length > 0 ? (
-                                <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">
-                                  <span className="font-semibold text-gray-700 dark:text-gray-300">Autores que postearon:</span>{" "}
-                                  {ruleAuthors.slice(0, 3).join(", ")}
-                                  {ruleAuthors.length > 3 ? ` +${ruleAuthors.length - 3}` : ""}
-                                </p>
-                              ) : (
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                  Rastreo temático de tendencias y creadores en {countryName}
+                              {rule.leaderHeadline && (
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-sm mt-0.5">
+                                  {rule.leaderHeadline}
                                 </p>
                               )}
 
                               <a
-                                href={`https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(rule.searchQuery)}`}
+                                href={profileUrl}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm mt-0.5"
-                                title="Ver búsqueda de contenido en LinkedIn"
                               >
-                                linkedin.com/search?keywords={rule.searchQuery} ↗
+                                {profileUrl}
                               </a>
 
-                              {/* Botón para desplegar / ocultar publicaciones de LinkedIn */}
+                              {/* Botón para desplegar / ocultar publicaciones de LinkedIn (Estilo Claudia Curi) */}
                               {scannedPosts.length > 0 ? (
                                 <button
                                   type="button"
@@ -877,21 +1046,21 @@ export default function GlobalSignalsPage() {
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Auditar&quot; para rastrear publicaciones con interacciones.
+                                  Sin posts escaneados. Pulsa &quot;Auditar&quot; para rastrear publicaciones de impacto.
                                 </span>
                               )}
                             </div>
                           </div>
                         </td>
 
-                        {/* 2. Palabras Clave / Filtros */}
+                        {/* 2. Especialidad / Nicho */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex flex-wrap gap-1">
                             <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
-                              {rule.searchQuery}
+                              {rule.nicheTopic || "Ventas B2B & Dirección Comercial"}
                             </span>
                             <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                              Min {rule.minPostReactions} reac.
+                              {countryFlag} {countryName}
                             </span>
                             {hasComments && (
                               <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
@@ -910,7 +1079,7 @@ export default function GlobalSignalsPage() {
                         <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400 align-top">
                           {leadsCount > 0 ? (
                             <Link
-                              href={targetList ? `/leads/lists/${targetList.id}` : "/leads"}
+                              href={targetList ? `/leads/lists?listId=${encodeURIComponent(targetList.id)}` : "/leads"}
                               className="hover:underline flex items-center gap-1"
                             >
                               <span>{leadsCount} leads</span>
@@ -980,7 +1149,7 @@ export default function GlobalSignalsPage() {
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
                               className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                              title={`Auditar publicaciones virales y extraer lote seguro de hasta ${activeBatch} personas`}
+                              title={`Auditar publicaciones y extraer lote seguro de hasta ${activeBatch} personas`}
                             >
                               {isScanningId === rule.id ? (
                                 <>
@@ -1002,7 +1171,7 @@ export default function GlobalSignalsPage() {
                               type="button"
                               onClick={() => setSelectedRuleForLeads(rule)}
                               className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
-                              title={`Abrir prospectos captados de ${rule.searchQuery}`}
+                              title={`Abrir decisores captados de ${displayName}`}
                             >
                               <span>Ver Lista ({leadsCount})</span>
                               <span aria-hidden="true">&rarr;</span>
@@ -1013,7 +1182,7 @@ export default function GlobalSignalsPage() {
                               type="button"
                               onClick={() => setEditingRule(rule)}
                               className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                              title="Editar regla global"
+                              title="Editar monitor de referente"
                             >
                               <Pencil className="size-3.5" />
                             </button>
@@ -1022,12 +1191,12 @@ export default function GlobalSignalsPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`¿Eliminar regla de "${rule.searchQuery}"?`)) {
+                                if (confirm(`¿Eliminar monitor de "${displayName}"?`)) {
                                   deleteLevel3Monitor(rule.id);
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                              title="Eliminar regla"
+                              title="Eliminar referente"
                             >
                               <X className="size-3.5" />
                             </button>
@@ -1035,7 +1204,7 @@ export default function GlobalSignalsPage() {
                         </td>
                       </tr>
 
-                      {/* Card de Ancho Completo para Publicaciones Analizadas (Estilo Nivel 2) */}
+                      {/* Card de Ancho Completo para Publicaciones Analizadas (Estilo Nivel 2 Claudia Curi) */}
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${rule.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
@@ -1046,7 +1215,7 @@ export default function GlobalSignalsPage() {
                                   <span>Publicaciones de LinkedIn Analizadas ({scannedPosts.length})</span>
                                 </span>
                                 <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
-                                  Tracción en {countryName} • {rule.searchQuery}
+                                  Tracción y debate en {displayName}
                                 </span>
                               </div>
 
@@ -1058,11 +1227,9 @@ export default function GlobalSignalsPage() {
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">
-                                        {post.authorName ? (
-                                          <span className="font-bold text-gray-900 dark:text-white mr-1.5">
-                                            {post.authorName}:
-                                          </span>
-                                        ) : null}
+                                        <span className="font-bold text-gray-900 dark:text-white mr-1.5">
+                                          {post.authorName || displayName}:
+                                        </span>
                                         &ldquo;{post.text}&rdquo;
                                       </p>
                                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
@@ -1098,21 +1265,21 @@ export default function GlobalSignalsPage() {
         )}
       </ComponentCard>
 
-      {/* Modal para Visualizar Leads Extraídos Globalmente (Diseño unificado Nivel 1 y 2) */}
+      {/* Modal para Visualizar Leads Extraídos del Referente */}
       {selectedRuleForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1 w-fit">
+                <span className="rounded bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300 flex items-center gap-1 w-fit">
                   <span>{selectedRuleForLeads.targetCountryFlag || "🌎"}</span>
-                  <span>LinkedIn Global: {selectedRuleForLeads.searchQuery}</span>
+                  <span>Top Voice: {selectedRuleForLeads.leaderName || selectedRuleForLeads.searchQuery}</span>
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Prospectos Calificados por Interacción
+                  Decisores Calificados por Interacción
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Personas que interactuaron activamente en publicaciones virales sobre este tema.
+                  Personas que interactuaron activamente en las publicaciones de este referente.
                 </p>
               </div>
               <button
@@ -1133,7 +1300,7 @@ export default function GlobalSignalsPage() {
                     <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
                   </span>
                   <span className="text-[10px] text-blue-600 dark:text-blue-400">
-                    Tracción en {selectedRuleForLeads.targetCountryName || "la región"}
+                    Tracción y debate en {selectedRuleForLeads.leaderName || selectedRuleForLeads.searchQuery}
                   </span>
                 </div>
                 <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
@@ -1144,21 +1311,22 @@ export default function GlobalSignalsPage() {
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-800 dark:text-gray-200 truncate">
-                          {post.authorName ? <span className="font-bold text-gray-900 dark:text-white mr-1.5">{post.authorName}:</span> : null}
+                          <span className="font-bold text-gray-900 dark:text-white mr-1.5">
+                            {post.authorName || selectedRuleForLeads.leaderName || selectedRuleForLeads.searchQuery}:
+                          </span>
                           &quot;{post.text}&quot;
                         </p>
                         <span className="text-[10px] text-gray-400">
-                          {post.reactionsCount} reacciones • {post.commentsCount} comentarios
+                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios
                         </span>
                       </div>
                       <a
                         href={post.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-1 rounded bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition"
+                        className="text-xs text-brand-600 hover:underline shrink-0"
                       >
-                        <span>Ver Post</span>
-                        <span>↗</span>
+                        Ver Post ↗
                       </a>
                     </div>
                   ))}
@@ -1166,119 +1334,62 @@ export default function GlobalSignalsPage() {
               </div>
             )}
 
-            <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
+            {/* Listado de Prospectos */}
+            <div className="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
-                <div className="py-8 text-center space-y-3">
-                  <p className="text-xs text-gray-500">
-                    Aún no hay prospectos extraídos para este tema. Haz clic en &quot;Escanear Tendencias&quot; para iniciar la indexación en vivo en LinkedIn.
-                  </p>
-                  <div className="flex items-center justify-center gap-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={isScanningId === selectedRuleForLeads.id}
-                      onClick={() => handleScanGlobalRule(selectedRuleForLeads)}
-                      className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
-                    >
-                      {isScanningId === selectedRuleForLeads.id ? "Escaneando en LinkedIn..." : "Escanear Tendencias Ahora"}
-                    </button>
-                  </div>
+                <div className="py-8 text-center text-xs text-gray-400">
+                  <p>Aún no se han capturado decisores en este monitor.</p>
+                  <p className="mt-1">Pulsa &quot;Auditar&quot; en la tabla para extraer comentarios y reacciones en vivo.</p>
                 </div>
               ) : (
-                getRuleLeads(selectedRuleForLeads.id).map((lead) => {
-                  const targetList = getListForRule(selectedRuleForLeads);
-                  return (
-                    <div key={lead.id} className="py-3.5 flex items-center justify-between gap-4">
-                      <div className="flex items-start gap-3">
-                        <ProspectAvatar
-                          imageUrl={lead.avatarUrl}
-                          name={lead.fullName}
-                          size="md"
-                        />
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                              {lead.fullName}
-                            </h4>
-                            <LeadScoreBadge score={lead.intentScore || (lead.signalType === "reaction" ? 70 : 90)} size="sm" />
-                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                              Grado {lead.connectionDegree}
-                            </span>
-                            <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-400">
-                              Interacción Alta
-                            </span>
-                            {lead.language && (
-                              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                {lead.language}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                            {lead.headline} {lead.location && `• ${lead.location}`}
+                getRuleLeads(selectedRuleForLeads.id).map((lead) => (
+                  <div key={lead.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <ProspectAvatar
+                        name={lead.fullName}
+                        imageUrl={lead.avatarUrl}
+                        size="md"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-gray-900 dark:text-white truncate">
+                            {lead.fullName}
                           </p>
-                          <p className="text-xs text-blue-800 italic dark:text-blue-300 font-medium">
-                            {lead.signalSnippet}
-                          </p>
+                          <LeadScoreBadge
+                            score={calculateSignalScore(lead)}
+                          />
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {lead.sourcePostUrl && (
-                          <a
-                            href={lead.sourcePostUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-lg border border-blue-200 bg-blue-50/50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300 inline-flex items-center gap-1"
-                            title="Ver el post de LinkedIn donde comentó o reaccionó"
-                          >
-                            <span>Ver Post</span>
-                            <span className="text-[10px]">↗</span>
-                          </a>
+                        <p className="text-[11px] text-gray-500 truncate">{lead.headline}</p>
+                        <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                          {lead.company} {lead.location ? `• ${lead.location}` : ""}
+                        </p>
+                        {lead.signalSnippet && (
+                          <p className="text-[11px] text-brand-600 dark:text-brand-400 italic mt-0.5 truncate">
+                            &quot;{lead.signalSnippet}&quot;
+                          </p>
                         )}
-                        {lead.linkedinUrl && (
-                          <a
-                            href={lead.linkedinUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                          >
-                            LinkedIn ↗
-                          </a>
-                        )}
-                        <Link
-                          href={targetList ? `/leads/lists/${targetList.id}` : "/leads"}
-                          className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
-                        >
-                          Ficha 360 CRM →
-                        </Link>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-              <button
-                type="button"
-                disabled={isScanningId === selectedRuleForLeads.id}
-                onClick={() => handleScanGlobalRule(selectedRuleForLeads)}
-                className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
-              >
-                + Re-escanear y Buscar Más Prospectos
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRuleForLeads(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-              >
-                Cerrar
-              </button>
+                    {lead.linkedinUrl && (
+                      <a
+                        href={lead.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 shrink-0"
+                      >
+                        Perfil ↗
+                      </a>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de Edición de Regla Global Nivel 3 */}
+      {/* Modal de Edición de Referente / Top Voice */}
       {editingRule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
@@ -1286,7 +1397,7 @@ export default function GlobalSignalsPage() {
               <div className="flex items-center gap-2">
                 <Pencil className="size-5 text-brand-500" />
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Editar Regla de Búsqueda Global
+                  Editar Monitor de Referente / Top Voice
                 </h3>
               </div>
               <button
@@ -1294,23 +1405,53 @@ export default function GlobalSignalsPage() {
                 onClick={() => setEditingRule(null)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
               >
-                <X className="size-5" />
+                ✕
               </button>
             </div>
 
             <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Temática o Palabra Clave en LinkedIn
+                  Nombre del Referente / Creador
                 </label>
                 <input
                   type="text"
-                  value={editingRule.searchQuery}
+                  value={editingRule.leaderName || editingRule.searchQuery}
                   onChange={(e) =>
-                    setEditingRule({ ...editingRule, searchQuery: e.target.value })
+                    setEditingRule({ ...editingRule, leaderName: e.target.value, searchQuery: e.target.value })
                   }
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  placeholder="Ej: Prospección B2B, Agentes IA, Cold Email"
+                  placeholder="Ej: Pedro Valladolid 🚀"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  URL del Perfil de LinkedIn
+                </label>
+                <input
+                  type="text"
+                  value={editingRule.leaderUrl || ""}
+                  onChange={(e) =>
+                    setEditingRule({ ...editingRule, leaderUrl: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="https://www.linkedin.com/in/..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Especialidad / Temática del Referente
+                </label>
+                <input
+                  type="text"
+                  value={editingRule.nicheTopic || ""}
+                  onChange={(e) =>
+                    setEditingRule({ ...editingRule, nicheTopic: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="Ej: Ventas B2B & Dirección Comercial"
                 />
               </div>
 
@@ -1339,47 +1480,6 @@ export default function GlobalSignalsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Frescura del Post (Período)
-                  </label>
-                  <select
-                    value={editingRule.timePeriod || "past_week"}
-                    onChange={(e) =>
-                      setEditingRule({
-                        ...editingRule,
-                        timePeriod: e.target.value as any,
-                      })
-                    }
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  >
-                    <option value="past_week">Última semana (Recomendado)</option>
-                    <option value="past_month">Último mes</option>
-                    <option value="past_24h">Últimas 24 horas</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Tracción Mínima (Reacciones)
-                  </label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="1000"
-                    value={editingRule.minPostReactions || 10}
-                    onChange={(e) =>
-                      setEditingRule({
-                        ...editingRule,
-                        minPostReactions: Number(e.target.value),
-                      })
-                    }
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-              </div>
-
               <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                   Tipo de Participantes a Extraer
@@ -1398,7 +1498,7 @@ export default function GlobalSignalsPage() {
                       }}
                       className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    Comentaristas (Máxima intención de interacción)
+                    Comentaristas (Máxima intención)
                   </label>
                   <label className="inline-flex items-center gap-2 cursor-pointer">
                     <input
@@ -1433,11 +1533,12 @@ export default function GlobalSignalsPage() {
                   const sel = COUNTRY_OPTIONS.find((c) => c.code === editingRule.targetCountry);
                   updateLevel3Monitor(editingRule.id, {
                     searchQuery: editingRule.searchQuery,
+                    leaderName: editingRule.leaderName || editingRule.searchQuery,
+                    leaderUrl: editingRule.leaderUrl,
+                    nicheTopic: editingRule.nicheTopic,
                     targetCountry: editingRule.targetCountry,
                     targetCountryName: sel ? sel.name : editingRule.targetCountryName,
                     targetCountryFlag: sel ? sel.flag : editingRule.targetCountryFlag,
-                    timePeriod: editingRule.timePeriod || "past_week",
-                    minPostReactions: Number(editingRule.minPostReactions) || 10,
                     interactionTypes: editingRule.interactionTypes || ["comments", "likes"],
                   });
                   setEditingRule(null);

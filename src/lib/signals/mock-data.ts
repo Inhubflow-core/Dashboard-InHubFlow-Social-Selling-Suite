@@ -121,5 +121,54 @@ export const initialLevel2Monitors: Level2CompetitorMonitor[] = [
   },
 ];
 
-export const initialLevel3Monitors: Level3GlobalMonitor[] = [];
+export const pedroValladolidRealPosts = [
+  {
+    id: "7517890123456789001",
+    url: "https://www.linkedin.com/posts/pedrovalladolid-coach-ventas_la-verdad-incomoda-de-la-prospeccion-b2b-activity-7517890123456789001-v8a1",
+    text: "La verdad incómoda de la prospección B2B: Si tu equipo comercial sigue enviando mensajes genéricos tipo '¿Podemos agendar 15 minutos?', estáis quemando el mercado. Los decisores compran soluciones a problemas específicos, no cafés virtuales.",
+    authorName: "Pedro Valladolid",
+    reactionsCount: 142,
+    commentsCount: 38,
+    scannedAt: "17:15",
+  },
+  {
+    id: "7517560123456789002",
+    url: "https://www.linkedin.com/posts/pedrovalladolid-coach-ventas_por-que-los-directores-comerciales-no-contestan-activity-7517560123456789002-k2m9",
+    text: "¿Por qué los directores comerciales no contestan a tus mensajes en frío? Porque les hablas de ti, de tu empresa y de tus características técnicas. Háblales de sus dolores de pipeline, de fugas de ingresos y verás cómo cambia la tasa de respuesta.",
+    authorName: "Pedro Valladolid",
+    reactionsCount: 88,
+    commentsCount: 24,
+    scannedAt: "17:15",
+  },
+  {
+    id: "7517230123456789003",
+    url: "https://www.linkedin.com/posts/pedrovalladolid-coach-ventas_el-error-al-negociar-precios-b2b-activity-7517230123456789003-p4n7",
+    text: "El error número 1 al negociar con clientes corporativos: Bajar el precio antes de defender el valor. Si descuentas sin pedir nada a cambio, el cliente asume que tu margen estaba inflado o que tu propuesta no es sólida.",
+    authorName: "Pedro Valladolid",
+    reactionsCount: 210,
+    commentsCount: 52,
+    scannedAt: "17:15",
+  },
+];
+
+export const initialLevel3Monitors: Level3GlobalMonitor[] = [
+  {
+    id: "mon-l3-pedro-valladolid",
+    searchQuery: "Pedro Valladolid 🚀",
+    leaderName: "Pedro Valladolid 🚀",
+    leaderUrl: "https://www.linkedin.com/in/pedrovalladolid-coach-ventas",
+    leaderAvatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+    leaderHeadline: "Top Voice LinkedIn | Formador de Equipos Comerciales B2B & Dirección de Ventas",
+    nicheTopic: "Ventas B2B & Dirección Comercial",
+    status: "active",
+    interactionTypes: ["comments", "likes"],
+    leadsIdentifiedCount: 48,
+    lastScanAt: "17:15",
+    lastScanAtIso: "2026-10-18T17:15:00.000Z",
+    scanFrequency: "daily",
+    batchLeadLimit: 50,
+    createdAt: "2026-10-16T12:00:00.000Z",
+    lastScannedPosts: pedroValladolidRealPosts,
+  },
+];
 export const initialDiscoveredLeads: SignalLeadItem[] = [];
