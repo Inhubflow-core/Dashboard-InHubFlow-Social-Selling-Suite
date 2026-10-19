@@ -242,6 +242,7 @@ export default function CompetitorsSignalRadarPage() {
       outreachTemplate,
       leadsIdentifiedCount: 0,
       lastScanAt: "Recien configurado",
+      scanFrequency: "daily",
       createdAt: new Date().toISOString(),
     };
 
@@ -260,15 +261,16 @@ export default function CompetitorsSignalRadarPage() {
     setCompetitorUrl("");
     setScanFeedback({
       type: "success",
-      text: `Competidor "${newMonitor.competitorName}" agregado y su lista inteligente "${targetList.name}" creada automáticamente.`,
+      text: `Competidor "${newMonitor.competitorName}" agregado con escaneo diario activo y su lista inteligente "${targetList.name}" creada automáticamente.`,
       listId: targetList.id,
     });
   };
 
-
-  const handleScanCompetitor = async (comp: Level2CompetitorMonitor) => {
-    setIsScanningId(comp.id);
-    setScanFeedback(null);
+  const handleScanCompetitor = async (comp: Level2CompetitorMonitor, isSilent = false) => {
+    if (!isSilent) {
+      setIsScanningId(comp.id);
+      setScanFeedback(null);
+    }
     try {
       const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
       const response = await fetch("/api/unipile/competitors/scan", {
@@ -324,21 +326,66 @@ export default function CompetitorsSignalRadarPage() {
       updateLevel2Monitor(comp.id, {
         leadsIdentifiedCount: comp.leadsIdentifiedCount + added.length,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        lastScanAtIso: new Date().toISOString(),
         lastScannedPosts: scannedPosts,
       });
-      setScanFeedback({
-        type: "success",
-        text: `Auditoría completada para ${comp.competitorName}: ${added.length} interacciones encontradas e incorporadas automáticamente a la lista "${targetList.name}" (${importRes.addedCount} nuevos leads añadidos)${
-          data.excludedEmployeesCount ? ` [${data.excludedEmployeesCount} colaboradores internos excluidos]` : ""
-        }.`,
-        listId: targetList.id,
-      });
+      if (!isSilent) {
+        setScanFeedback({
+          type: "success",
+          text: `Auditoría completada para ${comp.competitorName}: ${added.length} interacciones encontradas e incorporadas automáticamente a la lista "${targetList.name}" (${importRes.addedCount} nuevos leads añadidos)${
+            data.excludedEmployeesCount ? ` [${data.excludedEmployeesCount} colaboradores internos excluidos]` : ""
+          }.`,
+          listId: targetList.id,
+        });
+      }
     } catch (err: any) {
-      setScanFeedback({ type: "error", text: `Error al auditar competidor: ${err.message || "Error al conectar"}` });
+      if (!isSilent) {
+        setScanFeedback({ type: "error", text: `Error al auditar competidor: ${err.message || "Error al conectar"}` });
+      } else {
+        console.warn(`[CompetitorsAutoScan] Error en escaneo periódico de ${comp.competitorName}:`, err);
+      }
     } finally {
-      setIsScanningId(null);
+      if (!isSilent) {
+        setIsScanningId(null);
+      }
     }
   };
+
+  // Auto-auditoría diaria en segundo plano (cada 24 horas por monitor activo)
+  const hasAutoAuditedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || l2Monitors.length === 0 || hasAutoAuditedRef.current) return;
+    if (!activeAccount || (activeAccount.status !== "OK" && activeAccount.status !== "CONNECTED")) return;
+
+    hasAutoAuditedRef.current = true;
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+    const monitorsToAutoAudit = l2Monitors.filter((comp) => {
+      if (comp.status !== "active") return false;
+      const freq = comp.scanFrequency || "daily";
+      if (freq === "manual") return false;
+
+      // Si no tiene lastScanAtIso (recién creado), permitir el primer escaneo manual
+      if (!comp.lastScanAtIso) return false;
+
+      const lastScanTime = new Date(comp.lastScanAtIso).getTime();
+      if (isNaN(lastScanTime)) return false;
+
+      const threshold = freq === "weekly" ? ONE_WEEK_MS : ONE_DAY_MS;
+      return now - lastScanTime >= threshold;
+    });
+
+    if (monitorsToAutoAudit.length === 0) return;
+
+    // Escanear escalonadamente espaciando 5 segundos entre cuentas para cuidar límites
+    monitorsToAutoAudit.forEach((comp, index) => {
+      setTimeout(() => {
+        handleScanCompetitor(comp, true);
+      }, (index + 1) * 5000);
+    });
+  }, [isLoaded, l2Monitors.length, activeAccount?.id]);
 
   const getCompetitorLeads = (monitorId: string, competitorName?: string): SignalLeadItem[] => {
     return leads.filter(
@@ -1026,7 +1073,16 @@ export default function CompetitorsSignalRadarPage() {
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
-                          {comp.lastScanAt}
+                          <div>
+                            <span className="font-medium text-gray-800 dark:text-gray-200">{comp.lastScanAt}</span>
+                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              {comp.scanFrequency === "weekly"
+                                ? "Auto: Semanal 🗓️"
+                                : comp.scanFrequency === "manual"
+                                ? "Modo Manual"
+                                : "Auto: Diario ⏰"}
+                            </span>
+                          </div>
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap align-top">
@@ -1323,6 +1379,28 @@ export default function CompetitorsSignalRadarPage() {
                   Variables disponibles: {"{{first_name}}"}, {"{{competitor_name}}"}, {"{{topic}}"}
                 </p>
               </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Frecuencia de Auditoría Automática
+                </label>
+                <select
+                  value={editingMonitor.scanFrequency || "daily"}
+                  onChange={(e) =>
+                    setEditingMonitor({
+                      ...editingMonitor,
+                      scanFrequency: e.target.value as "daily" | "weekly" | "manual",
+                    })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="daily">Diaria (Cada 24 horas - Recomendado)</option>
+                  <option value="weekly">Semanal (Cada 7 días)</option>
+                  <option value="manual">Solo Manual (Al pulsar "Auditar Ahora")</option>
+                </select>
+                <p className="mt-1 text-[11px] text-gray-500">
+                  En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
@@ -1343,6 +1421,7 @@ export default function CompetitorsSignalRadarPage() {
                     excludeAuthorEmployees: editingMonitor.excludeAuthorEmployees,
                     interactionTypes: editingMonitor.interactionTypes,
                     outreachTemplate: editingMonitor.outreachTemplate,
+                    scanFrequency: editingMonitor.scanFrequency || "daily",
                   });
                   setEditingMonitor(null);
                 }}

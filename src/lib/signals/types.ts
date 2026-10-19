@@ -68,6 +68,8 @@ export interface Level2CompetitorMonitor {
   outreachTemplate: string;
   leadsIdentifiedCount: number;
   lastScanAt: string;
+  lastScanAtIso?: string;
+  scanFrequency?: "daily" | "weekly" | "manual";
   createdAt: string;
   lastScannedPosts?: ScannedCompetitorPost[];
 }
