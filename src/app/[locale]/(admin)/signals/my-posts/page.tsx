@@ -14,7 +14,7 @@ import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Pencil, X } from "lucide-react";
 
@@ -143,6 +143,8 @@ export default function MyPostsSignalRadarPage() {
       scannedCommentsCount: 0,
       leadsCapturedCount: 0,
       lastScanAt: isPending ? "En espera de publicación" : "Recién creado",
+      lastScanAtIso: isPending ? undefined : new Date().toISOString(),
+      scanFrequency: "daily",
       createdAt: new Date().toISOString(),
       originPostId: selectedCreatedPost?.id,
       originPostStatus: selectedCreatedPost?.status,
@@ -226,6 +228,7 @@ export default function MyPostsSignalRadarPage() {
         scannedCommentsCount: newTotalScanned,
         leadsCapturedCount: newCapturedCount,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        lastScanAtIso: new Date().toISOString(),
       });
 
       setScanFeedback({
@@ -241,6 +244,36 @@ export default function MyPostsSignalRadarPage() {
       setIsScanningId(null);
     }
   };
+
+  // Auto-auditoría diaria en segundo plano (cada 24 horas por monitor activo)
+  const hasAutoAuditedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || l1Monitors.length === 0 || hasAutoAuditedRef.current) return;
+    if (!activeAccount || (activeAccount.status !== "OK" && activeAccount.status !== "CONNECTED")) return;
+
+    hasAutoAuditedRef.current = true;
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    const monitorsToAutoAudit = l1Monitors.filter((mon) => {
+      if (mon.status !== "active") return false;
+      if (!mon.postUrl || !mon.postUrl.startsWith("http")) return false;
+      if (!mon.lastScanAtIso) return false;
+
+      const lastScanTime = new Date(mon.lastScanAtIso).getTime();
+      if (isNaN(lastScanTime)) return false;
+
+      return now - lastScanTime >= ONE_DAY_MS;
+    });
+
+    if (monitorsToAutoAudit.length === 0) return;
+
+    monitorsToAutoAudit.forEach((mon, index) => {
+      setTimeout(() => {
+        handleScanMonitor(mon);
+      }, (index + 1) * 5000);
+    });
+  }, [isLoaded, l1Monitors.length, activeAccount?.id]);
 
   const handleSimulateCommentLead = (mon: Level1Monitor) => {
     const sampleNames = [
@@ -310,7 +343,7 @@ export default function MyPostsSignalRadarPage() {
           <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
             {pendingMonitorsCount > 0
               ? `${pendingMonitorsCount} en espera de publicación`
-              : "Escaneando comentarios cada 5 min"}
+              : "Escaneo diario automático (cada 24h)"}
           </span>
         </div>
 
@@ -843,7 +876,7 @@ export default function MyPostsSignalRadarPage() {
                           <div>
                             <span className="font-medium text-gray-800 dark:text-gray-200">{mon.lastScanAt}</span>
                             <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                              Auto: Cada 5 min ⏰
+                              Auto: Diario ⏰
                             </span>
                           </div>
                         </td>

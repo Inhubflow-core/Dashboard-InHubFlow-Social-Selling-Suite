@@ -1197,11 +1197,7 @@ export default function CompetitorsSignalRadarPage() {
                           <div>
                             <span className="font-medium text-gray-800 dark:text-gray-200">{comp.lastScanAt}</span>
                             <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                              {comp.scanFrequency === "weekly"
-                                ? "Auto: Semanal 🗓️"
-                                : comp.scanFrequency === "manual"
-                                ? "Modo Manual"
-                                : "Auto: Diario ⏰"}
+                              Auto: Diario ⏰
                             </span>
                           </div>
                         </td>
@@ -1535,14 +1531,13 @@ export default function CompetitorsSignalRadarPage() {
                   onChange={(e) =>
                     setEditingMonitor({
                       ...editingMonitor,
-                      scanFrequency: e.target.value as "daily" | "weekly" | "manual",
+                      scanFrequency: e.target.value as "daily" | "manual",
                     })
                   }
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="daily">Diaria (Cada 24 horas - Recomendado)</option>
-                  <option value="weekly">Semanal (Cada 7 días)</option>
-                  <option value="manual">Solo Manual (Al pulsar "Auditar Ahora")</option>
+                  <option value="daily">Diaria (Cada 24 horas - Estándar Plataforma)</option>
+                  <option value="manual">Solo Manual (Al pulsar &quot;Auditar Ahora&quot;)</option>
                 </select>
                 <p className="mt-1 text-[11px] text-gray-500">
                   En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.

@@ -114,6 +114,7 @@ export const initialLevel2Monitors: Level2CompetitorMonitor[] = [
     outreachTemplate: "Hola {{first_name}}, vi tu interaccion en el post de Claudia Curi sobre prospección B2B...",
     leadsIdentifiedCount: 113,
     lastScanAt: "15:34",
+    lastScanAtIso: "2026-10-15T15:34:00.000Z",
     scanFrequency: "daily",
     createdAt: "2026-10-15T10:00:00.000Z",
     lastScannedPosts: claudiaCuriRealPosts,

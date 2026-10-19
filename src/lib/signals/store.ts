@@ -28,7 +28,20 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((m: Level1Monitor) => Boolean(m && m.id && m.postTitle));
+    let hadModifications = false;
+    const monitors = parsed
+      .filter((m: Level1Monitor) => Boolean(m && m.id && m.postTitle))
+      .map((m: Level1Monitor) => {
+        if (m.scanFrequency !== "daily") {
+          hadModifications = true;
+          return { ...m, scanFrequency: "daily" as const };
+        }
+        return m;
+      });
+    if (hadModifications) {
+      localStorage.setItem(L1_KEY, JSON.stringify(monitors));
+    }
+    return monitors;
   } catch {
     return [];
   }
@@ -63,6 +76,12 @@ export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
     const monitors = parsed
       .filter((m: Level2CompetitorMonitor) => Boolean(m && m.id && m.competitorName))
       .map((m: Level2CompetitorMonitor) => {
+        let updated = { ...m };
+        if (updated.scanFrequency !== "daily") {
+          hadModifications = true;
+          updated.scanFrequency = "daily" as const;
+        }
+
         const isClaudia =
           (m.competitorName || "").toLowerCase().includes("claudia") ||
           (m.competitorUrl || "").toLowerCase().includes("claudiacuri");
@@ -70,15 +89,16 @@ export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
         if (isClaudia) {
           if (!m.lastScannedPosts || m.lastScannedPosts.length < 10) {
             hadModifications = true;
-            return {
-              ...m,
+            updated = {
+              ...updated,
               lastScannedPosts: claudiaCuriRealPosts,
               lastScanAt: m.lastScanAt || "15:34",
+              lastScanAtIso: m.lastScanAtIso || "2026-10-15T15:34:00.000Z",
               leadsIdentifiedCount: Math.max(m.leadsIdentifiedCount || 0, 113),
             };
           }
         }
-        return m;
+        return updated;
       });
 
     if (hadModifications) {
@@ -104,7 +124,20 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((m: Level3GlobalMonitor) => Boolean(m && m.id && m.searchQuery));
+    let hadModifications = false;
+    const monitors = parsed
+      .filter((m: Level3GlobalMonitor) => Boolean(m && m.id && m.searchQuery))
+      .map((m: Level3GlobalMonitor) => {
+        if (m.scanFrequency !== "daily") {
+          hadModifications = true;
+          return { ...m, scanFrequency: "daily" as const };
+        }
+        return m;
+      });
+    if (hadModifications) {
+      localStorage.setItem(L3_KEY, JSON.stringify(monitors));
+    }
+    return monitors;
   } catch {
     return [];
   }

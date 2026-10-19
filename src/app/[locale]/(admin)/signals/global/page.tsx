@@ -253,6 +253,8 @@ export default function GlobalSignalsPage() {
       status: "active",
       leadsIdentifiedCount: 0,
       lastScanAt: "Recién configurado",
+      lastScanAtIso: new Date().toISOString(),
+      scanFrequency: "daily",
       createdAt: new Date().toISOString(),
     };
 
@@ -340,6 +342,7 @@ export default function GlobalSignalsPage() {
       updateLevel3Monitor(rule.id, {
         leadsIdentifiedCount: newCapturedCount,
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        lastScanAtIso: new Date().toISOString(),
         lastScannedPosts: updatedPosts,
       });
 
@@ -357,6 +360,35 @@ export default function GlobalSignalsPage() {
       setIsScanningId(null);
     }
   };
+
+  // Auto-auditoría diaria en segundo plano (cada 24 horas por regla activa)
+  const hasAutoAuditedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || l3Monitors.length === 0 || hasAutoAuditedRef.current) return;
+    if (!activeAccount || (activeAccount.status !== "OK" && activeAccount.status !== "CONNECTED")) return;
+
+    hasAutoAuditedRef.current = true;
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    const rulesToAutoAudit = l3Monitors.filter((rule) => {
+      if (rule.status !== "active") return false;
+      if (!rule.lastScanAtIso) return false;
+
+      const lastScanTime = new Date(rule.lastScanAtIso).getTime();
+      if (isNaN(lastScanTime)) return false;
+
+      return now - lastScanTime >= ONE_DAY_MS;
+    });
+
+    if (rulesToAutoAudit.length === 0) return;
+
+    rulesToAutoAudit.forEach((rule, index) => {
+      setTimeout(() => {
+        handleScanGlobalRule(rule);
+      }, (index + 1) * 6000);
+    });
+  }, [isLoaded, l3Monitors.length, activeAccount?.id]);
 
   const getRuleLeads = (monitorId: string): SignalLeadItem[] => {
     return leads.filter((l) => l.monitorId === monitorId);

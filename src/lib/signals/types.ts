@@ -41,6 +41,8 @@ export interface Level1Monitor {
   scannedCommentsCount: number;
   leadsCapturedCount: number;
   lastScanAt: string;
+  lastScanAtIso?: string;
+  scanFrequency?: "daily";
   createdAt: string;
   originPostId?: string;
   originPostStatus?: "draft" | "scheduled" | "published" | "failed";
@@ -92,6 +94,8 @@ export interface Level3GlobalMonitor {
   status: MonitorStatus;
   leadsIdentifiedCount: number;
   lastScanAt: string;
+  lastScanAtIso?: string;
+  scanFrequency?: "daily";
   createdAt: string;
   lastScannedPosts?: Array<{
     id: string;
