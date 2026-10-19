@@ -95,21 +95,17 @@ export default function ActiveWorkspaceUserBadge() {
       title={tooltipText}
     >
       <div className="relative shrink-0">
-        <div
-          className={`size-7 rounded-lg flex items-center justify-center text-white text-xs font-bold overflow-hidden shadow-xs ${
-            needsAttention ? "bg-amber-500" : "bg-[#0099ff]"
-          }`}
-        >
-          {currentUser.avatarUrl && currentUser.avatarUrl !== "/images/user/owner.png" ? (
+        <div className="size-8 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-200 overflow-hidden shadow-xs">
+          {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
             <Image
               src={currentUser.avatarUrl}
               alt={currentUser.name}
-              width={28}
-              height={28}
+              width={32}
+              height={32}
               className="size-full object-cover"
             />
           ) : (
-            <span>{initials}</span>
+            <span>{currentUser.name.charAt(0).toUpperCase()}</span>
           )}
         </div>
         <span

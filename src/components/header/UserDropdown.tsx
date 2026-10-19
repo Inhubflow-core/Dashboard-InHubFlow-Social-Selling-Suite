@@ -45,14 +45,18 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
       >
-        <span className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
-          <Image
-            width={40}
-            height={40}
-            src={currentUser.avatarUrl || "/images/user/owner.png"}
-            alt={currentUser.name}
-            className="h-full w-full object-cover"
-          />
+        <span className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
+          {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
+            <Image
+              width={40}
+              height={40}
+              src={currentUser.avatarUrl}
+              alt={currentUser.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span>{currentUser.name.charAt(0).toUpperCase()}</span>
+          )}
         </span>
 
         <div className="hidden text-left xl:block me-2">
@@ -79,8 +83,18 @@ export default function UserDropdown() {
         {/* Cabecera del usuario actual */}
         <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-[#0099ff]/10 font-bold text-[#0099ff]">
-              {currentUser.name.substring(0, 2).toUpperCase()}
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
+              {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
+                <Image
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  width={40}
+                  height={40}
+                  className="size-full rounded-xl object-cover"
+                />
+              ) : (
+                <span>{currentUser.name.charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">

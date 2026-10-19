@@ -43,7 +43,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     email: "linnmartinsson407@gmail.com",
     headline: "Social Selling & Outbound Strategist",
     publicProfileUrl: "https://www.linkedin.com/in/linn-martinson-13a591443",
-    profilePictureUrl: "/images/user/user-03.png",
+    profilePictureUrl: "",
     status: "CREDENTIALS",
     authMode: "credentials",
     connectedAt: "2026-10-12T16:39:42.378Z",

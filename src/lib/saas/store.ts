@@ -39,7 +39,7 @@ export const initialSaaSUsers: SaaSUser[] = [
     slotsLimit: 5,
     planTier: "growth",
     subscriptionStatus: "active",
-    avatarUrl: "/images/user/user-03.png",
+    avatarUrl: "",
     assignedAccountId: "acc-li-5X_l6hknTW62DqQtKJNNHA",
     createdAt: "2026-10-12T16:39:42.000Z",
     updatedAt: "2026-10-12T16:39:42.000Z",
