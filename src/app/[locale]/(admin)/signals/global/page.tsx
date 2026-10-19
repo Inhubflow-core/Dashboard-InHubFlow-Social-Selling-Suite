@@ -816,57 +816,59 @@ export default function GlobalSignalsPage() {
                         </button>
                       </td>
 
-                      <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                        {/* Botón Escanear Tendencias */}
-                        <button
-                          type="button"
-                          disabled={isScanningId === rule.id}
-                          onClick={() => handleScanGlobalRule(rule)}
-                          className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                          title="Buscar publicaciones virales en LinkedIn y extraer personas interesadas"
-                        >
-                          {isScanningId === rule.id ? (
-                            <>
-                              <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                              Escaneando...
-                            </>
-                          ) : (
-                            "Escanear Tendencias"
-                          )}
-                        </button>
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          {/* Botón Escanear Tendencias */}
+                          <button
+                            type="button"
+                            disabled={isScanningId === rule.id}
+                            onClick={() => handleScanGlobalRule(rule)}
+                            className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
+                            title="Buscar publicaciones virales en LinkedIn y extraer personas interesadas"
+                          >
+                            {isScanningId === rule.id ? (
+                              <>
+                                <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                                Escaneando...
+                              </>
+                            ) : (
+                              "Escanear Tendencias"
+                            )}
+                          </button>
 
-                        {/* Botón Ver Leads */}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRuleForLeads(rule)}
-                          className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs"
-                        >
-                          Ver Leads ({leadsCount})
-                        </button>
+                          {/* Botón Ver Leads */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRuleForLeads(rule)}
+                            className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center"
+                          >
+                            Ver Leads ({leadsCount})
+                          </button>
 
-                        {/* Botón Editar Regla */}
-                        <button
-                          type="button"
-                          onClick={() => setEditingRule(rule)}
-                          className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
-                          title="Editar regla global"
-                        >
-                          <Pencil className="size-3.5" />
-                        </button>
+                          {/* Botón Editar Regla */}
+                          <button
+                            type="button"
+                            onClick={() => setEditingRule(rule)}
+                            className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                            title="Editar regla global"
+                          >
+                            <Pencil className="size-3.5" />
+                          </button>
 
-                        {/* Botón Eliminar */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (confirm(`¿Eliminar regla de "${rule.searchQuery}"?`)) {
-                              deleteLevel3Monitor(rule.id);
-                            }
-                          }}
-                          className="rounded-md border border-red-200 px-2 py-1 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 text-xs"
-                          title="Eliminar regla"
-                        >
-                          ✕
-                        </button>
+                          {/* Botón Eliminar */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`¿Eliminar regla de "${rule.searchQuery}"?`)) {
+                                deleteLevel3Monitor(rule.id);
+                              }
+                            }}
+                            className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                            title="Eliminar regla"
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

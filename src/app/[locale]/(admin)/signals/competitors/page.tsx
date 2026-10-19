@@ -978,73 +978,75 @@ export default function CompetitorsSignalRadarPage() {
                       </button>
                     </td>
 
-                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                      {/* Botón de Auditoría en Vivo */}
-                      <button
-                        type="button"
-                        disabled={isScanningId === comp.id}
-                        onClick={() => handleScanCompetitor(comp)}
-                        className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                        title="Auditar publicaciones recientes y extraer decisores"
-                      >
-                        {isScanningId === comp.id ? (
-                          <>
-                            <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                            Auditando...
-                          </>
-                        ) : (
-                          "Auditar Ahora"
-                        )}
-                      </button>
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        {/* Botón de Auditoría en Vivo */}
+                        <button
+                          type="button"
+                          disabled={isScanningId === comp.id}
+                          onClick={() => handleScanCompetitor(comp)}
+                          className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
+                          title="Auditar publicaciones recientes y extraer decisores"
+                        >
+                          {isScanningId === comp.id ? (
+                            <>
+                              <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                              Auditando...
+                            </>
+                          ) : (
+                            "Auditar Ahora"
+                          )}
+                        </button>
 
-                      {/* Botón Ver Lista Directa */}
-                      {(() => {
-                        const targetComp = comp.competitorName.trim().toLowerCase();
-                        const targetList = allLeadLists.find(
-                          (l) =>
-                            l.sourceMonitorId === comp.id ||
-                            (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
-                            l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
-                        );
-                        const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
-                        const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
-                        const leadCount = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
+                        {/* Botón Ver Lista Directa */}
+                        {(() => {
+                          const targetComp = comp.competitorName.trim().toLowerCase();
+                          const targetList = allLeadLists.find(
+                            (l) =>
+                              l.sourceMonitorId === comp.id ||
+                              (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+                              l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
+                          );
+                          const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
+                          const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
+                          const leadCount = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
 
-                        return (
-                          <Link
-                            href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
-                            className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
-                            title={`Abrir lista inteligente de ${comp.competitorName}`}
-                          >
-                            <span>Ver Lista ({leadCount})</span>
-                            <span aria-hidden="true">&rarr;</span>
-                          </Link>
-                        );
-                      })()}
+                          return (
+                            <Link
+                              href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
+                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              title={`Abrir lista inteligente de ${comp.competitorName}`}
+                            >
+                              <span>Ver Lista ({leadCount})</span>
+                              <span aria-hidden="true">&rarr;</span>
+                            </Link>
+                          );
+                        })()}
 
-                      {/* Botón Editar Monitor */}
-                      <button
-                        type="button"
-                        onClick={() => setEditingMonitor(comp)}
-                        className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
-                        title="Editar monitor de competidor"
-                      >
-                        <Pencil className="size-3.5" />
-                      </button>
+                        {/* Botón Editar Monitor */}
+                        <button
+                          type="button"
+                          onClick={() => setEditingMonitor(comp)}
+                          className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                          title="Editar monitor de competidor"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
 
-                      {/* Botón Eliminar */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`¿Eliminar auditoría de "${comp.competitorName}"?`)) {
-                            deleteLevel2Monitor(comp.id);
-                          }
-                        }}
-                        className="rounded-md border border-red-200 px-2 py-1 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 text-xs"
-                        title="Eliminar competidor"
-                      >
-                        ✕
-                      </button>
+                        {/* Botón Eliminar */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`¿Eliminar auditoría de "${comp.competitorName}"?`)) {
+                              deleteLevel2Monitor(comp.id);
+                            }
+                          }}
+                          className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                          title="Eliminar competidor"
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

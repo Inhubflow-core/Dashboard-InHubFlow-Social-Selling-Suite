@@ -781,72 +781,73 @@ export default function MyPostsSignalRadarPage() {
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                      {/* Botón de Escaneo o Vincular URL si está en espera */}
-                      {mon.status === "pending_publish" ? (
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        {/* Botón de Escaneo o Vincular URL si está en espera */}
+                        {mon.status === "pending_publish" ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLinkingUrlModalMonitor(mon);
+                              setManualLinkedInUrlInput("");
+                            }}
+                            className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
+                            title="Vincular URL oficial de LinkedIn para activar este monitor"
+                          >
+                            🔗 Vincular URL
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isScanningId === mon.id}
+                            onClick={() => handleScanMonitor(mon)}
+                            className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
+                            title="Escanear comentarios de la publicación en LinkedIn"
+                          >
+                            {isScanningId === mon.id ? (
+                              <>
+                                <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                                Escaneando...
+                              </>
+                            ) : (
+                              "Escanear Ahora"
+                            )}
+                          </button>
+                        )}
+
+                        {/* Botón de Ver Leads */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMonitorForLeads(mon)}
+                          className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center"
+                        >
+                          Ver Leads ({getMonitorLeads(mon.id).length})
+                        </button>
+
+                        {/* Botón Editar Monitor */}
+                        <button
+                          type="button"
+                          onClick={() => setEditingMonitor(mon)}
+                          className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                          title="Editar monitor"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+
+                        {/* Botón Eliminar */}
                         <button
                           type="button"
                           onClick={() => {
-                            setLinkingUrlModalMonitor(mon);
-                            setManualLinkedInUrlInput("");
+                            if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
+                              deleteLevel1Monitor(mon.id);
+                            }
                           }}
-                          className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
-                          title="Vincular URL oficial de LinkedIn para activar este monitor"
+                          className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                          title="Eliminar monitor"
                         >
-                          🔗 Vincular URL
+                          <X className="size-3.5" />
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={isScanningId === mon.id}
-                          onClick={() => handleScanMonitor(mon)}
-                          className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                          title="Escanear comentarios de la publicación en LinkedIn"
-                        >
-                          {isScanningId === mon.id ? (
-                            <>
-                              <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                              Escaneando...
-                            </>
-                          ) : (
-                            "Escanear Ahora"
-                          )}
-                        </button>
-                      )}
-
-                      {/* Botón de Ver Leads */}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedMonitorForLeads(mon)}
-                        className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs"
-                      >
-                        Ver Leads ({getMonitorLeads(mon.id).length})
-                      </button>
-
-
-                      {/* Botón Editar Monitor */}
-                      <button
-                        type="button"
-                        onClick={() => setEditingMonitor(mon)}
-                        className="rounded-md border border-gray-200 px-2 py-1 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 text-xs inline-flex items-center justify-center transition"
-                        title="Editar monitor"
-                      >
-                        <Pencil className="size-3.5" />
-                      </button>
-
-                      {/* Botón Eliminar */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
-                            deleteLevel1Monitor(mon.id);
-                          }
-                        }}
-                        className="rounded-md border border-red-200 px-2 py-1 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 text-xs"
-                        title="Eliminar monitor"
-                      >
-                        ✕
-                      </button>
+                      </div>
                     </td>
                   </tr>
 
