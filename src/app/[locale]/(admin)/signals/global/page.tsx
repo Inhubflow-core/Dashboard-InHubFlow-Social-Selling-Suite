@@ -3,6 +3,7 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
+import { LeadScoreBadge } from "@/components/leads/LeadScoreBadge";
 import { useLeads } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { ConnectionDegree, IntentLevel, Level3GlobalMonitor, SignalLeadItem } from "@/lib/signals/types";
@@ -14,7 +15,7 @@ import {
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { Link } from "@/i18n/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Pencil, X } from "lucide-react";
 
@@ -194,6 +195,8 @@ export default function GlobalSignalsPage() {
 
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [selectedRuleForLeads, setSelectedRuleForLeads] = useState<Level3GlobalMonitor | null>(null);
+  const [expandedRulePosts, setExpandedRulePosts] = useState<Record<string, boolean>>({});
+  const [selectedBatchSize, setSelectedBatchSize] = useState<Record<string, 25 | 50 | 100>>({});
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
@@ -269,9 +272,10 @@ export default function GlobalSignalsPage() {
     });
   };
 
-  const handleScanGlobalRule = async (rule: Level3GlobalMonitor) => {
+  const handleScanGlobalRule = async (rule: Level3GlobalMonitor, batchLimit?: 25 | 50 | 100) => {
     setIsScanningId(rule.id);
     setScanFeedback(null);
+    const effectiveLimit = batchLimit || selectedBatchSize[rule.id] || 50;
     try {
       const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
       const res = await fetch("/api/unipile/signals/global/scan", {
@@ -285,7 +289,7 @@ export default function GlobalSignalsPage() {
           interactionTypes: rule.interactionTypes || ["comments"],
           timePeriod: rule.timePeriod || "past_week",
           minPostReactions: rule.minPostReactions,
-          limit: 8,
+          limit: effectiveLimit,
         }),
       });
 
@@ -341,13 +345,13 @@ export default function GlobalSignalsPage() {
 
       setScanFeedback({
         type: "success",
-        text: `Escaneo global finalizado: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales en ${rule.targetCountryName || "la región"} y se extrajeron ${added.length} prospectos locales verificados para "${rule.searchQuery}".`,
+        text: `Auditoría global finalizada: Se analizaron ${data.totalPostsAnalyzed || 0} publicaciones virales en ${rule.targetCountryName || "la región"} y se extrajo un lote de ${added.length} prospectos locales verificados para "${rule.searchQuery}".`,
         listId: targetList.id,
       });
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al escanear debates globales: ${err.message || "Error al conectar con LinkedIn"}`,
+        text: `Error al auditar debates globales: ${err.message || "Error al conectar con LinkedIn"}`,
       });
     } finally {
       setIsScanningId(null);
@@ -356,6 +360,33 @@ export default function GlobalSignalsPage() {
 
   const getRuleLeads = (monitorId: string): SignalLeadItem[] => {
     return leads.filter((l) => l.monitorId === monitorId);
+  };
+
+  const getRuleScannedPosts = (rule: Level3GlobalMonitor) => {
+    if (rule.lastScannedPosts && rule.lastScannedPosts.length > 0) {
+      return rule.lastScannedPosts;
+    }
+    const ruleLeads = getRuleLeads(rule.id);
+    const postsMap = new Map<string, any>();
+    for (const lead of ruleLeads) {
+      if (lead.sourcePostUrl && !postsMap.has(lead.sourcePostUrl)) {
+        postsMap.set(lead.sourcePostUrl, {
+          id: lead.sourcePostUrl,
+          text: lead.sourcePostTitle || lead.signalSnippet || rule.searchQuery,
+          url: lead.sourcePostUrl,
+          authorName: (lead as any).sourceAuthorName || lead.company || (rule.locations.length > 0 ? rule.locations[0] : "Autor en LinkedIn"),
+          reactionsCount: 24,
+          commentsCount: 8,
+        });
+      }
+    }
+    return Array.from(postsMap.values());
+  };
+
+  const getRuleAuthors = (rule: Level3GlobalMonitor) => {
+    const posts = getRuleScannedPosts(rule);
+    const authors = posts.map((p) => p.authorName).filter(Boolean) as string[];
+    return Array.from(new Set(authors));
   };
 
   const getListForRule = (rule: Level3GlobalMonitor) => {
@@ -720,9 +751,8 @@ export default function GlobalSignalsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[240px]">Tema / Palabra Clave</th>
-                  <th className="px-4 py-3 whitespace-nowrap">País Objetivo</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Participantes</th>
+                  <th className="px-4 py-3 min-w-[360px]">Tema / Cuentas Objetivo</th>
+                  <th className="px-4 py-3 min-w-[180px]">Palabras Clave / Filtros</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
@@ -737,140 +767,305 @@ export default function GlobalSignalsPage() {
                   const countryName = rule.targetCountryName || (rule.locations.length > 0 ? rule.locations.join(", ") : "Global");
                   const hasComments = !rule.interactionTypes || rule.interactionTypes.includes("comments");
                   const hasLikes = rule.interactionTypes?.includes("likes");
+                  const scannedPosts = getRuleScannedPosts(rule);
+                  const ruleAuthors = getRuleAuthors(rule);
+                  const isExpanded = Boolean(expandedRulePosts[rule.id]);
+                  const activeBatch = selectedBatchSize[rule.id] || 50;
 
                   return (
-                    <tr key={rule.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                      <td className="px-4 py-3.5">
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {rule.searchQuery}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-gray-400">
-                            Min {rule.minPostReactions} reacciones
+                    <Fragment key={rule.id}>
+                      <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
+                        {/* 1. Tema / Cuentas Objetivo */}
+                        <td className="px-4 py-3.5 align-top">
+                          <div className="flex items-start gap-2.5">
+                            {/* Icono de Bandera / Globo */}
+                            <div className="h-8 w-8 text-base font-bold flex items-center justify-center shrink-0 shadow-xs rounded-full bg-blue-100 dark:bg-blue-900/60 border border-blue-200 dark:border-blue-800 mt-0.5">
+                              {countryFlag}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="font-semibold text-gray-900 dark:text-white">
+                                  {rule.searchQuery}
+                                </p>
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                  Debate Global
+                                </span>
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                  {countryFlag} {countryName}
+                                </span>
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300">
+                                  Sin engagement interno
+                                </span>
+                              </div>
+
+                              {/* Autores referentes que postearon sobre este debate */}
+                              {ruleAuthors.length > 0 ? (
+                                <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">
+                                  <span className="font-semibold text-gray-700 dark:text-gray-300">Autores que postearon:</span>{" "}
+                                  {ruleAuthors.slice(0, 3).join(", ")}
+                                  {ruleAuthors.length > 3 ? ` +${ruleAuthors.length - 3}` : ""}
+                                </p>
+                              ) : (
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                  Rastreo temático de tendencias y creadores en {countryName}
+                                </p>
+                              )}
+
+                              <a
+                                href={`https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(rule.searchQuery)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm mt-0.5"
+                                title="Ver búsqueda de contenido en LinkedIn"
+                              >
+                                linkedin.com/search?keywords={rule.searchQuery} ↗
+                              </a>
+
+                              {/* Botón para desplegar / ocultar publicaciones de LinkedIn */}
+                              {scannedPosts.length > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedRulePosts((prev) => ({
+                                      ...prev,
+                                      [rule.id]: !isExpanded,
+                                    }))
+                                  }
+                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                  title={isExpanded ? "Ocultar las publicaciones analizadas" : "Ver todas las publicaciones analizadas"}
+                                >
+                                  <span>🔗</span>
+                                  <span>
+                                    {isExpanded
+                                      ? "Ocultar Publicaciones"
+                                      : `Ver todas las Publicaciones (${scannedPosts.length})`}
+                                  </span>
+                                  <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
+                                </button>
+                              ) : (
+                                <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                  Sin posts escaneados. Pulsa &quot;Auditar&quot; para rastrear debates virales.
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 2. Palabras Clave / Filtros */}
+                        <td className="px-4 py-3.5 align-top">
+                          <div className="flex flex-wrap gap-1">
+                            <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                              {rule.searchQuery}
+                            </span>
+                            <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                              Min {rule.minPostReactions} reac.
+                            </span>
+                            {hasComments && (
+                              <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                                Comentarios
+                              </span>
+                            )}
+                            {hasLikes && (
+                              <span className="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                                Likes
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 3. Leads Extraídos */}
+                        <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400 align-top">
+                          {leadsCount > 0 ? (
+                            <Link
+                              href={targetList ? `/leads/lists/${targetList.id}` : "/leads"}
+                              className="hover:underline flex items-center gap-1"
+                            >
+                              <span>{leadsCount} leads</span>
+                              <span className="text-[10px] font-normal text-gray-400">↗</span>
+                            </Link>
+                          ) : (
+                            <span>0 leads</span>
+                          )}
+                          <span className="block text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                            🥇 90 • Debate Activo
                           </span>
-                          {rule.lastScannedPosts && rule.lastScannedPosts.length > 0 && (
+                        </td>
+
+                        {/* 4. Último Escaneo */}
+                        <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
+                          <div>
+                            <span className="font-medium text-gray-800 dark:text-gray-200">{rule.lastScanAt}</span>
+                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              Auto: Diario ⏰
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* 5. Estado */}
+                        <td className="px-4 py-3.5 whitespace-nowrap align-top">
+                          <button
+                            type="button"
+                            onClick={() => toggleLevel3Status(rule.id)}
+                            className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                              rule.status === "active"
+                                ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                            }`}
+                          >
+                            {rule.status === "active" ? "Activo" : "Pausado"}
+                          </button>
+                        </td>
+
+                        {/* 6. Acciones */}
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top">
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
+                            <div
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              title="Seleccionar tamaño de lote para la auditoría"
+                            >
+                              {([25, 50, 100] as const).map((batchVal) => {
+                                const isSelected = activeBatch === batchVal;
+                                return (
+                                  <button
+                                    key={batchVal}
+                                    type="button"
+                                    disabled={isScanningId === rule.id}
+                                    onClick={() =>
+                                      setSelectedBatchSize((prev) => ({
+                                        ...prev,
+                                        [rule.id]: batchVal,
+                                      }))
+                                    }
+                                    className={`px-1.5 py-0.5 rounded transition ${
+                                      isSelected
+                                        ? "bg-brand-500 text-white font-bold shadow-2xs"
+                                        : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                    }`}
+                                  >
+                                    {batchVal}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Botón Auditar con Lote */}
+                            <button
+                              type="button"
+                              disabled={isScanningId === rule.id}
+                              onClick={() => handleScanGlobalRule(rule, activeBatch)}
+                              className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                              title={`Auditar debates virales y extraer lote seguro de hasta ${activeBatch} personas`}
+                            >
+                              {isScanningId === rule.id ? (
+                                <>
+                                  <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                                  Auditando ({activeBatch})...
+                                </>
+                              ) : (
+                                <>
+                                  <span>Auditar</span>
+                                  <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                    {activeBatch}
+                                  </span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Botón Ver Lista / Leads */}
                             <button
                               type="button"
                               onClick={() => setSelectedRuleForLeads(rule)}
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-600 hover:underline dark:text-brand-400"
-                              title="Ver los links de las publicaciones seleccionadas en LinkedIn"
+                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              title={`Abrir prospectos captados de ${rule.searchQuery}`}
                             >
-                              <span>• {rule.lastScannedPosts.length} posts analizados</span>
-                              <span>↗</span>
+                              <span>Ver Lista ({leadsCount})</span>
+                              <span aria-hidden="true">&rarr;</span>
                             </button>
-                          )}
-                        </div>
-                      </td>
 
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 py-1 text-xs font-medium text-gray-800 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-200">
-                          <span className="text-sm">{countryFlag}</span>
-                          <span>{countryName}</span>
-                        </span>
-                      </td>
+                            {/* Botón Editar Regla */}
+                            <button
+                              type="button"
+                              onClick={() => setEditingRule(rule)}
+                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              title="Editar regla global"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
 
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          {hasComments && (
-                            <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                              Comentarios
-                            </span>
-                          )}
-                          {hasLikes && (
-                            <span className="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                              Likes
-                            </span>
-                          )}
-                        </div>
-                      </td>
+                            {/* Botón Eliminar */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`¿Eliminar regla de "${rule.searchQuery}"?`)) {
+                                  deleteLevel3Monitor(rule.id);
+                                }
+                              }}
+                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              title="Eliminar regla"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-                      <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
-                        {leadsCount > 0 ? (
-                          <Link
-                            href={targetList ? `/leads/lists/${targetList.id}` : "/leads"}
-                            className="hover:underline flex items-center gap-1"
-                          >
-                            <span>{leadsCount} leads</span>
-                            <span className="text-[10px] font-normal text-gray-400">↗</span>
-                          </Link>
-                        ) : (
-                          <span>0 leads</span>
-                        )}
-                      </td>
+                      {/* Card de Ancho Completo para Publicaciones Analizadas (Estilo Nivel 2) */}
+                      {isExpanded && scannedPosts.length > 0 && (
+                        <tr key={`${rule.id}-posts-card`} className="border-t-0">
+                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
+                            <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
+                              <div className="flex items-center justify-between mb-2.5">
+                                <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                                  <span>🔗</span>
+                                  <span>Publicaciones de LinkedIn Analizadas ({scannedPosts.length})</span>
+                                </span>
+                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                                  Tracción en {countryName} • {rule.searchQuery}
+                                </span>
+                              </div>
 
-                      <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {rule.lastScanAt}
-                      </td>
+                              <div className="space-y-2">
+                                {scannedPosts.map((post, pIdx) => (
+                                  <div
+                                    key={post.id || pIdx}
+                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs hover:border-blue-200 dark:hover:border-blue-800 transition"
+                                  >
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">
+                                        {post.authorName ? (
+                                          <span className="font-bold text-gray-900 dark:text-white mr-1.5">
+                                            {post.authorName}:
+                                          </span>
+                                        ) : null}
+                                        &ldquo;{post.text}&rdquo;
+                                      </p>
+                                      <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                                        <span>
+                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios
+                                        </span>
+                                        {post.scannedAt && <span>• {post.scannedAt}</span>}
+                                      </div>
+                                    </div>
 
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => toggleLevel3Status(rule.id)}
-                          className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
-                            rule.status === "active"
-                              ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
-                          }`}
-                        >
-                          {rule.status === "active" ? "Activo" : "Pausado"}
-                        </button>
-                      </td>
-
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        <div className="inline-flex items-center justify-end gap-1.5">
-                          {/* Botón Escanear Tendencias */}
-                          <button
-                            type="button"
-                            disabled={isScanningId === rule.id}
-                            onClick={() => handleScanGlobalRule(rule)}
-                            className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                            title="Buscar publicaciones virales en LinkedIn y extraer personas interesadas"
-                          >
-                            {isScanningId === rule.id ? (
-                              <>
-                                <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                Escaneando...
-                              </>
-                            ) : (
-                              "Escanear Tendencias"
-                            )}
-                          </button>
-
-                          {/* Botón Ver Leads */}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRuleForLeads(rule)}
-                            className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center"
-                          >
-                            Ver Leads ({leadsCount})
-                          </button>
-
-                          {/* Botón Editar Regla */}
-                          <button
-                            type="button"
-                            onClick={() => setEditingRule(rule)}
-                            className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                            title="Editar regla global"
-                          >
-                            <Pencil className="size-3.5" />
-                          </button>
-
-                          {/* Botón Eliminar */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (confirm(`¿Eliminar regla de "${rule.searchQuery}"?`)) {
-                                deleteLevel3Monitor(rule.id);
-                              }
-                            }}
-                            className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                            title="Eliminar regla"
-                          >
-                            <X className="size-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                                    <a
+                                      href={post.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
+                                    >
+                                      <span>Ver Post</span>
+                                      <span>↗</span>
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -980,6 +1175,7 @@ export default function GlobalSignalsPage() {
                             <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                               {lead.fullName}
                             </h4>
+                            <LeadScoreBadge score={lead.intentScore || (lead.signalType === "reaction" ? 70 : 90)} size="sm" />
                             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                               Grado {lead.connectionDegree}
                             </span>

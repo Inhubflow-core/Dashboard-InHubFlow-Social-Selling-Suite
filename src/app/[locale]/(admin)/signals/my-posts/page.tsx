@@ -14,7 +14,7 @@ import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Pencil, X } from "lucide-react";
 
@@ -32,6 +32,8 @@ export default function MyPostsSignalRadarPage() {
   } = useSignalRadar();
 
   const [editingMonitor, setEditingMonitor] = useState<Level1Monitor | null>(null);
+  const [expandedMonitorsPosts, setExpandedMonitorsPosts] = useState<Record<string, boolean>>({});
+  const [selectedBatchSize, setSelectedBatchSize] = useState<Record<string, 25 | 50 | 100>>({});
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -721,8 +723,8 @@ export default function MyPostsSignalRadarPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[240px]">Publicación / Lead Magnet</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Palabra Clave</th>
+                  <th className="px-4 py-3 min-w-[360px]">Cuenta / Publicación</th>
+                  <th className="px-4 py-3 min-w-[160px]">Palabra Clave</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
@@ -730,134 +732,321 @@ export default function MyPostsSignalRadarPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
-                {l1Monitors.map((mon) => (
-                  <tr key={mon.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
-                    <td className="px-4 py-3.5 max-w-xs">
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">
-                        {mon.postTitle}
-                      </p>
-                      <p className="text-[11px] text-gray-400 truncate">
-                        Adjunto: {mon.attachedPdfName}
-                      </p>
-                      {mon.status === "pending_publish" ? (
-                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                          <span>⏳ Pendiente de Publicación</span>
-                          {mon.scheduledAt && (
-                            <span>• {new Date(mon.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short" })}</span>
+                {l1Monitors.map((mon) => {
+                  const isExpanded = Boolean(expandedMonitorsPosts[mon.id]);
+                  const activeBatch = selectedBatchSize[mon.id] || 50;
+
+                  return (
+                    <Fragment key={mon.id}>
+                      <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
+                        {/* 1. Cuenta / Publicación */}
+                        <td className="px-4 py-3.5 align-top">
+                          <div className="flex items-start gap-2.5">
+                            {/* Avatar de la cuenta propia */}
+                            {activeAccount?.avatarUrl ? (
+                              <img
+                                src={activeAccount.avatarUrl}
+                                alt={currentDisplayName}
+                                className="h-8 w-8 object-cover rounded-full bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = "none";
+                                  const fb = (e.target as HTMLElement).nextElementSibling;
+                                  if (fb) (fb as HTMLElement).style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              style={{ display: activeAccount?.avatarUrl ? "none" : "flex" }}
+                              className="h-8 w-8 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs rounded-full bg-purple-600 mt-0.5"
+                            >
+                              {currentDisplayName.charAt(0).toUpperCase()}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="font-semibold text-gray-900 dark:text-white">
+                                  {currentDisplayName}
+                                </p>
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                  Mi Cuenta
+                                </span>
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                                  Lead Magnet
+                                </span>
+                                {mon.status === "pending_publish" && (
+                                  <span className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300">
+                                    En Espera de Publicar
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-xs text-gray-800 dark:text-gray-200 font-medium truncate mt-0.5" title={mon.postTitle}>
+                                {mon.postTitle}
+                              </p>
+
+                              {mon.postUrl ? (
+                                <a
+                                  href={mon.postUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm"
+                                >
+                                  {mon.postUrl}
+                                </a>
+                              ) : (
+                                <span className="text-[11px] text-gray-400 dark:text-gray-500 italic block">
+                                  Borrador sin enlace oficial de LinkedIn
+                                </span>
+                              )}
+
+                              {/* Botón para desplegar / ocultar publicación monitoreada */}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedMonitorsPosts((prev) => ({
+                                    ...prev,
+                                    [mon.id]: !isExpanded,
+                                  }))
+                                }
+                                className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                title={isExpanded ? "Ocultar la publicación monitoreada" : "Ver detalles de la publicación"}
+                              >
+                                <span>🔗</span>
+                                <span>
+                                  {isExpanded ? "Ocultar Publicación" : "Ver Publicación Monitoreada (1)"}
+                                </span>
+                                <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 2. Palabra Clave */}
+                        <td className="px-4 py-3.5 align-top">
+                          <span className="rounded bg-brand-50 border border-brand-200/60 px-2.5 py-1 font-mono font-bold text-xs text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300 inline-block">
+                            {mon.keyword}
+                          </span>
+                          <span className="block text-[11px] text-gray-400 mt-1 truncate max-w-[160px]" title={mon.attachedPdfName}>
+                            📎 {mon.attachedPdfName}
+                          </span>
+                        </td>
+
+                        {/* 3. Leads Captados */}
+                        <td className="px-4 py-3.5 whitespace-nowrap align-top">
+                          <span className="font-bold text-brand-600 dark:text-brand-400">
+                            {mon.leadsCapturedCount} leads
+                          </span>
+                          <span className="block text-[10px] text-purple-600 dark:text-purple-400 font-semibold mt-0.5">
+                            🔥 100 • Lead Magnet
+                          </span>
+                        </td>
+
+                        {/* 4. Último Escaneo */}
+                        <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
+                          <div>
+                            <span className="font-medium text-gray-800 dark:text-gray-200">{mon.lastScanAt}</span>
+                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              Auto: Cada 5 min ⏰
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* 5. Estado */}
+                        <td className="px-4 py-3.5 whitespace-nowrap align-top">
+                          {mon.status === "pending_publish" ? (
+                            <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-[11px] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                              ⏳ En Espera
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => toggleLevel1Status(mon.id)}
+                              className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                                mon.status === "active"
+                                  ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                              }`}
+                            >
+                              {mon.status === "active" ? "Activo" : "Pausado"}
+                            </button>
                           )}
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-brand-600 dark:text-brand-400 truncate block">
-                          {mon.postUrl}
-                        </span>
-                      )}
-                    </td>
+                        </td>
 
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className="rounded bg-brand-50 px-2.5 py-1 font-mono font-bold text-xs text-brand-600 dark:bg-brand-950 dark:text-brand-300">
-                        {mon.keyword}
-                      </span>
-                    </td>
+                        {/* 6. Acciones */}
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top">
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
+                            <div
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              title="Seleccionar tamaño de lote para la auditoría"
+                            >
+                              {([25, 50, 100] as const).map((batchVal) => {
+                                const isSelected = activeBatch === batchVal;
+                                return (
+                                  <button
+                                    key={batchVal}
+                                    type="button"
+                                    disabled={isScanningId === mon.id}
+                                    onClick={() =>
+                                      setSelectedBatchSize((prev) => ({
+                                        ...prev,
+                                        [mon.id]: batchVal,
+                                      }))
+                                    }
+                                    className={`px-1.5 py-0.5 rounded transition ${
+                                      isSelected
+                                        ? "bg-brand-500 text-white font-bold shadow-2xs"
+                                        : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                    }`}
+                                  >
+                                    {batchVal}
+                                  </button>
+                                );
+                              })}
+                            </div>
 
-                    <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">
-                      {mon.leadsCapturedCount} leads
-                    </td>
-
-                    <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {mon.lastScanAt}
-                    </td>
-
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      {mon.status === "pending_publish" ? (
-                        <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-[11px] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                          ⏳ En Espera
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => toggleLevel1Status(mon.id)}
-                          className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
-                            mon.status === "active"
-                              ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
-                          }`}
-                        >
-                          {mon.status === "active" ? "Activo" : "Pausado"}
-                        </button>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center justify-end gap-1.5">
-                        {/* Botón de Escaneo o Vincular URL si está en espera */}
-                        {mon.status === "pending_publish" ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLinkingUrlModalMonitor(mon);
-                              setManualLinkedInUrlInput("");
-                            }}
-                            className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
-                            title="Vincular URL oficial de LinkedIn para activar este monitor"
-                          >
-                            🔗 Vincular URL
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={isScanningId === mon.id}
-                            onClick={() => handleScanMonitor(mon)}
-                            className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                            title="Escanear comentarios de la publicación en LinkedIn"
-                          >
-                            {isScanningId === mon.id ? (
-                              <>
-                                <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                Escaneando...
-                              </>
+                            {/* Botón de Auditoría / Vincular URL */}
+                            {mon.status === "pending_publish" ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLinkingUrlModalMonitor(mon);
+                                  setManualLinkedInUrlInput("");
+                                }}
+                                className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
+                                title="Vincular URL oficial de LinkedIn para activar este monitor"
+                              >
+                                🔗 Vincular URL
+                              </button>
                             ) : (
-                              "Escanear Ahora"
+                              <button
+                                type="button"
+                                disabled={isScanningId === mon.id}
+                                onClick={() => handleScanMonitor(mon)}
+                                className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                                title={`Escanear comentarios con lote seguro de ${activeBatch}`}
+                              >
+                                {isScanningId === mon.id ? (
+                                  <>
+                                    <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                                    Auditando ({activeBatch})...
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Auditar</span>
+                                    <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                      {activeBatch}
+                                    </span>
+                                  </>
+                                )}
+                              </button>
                             )}
-                          </button>
-                        )}
 
-                        {/* Botón de Ver Leads */}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMonitorForLeads(mon)}
-                          className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center"
-                        >
-                          Ver Leads ({getMonitorLeads(mon.id).length})
-                        </button>
+                            {/* Botón Ver Lista / Leads */}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedMonitorForLeads(mon)}
+                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              title={`Abrir prospectos captados de ${mon.postTitle}`}
+                            >
+                              <span>Ver Lista ({mon.leadsCapturedCount})</span>
+                              <span aria-hidden="true">&rarr;</span>
+                            </button>
 
-                        {/* Botón Editar Monitor */}
-                        <button
-                          type="button"
-                          onClick={() => setEditingMonitor(mon)}
-                          className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                          title="Editar monitor"
-                        >
-                          <Pencil className="size-3.5" />
-                        </button>
+                            {/* Botón Editar Monitor */}
+                            <button
+                              type="button"
+                              onClick={() => setEditingMonitor(mon)}
+                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              title="Editar monitor"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
 
-                        {/* Botón Eliminar */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
-                              deleteLevel1Monitor(mon.id);
-                            }
-                          }}
-                          className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                          title="Eliminar monitor"
-                        >
-                          <X className="size-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                            {/* Botón Eliminar */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
+                                  deleteLevel1Monitor(mon.id);
+                                }
+                              }}
+                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              title="Eliminar monitor"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-                ))}
+                      {/* Card de Ancho Completo para la Publicación Monitoreada (Estilo Nivel 2) */}
+                      {isExpanded && (
+                        <tr key={`${mon.id}-posts-card`} className="border-t-0">
+                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
+                            <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
+                              <div className="flex items-center justify-between mb-2.5">
+                                <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                                  <span>🔗</span>
+                                  <span>Publicación de LinkedIn Monitoreada (Lead Magnet Nivel 1)</span>
+                                </span>
+                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                                  Publicado por {currentDisplayName}
+                                </span>
+                              </div>
+
+                              <div className="text-xs bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs flex items-center justify-between gap-4">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-gray-900 dark:text-white leading-snug">
+                                    <span className="font-bold text-gray-900 dark:text-white mr-1.5">
+                                      {currentDisplayName}:
+                                    </span>
+                                    &ldquo;{mon.postTitle}&rdquo;
+                                  </p>
+                                  <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex-wrap">
+                                    <span className="font-bold text-brand-600">
+                                      Palabra clave: &quot;{mon.keyword}&quot;
+                                    </span>
+                                    <span>•</span>
+                                    <span>Recurso: {mon.attachedPdfName}</span>
+                                    <span>•</span>
+                                    <span>{mon.scannedCommentsCount} comentarios analizados</span>
+                                    <span>•</span>
+                                    <span className="text-emerald-600 font-semibold">{mon.leadsCapturedCount} leads calificados</span>
+                                  </div>
+                                </div>
+
+                                {mon.postUrl ? (
+                                  <a
+                                    href={mon.postUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
+                                  >
+                                    <span>Ver Post</span>
+                                    <span>↗</span>
+                                  </a>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setLinkingUrlModalMonitor(mon);
+                                      setManualLinkedInUrlInput("");
+                                    }}
+                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition shadow-xs"
+                                  >
+                                    <span>Vincular URL</span>
+                                    <span>🔗</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>

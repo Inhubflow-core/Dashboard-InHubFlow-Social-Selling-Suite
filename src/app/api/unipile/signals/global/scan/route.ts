@@ -69,8 +69,10 @@ export async function POST(req: NextRequest) {
       interactionTypes = ["comments"],
       timePeriod = "past_week",
       minPostReactions = 10,
-      limit = 8,
+      limit = 50,
     } = body;
+
+    const effectiveLimit = Math.max(1, Math.min(100, Number(limit) || 50));
 
     if (!searchQuery || typeof searchQuery !== "string" || !searchQuery.trim()) {
       return NextResponse.json(
@@ -297,6 +299,7 @@ export async function POST(req: NextRequest) {
     }
 
     for (const item of interactions) {
+      if (leadMap.size >= effectiveLimit) break;
       const post = item.post;
       const postAuthorName = typeof post.author === "string" ? post.author : post.author?.name || "";
       const postAuthorCompany = post.author?.headline || "";
@@ -307,6 +310,7 @@ export async function POST(req: NextRequest) {
 
       // A. Procesar comentaristas (Intención Alta / Debate Activo)
       for (const comment of item.comments) {
+        if (leadMap.size >= effectiveLimit) break;
         const rawAuthor: any = comment.author;
         const authorDetails: any = (comment as any).author_details || {};
         const authorObj: any = typeof rawAuthor === "object" && rawAuthor !== null ? rawAuthor : {};
@@ -404,9 +408,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // B. Procesar reacciones si faltan leads
-      if (leadMap.size < 20) {
+      // B. Procesar reacciones si faltan leads y el usuario lo solicitó
+      if (trackLikes && leadMap.size < effectiveLimit) {
         for (const reaction of item.reactions) {
+          if (leadMap.size >= effectiveLimit) break;
           const author = reaction.author;
           if (!author?.id || leadMap.has(author.id)) continue;
 
