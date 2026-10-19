@@ -12,6 +12,7 @@ import { getPlanConfig, getMaxTeamInvitationsAllowed } from "./plans";
 
 const USERS_STORAGE_KEY = "inhubflow_saas_users";
 const CURRENT_USER_ID_KEY = "inhubflow_current_user_id";
+const SESSION_USER_ID_KEY = "inhubflow_session_user_id";
 const TEAM_MEMBERS_KEY = "inhubflow_team_members";
 const TEAM_INVITATIONS_KEY = "inhubflow_team_invitations";
 
@@ -203,6 +204,47 @@ export function saveStoredUsers(users: SaaSUser[]): void {
   }
 }
 
+export function getSessionUserId(): string {
+  if (typeof window === "undefined") return initialSaaSUsers[0].id;
+  try {
+    const saved = localStorage.getItem(SESSION_USER_ID_KEY) || localStorage.getItem("inhubflow_master_user_id");
+    const fakeIds = new Set([
+      "usr-client-starter-02",
+      "usr-client-growth-03",
+      "usr-client-business-04",
+      "usr-team-sofia-05",
+      "usr-team-javier-06",
+      "usr-client-linn-02",
+    ]);
+    if (!saved || fakeIds.has(saved)) {
+      const defaultId = initialSaaSUsers[0].id; // SuperAdmin
+      localStorage.setItem(SESSION_USER_ID_KEY, defaultId);
+      return defaultId;
+    }
+    return saved;
+  } catch {
+    return initialSaaSUsers[0].id;
+  }
+}
+
+export function setSessionUserId(userId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SESSION_USER_ID_KEY, userId);
+    notifyListeners();
+  } catch {
+    // ignore
+  }
+}
+
+export function getSessionUser(): SaaSUser {
+  const users = getStoredUsers();
+  const sessionUserId = getSessionUserId();
+  const found = users.find((u) => u.id === sessionUserId);
+  if (found) return found;
+  return users[0] || initialSaaSUsers[0];
+}
+
 export function getCurrentUserId(): string {
   if (typeof window === "undefined") return initialSaaSUsers[0].id;
   try {
@@ -216,13 +258,13 @@ export function getCurrentUserId(): string {
       "usr-client-linn-02",
     ]);
     if (!saved || fakeIds.has(saved)) {
-      const defaultId = initialSaaSUsers[0].id; // SuperAdmin
+      const defaultId = getSessionUserId();
       localStorage.setItem(CURRENT_USER_ID_KEY, defaultId);
       return defaultId;
     }
     return saved;
   } catch {
-    return initialSaaSUsers[0].id;
+    return getSessionUserId();
   }
 }
 
@@ -664,7 +706,7 @@ export function createTeamInvitation(data: {
  */
 export function getSwitchableAccountsForUser(
   currentUser: SaaSUser,
-  masterUserId?: string | null
+  sessionContext?: SaaSUser | string | null
 ): SwitchableAccountItem[] {
   const users = getStoredUsers();
   const superAdminUser =
@@ -674,21 +716,29 @@ export function getSwitchableAccountsForUser(
         u.email.toLowerCase() === "inhubflow@gmail.com"
     ) || users[0];
 
-  const isMasterSession =
-    Boolean(masterUserId && masterUserId === superAdminUser.id) ||
-    currentUser.role === "super_admin" ||
-    currentUser.email.toLowerCase() === "inhubflow@gmail.com";
+  // Determinar la sesión titular autenticada
+  let sessionUser: SaaSUser;
+  if (sessionContext && typeof sessionContext === "object" && "id" in sessionContext) {
+    sessionUser = sessionContext;
+  } else if (typeof sessionContext === "string" && sessionContext) {
+    sessionUser = getUserById(sessionContext) || getSessionUser();
+  } else {
+    sessionUser = getSessionUser();
+  }
 
-  const isBrowsingAsAnother = isMasterSession && currentUser.id !== superAdminUser.id;
+  const isBrowsingAsAnother = currentUser.id !== sessionUser.id;
 
-  // 1. CASO SUPER ADMIN NAVEGANDO COMO MASTER:
+  // 1. CASO SESIÓN TITULAR ES SUPER ADMIN:
   if (
-    currentUser.role === "super_admin" ||
-    (!isBrowsingAsAnother && currentUser.email.toLowerCase() === "inhubflow@gmail.com")
+    sessionUser.role === "super_admin" ||
+    sessionUser.email.toLowerCase() === "inhubflow@gmail.com"
   ) {
-    const masterItem: SwitchableAccountItem = {
+    const list: SwitchableAccountItem[] = [];
+
+    // Cuenta Master Super Admin
+    list.push({
       id: superAdminUser.id,
-      name: superAdminUser.name,
+      name: isBrowsingAsAnother ? `Volver a ${superAdminUser.name} (Super Admin)` : superAdminUser.name,
       email: superAdminUser.email,
       role: superAdminUser.role,
       companyName: superAdminUser.companyName,
@@ -696,10 +746,12 @@ export function getSwitchableAccountsForUser(
       slotsLimit: superAdminUser.slotsLimit,
       avatarUrl: superAdminUser.avatarUrl,
       badgeLabel: "Super Admin",
-      subtitle: "Master • Acceso Total",
-      isCurrent: true,
-    };
+      subtitle: isBrowsingAsAnother ? "Salir de modo auditoría" : "Master • Acceso Total",
+      isCurrent: currentUser.id === superAdminUser.id,
+      isMasterReturn: isBrowsingAsAnother,
+    });
 
+    // Suscriptores que compraron planes (client_admin)
     const subscribers: SwitchableAccountItem[] = users
       .filter((u) => u.role === "client_admin" && u.id !== superAdminUser.id)
       .map((u) => {
@@ -715,53 +767,39 @@ export function getSwitchableAccountsForUser(
           avatarUrl: u.avatarUrl,
           badgeLabel: `${uPlan.name} (${u.slotsLimit} Slots)`,
           subtitle: u.companyName || u.email,
-          isCurrent: false,
+          isCurrent: currentUser.id === u.id,
         };
       });
 
-    return [masterItem, ...subscribers];
+    list.push(...subscribers);
+    return list;
   }
 
-  // 2. CASO CLIENT ADMIN (o Super Admin navegando como Client Admin):
-  if (currentUser.role === "client_admin") {
+  // 2. CASO SESIÓN TITULAR ES CLIENT ADMIN (ej. Roberto OrSe Agencia):
+  if (sessionUser.role === "client_admin") {
     const list: SwitchableAccountItem[] = [];
-
-    // Botón para regresar a Super Admin si está en modo auditoría
-    if (isBrowsingAsAnother) {
-      list.push({
-        id: superAdminUser.id,
-        name: `Volver a ${superAdminUser.name} (Super Admin)`,
-        email: superAdminUser.email,
-        role: "super_admin",
-        planTier: "custom",
-        slotsLimit: 999,
-        badgeLabel: "Super Admin",
-        subtitle: "Salir de modo auditoría",
-        isCurrent: false,
-        isMasterReturn: true,
-      });
-    }
+    const totalSlots = Math.max(1, sessionUser.slotsLimit || 1);
 
     // Slot 1: Admin Principal
-    const totalSlots = Math.max(1, currentUser.slotsLimit || 1);
     list.push({
-      id: currentUser.id,
-      name: currentUser.name,
-      email: currentUser.email,
-      role: currentUser.role,
-      companyName: currentUser.companyName,
-      planTier: currentUser.planTier,
-      slotsLimit: currentUser.slotsLimit,
-      avatarUrl: currentUser.avatarUrl,
+      id: sessionUser.id,
+      name: isBrowsingAsAnother ? `Volver a ${sessionUser.name}` : sessionUser.name,
+      email: sessionUser.email,
+      role: sessionUser.role,
+      companyName: sessionUser.companyName,
+      planTier: sessionUser.planTier,
+      slotsLimit: sessionUser.slotsLimit,
+      avatarUrl: sessionUser.avatarUrl,
       badgeLabel: `Admin Principal (Slot 1/${totalSlots})`,
-      subtitle: currentUser.companyName || "Workspace Admin",
-      isCurrent: true,
+      subtitle: isBrowsingAsAnother ? "Salir de emulación de equipo" : sessionUser.companyName || "Workspace Admin",
+      isCurrent: currentUser.id === sessionUser.id,
+      isMasterReturn: isBrowsingAsAnother,
     });
 
     // Slots de colaboradores de su propio equipo
-    const teamUsers = users.filter((u) => u.ownerId === currentUser.id);
-    const teamMembers = getStoredTeamMembers(currentUser.id);
-    const seenEmails = new Set<string>([currentUser.email.toLowerCase()]);
+    const teamUsers = users.filter((u) => u.ownerId === sessionUser.id);
+    const teamMembers = getStoredTeamMembers(sessionUser.id);
+    const seenEmails = new Set<string>([sessionUser.email.toLowerCase()]);
     let slotNum = 2;
 
     for (const tu of teamUsers) {
@@ -778,7 +816,7 @@ export function getSwitchableAccountsForUser(
           avatarUrl: tu.avatarUrl,
           badgeLabel: `Operador SDR (Slot ${slotNum}/${totalSlots})`,
           subtitle: tu.email,
-          isCurrent: false,
+          isCurrent: currentUser.id === tu.id,
         });
         slotNum++;
       }
@@ -792,12 +830,12 @@ export function getSwitchableAccountsForUser(
           name: tm.name,
           email: tm.email,
           role: "member",
-          companyName: currentUser.companyName,
-          planTier: currentUser.planTier,
+          companyName: sessionUser.companyName,
+          planTier: sessionUser.planTier,
           slotsLimit: 1,
           badgeLabel: `Operador SDR (Slot ${slotNum}/${totalSlots})`,
           subtitle: tm.accountName || tm.email,
-          isCurrent: false,
+          isCurrent: currentUser.id === tm.id,
         });
         slotNum++;
       }
@@ -806,37 +844,21 @@ export function getSwitchableAccountsForUser(
     return list;
   }
 
-  // 3. CASO MEMBER / OPERADOR SDR:
-  const list: SwitchableAccountItem[] = [];
-  if (isBrowsingAsAnother) {
-    list.push({
-      id: superAdminUser.id,
-      name: `Volver a ${superAdminUser.name} (Super Admin)`,
-      email: superAdminUser.email,
-      role: "super_admin",
-      planTier: "custom",
-      slotsLimit: 999,
-      badgeLabel: "Super Admin",
-      subtitle: "Salir de modo auditoría",
-      isCurrent: false,
-      isMasterReturn: true,
-    });
-  }
-
-  list.push({
-    id: currentUser.id,
-    name: currentUser.name,
-    email: currentUser.email,
-    role: currentUser.role,
-    companyName: currentUser.companyName,
-    planTier: currentUser.planTier,
-    slotsLimit: 1,
-    avatarUrl: currentUser.avatarUrl,
-    badgeLabel: "Slot Asignado",
-    subtitle: currentUser.companyName || "Operador de Equipo",
-    isCurrent: true,
-  });
-
-  return list;
+  // 3. CASO SESIÓN TITULAR ES MEMBER / OPERADOR SDR:
+  return [
+    {
+      id: sessionUser.id,
+      name: sessionUser.name,
+      email: sessionUser.email,
+      role: sessionUser.role,
+      companyName: sessionUser.companyName,
+      planTier: sessionUser.planTier,
+      slotsLimit: 1,
+      avatarUrl: sessionUser.avatarUrl,
+      badgeLabel: "Slot Asignado",
+      subtitle: sessionUser.companyName || "Operador de Equipo",
+      isCurrent: true,
+    },
+  ];
 }
 

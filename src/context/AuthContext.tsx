@@ -5,6 +5,8 @@ import type { SaaSUser, UserCapacity, PlanTier, SwitchableAccountItem } from "@/
 import {
   getCurrentUser,
   setCurrentUserId,
+  getSessionUser,
+  setSessionUserId,
   getUserCapacity,
   getStoredUsers,
   updateSubscriber,
@@ -17,6 +19,8 @@ import { getActiveAccountForUser, setActiveAccountId } from "@/lib/unipile/store
 
 interface AuthContextType {
   currentUser: SaaSUser;
+  sessionUser: SaaSUser;
+  isImpersonating: boolean;
   isSuperAdmin: boolean;
   isClientAdmin: boolean;
   capacity: UserCapacity;
@@ -24,6 +28,8 @@ interface AuthContextType {
   switchableUsers: SwitchableAccountItem[];
   canConnectAccount: boolean;
   switchUser: (userId: string) => void;
+  resetToSessionUser: () => void;
+  switchSessionUser: (userId: string) => void;
   updateUserPlan: (planTier: PlanTier, customSlots?: number) => void;
   refreshUserData: () => void;
 }
@@ -31,19 +37,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [sessionUser, setSessionUser] = useState<SaaSUser>(() => getSessionUser());
   const [currentUser, setUser] = useState<SaaSUser>(() => getCurrentUser());
   const [allUsers, setAllUsers] = useState<SaaSUser[]>(() => getStoredUsers());
   const [capacity, setCapacity] = useState<UserCapacity>(() => getUserCapacity());
-  const [masterUserId, setMasterUserId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return "usr-super-admin-01";
-    return localStorage.getItem("inhubflow_master_user_id") || "usr-super-admin-01";
-  });
 
   const syncState = () => {
-    const user = getCurrentUser();
-    setUser(user);
+    const sUser = getSessionUser();
+    const cUser = getCurrentUser();
+    setSessionUser(sUser);
+    setUser(cUser);
     setAllUsers(getStoredUsers());
-    setCapacity(getUserCapacity(user.id));
+    setCapacity(getUserCapacity(cUser.id));
   };
 
   useEffect(() => {
@@ -52,43 +57,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const isImpersonating = useMemo(() => {
+    return currentUser.id !== sessionUser.id;
+  }, [currentUser, sessionUser]);
+
   const isSuperAdmin = useMemo(() => {
     return (
-      currentUser.role === "super_admin" ||
-      currentUser.email.trim().toLowerCase() === "inhubflow@gmail.com"
+      sessionUser.role === "super_admin" ||
+      sessionUser.email.trim().toLowerCase() === "inhubflow@gmail.com" ||
+      currentUser.role === "super_admin"
     );
-  }, [currentUser]);
+  }, [sessionUser, currentUser]);
 
   const isClientAdmin = useMemo(() => {
-    return currentUser.role === "client_admin" || isSuperAdmin;
-  }, [currentUser, isSuperAdmin]);
+    return sessionUser.role === "client_admin" || isSuperAdmin;
+  }, [sessionUser, isSuperAdmin]);
 
   const canConnectAccount = useMemo(() => {
     return canAddAccountForUser(currentUser.id);
   }, [currentUser, capacity]);
 
   const switchableUsers = useMemo(() => {
-    return getSwitchableAccountsForUser(currentUser, masterUserId);
-  }, [currentUser, masterUserId, allUsers]);
+    return getSwitchableAccountsForUser(currentUser, sessionUser);
+  }, [currentUser, sessionUser, allUsers]);
 
   const switchUser = (userId: string) => {
-    const isCurrentlyMaster =
-      currentUser.role === "super_admin" ||
-      currentUser.email.trim().toLowerCase() === "inhubflow@gmail.com";
-
-    if (isCurrentlyMaster && userId !== currentUser.id) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("inhubflow_master_user_id", currentUser.id);
-      }
-      setMasterUserId(currentUser.id);
-    } else if (userId === "usr-super-admin-01" || userId === masterUserId) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("inhubflow_master_user_id");
-      }
-      setMasterUserId(null);
-    }
     setCurrentUserId(userId);
     const targetUser = getStoredUsers().find((u) => u.id === userId);
+    if (targetUser) {
+      const targetAcc = getActiveAccountForUser(targetUser);
+      if (targetAcc) {
+        setActiveAccountId(targetAcc.id);
+      }
+    }
+  };
+
+  const resetToSessionUser = () => {
+    switchUser(sessionUser.id);
+  };
+
+  const switchSessionUser = (newSessionUserId: string) => {
+    setSessionUserId(newSessionUserId);
+    setCurrentUserId(newSessionUserId);
+    const targetUser = getStoredUsers().find((u) => u.id === newSessionUserId);
     if (targetUser) {
       const targetAcc = getActiveAccountForUser(targetUser);
       if (targetAcc) {
@@ -110,6 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         currentUser,
+        sessionUser,
+        isImpersonating,
         isSuperAdmin,
         isClientAdmin,
         capacity,
@@ -117,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchableUsers,
         canConnectAccount,
         switchUser,
+        resetToSessionUser,
+        switchSessionUser,
         updateUserPlan,
         refreshUserData: syncState,
       }}
@@ -133,3 +148,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

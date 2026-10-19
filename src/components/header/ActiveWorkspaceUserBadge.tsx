@@ -79,10 +79,10 @@ export default function ActiveWorkspaceUserBadge() {
     : "text-gray-400 font-medium";
 
   const tooltipText = isHealthy
-    ? `Navegando como: ${currentUser.name} (LinkedIn Conectado y Activo)`
+    ? `Estás conectado como: ${currentUser.name} (LinkedIn Conectado y Activo)`
     : needsAttention
-    ? `Atención requerida: La cuenta de LinkedIn (${activeLinkedInAccount?.name}) requiere reconexión`
-    : `Navegando como: ${currentUser.name} (${subtitleText})`;
+    ? `Estás conectado como: ${currentUser.name} (Atención: Reconexión de LinkedIn requerida)`
+    : `Estás conectado como: ${currentUser.name} (${subtitleText})`;
 
   return (
     <Link
@@ -95,13 +95,13 @@ export default function ActiveWorkspaceUserBadge() {
       title={tooltipText}
     >
       <div className="relative shrink-0">
-        <div className="size-8 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-200 overflow-hidden shadow-xs">
+        <div className="size-8.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-200 overflow-hidden shadow-xs">
           {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
             <Image
               src={currentUser.avatarUrl}
               alt={currentUser.name}
-              width={32}
-              height={32}
+              width={34}
+              height={34}
               className="size-full object-cover"
             />
           ) : (
@@ -114,11 +114,14 @@ export default function ActiveWorkspaceUserBadge() {
       </div>
 
       <div className="flex flex-col text-left leading-tight min-w-0">
+        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+          Estás conectado como:
+        </span>
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-bold text-gray-900 dark:text-gray-100 max-w-[130px] xl:max-w-[170px] truncate">
             {currentUser.name}
           </span>
-          {isSuperAdmin && (
+          {currentUser.role === "super_admin" && (
             <span title="Super Admin Master" className="inline-flex">
               <ShieldCheck className="size-3 text-[#0099ff] shrink-0" />
             </span>

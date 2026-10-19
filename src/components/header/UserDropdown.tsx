@@ -17,14 +17,27 @@ import {
   Check,
   LogOut,
   Building,
+  UserCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("userDropdown");
 
-  const { currentUser, isSuperAdmin, capacity, switchableUsers, switchUser } = useAuth();
-  const plan = getPlanConfig(currentUser.planTier);
+  const {
+    sessionUser,
+    currentUser,
+    isImpersonating,
+    isSuperAdmin,
+    capacity,
+    switchableUsers,
+    switchUser,
+    resetToSessionUser,
+    switchSessionUser,
+  } = useAuth();
+
+  const plan = getPlanConfig(sessionUser.planTier);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -39,32 +52,43 @@ export default function UserDropdown() {
     closeDropdown();
   };
 
+  const handleResetToSession = () => {
+    resetToSessionUser();
+    closeDropdown();
+  };
+
+  const handleSwitchSession = (newSessionId: string) => {
+    switchSessionUser(newSessionId);
+    closeDropdown();
+  };
+
   return (
     <div className="relative">
       <button
         onClick={toggleDropdown}
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
+        title={`Cuenta Titular Logada: ${sessionUser.name}`}
       >
         <span className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
-          {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
+          {sessionUser.avatarUrl && sessionUser.avatarUrl.includes("owner") ? (
             <Image
               width={40}
               height={40}
-              src={currentUser.avatarUrl}
-              alt={currentUser.name}
+              src={sessionUser.avatarUrl}
+              alt={sessionUser.name}
               className="h-full w-full object-cover"
             />
           ) : (
-            <span>{currentUser.name.charAt(0).toUpperCase()}</span>
+            <span>{sessionUser.name.charAt(0).toUpperCase()}</span>
           )}
         </span>
 
         <div className="hidden text-left xl:block me-2">
           <span className="block text-theme-xs font-bold text-gray-900 dark:text-white">
-            {currentUser.name}
+            {sessionUser.name}
           </span>
           <span className="block text-[10px] text-gray-500 dark:text-gray-400">
-            {isSuperAdmin ? t("superAdmin") : plan.name}
+            {isSuperAdmin && sessionUser.role === "super_admin" ? t("superAdmin") : plan.name}
           </span>
         </div>
 
@@ -78,38 +102,38 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute mt-4.25 flex w-76 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute mt-4.25 flex w-80 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
       >
-        {/* Cabecera del usuario actual */}
+        {/* Cabecera de la cuenta titular logada */}
         <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
-              {currentUser.avatarUrl && currentUser.avatarUrl.includes("owner") ? (
+              {sessionUser.avatarUrl && sessionUser.avatarUrl.includes("owner") ? (
                 <Image
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
+                  src={sessionUser.avatarUrl}
+                  alt={sessionUser.name}
                   width={40}
                   height={40}
                   className="size-full rounded-xl object-cover"
                 />
               ) : (
-                <span>{currentUser.name.charAt(0).toUpperCase()}</span>
+                <span>{sessionUser.name.charAt(0).toUpperCase()}</span>
               )}
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">
-                {currentUser.name}
+                {sessionUser.name}
               </span>
               <span className="block truncate text-[11px] text-gray-500 dark:text-gray-400">
-                {currentUser.email}
+                {sessionUser.email}
               </span>
             </div>
           </div>
 
-          {/* Badge del Rol y Capacidad */}
+          {/* Badge del Rol y Capacidad de la cuenta titular */}
           <div className="mt-2.5 flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800/60">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-              {isSuperAdmin ? (
+              {sessionUser.role === "super_admin" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-[#0099ff]" />
                   <span>{t("superAdmin")}</span>
@@ -117,19 +141,43 @@ export default function UserDropdown() {
               ) : (
                 <>
                   <Building className="size-3.5 text-[#0099ff]" />
-                  <span className="truncate max-w-[130px]">{currentUser.companyName}</span>
+                  <span className="truncate max-w-[130px]">{sessionUser.companyName}</span>
                 </>
               )}
             </div>
             <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-[10px] font-bold text-[#0099ff]">
-              {isSuperAdmin ? t("unlimitedSlots") : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}
+              {sessionUser.role === "super_admin"
+                ? t("unlimitedSlots")
+                : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}
             </span>
           </div>
+
+          {/* Banner de Impersonación: Cuando navega como otro usuario */}
+          {isImpersonating && (
+            <div className="mt-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 dark:bg-amber-500/15">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    Estás conectado como:
+                  </span>
+                  <span className="block text-xs font-bold text-gray-900 dark:text-white truncate">
+                    {currentUser.name}
+                  </span>
+                </div>
+                <button
+                  onClick={handleResetToSession}
+                  className="shrink-0 rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs hover:bg-amber-600 transition"
+                >
+                  Volver a mi cuenta
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Enlaces Rápidos del SaaS */}
         <ul className="flex flex-col gap-1 border-b border-gray-100 py-2.5 dark:border-gray-800">
-          {isSuperAdmin && (
+          {sessionUser.role === "super_admin" && (
             <li>
               <DropdownItem
                 onItemClick={closeDropdown}
@@ -180,18 +228,18 @@ export default function UserDropdown() {
           </li>
         </ul>
 
-        {/* Selector de Cuentas / Workspace */}
+        {/* Conmutación de Usuarios (Navegar como) */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
           <div className="flex items-center justify-between px-2.5 mb-1.5">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-              {isSuperAdmin
-                ? "Conmutar Suscriptores"
-                : currentUser.role === "client_admin"
+              {sessionUser.role === "super_admin"
+                ? "Navegar como Suscriptor"
+                : sessionUser.role === "client_admin"
                 ? `Slots de mi Equipo (${capacity.usedSlots}/${capacity.totalSlots})`
                 : "Mi Slot Asignado"}
             </span>
             <span className="text-[9px] font-semibold text-[#0099ff] bg-[#0099ff]/10 px-1.5 py-0.5 rounded">
-              {isSuperAdmin ? "Planes SaaS" : `${capacity.totalSlots} Slots`}
+              {sessionUser.role === "super_admin" ? "SaaS Multi-Tenant" : `${capacity.totalSlots} Slots`}
             </span>
           </div>
 
@@ -199,7 +247,7 @@ export default function UserDropdown() {
             {switchableUsers.map((item) => {
               const isSelected = item.isCurrent;
 
-              if (item.isMasterReturn) {
+              if (item.isMasterReturn && isImpersonating) {
                 return (
                   <button
                     key={item.id}
@@ -240,6 +288,29 @@ export default function UserDropdown() {
               );
             })}
           </div>
+        </div>
+
+        {/* Alternar Cuenta Titular Logada (SuperAdmin <-> Roberto OrSe Agencia) */}
+        <div className="border-b border-gray-100 py-2 dark:border-gray-800">
+          {sessionUser.role === "super_admin" ? (
+            <button
+              onClick={() => handleSwitchSession("usr-client-roberto-agencia")}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+              title="Cambiar sesión principal para operar directamente como Admin"
+            >
+              <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
+              <span>Iniciar sesión titular como: Roberto OrSe Agencia (Admin)</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => handleSwitchSession("usr-super-admin-01")}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+              title="Volver a iniciar sesión titular como Super Admin"
+            >
+              <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
+              <span>Iniciar sesión titular como: SuperAdmin</span>
+            </button>
+          )}
         </div>
 
         <Link
