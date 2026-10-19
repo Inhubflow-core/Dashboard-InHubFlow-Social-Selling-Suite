@@ -37,6 +37,8 @@ export default function CompetitorsSignalRadarPage() {
 
   const [editingMonitor, setEditingMonitor] = useState<Level2CompetitorMonitor | null>(null);
   const [expandedCompetitorPosts, setExpandedCompetitorPosts] = useState<Record<string, boolean>>({});
+  const [batchLeadLimit, setBatchLeadLimit] = useState<25 | 50 | 100>(50);
+  const [selectedBatchSize, setSelectedBatchSize] = useState<Record<string, 25 | 50 | 100>>({});
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -298,6 +300,7 @@ export default function CompetitorsSignalRadarPage() {
       status: "active",
       interactionTypes: interactions.length > 0 ? interactions : ["comments"],
       excludeAuthorEmployees,
+      batchLeadLimit,
       outreachTemplate,
       leadsIdentifiedCount: 0,
       lastScanAt: "Recien configurado",
@@ -325,7 +328,12 @@ export default function CompetitorsSignalRadarPage() {
     });
   };
 
-  const handleScanCompetitor = async (comp: Level2CompetitorMonitor, isSilent = false) => {
+  const handleScanCompetitor = async (
+    comp: Level2CompetitorMonitor,
+    isSilent = false,
+    overrideBatchLimit?: number
+  ) => {
+    const effectiveBatchLimit = overrideBatchLimit || selectedBatchSize[comp.id] || comp.batchLeadLimit || 50;
     if (!isSilent) {
       setIsScanningId(comp.id);
       setScanFeedback(null);
@@ -343,6 +351,7 @@ export default function CompetitorsSignalRadarPage() {
           keywordsFilter: comp.keywordsFilter,
           excludeAuthorEmployees: comp.excludeAuthorEmployees !== false,
           limit: 10,
+          batchLimit: effectiveBatchLimit,
         }),
       });
       const data = await response.json();
@@ -394,11 +403,12 @@ export default function CompetitorsSignalRadarPage() {
         lastScanAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         lastScanAtIso: new Date().toISOString(),
         lastScannedPosts: scannedPosts,
+        batchLeadLimit: effectiveBatchLimit as 25 | 50 | 100,
       });
       if (!isSilent) {
         setScanFeedback({
           type: "success",
-          text: `Auditoría completada para ${comp.competitorName}: ${added.length} interacciones encontradas e incorporadas automáticamente a la lista "${targetList.name}" (${importRes.addedCount} nuevos leads añadidos)${
+          text: `Auditoría completada para ${comp.competitorName}: lote seguro de ${data.leadsExtractedCount || added.length} perfiles procesado (tope: ${effectiveBatchLimit}) e incorporado a la lista "${targetList.name}" (${importRes.addedCount} nuevos leads añadidos)${
             data.excludedEmployeesCount ? ` [${data.excludedEmployeesCount} colaboradores internos excluidos]` : ""
           }.`,
           listId: targetList.id,
@@ -870,6 +880,55 @@ export default function CompetitorsSignalRadarPage() {
               </label>
             </div>
 
+            {/* Control de Lote de Absorción Anti-Bloqueo */}
+            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                    🛡️ Lote de Absorción por Auditoría (Protección Anti-Bloqueo)
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
+                  Seguridad LinkedIn
+                </span>
+              </div>
+              <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80 mb-3">
+                Para evitar alertas de scraping en tu cuenta de LinkedIn, el sistema monitorea hasta 10 publicaciones pero absorbe los leads en bloques controlados priorizando comentarios sobre likes.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
+                  { value: 50, label: "50 perfiles", tag: "Recomendado", recommended: true },
+                  { value: 100, label: "100 perfiles", tag: "Intensivo" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setBatchLeadLimit(opt.value as 25 | 50 | 100)}
+                    className={`p-2.5 rounded-lg border text-left transition ${
+                      batchLeadLimit === opt.value
+                        ? "border-brand-500 bg-white dark:bg-gray-900 ring-2 ring-brand-500/20 shadow-xs"
+                        : "border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/50 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-900 dark:text-white">
+                        {opt.label}
+                      </span>
+                      {opt.recommended && (
+                        <span className="text-[9px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 rounded">
+                          Óptimo
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      {opt.tag}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                 Plantilla de Secuencia Relacional Contextual
@@ -1159,24 +1218,65 @@ export default function CompetitorsSignalRadarPage() {
                         </td>
 
                         <td className="px-4 py-3.5 text-right whitespace-nowrap align-top">
-                          <div className="inline-flex items-center justify-end gap-1.5">
-                            {/* Botón de Auditoría en Vivo */}
-                            <button
-                              type="button"
-                              disabled={isScanningId === comp.id}
-                              onClick={() => handleScanCompetitor(comp)}
-                              className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1"
-                              title="Auditar publicaciones recientes y extraer decisores"
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
+                            <div
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              title="Seleccionar tamaño de lote para la próxima auditoría"
                             >
-                              {isScanningId === comp.id ? (
-                                <>
-                                  <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                  Auditando...
-                                </>
-                              ) : (
-                                "Auditar Ahora"
-                              )}
-                            </button>
+                              {([25, 50, 100] as const).map((batchVal) => {
+                                const currentBatch = selectedBatchSize[comp.id] || comp.batchLeadLimit || 50;
+                                const isSelected = currentBatch === batchVal;
+                                return (
+                                  <button
+                                    key={batchVal}
+                                    type="button"
+                                    disabled={isScanningId === comp.id}
+                                    onClick={() =>
+                                      setSelectedBatchSize((prev) => ({
+                                        ...prev,
+                                        [comp.id]: batchVal,
+                                      }))
+                                    }
+                                    className={`px-1.5 py-0.5 rounded transition ${
+                                      isSelected
+                                        ? "bg-brand-500 text-white font-bold shadow-2xs"
+                                        : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                    }`}
+                                  >
+                                    {batchVal}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Botón de Auditoría en Vivo con Lote Activo */}
+                            {(() => {
+                              const activeBatch = selectedBatchSize[comp.id] || comp.batchLeadLimit || 50;
+                              return (
+                                <button
+                                  type="button"
+                                  disabled={isScanningId === comp.id}
+                                  onClick={() => handleScanCompetitor(comp, false, activeBatch)}
+                                  className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                                  title={`Auditar publicaciones y extraer lote seguro de hasta ${activeBatch} decisores`}
+                                >
+                                  {isScanningId === comp.id ? (
+                                    <>
+                                      <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                                      Auditando ({activeBatch})...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>Auditar</span>
+                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                        {activeBatch}
+                                      </span>
+                                    </>
+                                  )}
+                                </button>
+                              );
+                            })()}
 
                             {/* Botón Ver Lista Directa */}
                             <Link
@@ -1445,6 +1545,33 @@ export default function CompetitorsSignalRadarPage() {
                   En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.
                 </p>
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Lote de Absorción por Auditoría (Protección Anti-Bloqueo)
+                </label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {([25, 50, 100] as const).map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() =>
+                        setEditingMonitor({ ...editingMonitor, batchLeadLimit: val })
+                      }
+                      className={`py-1.5 px-3 rounded-lg border text-xs font-semibold transition ${
+                        (editingMonitor.batchLeadLimit || 50) === val
+                          ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 ring-1 ring-brand-500"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300"
+                      }`}
+                    >
+                      {val} leads {val === 50 ? "(Recomendado)" : ""}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Limita la cantidad de perfiles extraídos por escaneo para prevenir restricciones de LinkedIn.
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
@@ -1466,6 +1593,7 @@ export default function CompetitorsSignalRadarPage() {
                     interactionTypes: editingMonitor.interactionTypes,
                     outreachTemplate: editingMonitor.outreachTemplate,
                     scanFrequency: editingMonitor.scanFrequency || "daily",
+                    batchLeadLimit: editingMonitor.batchLeadLimit || 50,
                   });
                   setEditingMonitor(null);
                 }}

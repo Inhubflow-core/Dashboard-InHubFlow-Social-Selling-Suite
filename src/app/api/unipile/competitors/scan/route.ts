@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       ? body.interactionTypes.filter((value: unknown): value is "likes" | "comments" => value === "likes" || value === "comments")
       : ["comments"];
     const limit = Math.min(10, Math.max(1, Number(body.limit) || 10));
+    const batchLimit = Math.min(100, Math.max(10, Number(body.batchLimit) || 50));
     const excludeAuthorEmployees = body.excludeAuthorEmployees !== false;
 
     const rawKeywords = Array.isArray(body.keywordsFilter)
@@ -161,6 +162,7 @@ export async function POST(req: NextRequest) {
       ].filter((t): t is string => typeof t === "string" && t.trim().length >= 2);
 
       for (const comment of interaction.comments) {
+        if (leadMap.size >= batchLimit) break;
         const author = comment.author;
         if (!author?.id) continue;
 
@@ -206,7 +208,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      if (leadMap.size >= batchLimit) break;
+
       for (const reaction of interaction.reactions) {
+        if (leadMap.size >= batchLimit) break;
         const author = reaction.author;
         if (!author?.id || leadMap.has(author.id)) continue;
 
@@ -249,6 +254,8 @@ export async function POST(req: NextRequest) {
           language: detectedReactionLang,
         });
       }
+
+      if (leadMap.size >= batchLimit) break;
     }
 
     const fallbackFeedUrl = isCompany
@@ -295,6 +302,8 @@ export async function POST(req: NextRequest) {
       postsScanned: postsToProcess.length,
       scannedPosts,
       excludedEmployeesCount,
+      batchLimit,
+      leadsExtractedCount: leadMap.size,
       source: "unipile_live",
     });
   } catch (error) {
