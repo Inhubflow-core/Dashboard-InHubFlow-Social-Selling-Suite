@@ -11,6 +11,11 @@ import { ShieldCheck } from "lucide-react";
 export default function ActiveWorkspaceUserBadge() {
   const { currentUser, isSuperAdmin } = useAuth();
   const [activeLinkedInAccount, setActiveLinkedInAccount] = useState<ConnectedLinkedInAccount | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateAccount = () => {
@@ -105,9 +110,22 @@ export default function ActiveWorkspaceUserBadge() {
     ? `Estás conectado como: ${currentUser.name} (Atención: Reconexión de LinkedIn requerida)`
     : `Estás conectado como: ${currentUser.name} (${subtitleText})`;
 
+  if (!mounted) {
+    return (
+      <div className="hidden md:inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/90 px-3 py-1.5 dark:border-gray-800 dark:bg-gray-800/80">
+        <div className="size-8.5 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="flex flex-col text-left leading-tight min-w-0">
+          <span className="text-[10px] text-gray-400">Estás conectado como:</span>
+          <div className="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-0.5" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Link
       href="/linkedin-accounts"
+      suppressHydrationWarning
       className={`hidden md:inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 transition ${
         needsAttention
           ? "border-amber-300 bg-amber-50/50 hover:border-amber-500 hover:bg-amber-50 dark:border-amber-800/60 dark:bg-amber-950/20"
@@ -151,7 +169,10 @@ export default function ActiveWorkspaceUserBadge() {
           Estás conectado como:
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-gray-900 dark:text-gray-100 max-w-[130px] xl:max-w-[170px] truncate">
+          <span
+            suppressHydrationWarning
+            className="text-xs font-bold text-gray-900 dark:text-gray-100 max-w-[130px] xl:max-w-[170px] truncate"
+          >
             {currentUser.name}
           </span>
           {currentUser.role === "super_admin" && (

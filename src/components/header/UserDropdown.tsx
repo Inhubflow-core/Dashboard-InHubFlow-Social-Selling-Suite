@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { ChevronDownIcon } from "@/icons";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
@@ -23,7 +23,12 @@ import {
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const t = useTranslations("userDropdown");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     sessionUser,
@@ -97,10 +102,25 @@ export default function UserDropdown() {
     return <span>{user.name.charAt(0).toUpperCase()}</span>;
   };
 
+  if (!mounted) {
+    return (
+      <div className="relative">
+        <div className="flex items-center text-gray-700 dark:text-gray-400">
+          <div className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse" />
+          <div className="hidden text-left xl:block me-2">
+            <div className="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+            <div className="h-2.5 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <button
         onClick={toggleDropdown}
+        suppressHydrationWarning
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
         title={`Cuenta Titular Logada: ${sessionUser.name}`}
       >
@@ -109,10 +129,10 @@ export default function UserDropdown() {
         </span>
 
         <div className="hidden text-left xl:block me-2">
-          <span className="block text-theme-xs font-bold text-gray-900 dark:text-white">
+          <span suppressHydrationWarning className="block text-theme-xs font-bold text-gray-900 dark:text-white">
             {sessionUser.name}
           </span>
-          <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+          <span suppressHydrationWarning className="block text-[10px] text-gray-500 dark:text-gray-400">
             {isSuperAdmin && sessionUser.role === "super_admin" ? t("superAdmin") : plan.name}
           </span>
         </div>
