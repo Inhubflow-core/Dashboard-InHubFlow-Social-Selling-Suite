@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const interactionTypes = Array.isArray(body.interactionTypes)
       ? body.interactionTypes.filter((value: unknown): value is "likes" | "comments" => value === "likes" || value === "comments")
       : ["comments"];
-    const limit = Math.min(5, Math.max(1, Number(body.limit) || 4));
+    const limit = Math.min(10, Math.max(1, Number(body.limit) || 10));
     const excludeAuthorEmployees = body.excludeAuthorEmployees !== false;
 
     const rawKeywords = Array.isArray(body.keywordsFilter)

@@ -68,7 +68,7 @@ export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
           (m.competitorUrl || "").toLowerCase().includes("claudiacuri");
 
         if (isClaudia) {
-          if (!m.lastScannedPosts || m.lastScannedPosts.length === 0) {
+          if (!m.lastScannedPosts || m.lastScannedPosts.length < 10) {
             hadModifications = true;
             return {
               ...m,
