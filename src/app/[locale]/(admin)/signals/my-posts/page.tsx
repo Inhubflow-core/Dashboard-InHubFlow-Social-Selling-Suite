@@ -186,8 +186,9 @@ export default function MyPostsSignalRadarPage() {
     setIsScanningId(mon.id);
     setScanFeedback(null);
     try {
+      const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
       const res = await fetch(
-        `/api/unipile/signals?postId=${encodeURIComponent(mon.postUrl)}&accountId=${activeAccount?.id || ""}`
+        `/api/unipile/signals?postId=${encodeURIComponent(mon.postUrl)}&accountId=${encodeURIComponent(rawAccId)}`
       );
       const data = await res.json();
       const rawComments = Array.isArray(data.comments) ? data.comments : [];
@@ -198,27 +199,32 @@ export default function MyPostsSignalRadarPage() {
         return text.includes(kw);
       });
 
-      const newLeadsToAdd: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => ({
-        id: `sig-lead-${Date.now()}-${idx}`,
-        monitorId: mon.id,
-        fullName: c.author?.name || "Prospecto de LinkedIn",
-        headline: c.author?.headline || "Profesional B2B",
-        company: "Empresa detectada",
-        location: "España / Latam",
-        linkedinUrl: c.author?.public_identifier
-          ? `https://www.linkedin.com/in/${c.author.public_identifier}`
-          : "https://www.linkedin.com",
-        avatarUrl: c.author?.profile_picture_url,
-        connectionDegree: "2nd",
-        intentLevel: "very_high",
-        intentScore: 100,
-        signalType: "keyword",
-        signalLevel: "level_1",
-        signalSnippet: `Comentó: "${c.text}"`,
-        detectedAt: new Date().toISOString(),
-        status: "dm_sent",
-        attachedResource: mon.attachedPdfName,
-      }));
+      const newLeadsToAdd: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => {
+        const authorIdentifier = c.author?.public_identifier || (c.author?.id ? String(c.author.id).replace(/^urn:li:member:/, "") : "");
+        const profileUrl = authorIdentifier
+          ? (authorIdentifier.startsWith("http") ? authorIdentifier : `https://www.linkedin.com/in/${authorIdentifier}`)
+          : "https://www.linkedin.com";
+
+        return {
+          id: `sig-lead-${Date.now()}-${idx}`,
+          monitorId: mon.id,
+          fullName: c.author?.name || "Prospecto de LinkedIn",
+          headline: c.author?.headline || "Profesional B2B en LinkedIn",
+          company: "Empresa detectada",
+          location: "España / Latam",
+          linkedinUrl: profileUrl,
+          avatarUrl: c.author?.profile_picture_url || c.author?.avatar_url,
+          connectionDegree: "2nd",
+          intentLevel: "very_high",
+          intentScore: 100,
+          signalType: "keyword",
+          signalLevel: "level_1",
+          signalSnippet: `Comentó: "${c.text}"`,
+          detectedAt: new Date().toISOString(),
+          status: "dm_sent",
+          attachedResource: mon.attachedPdfName,
+        };
+      });
 
       const added = recordDiscoveredLeads(newLeadsToAdd);
       const newTotalScanned = Math.max(mon.scannedCommentsCount, rawComments.length);
@@ -231,10 +237,22 @@ export default function MyPostsSignalRadarPage() {
         lastScanAtIso: new Date().toISOString(),
       });
 
-      setScanFeedback({
-        type: "success",
-        text: `Escaneo completado: ${rawComments.length} comentarios analizados, ${added.length} nuevos leads captados con la palabra clave "${mon.keyword}".`,
-      });
+      if (rawComments.length === 0) {
+        setScanFeedback({
+          type: "success",
+          text: `Auditoría en LinkedIn completada. El post aún no refleja comentarios indexados en la API de LinkedIn. (Nota: LinkedIn demora de 2 a 5 minutos en sincronizar comentarios nuevos hacia la API).`,
+        });
+      } else if (matchingComments.length === 0) {
+        setScanFeedback({
+          type: "success",
+          text: `Auditoría completada: Se analizaron ${rawComments.length} comentarios en LinkedIn, pero ninguno contiene aún la palabra clave exacta "${mon.keyword}".`,
+        });
+      } else {
+        setScanFeedback({
+          type: "success",
+          text: `¡Auditoría exitosa! Se detectaron ${matchingComments.length} comentarios con la palabra clave "${mon.keyword}" (${added.length} nuevos leads captados e incorporados al CRM).`,
+        });
+      }
     } catch (err: any) {
       setScanFeedback({
         type: "error",
