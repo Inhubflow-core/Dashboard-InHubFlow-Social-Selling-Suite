@@ -51,7 +51,7 @@ export default function SlotsCapacityCard({
                   Slots Ilimitados
                 </span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400" suppressHydrationWarning>
                 Cuentas activas en el entorno: {capacity.usedSlots} perfiles vinculados
               </p>
             </div>
