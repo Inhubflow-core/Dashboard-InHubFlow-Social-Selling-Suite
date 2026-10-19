@@ -107,11 +107,23 @@ export default function CompetitorsSignalRadarPage() {
   const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
 
   const getCompetitorLeads = useCallback((monitorId: string, competitorName?: string): SignalLeadItem[] => {
-    return leads.filter(
+    const rawMatches = leads.filter(
       (l) =>
         l.monitorId === monitorId ||
-        (competitorName && l.sourceAuthorName?.toLowerCase() === competitorName.toLowerCase())
+        (competitorName && l.sourceAuthorName?.toLowerCase().trim() === competitorName.toLowerCase().trim())
     );
+    const seen = new Set<string>();
+    const unique: SignalLeadItem[] = [];
+    for (const l of rawMatches) {
+      const cleanUrl = (l.linkedinUrl || "").toLowerCase().trim();
+      const cleanName = (l.fullName || "").toLowerCase().trim();
+      const key = cleanUrl || cleanName;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        unique.push(l);
+      }
+    }
+    return unique;
   }, [leads]);
 
   // Auto-sincronización única al montar leads de monitores hacia sus listas inteligentes y calibración de contadores

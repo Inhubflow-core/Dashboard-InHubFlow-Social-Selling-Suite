@@ -82,10 +82,27 @@ export function getStoredLeads(): Lead360Item[] {
           language: correctedLang,
         };
       });
-    if (cleanLeads.length !== parsed.length || hadFixes) {
-      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(cleanLeads));
+
+    // Purgar duplicados en listas de CRM (mismo listId y mismo linkedinUrl o fullName)
+    const seenCrm = new Set<string>();
+    const deduplicatedCrm: Lead360Item[] = [];
+    for (const lead of cleanLeads) {
+      const urlKey = (lead.linkedinUrl || "").toLowerCase().trim();
+      const nameKey = (lead.fullName || "").toLowerCase().trim();
+      const listKey = lead.listId || "default";
+      const key = urlKey ? `${listKey}::url::${urlKey}` : `${listKey}::name::${nameKey}`;
+      if (!seenCrm.has(key)) {
+        seenCrm.add(key);
+        deduplicatedCrm.push(lead);
+      } else {
+        hadFixes = true;
+      }
     }
-    return cleanLeads;
+
+    if (deduplicatedCrm.length !== parsed.length || hadFixes) {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(deduplicatedCrm));
+    }
+    return deduplicatedCrm;
   } catch {
     return [];
   }

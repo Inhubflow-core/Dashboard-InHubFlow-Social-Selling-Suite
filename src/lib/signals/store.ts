@@ -87,21 +87,42 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    let hadFiltered = false;
-    const cleanLeads = parsed.filter((l: SignalLeadItem) => {
+    let hadModifications = false;
+
+    // 1. Filtrar registros inválidos
+    const validLeads = parsed.filter((l: SignalLeadItem) => {
       if (!l || !l.id || !l.fullName) return false;
       const urlLower = (l.linkedinUrl || "").toLowerCase();
       const nameLower = (l.fullName || "").toLowerCase();
       if (urlLower.includes("davi-magalde") || nameLower.includes("davi magalde")) {
-        hadFiltered = true;
+        hadModifications = true;
         return false;
       }
       return true;
     });
-    if (hadFiltered) {
-      localStorage.setItem(LEADS_KEY, JSON.stringify(cleanLeads));
+
+    // 2. Purgar duplicados estrictos (mismo lead para la misma fuente/monitor)
+    const seen = new Set<string>();
+    const deduplicatedLeads: SignalLeadItem[] = [];
+
+    for (const l of validLeads) {
+      const cleanUrl = (l.linkedinUrl || "").toLowerCase().trim();
+      const cleanName = (l.fullName || "").toLowerCase().trim();
+      const source = (l.sourceAuthorName || l.monitorId || "").toLowerCase().trim();
+
+      const key = cleanUrl ? `${source}::url::${cleanUrl}` : `${source}::name::${cleanName}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduplicatedLeads.push(l);
+      } else {
+        hadModifications = true;
+      }
     }
-    return cleanLeads;
+
+    if (hadModifications) {
+      localStorage.setItem(LEADS_KEY, JSON.stringify(deduplicatedLeads));
+    }
+    return deduplicatedLeads;
   } catch {
     return [];
   }
@@ -119,10 +140,22 @@ export function saveStoredSignalLeads(leads: SignalLeadItem[]): void {
 export function addStoredSignalLead(lead: SignalLeadItem): void {
   if (typeof window === "undefined") return;
   const current = getStoredSignalLeads();
-  // Evitar duplicados por monitorId + fullName o linkedinUrl
-  const exists = current.some(
-    (l) => l.monitorId === lead.monitorId && (l.fullName === lead.fullName || (lead.linkedinUrl && l.linkedinUrl === lead.linkedinUrl))
-  );
+  const leadUrl = (lead.linkedinUrl || "").toLowerCase().trim();
+  const leadName = (lead.fullName || "").toLowerCase().trim();
+  const leadSource = (lead.sourceAuthorName || lead.monitorId || "").toLowerCase().trim();
+
+  const exists = current.some((l) => {
+    const lUrl = (l.linkedinUrl || "").toLowerCase().trim();
+    const lName = (l.fullName || "").toLowerCase().trim();
+    const lSource = (l.sourceAuthorName || l.monitorId || "").toLowerCase().trim();
+
+    if (leadUrl && lUrl && leadUrl === lUrl) return true;
+    if (leadName && lName && leadName === lName && (leadSource === lSource || l.monitorId === lead.monitorId)) {
+      return true;
+    }
+    return false;
+  });
+
   if (exists) return;
   const updated = [lead, ...current];
   saveStoredSignalLeads(updated);
@@ -134,9 +167,22 @@ export function addMultipleStoredSignalLeads(newLeads: SignalLeadItem[]): Signal
   const added: SignalLeadItem[] = [];
 
   for (const lead of newLeads) {
-    const exists = current.some(
-      (l) => l.monitorId === lead.monitorId && (l.fullName === lead.fullName || (lead.linkedinUrl && l.linkedinUrl === lead.linkedinUrl))
-    );
+    const leadUrl = (lead.linkedinUrl || "").toLowerCase().trim();
+    const leadName = (lead.fullName || "").toLowerCase().trim();
+    const leadSource = (lead.sourceAuthorName || lead.monitorId || "").toLowerCase().trim();
+
+    const exists = current.some((l) => {
+      const lUrl = (l.linkedinUrl || "").toLowerCase().trim();
+      const lName = (l.fullName || "").toLowerCase().trim();
+      const lSource = (l.sourceAuthorName || l.monitorId || "").toLowerCase().trim();
+
+      if (leadUrl && lUrl && leadUrl === lUrl) return true;
+      if (leadName && lName && leadName === lName && (leadSource === lSource || l.monitorId === lead.monitorId)) {
+        return true;
+      }
+      return false;
+    });
+
     if (!exists) {
       current.unshift(lead);
       added.push(lead);
