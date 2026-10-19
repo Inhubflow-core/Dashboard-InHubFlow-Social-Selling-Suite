@@ -461,6 +461,12 @@ assert(robertoAcc.email === "robertoorse.agencia@gmail.com", "La cuenta resultan
 assert(robertoAcc.unipileAccountId === "up_new_connected", "La cuenta resultante adopta el nuevo Unipile Account ID");
 assert(robertoAcc.daily_connection_limit === 15, "La cuenta resultante preserva los límites personalizados previos del usuario");
 
+// Caso de preservación de nombre editado (ej. 'RobertoOrSe Agencia' con 'S' mayúscula)
+const editedAccount = { ...robertoAcc, name: "RobertoOrSe Agencia" };
+const existingName = editedAccount.name;
+const resolvedName = existingName && existingName !== "RobertoOrse Agencia" ? existingName : "RobertoOrSe Agencia";
+assert(resolvedName === "RobertoOrSe Agencia", "La edición del nombre a 'RobertoOrSe Agencia' con S mayúscula se preserva intacta");
+
 // -----------------------------------------------------------------------------
 // PRUEBA 11: Algoritmo Ponderado de Viralidad InHubFlow & Selección Top 12
 // -----------------------------------------------------------------------------

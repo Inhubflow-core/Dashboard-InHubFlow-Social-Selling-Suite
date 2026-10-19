@@ -18,7 +18,9 @@ import {
   updateStoredAccount,
   removeStoredAccount,
   updateStoredAccountStatus,
+  accountMatchesUser,
 } from "@/lib/unipile/store";
+import { updateSubscriber } from "@/lib/saas/store";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import {
   Plus,
@@ -193,9 +195,15 @@ export default function LinkedInAccountsPage() {
 
   const handleSaveAccountLimits = (updated: ConnectedLinkedInAccount) => {
     updateStoredAccount(updated.id, updated);
+    if (accountMatchesUser(updated, currentUser)) {
+      if (updated.name && updated.name !== currentUser.name) {
+        updateSubscriber(currentUser.id, { name: updated.name });
+        refreshUserData();
+      }
+    }
     const visible = getVisibleAccountsForUser(currentUser);
     setAccounts(visible);
-    setNotice(`Límites de seguridad y horario de ${updated.name} actualizados correctamente.`);
+    setNotice(`Límites y datos de ${updated.name} guardados correctamente.`);
     setTimeout(() => setNotice(null), 4000);
   };
 

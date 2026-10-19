@@ -11,7 +11,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
   {
     id: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
     unipileAccountId: "6yecZUhYS1mvPOJJC7p-zQ",
-    name: "RobertoOrse Agencia",
+    name: "RobertoOrSe Agencia",
     email: "robertoorse.agencia@gmail.com",
     headline: "Roberto OrSe | InHubFlow Social Selling Suite",
     publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
@@ -182,12 +182,19 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
         // Lynn Martinson tiene estado CREDENTIALS (requiere atención / luz naranja)
         const targetStatus = isLynn ? "CREDENTIALS" : (deduplicated[existsIdx].status || initAcc.status);
 
+        // Preservar el nombre editado por el usuario; migrar el viejo valor por defecto con 's' minúscula
+        const existingName = deduplicated[existsIdx].name;
+        const resolvedName =
+          existingName && existingName !== "RobertoOrse Agencia"
+            ? existingName
+            : initAcc.name;
+
         deduplicated[existsIdx] = {
           ...initAcc,
           ...deduplicated[existsIdx],
           id: initAcc.id,
-          name: initAcc.name,
-          email: initAcc.email,
+          name: resolvedName,
+          email: deduplicated[existsIdx].email || initAcc.email,
           unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
           status: targetStatus,
           ownerId: initAcc.ownerId,
