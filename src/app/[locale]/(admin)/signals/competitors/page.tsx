@@ -36,7 +36,7 @@ export default function CompetitorsSignalRadarPage() {
   } = useSignalRadar();
 
   const [editingMonitor, setEditingMonitor] = useState<Level2CompetitorMonitor | null>(null);
-  const [collapsedCompetitorPosts, setCollapsedCompetitorPosts] = useState<Record<string, boolean>>({});
+  const [expandedCompetitorPosts, setExpandedCompetitorPosts] = useState<Record<string, boolean>>({});
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -962,7 +962,7 @@ export default function CompetitorsSignalRadarPage() {
                 {l2Monitors.map((comp) => {
                   const isPerson = comp.competitorType === "person" || comp.competitorUrl.includes("/in/");
                   const scannedPosts = getCompetitorScannedPosts(comp);
-                  const isCollapsed = Boolean(collapsedCompetitorPosts[comp.id]);
+                  const isExpanded = Boolean(expandedCompetitorPosts[comp.id]);
 
                   return (
                     <Fragment key={comp.id}>
@@ -1024,23 +1024,26 @@ export default function CompetitorsSignalRadarPage() {
                                 {comp.competitorUrl}
                               </a>
 
-                              {/* Toggle para ver / ocultar publicaciones */}
+                              {/* Botón para desplegar / ocultar publicaciones de LinkedIn */}
                               {scannedPosts.length > 0 && (
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setCollapsedCompetitorPosts((prev) => ({
+                                    setExpandedCompetitorPosts((prev) => ({
                                       ...prev,
-                                      [comp.id]: !isCollapsed,
+                                      [comp.id]: !isExpanded,
                                     }))
                                   }
-                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                                  title="Mostrar u ocultar los posts analizados de este competidor"
+                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                  title={isExpanded ? "Ocultar las publicaciones analizadas" : "Ver todas las publicaciones analizadas"}
                                 >
-                                  <span>🔗 {scannedPosts.length} posts analizados</span>
-                                  <span className="text-[10px]">
-                                    {isCollapsed ? "▾ Ver" : "▴ Ocultar"}
+                                  <span>🔗</span>
+                                  <span>
+                                    {isExpanded
+                                      ? "Ocultar Publicaciones"
+                                      : `Ver todas las Publicaciones (${scannedPosts.length})`}
                                   </span>
+                                  <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
                               )}
                             </div>
@@ -1155,7 +1158,7 @@ export default function CompetitorsSignalRadarPage() {
                       </tr>
 
                       {/* Card de Ancho Completo para Publicaciones Analizadas (Estilo Nivel 3) */}
-                      {!isCollapsed && scannedPosts.length > 0 && (
+                      {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${comp.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
                             <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
