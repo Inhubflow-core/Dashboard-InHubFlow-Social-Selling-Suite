@@ -115,9 +115,22 @@ export function getStoredLeadLists(): LeadListGroup[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Purgar listas mock antiguas (ej: list-l1-01, list-l2-01)
+    // Purgar listas mock antiguas y limpiar prefijos técnicos [Signal N1/N2/N3]
     const legacyMockLists = new Set(["list-l1-01", "list-l2-01", "list-l3-01"]);
-    const cleanLists = parsed.filter((lg: LeadListGroup) => lg && lg.id && !legacyMockLists.has(lg.id));
+    const cleanLists = parsed
+      .filter((lg: LeadListGroup) => lg && lg.id && !legacyMockLists.has(lg.id))
+      .map((lg: LeadListGroup) => {
+        let name = lg.name || "";
+        if (/^\[signal\s*n[1-3]\]/i.test(name)) {
+          if (lg.competitorName && lg.competitorName.trim()) {
+            name = lg.competitorName.trim();
+          } else {
+            name = name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim();
+          }
+          return { ...lg, name };
+        }
+        return lg;
+      });
 
     // Sincronizar contadores exactos si existen leads en localStorage
     const rawLeads = localStorage.getItem(LEADS_STORAGE_KEY);
@@ -216,13 +229,13 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
               (l) =>
                 l.sourceMonitorId === mon.id ||
                 (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+                l.name.toLowerCase() === targetComp ||
                 l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
             );
             if (!existingList) {
-              const kw = mon.keywordsFilter?.slice(0, 2).join(", ") || "leads B2B";
               existingList = {
                 id: `list-sig-n2-${mon.id}`,
-                name: `[Signal N2] ${mon.competitorName} • ${kw}`,
+                name: mon.competitorName,
                 description: `Lista inteligente auto-alimentada por interacciones en publicaciones de ${mon.competitorName}.`,
                 signalSource: "Competitor Posts (Nivel 2)",
                 signalLevel: "level_2",
@@ -237,6 +250,10 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
               modified = true;
             } else {
               let listUpdated = false;
+              if (existingList.name && /^\[signal\s*n2\]/i.test(existingList.name)) {
+                existingList.name = mon.competitorName;
+                listUpdated = true;
+              }
               if (!existingList.sourceMonitorId) {
                 existingList.sourceMonitorId = mon.id;
                 listUpdated = true;
@@ -266,6 +283,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
             let existingList = currentLists.find(
               (l) =>
                 l.sourceMonitorId === mon.id ||
+                l.name.toLowerCase() === targetQuery ||
                 l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
             );
             if (!existingList) {
@@ -274,7 +292,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 : mon.targetCountryName || "Global";
               existingList = {
                 id: `list-sig-n3-${mon.id}`,
-                name: `[Signal N3] ${mon.searchQuery.slice(0, 32)} • ${locLabel}`,
+                name: mon.searchQuery,
                 description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${mon.searchQuery}" (${locLabel}).`,
                 signalSource: `Debates Globales (${mon.searchQuery})`,
                 signalLevel: "level_3",
@@ -286,7 +304,8 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
               };
               currentLists = [existingList, ...currentLists];
               modified = true;
-            } else if (!existingList.sourceMonitorId) {
+            } else if (!existingList.sourceMonitorId || /^\[signal\s*n3\]/i.test(existingList.name)) {
+              existingList.name = mon.searchQuery;
               existingList.sourceMonitorId = mon.id;
               modified = true;
             }
@@ -311,7 +330,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
             if (!existingList) {
               existingList = {
                 id: `list-sig-n1-${mon.id}`,
-                name: `[Signal N1] ${mon.postTitle.slice(0, 24)}... • Keyword: ${mon.keyword}`,
+                name: mon.postTitle,
                 description: `Lista inteligente de prospectos que comentaron "${mon.keyword}" en tu publicación.`,
                 signalSource: "Mis Posts (Nivel 1)",
                 signalLevel: "level_1",
@@ -322,6 +341,9 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 sourceMonitorId: mon.id,
               };
               currentLists = [existingList, ...currentLists];
+              modified = true;
+            } else if (/^\[signal\s*n1\]/i.test(existingList.name)) {
+              existingList.name = mon.postTitle;
               modified = true;
             }
           }
@@ -734,14 +756,14 @@ export function getOrCreateMonitorList(params: {
     (l) =>
       l.sourceMonitorId === params.monitorId ||
       (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+      l.name.toLowerCase() === targetComp ||
       l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
   );
   if (existing) return existing;
 
-  const kw = params.keywords?.slice(0, 2).join(", ") || "leads B2B";
   const newList: LeadListGroup = {
     id: `list-sig-n2-${params.monitorId}`,
-    name: `[Signal N2] ${params.competitorName} • ${kw}`,
+    name: params.competitorName,
     description: `Lista inteligente auto-alimentada por interacciones en publicaciones de ${params.competitorName}.`,
     signalSource: "Competitor Posts (Nivel 2)",
     signalLevel: "level_2",
@@ -772,6 +794,7 @@ export function getOrCreateGlobalMonitorList(params: {
   const existing = currentLists.find(
     (l) =>
       l.sourceMonitorId === params.monitorId ||
+      l.name.toLowerCase() === targetQuery ||
       l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
   );
   if (existing) return existing;
@@ -781,7 +804,7 @@ export function getOrCreateGlobalMonitorList(params: {
     : params.countryName || "Global";
   const newList: LeadListGroup = {
     id: `list-sig-n3-${params.monitorId}`,
-    name: `[Signal N3] ${params.searchQuery.slice(0, 32)} • ${locLabel}`,
+    name: params.searchQuery,
     description: `Lista inteligente auto-alimentada por debates y tendencias globales en LinkedIn sobre "${params.searchQuery}" (${locLabel}).`,
     signalSource: `Debates Globales (${params.searchQuery})`,
     signalLevel: "level_3",

@@ -184,6 +184,11 @@ export default function DynamicListDetailPage() {
     );
   }
 
+  const cleanListName =
+    currentList?.competitorName?.trim() ||
+    currentList?.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim() ||
+    "Lista Dinámica";
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb con navegación directa */}
@@ -196,7 +201,7 @@ export default function DynamicListDetailPage() {
             &larr; Volver a Listas Dinámicas
           </Link>
         </div>
-        <PageBreadcrumb pageTitle={`Lista: ${currentList.name}`} />
+        <PageBreadcrumb pageTitle={`Lista: ${cleanListName}`} />
       </div>
 
       {/* Cabecera de la Lista Dinámica con acciones y métricas */}
@@ -228,7 +233,7 @@ export default function DynamicListDetailPage() {
             </div>
 
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-              {currentList.name}
+              {cleanListName}
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               {currentList.description || "Segmento alimentado por monitores de señales en LinkedIn."}

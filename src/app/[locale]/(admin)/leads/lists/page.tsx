@@ -266,7 +266,8 @@ export default function SignalListsPage() {
                       )}
 
                       <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                        {list.name}
+                        {list.competitorName?.trim() ||
+                          list.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim()}
                       </h4>
                     </div>
 
