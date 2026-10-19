@@ -100,7 +100,7 @@ export default function CompetitorsSignalRadarPage() {
   }, [isLoaded, l2Monitors, hasSanitizedExisting, sanitizeLeadsForMonitor, updateLevel2Monitor]);
 
   const router = useRouter();
-  const { lists: allLeadLists, importSignalLeads, getOrCreateList } = useLeadsStore();
+  const { lists: allLeadLists, leads: crmLeads, importSignalLeads, getOrCreateList } = useLeadsStore();
 
   const [isAddingCompetitor, setIsAddingCompetitor] = useState(false);
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
@@ -126,6 +126,40 @@ export default function CompetitorsSignalRadarPage() {
     return unique;
   }, [leads]);
 
+  const getEffectiveCompetitorLeadCount = useCallback(
+    (comp: { id: string; competitorName: string; leadsIdentifiedCount: number }) => {
+      const targetComp = comp.competitorName.trim().toLowerCase();
+      const targetList = allLeadLists.find(
+        (l) =>
+          l.sourceMonitorId === comp.id ||
+          (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
+          l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
+      );
+      const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
+      const listMatchingLeads = targetList
+        ? crmLeads.filter(
+            (l) =>
+              l.listId === targetList.id ||
+              (l as any).monitorId === comp.id ||
+              (l.company && l.company.trim().toLowerCase() === targetComp) ||
+              (l.signalSource && l.signalSource.trim().toLowerCase() === `signal: ${targetComp}`)
+          )
+        : [];
+      const effectiveCount = Math.max(
+        targetList?.leadsCount || 0,
+        listMatchingLeads.length,
+        comp.leadsIdentifiedCount || 0,
+        compLeads.length
+      );
+      return {
+        count: effectiveCount,
+        targetList,
+        targetListId: targetList?.id || `list-sig-n2-${comp.id}`,
+      };
+    },
+    [allLeadLists, crmLeads, getCompetitorLeads]
+  );
+
   // Auto-sincronización única al montar leads de monitores hacia sus listas inteligentes y calibración de contadores
   const hasAutoSyncedRef = useRef(false);
   useEffect(() => {
@@ -141,14 +175,15 @@ export default function CompetitorsSignalRadarPage() {
       const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
       if (compLeads.length > 0) {
         importSignalLeads(targetList, compLeads);
-        if (comp.leadsIdentifiedCount !== compLeads.length) {
-          updateLevel2Monitor(comp.id, {
-            leadsIdentifiedCount: compLeads.length,
-          });
-        }
+      }
+      const { count: realCount } = getEffectiveCompetitorLeadCount(comp);
+      if (realCount > 0 && comp.leadsIdentifiedCount !== realCount) {
+        updateLevel2Monitor(comp.id, {
+          leadsIdentifiedCount: realCount,
+        });
       }
     }
-  }, [isLoaded, l2Monitors, leads.length, getCompetitorLeads, getOrCreateList, importSignalLeads, updateLevel2Monitor]);
+  }, [isLoaded, l2Monitors, leads.length, getCompetitorLeads, getOrCreateList, importSignalLeads, updateLevel2Monitor, getEffectiveCompetitorLeadCount]);
 
   // Form states
   const [competitorName, setCompetitorName] = useState("");
@@ -230,8 +265,8 @@ export default function CompetitorsSignalRadarPage() {
   };
 
   const totalCompetitorLeads = l2Monitors.reduce((acc, m) => {
-    const cl = getCompetitorLeads(m.id, m.competitorName);
-    return acc + (cl.length > 0 ? cl.length : m.leadsIdentifiedCount);
+    const { count } = getEffectiveCompetitorLeadCount(m);
+    return acc + count;
   }, 0);
 
   const handleAddCompetitor = (e: React.FormEvent) => {
@@ -352,7 +387,7 @@ export default function CompetitorsSignalRadarPage() {
           l.monitorId === comp.id ||
           (comp.competitorName && l.sourceAuthorName?.toLowerCase() === comp.competitorName.toLowerCase())
       );
-      const exactTotal = currentCompLeads.length + added.length;
+      const exactTotal = Math.max(importRes?.list?.leadsCount || 0, currentCompLeads.length + added.length);
 
       updateLevel2Monitor(comp.id, {
         leadsIdentifiedCount: exactTotal,
@@ -987,6 +1022,7 @@ export default function CompetitorsSignalRadarPage() {
                   const isPerson = comp.competitorType === "person" || comp.competitorUrl.includes("/in/");
                   const scannedPosts = getCompetitorScannedPosts(comp);
                   const isExpanded = Boolean(expandedCompetitorPosts[comp.id]);
+                  const { count: leadCount, targetListId } = getEffectiveCompetitorLeadCount(comp);
 
                   return (
                     <Fragment key={comp.id}>
@@ -1092,11 +1128,7 @@ export default function CompetitorsSignalRadarPage() {
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400 align-top">
-                          {(() => {
-                            const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
-                            const count = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
-                            return `${count} leads`;
-                          })()}
+                          {leadCount} leads
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
@@ -1147,29 +1179,14 @@ export default function CompetitorsSignalRadarPage() {
                             </button>
 
                             {/* Botón Ver Lista Directa */}
-                            {(() => {
-                              const targetComp = comp.competitorName.trim().toLowerCase();
-                              const targetList = allLeadLists.find(
-                                (l) =>
-                                  l.sourceMonitorId === comp.id ||
-                                  (l.competitorName && l.competitorName.trim().toLowerCase() === targetComp) ||
-                                  l.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`)
-                              );
-                              const targetListId = targetList?.id || `list-sig-n2-${comp.id}`;
-                              const compLeads = getCompetitorLeads(comp.id, comp.competitorName);
-                              const leadCount = compLeads.length > 0 ? compLeads.length : comp.leadsIdentifiedCount;
-
-                              return (
-                                <Link
-                                  href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
-                                  className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
-                                  title={`Abrir lista inteligente de ${comp.competitorName}`}
-                                >
-                                  <span>Ver Lista ({leadCount})</span>
-                                  <span aria-hidden="true">&rarr;</span>
-                                </Link>
-                              );
-                            })()}
+                            <Link
+                              href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
+                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              title={`Abrir lista inteligente de ${comp.competitorName}`}
+                            >
+                              <span>Ver Lista ({leadCount})</span>
+                              <span aria-hidden="true">&rarr;</span>
+                            </Link>
 
                             {/* Botón Editar Monitor */}
                             <button
