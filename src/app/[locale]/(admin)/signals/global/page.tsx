@@ -919,19 +919,11 @@ export default function GlobalSignalsPage() {
                           ) : (
                             <span>0 leads</span>
                           )}
-                          <span className="block text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                            🥇 90 • Interacción Alta
-                          </span>
                         </td>
 
                         {/* 4. Último Escaneo */}
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
-                          <div>
-                            <span className="font-medium text-gray-800 dark:text-gray-200">{rule.lastScanAt}</span>
-                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                              Auto: Diario ⏰
-                            </span>
-                          </div>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">{rule.lastScanAt}</span>
                         </td>
 
                         {/* 5. Estado */}

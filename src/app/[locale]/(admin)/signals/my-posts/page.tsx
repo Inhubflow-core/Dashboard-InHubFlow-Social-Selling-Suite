@@ -874,9 +874,6 @@ export default function MyPostsSignalRadarPage() {
                           <span className="rounded bg-brand-50 border border-brand-200/60 px-2.5 py-1 font-mono font-bold text-xs text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300 inline-block">
                             {mon.keyword}
                           </span>
-                          <span className="block text-[11px] text-gray-400 mt-1 truncate max-w-[160px]" title={mon.attachedPdfName}>
-                            📎 {mon.attachedPdfName}
-                          </span>
                         </td>
 
                         {/* 3. Leads Captados */}
@@ -884,19 +881,11 @@ export default function MyPostsSignalRadarPage() {
                           <span className="font-bold text-brand-600 dark:text-brand-400">
                             {mon.leadsCapturedCount} leads
                           </span>
-                          <span className="block text-[10px] text-purple-600 dark:text-purple-400 font-semibold mt-0.5">
-                            🔥 100 • Lead Magnet
-                          </span>
                         </td>
 
                         {/* 4. Último Escaneo */}
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
-                          <div>
-                            <span className="font-medium text-gray-800 dark:text-gray-200">{mon.lastScanAt}</span>
-                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                              Auto: Diario ⏰
-                            </span>
-                          </div>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">{mon.lastScanAt}</span>
                         </td>
 
                         {/* 5. Estado */}

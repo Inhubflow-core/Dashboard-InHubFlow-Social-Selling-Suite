@@ -1128,14 +1128,6 @@ export default function CompetitorsSignalRadarPage() {
                                 >
                                   {isPerson ? "Perfil" : "Empresa"}
                                 </span>
-                                {comp.excludeAuthorEmployees !== false && (
-                                  <span
-                                    className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300"
-                                    title="Filtrando engagement interno de empleados del autor"
-                                  >
-                                    Sin engagement interno
-                                  </span>
-                                )}
                               </div>
                               <a
                                 href={comp.competitorUrl}
@@ -1194,12 +1186,7 @@ export default function CompetitorsSignalRadarPage() {
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap text-gray-500 dark:text-gray-400 align-top">
-                          <div>
-                            <span className="font-medium text-gray-800 dark:text-gray-200">{comp.lastScanAt}</span>
-                            <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                              Auto: Diario ⏰
-                            </span>
-                          </div>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">{comp.lastScanAt}</span>
                         </td>
 
                         <td className="px-4 py-3.5 whitespace-nowrap align-top">
