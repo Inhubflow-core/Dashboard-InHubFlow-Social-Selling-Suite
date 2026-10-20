@@ -956,7 +956,7 @@ export default function CompetitorsSignalRadarPage() {
                 type="submit"
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
               >
-                Iniciar Escaneo de Competidor
+                Activar Monitor en LinkedIn
               </button>
             </div>
           </form>

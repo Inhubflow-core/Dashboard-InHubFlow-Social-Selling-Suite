@@ -1041,7 +1041,7 @@ export default function GlobalSignalsPage() {
                 type="submit"
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
               >
-                <span>Activar Radar de Tendencias</span>
+                <span>Activar Monitor en LinkedIn</span>
               </button>
             </div>
           </form>
