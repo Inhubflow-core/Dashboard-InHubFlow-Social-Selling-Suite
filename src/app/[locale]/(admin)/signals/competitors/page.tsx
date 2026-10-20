@@ -554,7 +554,7 @@ export default function CompetitorsSignalRadarPage() {
           onClick={() => setIsAddingCompetitor(!isAddingCompetitor)}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isAddingCompetitor ? "Cerrar Formulario" : "+ Agregar Competidor"}
+          {isAddingCompetitor ? "Cerrar Formulario" : "+ Agregar nuevo Monitor"}
         </button>
       </div>
 

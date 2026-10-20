@@ -542,7 +542,7 @@ export default function GlobalSignalsPage() {
           onClick={() => setIsAddingRule(!isAddingRule)}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isAddingRule ? "Cerrar Configurador" : "+ Nuevo Radar de Tendencias"}
+          {isAddingRule ? "Cerrar Configurador" : "+ Agregar nuevo Monitor"}
         </button>
       </div>
 

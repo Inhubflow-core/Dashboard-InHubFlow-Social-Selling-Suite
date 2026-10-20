@@ -420,7 +420,7 @@ export default function MyPostsSignalRadarPage() {
           }}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isCreatingMonitor ? "Cerrar Configurador" : "+ Conectar Nuevo Post"}
+          {isCreatingMonitor ? "Cerrar Configurador" : "+ Agregar nuevo Monitor"}
         </button>
       </div>
 
