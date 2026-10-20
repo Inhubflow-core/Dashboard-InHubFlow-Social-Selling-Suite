@@ -8,7 +8,7 @@ interface CountryConfig {
   englishName: string;
   flag: string;
   keywords: string[];
-  primaryLanguage: "es" | "en" | "pt";
+  primaryLanguage: "es" | "en" | "pt" | "ko" | "ja" | "fr" | "de" | "it" | string;
 }
 
 const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
@@ -25,6 +25,17 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
       "san diego", "charlotte", "minneapolis", "tampa", "phoenix", "las vegas"
     ],
     primaryLanguage: "en",
+  },
+  KR: {
+    name: "Corea del Sur",
+    englishName: "South Korea",
+    flag: "🇰🇷",
+    keywords: [
+      "south korea", "korea", "seoul", "busan", "incheon", "daegu", "daejeon",
+      "gwangju", "suwon", "ulsan", "changwon", "seongnam", "pangyo", "gangnam",
+      "대한민국", "한국", "서울", "부산"
+    ],
+    primaryLanguage: "ko",
   },
   ES: {
     name: "España",
@@ -144,6 +155,27 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     flag: "🇨🇦",
     keywords: ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary", "ontario", "quebec"],
     primaryLanguage: "en",
+  },
+  DE: {
+    name: "Alemania",
+    englishName: "Germany",
+    flag: "🇩🇪",
+    keywords: ["germany", "deutschland", "berlin", "munich", "münchen", "hamburg", "frankfurt", "cologne", "köln", "stuttgart", "düsseldorf"],
+    primaryLanguage: "de",
+  },
+  FR: {
+    name: "Francia",
+    englishName: "France",
+    flag: "🇫🇷",
+    keywords: ["france", "paris", "lyon", "marseille", "toulouse", "bordeaux", "nantes", "lille"],
+    primaryLanguage: "fr",
+  },
+  IT: {
+    name: "Italia",
+    englishName: "Italy",
+    flag: "🇮🇹",
+    keywords: ["italy", "italia", "rome", "roma", "milan", "milano", "turin", "torino", "florence", "firenze", "bologna", "naples", "napoli"],
+    primaryLanguage: "it",
   },
 };
 
@@ -280,6 +312,72 @@ function matchesIcp(headline: string | null | undefined, icpTitles: string[]): b
   });
 }
 
+// Mapa exhaustivo de países y sus indicadores geográficos clave para descartar orígenes incompatibles
+const FOREIGN_GEO_MAP: Record<string, string[]> = {
+  US: [
+    "united states", "usa", "u.s.", "u.s.a.", "new york", "san francisco", "silicon valley",
+    "austin", "chicago", "los angeles", "seattle", "boston", "miami", "texas", "california",
+    "florida", "atlanta", "denver", "dallas", "houston", "washington", "north carolina",
+    "virginia", "illinois", "massachusetts", "pennsylvania", "ohio", "michigan", "georgia",
+    "colorado", "arizona", "utah", "salt lake city", "nashville", "tennessee", "portland", "oregon"
+  ],
+  RO: ["romania", "bucharest", "bucuresti", "cluj", "timisoara", "iasi", "brasov"],
+  UA: ["ukraine", "kyiv", "kiev", "lviv", "kharkiv", "odesa", "dnipro"],
+  RU: ["russia", "moscow", "saint petersburg", "novosibirsk", "ekaterinburg"],
+  PL: ["poland", "polska", "warsaw", "warszawa", "krakow", "cracow", "wroclaw", "poznan", "gdansk"],
+  VN: ["vietnam", "hanoi", "ho chi minh", "da nang", "haiphong"],
+  IN: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "new delhi", "hyderabad", "pune", "chennai", "kolkata", "noida", "gurgaon"],
+  PK: ["pakistan", "karachi", "lahore", "islamabad"],
+  PH: ["philippines", "manila", "cebu"],
+  NG: ["nigeria", "lagos", "abuja"],
+  ES: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "malaga", "zaragoza"],
+  MX: ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "puebla", "queretaro", "tijuana"],
+  CO: ["colombia", "bogotá", "bogota", "medellín", "medellin", "cali", "barranquilla"],
+  AR: ["argentina", "buenos aires", "córdoba", "cordoba", "rosario", "mendoza"],
+  CL: ["chile", "santiago de chile", "valparaiso", "concepcion"],
+  PE: ["perú", "peru", "lima", "arequipa", "trujillo"],
+  BR: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte"],
+  FR: ["france", "francia", "paris", "lyon", "marseille", "toulouse", "bordeaux"],
+  DE: ["germany", "alemania", "deutschland", "berlin", "munich", "münchen", "hamburg", "frankfurt"],
+  IT: ["italy", "italia", "rome", "roma", "milan", "milano", "turin", "naples"],
+  UK: ["united kingdom", "uk", "london", "manchester", "birmingham", "england", "scotland", "edinburgh"],
+  CA: ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary"],
+  KR: ["south korea", "korea", "seoul", "busan", "incheon", "daegu", "daejeon", "대한민국", "한국", "서울", "부산"],
+  JP: ["japan", "tokyo", "osaka", "kyoto"],
+};
+
+/**
+ * Verifica si un texto de ubicación o titular corresponde inequívocamente a un país extranjero diferente al objetivo.
+ */
+function isExplicitlyForeignLocation(
+  textToCheck: string | null | undefined,
+  targetCountryCode: string
+): boolean {
+  if (!textToCheck || !targetCountryCode || targetCountryCode.toUpperCase() === "ALL") return false;
+  const norm = normalizeText(textToCheck);
+  if (!norm) return false;
+
+  const targetCode = targetCountryCode.toUpperCase();
+  const LATAM_CODES = ["MX", "CO", "AR", "CL", "PE", "UY", "EC", "PA", "CR", "DO", "GT"];
+
+  for (const [countryKey, geoKeywords] of Object.entries(FOREIGN_GEO_MAP)) {
+    // Si el país analizado es el país objetivo, no es extranjero
+    if (countryKey === targetCode) continue;
+    // Si el objetivo es LATAM y el país analizado es de LATAM, no es extranjero
+    if (targetCode === "LATAM" && LATAM_CODES.includes(countryKey)) continue;
+
+    for (const kw of geoKeywords) {
+      const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(^|[^a-z0-9_])${escaped}([^a-z0-9_]|$)`, "i");
+      if (regex.test(norm)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 function checkLocationMatch(
   textToCheck: string | null | undefined,
   keywords: string[]
@@ -312,23 +410,47 @@ function isPostHighQualityDebate(
   }
 
   const authorHeadline = typeof post.author === "object" ? post.author?.headline || "" : "";
+  const authorLocation = typeof post.author === "object" ? (post.author as any)?.location || "" : "";
+  const authorBio = `${authorHeadline} ${authorLocation}`;
+
   if (/\b(recruiter|recruitment lead|talent acquisition|headhunter)\b/i.test(authorHeadline)) {
     if (/\b(lead|position|role|join|apply|cv|resume|vacante|job)\b/i.test(text)) {
       return { valid: false, reason: "Publicación de agencia de reclutamiento / vacante descartada" };
     }
   }
 
-  // 2. Descartar alfabetos no latinos (cirílico, vietnamita, árabe, asiático) en países occidentales
-  const latinCountries = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA"];
-  if (latinCountries.includes(targetCountryCode.toUpperCase())) {
+  // 2. Si se definió un país específico, DESCARTAR si el autor está en otro país extranjero
+  if (targetCountryCode && targetCountryCode.toUpperCase() !== "ALL") {
+    if (isExplicitlyForeignLocation(authorBio, targetCountryCode)) {
+      return { valid: false, reason: `El autor del post está ubicado fuera de ${targetCountryCode} (${authorBio.slice(0, 50)})` };
+    }
+  }
+
+  // 3. Control de compatibilidad alfabética según el país objetivo
+  const targetCode = targetCountryCode.toUpperCase();
+  const latinCountries = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
+
+  if (latinCountries.includes(targetCode)) {
     for (const script of NON_LATIN_SCRIPTS) {
       if (script.test(text)) {
         return { valid: false, reason: "Alfabeto o idioma incompatible con el país seleccionado" };
       }
     }
+  } else if (targetCode === "KR") {
+    // Si el país es Corea del Sur, permitir coreano (Hangul) e inglés, pero descartar cirílico, vietnamita o árabe
+    const nonKoreanScripts = [
+      /[а-яА-ЯёЁіІїЇєЄ]/,
+      /[\u0600-\u06ff]/,
+      /[ăâđêôơưĂÂĐÊÔƠƯ]/,
+    ];
+    for (const script of nonKoreanScripts) {
+      if (script.test(text)) {
+        return { valid: false, reason: "Alfabeto incompatible con monitor de Corea del Sur" };
+      }
+    }
   }
 
-  // 3. Tracción mínima real: descartar publicaciones vacías sin interacciones
+  // 4. Tracción mínima real: descartar publicaciones vacías sin interacciones
   const reactions = Number(post.reaction_counter ?? post.reactions_count ?? 0);
   const comments = Number(post.comment_counter ?? post.comments_count ?? 0);
   if (reactions === 0 && comments === 0) {
@@ -566,29 +688,33 @@ export async function POST(req: NextRequest) {
     async function verifyLeadLocation(params: {
       headline?: string;
       commentLocation?: string;
-      commentText?: string;
       profileUrl?: string;
       publicIdentifier?: string;
     }): Promise<{ isMatch: boolean; resolvedLocation: string }> {
-      const { headline, commentLocation, commentText, profileUrl, publicIdentifier } = params;
+      const { headline, commentLocation, profileUrl, publicIdentifier } = params;
 
       // Si es global ("all"), no se restringe por país
-      if (!countryDef || targetKeywords.length === 0) {
+      if (!countryDef || countryCode === "ALL" || targetKeywords.length === 0) {
         return { isMatch: true, resolvedLocation: commentLocation || "Remoto / Global" };
       }
 
-      // 1. Revisar si el titular, comentario o ubicación directa menciona el país o ciudades clave
-      if (checkLocationMatch(headline, targetKeywords)) {
-        return { isMatch: true, resolvedLocation: `${countryDef.name} (${countryDef.flag})` };
+      // 1. REGLA ESTRICTA DE EXCLUSIÓN: Si la ubicación o el headline menciona explícitamente cualquier país extranjero, descartar de inmediato
+      if (isExplicitlyForeignLocation(commentLocation, countryCode)) {
+        return { isMatch: false, resolvedLocation: commentLocation || "Ubicación extranjera descartada" };
       }
+      if (isExplicitlyForeignLocation(headline, countryCode)) {
+        return { isMatch: false, resolvedLocation: headline || "Ubicación extranjera descartada" };
+      }
+
+      // 2. Coincidencia positiva con el país objetivo (ciudades, estados o nombre del país)
       if (checkLocationMatch(commentLocation, targetKeywords)) {
         return { isMatch: true, resolvedLocation: commentLocation! };
       }
-      if (checkLocationMatch(commentText, targetKeywords)) {
+      if (checkLocationMatch(headline, targetKeywords)) {
         return { isMatch: true, resolvedLocation: `${countryDef.name} (${countryDef.flag})` };
       }
 
-      // 2. Extraer identificador de LinkedIn para resolver perfil completo con Unipile
+      // 3. Extraer identificador de LinkedIn para resolver perfil completo con Unipile
       let cleanIdentifier = publicIdentifier || "";
       if (!cleanIdentifier && profileUrl) {
         const match = profileUrl.match(/\/in\/([^/?#]+)/i);
@@ -599,6 +725,9 @@ export async function POST(req: NextRequest) {
         try {
           const profile = await unipile.resolveProfile(cleanIdentifier, accountId);
           if (profile && profile.location) {
+            if (isExplicitlyForeignLocation(profile.location, countryCode)) {
+              return { isMatch: false, resolvedLocation: profile.location };
+            }
             const matchesCountry = checkLocationMatch(profile.location, targetKeywords);
             if (matchesCountry) {
               return { isMatch: true, resolvedLocation: profile.location };
@@ -686,7 +815,6 @@ export async function POST(req: NextRequest) {
         const { isMatch: isLocMatch, resolvedLocation } = await verifyLeadLocation({
           headline,
           commentLocation: location,
-          commentText,
           profileUrl: linkedinUrl,
           publicIdentifier: pubId,
         });

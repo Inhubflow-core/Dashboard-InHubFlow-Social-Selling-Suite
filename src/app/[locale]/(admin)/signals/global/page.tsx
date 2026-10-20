@@ -89,6 +89,42 @@ export const COUNTRY_OPTIONS: CountryOption[] = [
     keywords: ["united states", "usa", "miami", "florida", "california", "new york", "texas", "austin"],
   },
   {
+    code: "KR",
+    name: "Corea del Sur",
+    flag: "🇰🇷",
+    keywords: ["south korea", "korea", "seoul", "busan", "incheon", "대한민국", "한국", "서울"],
+  },
+  {
+    code: "UK",
+    name: "Reino Unido",
+    flag: "🇬🇧",
+    keywords: ["united kingdom", "uk", "london", "manchester", "birmingham", "england", "scotland"],
+  },
+  {
+    code: "CA",
+    name: "Canadá",
+    flag: "🇨🇦",
+    keywords: ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary"],
+  },
+  {
+    code: "DE",
+    name: "Alemania",
+    flag: "🇩🇪",
+    keywords: ["germany", "deutschland", "berlin", "munich", "frankfurt", "hamburg"],
+  },
+  {
+    code: "FR",
+    name: "Francia",
+    flag: "🇫🇷",
+    keywords: ["france", "paris", "lyon", "marseille", "bordeaux"],
+  },
+  {
+    code: "IT",
+    name: "Italia",
+    flag: "🇮🇹",
+    keywords: ["italy", "italia", "rome", "milan", "turin", "naples"],
+  },
+  {
     code: "PT",
     name: "Portugal",
     flag: "🇵🇹",
@@ -347,10 +383,17 @@ export default function GlobalSignalsPage() {
         countryFlag: rule.targetCountryFlag,
       });
 
-      const allLeadsForMonitor = leads.filter((l) => l.monitorId === rule.id).concat(added);
+      const currentMonitorLeads = leads.filter((l) => l.monitorId === rule.id);
+      const cleanExistingLeads = currentMonitorLeads.filter((l) => {
+        if (!rule.targetCountry || rule.targetCountry === "all") return true;
+        const text = `${l.location || ""} ${l.headline || ""} ${l.fullName || ""}`;
+        if (/[\u0400-\u04FF\u0500-\u052F]/.test(text)) return false;
+        return true;
+      });
+      const allLeadsForMonitor = [...cleanExistingLeads, ...added];
       importSignalLeads(targetList, allLeadsForMonitor);
 
-      const newCapturedCount = rule.leadsIdentifiedCount + added.length;
+      const newCapturedCount = Math.max(allLeadsForMonitor.length, rule.leadsIdentifiedCount + added.length);
       const updatedPosts = (data.selectedPosts && data.selectedPosts.length > 0)
         ? data.selectedPosts
         : rule.lastScannedPosts || [];
