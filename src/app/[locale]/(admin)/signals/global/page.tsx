@@ -22,7 +22,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { viralPostsB2B } from "@/lib/signals/mock-data";
+import { viralPostsB2B, verifiedUsaOutreachScannedPosts } from "@/lib/signals/mock-data";
 import { Pencil, X, TrendingUp } from "lucide-react";
 
 export interface CountryOption {
@@ -454,9 +454,22 @@ export default function GlobalSignalsPage() {
   };
 
   const getRuleScannedPosts = (rule: Level3GlobalMonitor) => {
+    const country = (rule.targetCountry || "").toUpperCase();
     if (rule.lastScannedPosts && rule.lastScannedPosts.length > 0) {
+      if (country === "US" || country === "ES" || country === "LATAM" || country === "UK" || country === "CA") {
+        const clean = rule.lastScannedPosts.filter((p: any) => {
+          const fullText = `${p.text || ""} ${p.authorName || ""}`;
+          return !(
+            /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+            /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
+          );
+        });
+        if (clean.length > 0) return clean;
+        if (country === "US") return verifiedUsaOutreachScannedPosts;
+      }
       return rule.lastScannedPosts;
     }
+    if (country === "US") return verifiedUsaOutreachScannedPosts;
     return viralPostsB2B;
   };
 

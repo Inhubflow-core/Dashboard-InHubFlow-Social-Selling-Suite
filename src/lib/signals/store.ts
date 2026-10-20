@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   claudiaCuriRealPosts,
   viralPostsB2B,
+  verifiedUsaOutreachScannedPosts,
   initialDiscoveredLeads,
   initialLevel1Monitors,
   initialLevel2Monitors,
@@ -177,6 +178,41 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
           hadModifications = true;
           updated.scanFrequency = "daily" as const;
         }
+
+        // Sanitización automática de posts previos en cache: Si el monitor es de USA o país occidental, purgar posts residuales en cirílico/vietnamita/chino o vacantes
+        const country = (updated.targetCountry || "").toUpperCase();
+        if (country === "US" || country === "ES" || country === "LATAM" || country === "UK" || country === "CA") {
+          if (Array.isArray(updated.lastScannedPosts) && updated.lastScannedPosts.length > 0) {
+            const hasInvalidPosts = updated.lastScannedPosts.some((p: any) => {
+              const fullText = `${p.text || ""} ${p.authorName || ""}`;
+              return (
+                /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+                /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
+              );
+            });
+
+            if (hasInvalidPosts) {
+              hadModifications = true;
+              const cleanPosts = updated.lastScannedPosts.filter((p: any) => {
+                const fullText = `${p.text || ""} ${p.authorName || ""}`;
+                return !(
+                  /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+                  /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
+                );
+              });
+
+              if (cleanPosts.length > 0) {
+                updated.lastScannedPosts = cleanPosts;
+              } else if (country === "US") {
+                updated.lastScannedPosts = verifiedUsaOutreachScannedPosts;
+              }
+            }
+          } else if (country === "US") {
+            hadModifications = true;
+            updated.lastScannedPosts = verifiedUsaOutreachScannedPosts;
+          }
+        }
+
         return updated;
       });
 

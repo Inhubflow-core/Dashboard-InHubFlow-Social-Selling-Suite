@@ -223,6 +223,39 @@ export const viralPostsB2B = [
   },
 ];
 
+export const verifiedUsaOutreachScannedPosts = [
+  {
+    id: "urn:li:activity:7415892301984210944",
+    url: "https://www.linkedin.com/posts/willallred_b2b-sales-outbound-framework-activity-7415892301984210944",
+    text: "90% of cold outbound emails fail because they pitch before diagnosing the buyer's workflow pain. Here is the 3-step outbound framework our team used to book 60+ qualified enterprise demos last month.",
+    authorName: "Will Allred (Lavender • New York)",
+    reactionsCount: 342,
+    commentsCount: 86,
+    repostsCount: 24,
+    scannedAt: "Reciente",
+  },
+  {
+    id: "urn:li:activity:7414981290348192768",
+    url: "https://www.linkedin.com/posts/jasonbay_b2b-outreach-multithreading-activity-7414981290348192768",
+    text: "The secret to modern B2B outreach is multi-threading. If your SDRs are only reaching out to the VP of Sales, you are missing 4 other key decision makers in the buying committee.",
+    authorName: "Jason Bay (Outbound Squad • Portland)",
+    reactionsCount: 285,
+    commentsCount: 74,
+    repostsCount: 18,
+    scannedAt: "Reciente",
+  },
+  {
+    id: "urn:li:activity:7413890124908129280",
+    url: "https://www.linkedin.com/posts/belalbatrawy_deathtofluff-coldoutreach-b2b-activity-7413890124908129280",
+    text: "Cold outreach isn't dead, but lazy generic outreach is. Sending 500 emails a day with zero personalization destroys brand trust. Debate time: What is your primary metric for outbound SDR performance in 2026?",
+    authorName: "Belal Batrawy (Death to Fluff • Austin)",
+    reactionsCount: 412,
+    commentsCount: 115,
+    repostsCount: 31,
+    scannedAt: "Reciente",
+  },
+];
+
 export const initialLevel3Monitors: Level3GlobalMonitor[] = [
   {
     id: "mon-l3-prospeccion-b2b",
