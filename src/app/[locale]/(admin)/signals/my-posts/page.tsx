@@ -717,32 +717,6 @@ export default function MyPostsSignalRadarPage() {
               : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
           </span>
         </div>
-
-        {availableAccounts.length > 1 && (
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-[11px]">Cambiar cuenta:</span>
-            <select
-              value={activeAccount?.id || ""}
-              onChange={(e) => {
-                const sel = availableAccounts.find((a) => a.id === e.target.value);
-                if (sel) {
-                  setActiveAccount(sel);
-                  setActiveAccountId(sel.id);
-                }
-              }}
-              className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            >
-              {availableAccounts.map((a) => {
-                const isConnected = a.status === "OK" || a.status === "CONNECTED";
-                return (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {isConnected ? "(Conectada ✓)" : `(${a.status || "Desconectada"})`}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        )}
       </div>
 
       {/* Banner de Feedback de Escaneo o Acciones */}
