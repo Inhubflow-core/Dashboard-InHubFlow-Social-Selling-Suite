@@ -1041,11 +1041,11 @@ export default function GlobalSignalsPage() {
                                 </span>
                               </div>
 
-                              <div className="space-y-2.5">
+                              <div className="space-y-2">
                                 {scannedPosts.map((post, pIdx) => (
                                   <div
                                     key={post.id || pIdx}
-                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/90 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs hover:border-blue-200 dark:hover:border-blue-800 transition"
+                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs hover:border-blue-200 dark:hover:border-blue-800 transition"
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">
@@ -1054,29 +1054,11 @@ export default function GlobalSignalsPage() {
                                         </span>
                                         &ldquo;{post.text}&rdquo;
                                       </p>
-
-                                      {/* Métricas Reales de LinkedIn con Destacado de Comentarios y Reposts */}
-                                      <div className="flex items-center gap-2 text-[11px] mt-1.5 flex-wrap">
-                                        <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                          💬 {post.commentsCount ?? 0} comentarios
-                                          <span className="text-[10px] font-normal text-emerald-600">(🥇 90 pts)</span>
+                                      <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                                        <span>
+                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                                         </span>
-
-                                        <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                          🔁 {post.repostsCount ?? 0} reposts
-                                          <span className="text-[10px] font-normal text-blue-600">(🥈 80 pts)</span>
-                                        </span>
-
-                                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 font-medium text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                          👍 {post.reactionsCount ?? 0} reacciones
-                                          <span className="text-[10px] font-normal text-amber-700">(🥉 70 pts)</span>
-                                        </span>
-
-                                        {post.scannedAt && (
-                                          <span className="text-gray-400 text-[10px] ml-1">
-                                            • Caza: {post.scannedAt}
-                                          </span>
-                                        )}
+                                        {post.scannedAt && <span>• {post.scannedAt}</span>}
                                       </div>
                                     </div>
 
@@ -1156,17 +1138,21 @@ export default function GlobalSignalsPage() {
                           </span>
                           &quot;{post.text}&quot;
                         </p>
-                        <span className="text-[10px] text-gray-400">
-                          {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts • {post.reactionsCount ?? 0} reacciones
-                        </span>
+                        <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                          <span>
+                            {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
+                          </span>
+                          {post.scannedAt && <span>• {post.scannedAt}</span>}
+                        </div>
                       </div>
                       <a
                         href={post.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-brand-600 hover:underline shrink-0"
+                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
                       >
-                        Ver Post ↗
+                        <span>Ver Post</span>
+                        <span>↗</span>
                       </a>
                     </div>
                   ))}
