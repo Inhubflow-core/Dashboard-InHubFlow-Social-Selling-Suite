@@ -26,9 +26,19 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
   if (typeof window === "undefined") return initialLevel1Monitors;
   try {
     const raw = localStorage.getItem(L1_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      if (initialLevel1Monitors.length > 0) {
+        localStorage.setItem(L1_KEY, JSON.stringify(initialLevel1Monitors));
+      }
+      return initialLevel1Monitors;
+    }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      if (initialLevel1Monitors.length > 0) {
+        localStorage.setItem(L1_KEY, JSON.stringify(initialLevel1Monitors));
+      }
+      return initialLevel1Monitors;
+    }
     let hadModifications = false;
     const monitors = parsed
       .filter((m: Level1Monitor) => Boolean(m && m.id && m.postTitle))
@@ -39,12 +49,20 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
         }
         return m;
       });
+
+    for (const initMon of initialLevel1Monitors) {
+      if (!monitors.some((m) => m.id === initMon.id)) {
+        monitors.push(initMon);
+        hadModifications = true;
+      }
+    }
+
     if (hadModifications) {
       localStorage.setItem(L1_KEY, JSON.stringify(monitors));
     }
     return monitors;
   } catch {
-    return [];
+    return initialLevel1Monitors;
   }
 }
 

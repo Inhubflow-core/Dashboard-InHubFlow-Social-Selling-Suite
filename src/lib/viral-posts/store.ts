@@ -58,14 +58,32 @@ export function getStoredCreatedPosts(): CreatedPost[] {
   if (typeof window === "undefined") return initialCreatedPosts;
   try {
     const raw = localStorage.getItem(CREATED_POSTS_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(initialCreatedPosts));
+      return initialCreatedPosts;
+    }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(initialCreatedPosts));
+      return initialCreatedPosts;
+    }
     const clean = parsed.filter((p: CreatedPost) => p && !/^created-0[1-3]$/.test(p.id));
-    if (clean.length !== parsed.length) localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(clean));
-    return clean;
+    const merged = [...clean];
+    let hadModifications = clean.length !== parsed.length;
+
+    for (const initPost of initialCreatedPosts) {
+      if (!merged.some((p) => p.id === initPost.id)) {
+        merged.push(initPost);
+        hadModifications = true;
+      }
+    }
+
+    if (hadModifications) {
+      localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(merged));
+    }
+    return merged;
   } catch {
-    return [];
+    return initialCreatedPosts;
   }
 }
 

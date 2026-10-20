@@ -109,7 +109,46 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
   },
 ];
 
-export const initialLevel1Monitors: Level1Monitor[] = [];
+export const initialLevel1Monitors: Level1Monitor[] = [
+  {
+    id: "mon-l1-roberto-sistema",
+    postTitle: "20 Lugares. Cierro el Lunes 19 - Prospección B2B",
+    postUrl: "https://www.linkedin.com/posts/robertoorse-agencia_20-lugares-cierro-el-lunes-19-ayer-activity-7419089920785190912-qjU6",
+    keyword: "SISTEMA",
+    status: "active",
+    autoLikeComment: true,
+    publicReplyTemplate: "¡Hola! Te acabo de enviar el framework completo por mensaje privado. Revisa tus DMs 🚀",
+    nonConnectedNoteTemplate: "Hola {{first_name}}, vi tu interés en mi publicación sobre el sistema de prospección B2B. Te conecto por aquí para enviarte el PDF.",
+    attachedPdfName: "Framework-Prospeccion-B2B-InHubFlow.pdf",
+    scannedCommentsCount: 4,
+    leadsCapturedCount: 2,
+    lastScanAt: "10:15",
+    lastScanAtIso: "2026-10-18T10:15:00.000Z",
+    scanFrequency: "daily",
+    createdAt: "2026-10-18T09:30:00.000Z",
+    originPostId: "created-roberto-sistema",
+    originPostStatus: "published",
+  },
+  {
+    id: "mon-l1-roberto-prospeccion",
+    postTitle: "Buscando 20 Empresas B2B - Conversión Comercial en LinkedIn",
+    postUrl: "https://www.linkedin.com/posts/robertoorse-agencia_estoy-buscando-20-empresas-b2b-que-activity-7418727192660910080-mFpP",
+    keyword: "PROSPECCION",
+    status: "active",
+    autoLikeComment: true,
+    publicReplyTemplate: "¡Hola! Te envié por privado la hoja de ruta para tu equipo comercial. ¡Mucho éxito!",
+    nonConnectedNoteTemplate: "Hola {{first_name}}, un placer saludarte. Vi tu comentario en mi post sobre prospección. Te agrego para compartirte el documento.",
+    attachedPdfName: "Playbook-Conversion-LinkedIn-B2B.pdf",
+    scannedCommentsCount: 6,
+    leadsCapturedCount: 3,
+    lastScanAt: "15:45",
+    lastScanAtIso: "2026-10-17T15:45:00.000Z",
+    scanFrequency: "daily",
+    createdAt: "2026-10-17T14:30:00.000Z",
+    originPostId: "created-roberto-prospeccion",
+    originPostStatus: "published",
+  },
+];
 
 export const initialLevel2Monitors: Level2CompetitorMonitor[] = [
   {
