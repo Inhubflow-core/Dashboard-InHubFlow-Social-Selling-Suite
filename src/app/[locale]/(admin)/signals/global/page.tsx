@@ -813,12 +813,12 @@ export default function GlobalSignalsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[280px]">Temática / Problema en LinkedIn</th>
-                  <th className="px-4 py-3 min-w-[170px] whitespace-nowrap">Filtro de Debate & Región</th>
+                  <th className="px-4 py-3 min-w-[260px]">Temática / Problema en LinkedIn</th>
+                  <th className="px-4 py-3 min-w-[140px]">Filtro de Debate & Región</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[380px]">Acciones</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -852,7 +852,7 @@ export default function GlobalSignalsPage() {
                                 </span>
                               </div>
 
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-sm mt-0.5">
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate block max-w-xs mt-0.5">
                                 Escaneo de publicaciones virales con debate activo en {countryName}
                               </p>
 
@@ -887,7 +887,7 @@ export default function GlobalSignalsPage() {
 
                         {/* 2. Filtro de Debate & Región */}
                         <td className="px-4 py-3.5 align-top">
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1 max-w-[150px]">
                             <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                               Mín. {rule.minPostReactions || 15} comentarios
                             </span>
@@ -933,7 +933,7 @@ export default function GlobalSignalsPage() {
                         </td>
 
                         {/* 6. Acciones */}
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[380px]">
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[350px]">
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div

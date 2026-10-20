@@ -781,12 +781,12 @@ export default function MyPostsSignalRadarPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[360px]">Cuenta / Publicación</th>
-                  <th className="px-4 py-3 min-w-[160px]">Palabra Clave</th>
+                  <th className="px-4 py-3 min-w-[260px]">Cuenta / Publicación</th>
+                  <th className="px-4 py-3 min-w-[140px]">Palabra Clave</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[380px]">Acciones</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -842,7 +842,7 @@ export default function MyPostsSignalRadarPage() {
                                 href={currentUserProfileUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-sm mt-0.5"
+                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
                               >
                                 {currentUserProfileUrl}
                               </a>
@@ -910,7 +910,7 @@ export default function MyPostsSignalRadarPage() {
                         </td>
 
                         {/* 6. Acciones */}
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[380px]">
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[350px]">
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
