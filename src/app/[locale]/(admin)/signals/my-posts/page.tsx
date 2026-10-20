@@ -743,7 +743,7 @@ export default function MyPostsSignalRadarPage() {
       )}
 
       {/* Listado de Monitores Activos */}
-      <ComponentCard title={`Monitores de Publicaciones Propias (${l1Monitors.length})`}>
+      <ComponentCard title={`Monitores de Señales: Publicaciones Propias (${l1Monitors.length})`}>
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando monitores...</p>
         ) : l1Monitors.length === 0 ? (

@@ -1021,7 +1021,7 @@ export default function CompetitorsSignalRadarPage() {
       )}
 
       {/* Lista de Competidores en Seguimiento */}
-      <ComponentCard title={`Cuentas Objetivo en Seguimiento (${l2Monitors.length})`}>
+      <ComponentCard title={`Monitores de Señales: Publicaciones de Competidores (${l2Monitors.length})`}>
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando cuentas...</p>
         ) : l2Monitors.length === 0 ? (

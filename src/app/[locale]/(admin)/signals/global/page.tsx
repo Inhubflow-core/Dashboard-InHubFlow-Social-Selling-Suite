@@ -831,7 +831,7 @@ export default function GlobalSignalsPage() {
       )}
 
       {/* Tabla Principal: Feed de Oportunidades & Radares Virales */}
-      <ComponentCard title={`Radares Temáticos de Publicaciones Virales (${l3Monitors.length})`}>
+      <ComponentCard title={`Monitores de Señales: Publicaciones Globales LinkedIn (${l3Monitors.length})`}>
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando radares de tendencias...</p>
         ) : l3Monitors.length === 0 ? (
