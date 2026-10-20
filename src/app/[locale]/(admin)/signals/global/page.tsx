@@ -815,8 +815,8 @@ export default function GlobalSignalsPage() {
                 <tr>
                   <th className="px-4 py-3 min-w-[360px]">Temática / Problema en LinkedIn</th>
                   <th className="px-4 py-3 min-w-[180px]">Filtro de Debate & Región</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Decisores Extraídos</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Última Caza</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
                   <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
                 </tr>
@@ -897,18 +897,18 @@ export default function GlobalSignalsPage() {
                           </div>
                         </td>
 
-                        {/* 3. Decisores Extraídos */}
+                        {/* 3. Leads Extraídos */}
                         <td className="px-4 py-3.5 whitespace-nowrap font-bold text-brand-600 dark:text-brand-400 align-top">
                           {leadsCount > 0 ? (
                             <Link
                               href={targetList ? `/leads/lists?listId=${encodeURIComponent(targetList.id)}` : "/leads"}
                               className="hover:underline flex items-center gap-1"
                             >
-                              <span>{leadsCount} decisores</span>
+                              <span>{leadsCount} leads</span>
                               <span className="text-[10px] font-normal text-gray-400">↗</span>
                             </Link>
                           ) : (
-                            <span>0 decisores</span>
+                            <span>0 leads</span>
                           )}
                         </td>
 
@@ -1087,18 +1087,18 @@ export default function GlobalSignalsPage() {
         )}
       </ComponentCard>
 
-      {/* Modal para Visualizar Decisores Extraídos */}
+      {/* Modal para Visualizar Leads Extraídos */}
       {selectedRuleForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1 w-fit">
+                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1 w-fit">
                   <span>{selectedRuleForLeads.targetCountryFlag || "🌎"}</span>
                   <span>Tendencia Viral: {selectedRuleForLeads.searchQuery}</span>
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Decisores Extraídos de Publicaciones Virales
+                  Leads Extraídos de Publicaciones Virales
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Personas que comentaron y participaron activamente en los debates calientes de esta temática.
