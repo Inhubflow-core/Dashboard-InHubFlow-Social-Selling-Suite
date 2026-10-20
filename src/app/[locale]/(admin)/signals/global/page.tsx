@@ -1076,7 +1076,7 @@ export default function GlobalSignalsPage() {
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
-                                  <span>Publicaciones Virales con Alto Debate ({scannedPosts.length})</span>
+                                  <span>Publicación(es) de LinkedIn Monitoreada(s): Post Globales ({scannedPosts.length})</span>
                                 </span>
                                 <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
                                   Tracción real en {countryName} • {rule.searchQuery}

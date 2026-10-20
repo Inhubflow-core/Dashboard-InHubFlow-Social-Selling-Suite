@@ -1011,7 +1011,7 @@ export default function MyPostsSignalRadarPage() {
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <span>🔗</span>
-                                  <span>Publicación de LinkedIn Monitoreada (Lead Magnet Nivel 1)</span>
+                                  <span>Publicación(es) de LinkedIn Monitoreada(s): Mis propios Posts (1)</span>
                                 </span>
                                 <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
                                   Publicado por {currentDisplayName}
