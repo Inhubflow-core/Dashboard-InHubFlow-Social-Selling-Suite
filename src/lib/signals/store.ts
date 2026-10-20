@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   claudiaCuriRealPosts,
-  pedroValladolidRealPosts,
+  viralPostsB2B,
   initialDiscoveredLeads,
   initialLevel1Monitors,
   initialLevel2Monitors,
@@ -135,57 +135,32 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
       }
       return initialLevel3Monitors;
     }
+
+    // Si los monitores almacenados aún son de la Opción A (Pedro Valladolid), migrar limpiamente a la Opción B
+    const isOldOptionA = parsed.some((m) =>
+      (m.id && m.id.includes("pedro")) ||
+      (m.searchQuery && m.searchQuery.toLowerCase().includes("pedro")) ||
+      (m.leaderName && m.leaderName.toLowerCase().includes("pedro"))
+    );
+
+    if (isOldOptionA) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(L3_KEY, JSON.stringify(initialLevel3Monitors));
+      }
+      return initialLevel3Monitors;
+    }
+
     let hadModifications = false;
     const monitors = parsed
-      .filter((m: Level3GlobalMonitor) => Boolean(m && m.id && (m.searchQuery || m.leaderName)))
+      .filter((m: Level3GlobalMonitor) => Boolean(m && m.id && m.searchQuery))
       .map((m: Level3GlobalMonitor) => {
         let updated = { ...m };
         if (updated.scanFrequency !== "daily") {
           hadModifications = true;
           updated.scanFrequency = "daily" as const;
         }
-
-        const isPedro =
-          (m.leaderName || "").toLowerCase().includes("pedro") ||
-          (m.searchQuery || "").toLowerCase().includes("pedro") ||
-          (m.leaderUrl || "").toLowerCase().includes("pedrovalladolid");
-
-        if (isPedro) {
-          const hasInvalidUrl =
-            !updated.leaderUrl ||
-            updated.leaderUrl.includes("coach-ventas") ||
-            (updated.lastScannedPosts && updated.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas")));
-
-          const needsMetricUpdate =
-            !updated.lastScannedPosts ||
-            updated.lastScannedPosts.some((p) => (p as any).reactionsCount === 74 || p.repostsCount === undefined);
-
-          if (hasInvalidUrl || needsMetricUpdate || m.lastScannedPosts?.length === 0 || !m.leaderAvatarUrl?.includes("licdn.com")) {
-            hadModifications = true;
-            updated = {
-              ...updated,
-              leaderName: "Pedro Valladolid Borao 🚀",
-              leaderUrl: "https://www.linkedin.com/in/pedrovalladolid",
-              leaderAvatarUrl:
-                "https://media.licdn.com/dms/image/v2/D4D03AQEyYxxPmFjYlQ/profile-displayphoto-scale_100_100/B4DZptsVEEGkAc-/0/1762776929591?e=1793836800&v=beta&t=putzi_PR0YO_c1zwaJoqsrQtWbwHkoJJ69yQ9-xLDSY",
-              leaderHeadline:
-                "Mentor Empresarial para Pymes · Ventas · Rentabilidad · Metodología CRECE® y VENDE®",
-              nicheTopic: updated.nicheTopic || "Ventas B2B & Dirección Comercial",
-              lastScannedPosts: pedroValladolidRealPosts,
-              lastScanAt: m.lastScanAt || "17:15",
-              lastScanAtIso: m.lastScanAtIso || "2026-10-18T17:15:00.000Z",
-              leadsIdentifiedCount: Math.max(m.leadsIdentifiedCount || 0, 48),
-            };
-          }
-        }
         return updated;
       });
-
-    const hasLeader = monitors.some((m) => Boolean(m.leaderName));
-    if (!hasLeader && initialLevel3Monitors.length > 0) {
-      monitors.unshift(initialLevel3Monitors[0]);
-      hadModifications = true;
-    }
 
     if (hadModifications) {
       localStorage.setItem(L3_KEY, JSON.stringify(monitors));
