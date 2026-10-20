@@ -156,7 +156,11 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
             updated.leaderUrl.includes("coach-ventas") ||
             (updated.lastScannedPosts && updated.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas")));
 
-          if (hasInvalidUrl || !m.lastScannedPosts || m.lastScannedPosts.length === 0 || !m.leaderAvatarUrl?.includes("licdn.com")) {
+          const needsMetricUpdate =
+            !updated.lastScannedPosts ||
+            updated.lastScannedPosts.some((p) => (p as any).reactionsCount === 74 || p.repostsCount === undefined);
+
+          if (hasInvalidUrl || needsMetricUpdate || m.lastScannedPosts?.length === 0 || !m.leaderAvatarUrl?.includes("licdn.com")) {
             hadModifications = true;
             updated = {
               ...updated,

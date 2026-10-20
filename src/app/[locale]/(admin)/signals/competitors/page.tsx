@@ -1331,7 +1331,7 @@ export default function CompetitorsSignalRadarPage() {
                                       </p>
                                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
                                         <span>
-                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios
+                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                                         </span>
                                         {post.scannedAt && <span>• {post.scannedAt}</span>}
                                       </div>

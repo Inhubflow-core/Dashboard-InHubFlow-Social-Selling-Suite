@@ -14,6 +14,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 6,
     commentsCount: 0,
+    repostsCount: 1,
     scannedAt: "15:34",
   },
   {
@@ -23,6 +24,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 0,
     commentsCount: 1,
+    repostsCount: 0,
     scannedAt: "15:34",
   },
   {
@@ -32,6 +34,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 12,
     commentsCount: 8,
+    repostsCount: 3,
     scannedAt: "15:34",
   },
   {
@@ -41,6 +44,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 8,
     commentsCount: 9,
+    repostsCount: 2,
     scannedAt: "15:34",
   },
   {
@@ -50,6 +54,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 7,
     commentsCount: 24,
+    repostsCount: 4,
     scannedAt: "15:34",
   },
   {
@@ -59,6 +64,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 95,
     commentsCount: 23,
+    repostsCount: 8,
     scannedAt: "15:34",
   },
   {
@@ -68,6 +74,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 4,
     commentsCount: 1,
+    repostsCount: 0,
     scannedAt: "15:34",
   },
   {
@@ -77,6 +84,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 15,
     commentsCount: 3,
+    repostsCount: 1,
     scannedAt: "15:34",
   },
   {
@@ -86,6 +94,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 5,
     commentsCount: 6,
+    repostsCount: 1,
     scannedAt: "15:34",
   },
   {
@@ -95,6 +104,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
     authorName: "Claudia Curi",
     reactionsCount: 5,
     commentsCount: 2,
+    repostsCount: 1,
     scannedAt: "15:34",
   },
 ];
@@ -129,15 +139,17 @@ export const pedroValladolidRealPosts = [
     authorName: "Pedro Valladolid Borao",
     reactionsCount: 48,
     commentsCount: 16,
+    repostsCount: 5,
     scannedAt: "17:15",
   },
   {
     id: "urn:li:ugcPost:7472938547164094464",
     url: "https://www.linkedin.com/posts/pedrovalladolid_en-2004-ve%C3%ADa-venir-la-crisis-inmobiliaria-ugcPost-7472938547164094464-HvV1",
-    text: "En 2004 veía venir la crisis inmobiliaria. En 2006 me metí en el sector. En 2008 había que reinventar la dirección comercial. La resiliencia de ventas se mide en los momentos difíciles.",
+    text: "En 2004 veía venir la crisis inmobiliaria. En 2006 me metí en el sector inmobiliario. En 2008 había perdido mi casa. Eso tiene nombre: sesgo retrospectivo. Y es solo uno de los tres sesgos que hoy te cuento, porque probablemente estés cayendo en alguno de ellos ahora mismo en tu empresa sin saberlo.",
     authorName: "Pedro Valladolid Borao",
-    reactionsCount: 74,
-    commentsCount: 22,
+    reactionsCount: 19,
+    commentsCount: 4,
+    repostsCount: 2,
     scannedAt: "17:15",
   },
   {
@@ -147,6 +159,7 @@ export const pedroValladolidRealPosts = [
     authorName: "Santiago Torre Escudero",
     reactionsCount: 65,
     commentsCount: 19,
+    repostsCount: 7,
     scannedAt: "17:15",
   },
   {
@@ -156,6 +169,7 @@ export const pedroValladolidRealPosts = [
     authorName: "Comercialmente.es",
     reactionsCount: 52,
     commentsCount: 14,
+    repostsCount: 4,
     scannedAt: "17:15",
   },
   {
@@ -165,6 +179,7 @@ export const pedroValladolidRealPosts = [
     authorName: "Manuel Santamaría Paniagua",
     reactionsCount: 40,
     commentsCount: 14,
+    repostsCount: 3,
     scannedAt: "17:15",
   },
   {
@@ -174,6 +189,7 @@ export const pedroValladolidRealPosts = [
     authorName: "Miguel Ángel Gámez Ugalde",
     reactionsCount: 38,
     commentsCount: 12,
+    repostsCount: 3,
     scannedAt: "17:15",
   },
   {
@@ -183,6 +199,7 @@ export const pedroValladolidRealPosts = [
     authorName: "Pedro Valladolid Borao",
     reactionsCount: 33,
     commentsCount: 9,
+    repostsCount: 2,
     scannedAt: "17:15",
   },
 ];

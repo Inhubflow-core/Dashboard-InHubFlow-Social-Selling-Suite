@@ -56,6 +56,7 @@ export interface ScannedCompetitorPost {
   authorName?: string;
   reactionsCount?: number;
   commentsCount?: number;
+  repostsCount?: number;
   scannedAt?: string;
 }
 
@@ -110,6 +111,7 @@ export interface Level3GlobalMonitor {
     authorName?: string;
     reactionsCount?: number;
     commentsCount?: number;
+    repostsCount?: number;
     scannedAt?: string;
   }>;
 }

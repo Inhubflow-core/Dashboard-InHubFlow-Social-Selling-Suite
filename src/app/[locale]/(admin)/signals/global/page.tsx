@@ -217,7 +217,8 @@ export default function GlobalSignalsPage() {
           monitor.leaderUrl.includes("coach-ventas") ||
           !monitor.leaderAvatarUrl?.includes("licdn.com") ||
           !monitor.lastScannedPosts ||
-          monitor.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas"));
+          monitor.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas")) ||
+          monitor.lastScannedPosts.some((p) => (p as any).reactionsCount === 74 || p.repostsCount === undefined);
 
         if (needsFix) {
           updateLevel3Monitor(monitor.id, {
@@ -509,7 +510,8 @@ export default function GlobalSignalsPage() {
       const hasInvalidPost =
         !rule.lastScannedPosts ||
         rule.lastScannedPosts.length === 0 ||
-        rule.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas"));
+        rule.lastScannedPosts.some((p) => p.url && p.url.includes("coach-ventas")) ||
+        rule.lastScannedPosts.some((p) => (p as any).reactionsCount === 74 || p.repostsCount === undefined);
       if (hasInvalidPost) {
         return pedroValladolidRealPosts;
       }
@@ -1292,7 +1294,7 @@ export default function GlobalSignalsPage() {
                                       </p>
                                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
                                         <span>
-                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios
+                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                                         </span>
                                         {post.scannedAt && <span>• {post.scannedAt}</span>}
                                       </div>
@@ -1375,7 +1377,7 @@ export default function GlobalSignalsPage() {
                           &quot;{post.text}&quot;
                         </p>
                         <span className="text-[10px] text-gray-400">
-                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios
+                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                         </span>
                       </div>
                       <a
