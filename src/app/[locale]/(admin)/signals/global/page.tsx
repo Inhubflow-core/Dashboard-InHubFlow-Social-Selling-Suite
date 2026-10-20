@@ -839,7 +839,7 @@ export default function GlobalSignalsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Ej. Prospección B2B, Inteligencia Artificial para Ventas, Cold Outreach..."
-                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">
                   El radar buscará publicaciones en LinkedIn que aborden esta problemática.
@@ -854,13 +854,13 @@ export default function GlobalSignalsPage() {
                 <button
                   type="button"
                   onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                  className="w-full flex items-center justify-between rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 bg-white hover:border-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white transition"
+                  className="h-10 w-full flex items-center justify-between rounded-lg border border-gray-300 px-3 text-xs text-gray-800 bg-white hover:border-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white transition"
                 >
-                  <span className="flex items-center gap-2 font-medium">
-                    <span className="text-base">{selectedCountry.flag}</span>
-                    <span>{selectedCountry.name}</span>
+                  <span className="flex items-center gap-2 font-medium truncate">
+                    <span className="text-sm leading-none shrink-0">{selectedCountry.flag}</span>
+                    <span className="truncate">{selectedCountry.name}</span>
                   </span>
-                  <span className="text-gray-400 text-xs">▼</span>
+                  <span className="text-gray-400 text-xs shrink-0 ml-2">▼</span>
                 </button>
 
                 {isCountryDropdownOpen && (
