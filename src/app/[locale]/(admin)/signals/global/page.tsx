@@ -211,7 +211,6 @@ export default function GlobalSignalsPage() {
 
   // Form states de la Opción B: Cazador de Publicaciones Virales
   const [searchQuery, setSearchQuery] = useState("Prospección B2B & Captación en Frío");
-  const [nicheTopic, setNicheTopic] = useState("Prospección B2B & Social Selling");
   const [minCommentThreshold, setMinCommentThreshold] = useState<number>(20);
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
     COUNTRY_OPTIONS.find((c) => c.code === "ES") || COUNTRY_OPTIONS[0]
@@ -258,7 +257,7 @@ export default function GlobalSignalsPage() {
     const newMonitor: Level3GlobalMonitor = {
       id: `mon-l3-${Date.now()}`,
       searchQuery: finalQuery,
-      nicheTopic: nicheTopic.trim() || finalQuery,
+      nicheTopic: finalQuery,
       locations: selectedCountry.keywords.length > 0 ? selectedCountry.keywords : [selectedCountry.code],
       targetCountry: selectedCountry.code,
       targetCountryName: selectedCountry.name,
@@ -498,6 +497,7 @@ export default function GlobalSignalsPage() {
           desc="Define la temática o dolor de negocio y el umbral mínimo de comentarios para cazar las publicaciones más calientes de LinkedIn."
         >
           <form onSubmit={handleAddRule} className="space-y-4">
+            {/* Fila 1: Temática a Rastrear y Mercado / País Objetivo */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Campo 1: Temática o Dolor a Rastrear */}
               <div>
@@ -517,70 +517,7 @@ export default function GlobalSignalsPage() {
                 </span>
               </div>
 
-              {/* Campo 2: Especialidad o Nicho */}
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Especialidad / Categoría
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={nicheTopic}
-                  onChange={(e) => setNicheTopic(e.target.value)}
-                  placeholder="Ej. Prospección B2B & Social Selling, Dirección Comercial..."
-                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  Permite segmentar y clasificar las listas dinámicas creadas en el CRM.
-                </span>
-              </div>
-            </div>
-
-            {/* Fila 2: Umbral Mínimo de Debate y País */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Umbral Mínimo de Debate */}
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Filtro de Tracción Mínima (Volumen de Comentarios)
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 10, label: "+10 comentarios", tag: "Moderado" },
-                    { value: 20, label: "+20 comentarios", tag: "Recomendado", recommended: true },
-                    { value: 50, label: "+50 comentarios", tag: "Viral Masivo" },
-                  ].map((thresh) => (
-                    <button
-                      key={thresh.value}
-                      type="button"
-                      onClick={() => setMinCommentThreshold(thresh.value)}
-                      className={`p-2 rounded-lg border text-left transition ${
-                        minCommentThreshold === thresh.value
-                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-900 dark:text-white">
-                          {thresh.label}
-                        </span>
-                        {thresh.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
-                            Óptimo
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
-                        {thresh.tag}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
-                </span>
-              </div>
-
-              {/* País / Mercado Objetivo */}
+              {/* Campo 2: País / Mercado Objetivo */}
               <div className="relative" ref={countryDropdownRef}>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   Mercado / País Objetivo
@@ -643,18 +580,55 @@ export default function GlobalSignalsPage() {
               </div>
             </div>
 
-            {/* Fila 3: Control de Lote de Absorción Anti-Bloqueo y Filtro Anti-Colaboradores */}
+            {/* Fila 2: Filtro de Tracción Mínima y Lote de Cosecha (Diseño Gemelo Lado a Lado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Control de Lote */}
-              <div className="rounded-xl border border-brand-200 bg-brand-25/40 p-3.5 dark:border-brand-900/40 dark:bg-brand-950/20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-brand-950 dark:text-brand-200">
-                    🛡️ Lote de Cosecha por Publicación
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">
-                    Protección LinkedIn
-                  </span>
+              {/* Filtro de Tracción Mínima */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 10, label: "+10 comentarios", tag: "Moderado" },
+                    { value: 20, label: "+20 comentarios", tag: "Recomendado", recommended: true },
+                    { value: 50, label: "+50 comentarios", tag: "Viral Masivo" },
+                  ].map((thresh) => (
+                    <button
+                      key={thresh.value}
+                      type="button"
+                      onClick={() => setMinCommentThreshold(thresh.value)}
+                      className={`p-2 rounded-lg border text-left transition ${
+                        minCommentThreshold === thresh.value
+                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">
+                          {thresh.label}
+                        </span>
+                        {thresh.recommended && (
+                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                            Óptimo
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                        {thresh.tag}
+                      </span>
+                    </button>
+                  ))}
                 </div>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
+                </span>
+              </div>
+
+              {/* Lote de Cosecha por Publicación (Mismo diseño exacto) */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Lote de Cosecha por Publicación (Protección LinkedIn)
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
@@ -667,8 +641,8 @@ export default function GlobalSignalsPage() {
                       onClick={() => setBatchLeadLimit(opt.value as 25 | 50 | 100)}
                       className={`p-2 rounded-lg border text-left transition ${
                         batchLeadLimit === opt.value
-                          ? "border-brand-500 bg-white dark:bg-gray-900 ring-2 ring-brand-500/20 shadow-xs"
-                          : "border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/50 hover:border-gray-300"
+                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -676,7 +650,7 @@ export default function GlobalSignalsPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-[9px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-950/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
@@ -687,27 +661,30 @@ export default function GlobalSignalsPage() {
                     </button>
                   ))}
                 </div>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
+                </span>
               </div>
+            </div>
 
-              {/* Filtro Anti-Colaboradores */}
-              <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={excludeInternalEngagement}
-                    onChange={(e) => setExcludeInternalEngagement(e.target.checked)}
-                    className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                  />
-                  <div>
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
-                      🛡️ Descartar engagement de colaboradores del autor
-                    </span>
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
-                      Filtra comentarios y reacciones de empleados de la misma empresa para extraer únicamente clientes potenciales externos.
-                    </span>
-                  </div>
-                </label>
-              </div>
+            {/* Fila 3: Filtro Anti-Colaboradores */}
+            <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={excludeInternalEngagement}
+                  onChange={(e) => setExcludeInternalEngagement(e.target.checked)}
+                  className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                />
+                <div>
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
+                    🛡️ Descartar engagement de colaboradores del autor
+                  </span>
+                  <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                    Filtra comentarios y reacciones de empleados de la misma empresa para extraer únicamente clientes potenciales externos.
+                  </span>
+                </div>
+              </label>
             </div>
 
             {/* Plantilla Relacional Contextual */}
@@ -1285,21 +1262,6 @@ export default function GlobalSignalsPage() {
                   }
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   placeholder="Ej: Prospección B2B, Inteligencia Artificial"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Especialidad / Categoría
-                </label>
-                <input
-                  type="text"
-                  value={editingRule.nicheTopic || ""}
-                  onChange={(e) =>
-                    setEditingRule({ ...editingRule, nicheTopic: e.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  placeholder="Ej: Prospección B2B & Social Selling"
                 />
               </div>
 
