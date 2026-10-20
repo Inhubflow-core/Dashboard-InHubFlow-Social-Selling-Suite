@@ -786,7 +786,7 @@ export default function MyPostsSignalRadarPage() {
                   <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[380px]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -910,8 +910,8 @@ export default function MyPostsSignalRadarPage() {
                         </td>
 
                         {/* 6. Acciones */}
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top">
-                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[380px]">
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
                               className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"

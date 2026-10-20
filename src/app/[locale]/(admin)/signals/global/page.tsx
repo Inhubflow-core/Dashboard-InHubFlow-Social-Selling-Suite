@@ -813,12 +813,12 @@ export default function GlobalSignalsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 min-w-[360px]">Temática / Problema en LinkedIn</th>
-                  <th className="px-4 py-3 min-w-[180px]">Filtro de Debate & Región</th>
+                  <th className="px-4 py-3 min-w-[280px]">Temática / Problema en LinkedIn</th>
+                  <th className="px-4 py-3 min-w-[170px] whitespace-nowrap">Filtro de Debate & Región</th>
                   <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
                   <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
                   <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[380px]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -933,11 +933,11 @@ export default function GlobalSignalsPage() {
                         </td>
 
                         {/* 6. Acciones */}
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top">
-                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap align-top min-w-[380px]">
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold shrink-0"
                               title="Seleccionar tamaño de lote para la cosecha"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -970,7 +970,7 @@ export default function GlobalSignalsPage() {
                               type="button"
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
-                              className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                              className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs shrink-0"
                               title={`Escanear publicaciones virales y cosechar lote seguro de hasta ${activeBatch} leads`}
                             >
                               {isScanningId === rule.id ? (
@@ -992,7 +992,7 @@ export default function GlobalSignalsPage() {
                             <button
                               type="button"
                               onClick={() => setSelectedRuleForLeads(rule)}
-                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition shrink-0"
                               title={`Abrir decisores captados de ${rule.searchQuery}`}
                             >
                               <span>Ver Leads ({leadsCount})</span>
