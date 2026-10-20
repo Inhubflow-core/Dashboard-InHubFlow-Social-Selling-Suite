@@ -1161,7 +1161,7 @@ export default function CompetitorsSignalRadarPage() {
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Auditar Ahora&quot; para extraer posts reales.
+                                  Sin posts escaneados. Pulsa &quot;Escanear&quot; para extraer posts reales.
                                 </span>
                               )}
                             </div>
@@ -1245,16 +1245,16 @@ export default function CompetitorsSignalRadarPage() {
                                   disabled={isScanningId === comp.id}
                                   onClick={() => handleScanCompetitor(comp, false, activeBatch)}
                                   className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                                  title={`Auditar publicaciones y extraer lote seguro de hasta ${activeBatch} decisores`}
+                                  title={`Escanear publicaciones y extraer lote seguro de hasta ${activeBatch} decisores`}
                                 >
                                   {isScanningId === comp.id ? (
                                     <>
                                       <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                      Auditando ({activeBatch})...
+                                      Escaneando ({activeBatch})...
                                     </>
                                   ) : (
                                     <>
-                                      <span>Auditar</span>
+                                      <span>Escanear</span>
                                       <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
                                         {activeBatch}
                                       </span>
@@ -1270,7 +1270,7 @@ export default function CompetitorsSignalRadarPage() {
                               className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir lista inteligente de ${comp.competitorName}`}
                             >
-                              <span>Ver Lista ({leadCount})</span>
+                              <span>Ver Leads ({leadCount})</span>
                               <span aria-hidden="true">&rarr;</span>
                             </Link>
 
@@ -1524,7 +1524,7 @@ export default function CompetitorsSignalRadarPage() {
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="daily">Diaria (Cada 24 horas - Estándar Plataforma)</option>
-                  <option value="manual">Solo Manual (Al pulsar &quot;Auditar Ahora&quot;)</option>
+                  <option value="manual">Solo Manual (Al pulsar &quot;Escanear&quot;)</option>
                 </select>
                 <p className="mt-1 text-[11px] text-gray-500">
                   En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.

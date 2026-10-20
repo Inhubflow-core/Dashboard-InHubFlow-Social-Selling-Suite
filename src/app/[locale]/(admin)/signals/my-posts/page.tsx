@@ -966,11 +966,11 @@ export default function MyPostsSignalRadarPage() {
                                 {isScanningId === mon.id ? (
                                   <>
                                     <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                    Auditando ({activeBatch})...
+                                    Escaneando ({activeBatch})...
                                   </>
                                 ) : (
                                   <>
-                                    <span>Auditar</span>
+                                    <span>Escanear</span>
                                     <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
                                       {activeBatch}
                                     </span>
@@ -986,7 +986,7 @@ export default function MyPostsSignalRadarPage() {
                               className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir prospectos captados de ${mon.postTitle}`}
                             >
-                              <span>Ver Lista ({mon.leadsCapturedCount})</span>
+                              <span>Ver Leads ({mon.leadsCapturedCount})</span>
                               <span aria-hidden="true">&rarr;</span>
                             </button>
 
@@ -1238,7 +1238,7 @@ export default function MyPostsSignalRadarPage() {
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
-                  Al vincular la URL, el monitor pasará inmediatamente al estado Activo y comenzará a auditar los comentarios con la palabra clave &quot;{linkingUrlModalMonitor.keyword}&quot;.
+                  Al vincular la URL, el monitor pasará inmediatamente al estado Activo y comenzará a escanear los comentarios con la palabra clave &quot;{linkingUrlModalMonitor.keyword}&quot;.
                 </p>
               </div>
 
