@@ -364,13 +364,13 @@ export default function GlobalSignalsPage() {
 
       setScanFeedback({
         type: "success",
-        text: `Caza viral completada para "${rule.searchQuery}": Se analizaron ${data.totalPostsAnalyzed || updatedPosts.length} publicaciones de alto debate en ${rule.targetCountryName || "la región"} y se extrajo un lote de ${added.length} decisores activos.`,
+        text: `Escaneo viral completado para "${rule.searchQuery}": Se analizaron ${data.totalPostsAnalyzed || updatedPosts.length} publicaciones de alto debate en ${rule.targetCountryName || "la región"} y se extrajo un lote de ${added.length} leads activos.`,
         listId: targetList.id,
       });
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al cazar publicaciones virales: ${err.message || "Error al conectar con LinkedIn"}`,
+        text: `Error al escanear publicaciones virales: ${err.message || "Error al conectar con LinkedIn"}`,
       });
     } finally {
       setIsScanningId(null);
@@ -430,7 +430,7 @@ export default function GlobalSignalsPage() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: Publicaciones Virales & Tendencias (Cazador de Oportunidades)" />
+      <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: Publicaciones Virales & Tendencias" />
 
       {/* Métricas del Nivel 3 - Opción B */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -442,7 +442,7 @@ export default function GlobalSignalsPage() {
             {l3Monitors.length} Radares Activos
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            {totalViralPostsCount} publicaciones de alto debate cazadas
+            {totalViralPostsCount} publicaciones de alto debate escaneadas
           </span>
         </div>
 
@@ -494,7 +494,7 @@ export default function GlobalSignalsPage() {
       {isAddingRule && (
         <ComponentCard
           title="Configurador de Radar de Publicaciones Virales"
-          desc="Define la temática o dolor de negocio y el umbral mínimo de comentarios para cazar las publicaciones más calientes de LinkedIn."
+          desc="Define la temática o dolor de negocio y el umbral mínimo de comentarios para escanear las publicaciones con mayor debate de LinkedIn."
         >
           <form onSubmit={handleAddRule} className="space-y-4">
             {/* Fila 1: Temática a Rastrear y Mercado / País Objetivo */}
@@ -513,7 +513,7 @@ export default function GlobalSignalsPage() {
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">
-                  El cazador buscará publicaciones en LinkedIn que aborden esta problemática.
+                  El radar buscará publicaciones en LinkedIn que aborden esta problemática.
                 </span>
               </div>
 
@@ -723,7 +723,7 @@ export default function GlobalSignalsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para caza de tendencias:
+            Cuenta de LinkedIn activa para escaneo de tendencias:
           </span>
           <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
@@ -798,7 +798,7 @@ export default function GlobalSignalsPage() {
               No tienes radares de publicaciones virales activos en Signal Radar Nivel 3.
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Configura una temática o dolor de negocio (ej. Prospección B2B, Inteligencia Artificial) y el sistema cazará las publicaciones con mayor debate de LinkedIn.
+              Configura una temática o dolor de negocio (ej. Prospección B2B, Inteligencia Artificial) y el sistema escaneará las publicaciones con mayor debate de LinkedIn.
             </p>
             <button
               type="button"
@@ -853,7 +853,7 @@ export default function GlobalSignalsPage() {
                               </div>
 
                               <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-sm mt-0.5">
-                                Caza de publicaciones virales con debate activo en {countryName}
+                                Escaneo de publicaciones virales con debate activo en {countryName}
                               </p>
 
                               {/* Botón para desplegar / ocultar publicaciones virales cazadas */}
@@ -867,18 +867,18 @@ export default function GlobalSignalsPage() {
                                     }))
                                   }
                                   className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
-                                  title={isExpanded ? "Ocultar las publicaciones cazadas" : "Ver todas las publicaciones cazadas"}
+                                  title={isExpanded ? "Ocultar las publicaciones" : "Ver todas las publicaciones escaneadas"}
                                 >
                                   <span>
                                     {isExpanded
-                                      ? "Ocultar Publicaciones Virales"
-                                      : `Ver Publicaciones Virales Cazadas (${scannedPosts.length})`}
+                                      ? "Ocultar Publicaciones"
+                                      : `Ver Publicaciones Virales (${scannedPosts.length})`}
                                   </span>
                                   <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts cazados. Pulsa &quot;Cazar Posts&quot; para escanear publicaciones en vivo.
+                                  Sin posts escaneados. Pulsa &quot;Escanear Posts&quot; para escanear publicaciones en vivo.
                                 </span>
                               )}
                             </div>
@@ -928,7 +928,7 @@ export default function GlobalSignalsPage() {
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                             }`}
                           >
-                            {rule.status === "active" ? "Cazando" : "Pausado"}
+                            {rule.status === "active" ? "Activo" : "Pausado"}
                           </button>
                         </td>
 
@@ -965,22 +965,22 @@ export default function GlobalSignalsPage() {
                               })}
                             </div>
 
-                            {/* Botón Cazar Posts con Lote */}
+                            {/* Botón Escanear Posts con Lote */}
                             <button
                               type="button"
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
                               className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                              title={`Cazar publicaciones virales y cosechar lote seguro de hasta ${activeBatch} decisores`}
+                              title={`Escanear publicaciones virales y cosechar lote seguro de hasta ${activeBatch} leads`}
                             >
                               {isScanningId === rule.id ? (
                                 <>
                                   <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                                  Cazando ({activeBatch})...
+                                  Escaneando ({activeBatch})...
                                 </>
                               ) : (
                                 <>
-                                  <span>Cazar Posts</span>
+                                  <span>Escanear Posts</span>
                                   <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
                                     {activeBatch}
                                   </span>
@@ -1034,7 +1034,7 @@ export default function GlobalSignalsPage() {
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
-                                  <span>Publicaciones Virales Cazadas con Alto Debate ({scannedPosts.length})</span>
+                                  <span>Publicaciones Virales con Alto Debate ({scannedPosts.length})</span>
                                 </span>
                                 <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
                                   Tracción real en {countryName} • {rule.searchQuery}
@@ -1164,8 +1164,8 @@ export default function GlobalSignalsPage() {
             <div className="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
                 <div className="py-8 text-center text-xs text-gray-400">
-                  <p>Aún no se han capturado decisores en este radar.</p>
-                  <p className="mt-1">Pulsa &quot;Cazar Posts&quot; en la tabla para extraer comentarios y participantes en vivo.</p>
+                  <p>Aún no se han capturado leads en este radar.</p>
+                  <p className="mt-1">Pulsa &quot;Escanear Posts&quot; en la tabla para extraer comentarios y participantes en vivo.</p>
                 </div>
               ) : (
                 getRuleLeads(selectedRuleForLeads.id).map((lead) => (
