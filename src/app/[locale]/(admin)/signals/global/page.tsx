@@ -779,13 +779,22 @@ export default function GlobalSignalsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo de tendencias:
+            Cuenta de LinkedIn activa para escaneo:
           </span>
           <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
           </span>
-          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400" suppressHydrationWarning>
-            {activeAccount?.status === "OK" ? "CONECTADA" : "ACTIVA"}
+          <span
+            suppressHydrationWarning
+            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+              activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+            }`}
+          >
+            {activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
+              ? "CONECTADA EN LINKEDIN"
+              : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
           </span>
         </div>
 
@@ -803,11 +812,14 @@ export default function GlobalSignalsPage() {
               }}
               className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >
-              {availableAccounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
+              {availableAccounts.map((a) => {
+                const isConnected = a.status === "OK" || a.status === "CONNECTED";
+                return (
+                  <option key={a.id} value={a.id}>
+                    {a.name} {isConnected ? "(Conectada ✓)" : `(${a.status || "Desconectada"})`}
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}

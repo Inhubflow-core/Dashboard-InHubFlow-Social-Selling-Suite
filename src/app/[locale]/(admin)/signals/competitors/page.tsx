@@ -967,7 +967,7 @@ export default function CompetitorsSignalRadarPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para auditoría:
+            Cuenta de LinkedIn activa para escaneo:
           </span>
           <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {currentDisplayName}
