@@ -308,7 +308,12 @@ export default function GlobalSignalsPage() {
       lastScanAtIso: new Date().toISOString(),
       scanFrequency: "daily",
       createdAt: new Date().toISOString(),
-      lastScannedPosts: viralPostsB2B,
+      lastScannedPosts:
+        selectedCountry.code === "US"
+          ? verifiedUsaOutreachScannedPosts
+          : selectedCountry.code === "ES" || selectedCountry.code === "LATAM"
+          ? viralPostsB2B
+          : [],
     };
 
     addLevel3Monitor(newMonitor);
@@ -387,7 +392,13 @@ export default function GlobalSignalsPage() {
       const cleanExistingLeads = currentMonitorLeads.filter((l) => {
         if (!rule.targetCountry || rule.targetCountry === "all") return true;
         const text = `${l.location || ""} ${l.headline || ""} ${l.fullName || ""}`;
-        if (/[\u0400-\u04FF\u0500-\u052F]/.test(text)) return false;
+        // Si el país objetivo es occidental o latino, filtrar alfabetos no latinos (cirílico, coreano, chino, japonés, árabe, vietnamita)
+        const westernCodes = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
+        if (westernCodes.includes((rule.targetCountry || "").toUpperCase())) {
+          if (/[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af\u0600-\u06ffăâđêôơưĂÂĐÊÔƠƯ]/.test(text)) {
+            return false;
+          }
+        }
         return true;
       });
       const allLeadsForMonitor = [...cleanExistingLeads, ...added];
@@ -455,12 +466,13 @@ export default function GlobalSignalsPage() {
 
   const getRuleScannedPosts = (rule: Level3GlobalMonitor) => {
     const country = (rule.targetCountry || "").toUpperCase();
+    const westernCodes = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
     if (rule.lastScannedPosts && rule.lastScannedPosts.length > 0) {
-      if (country === "US" || country === "ES" || country === "LATAM" || country === "UK" || country === "CA") {
+      if (westernCodes.includes(country)) {
         const clean = rule.lastScannedPosts.filter((p: any) => {
           const fullText = `${p.text || ""} ${p.authorName || ""}`;
           return !(
-            /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+            /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af\u0600-\u06ffăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
             /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
           );
         });
@@ -1357,6 +1369,7 @@ export default function GlobalSignalsPage() {
                     targetCountry: editingRule.targetCountry,
                     targetCountryName: sel ? sel.name : editingRule.targetCountryName,
                     targetCountryFlag: sel ? sel.flag : editingRule.targetCountryFlag,
+                    locations: sel ? (sel.keywords.length > 0 ? sel.keywords : [sel.code]) : editingRule.locations,
                   });
                   setEditingRule(null);
                 }}

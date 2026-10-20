@@ -179,14 +179,15 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
           updated.scanFrequency = "daily" as const;
         }
 
-        // Sanitización automática de posts previos en cache: Si el monitor es de USA o país occidental, purgar posts residuales en cirílico/vietnamita/chino o vacantes
+        // Sanitización automática de posts previos en cache: Si el monitor es de USA o país occidental, purgar posts residuales en cirílico/coreano/chino/japonés/árabe o vacantes
         const country = (updated.targetCountry || "").toUpperCase();
-        if (country === "US" || country === "ES" || country === "LATAM" || country === "UK" || country === "CA") {
+        const westernCodes = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
+        if (westernCodes.includes(country)) {
           if (Array.isArray(updated.lastScannedPosts) && updated.lastScannedPosts.length > 0) {
             const hasInvalidPosts = updated.lastScannedPosts.some((p: any) => {
               const fullText = `${p.text || ""} ${p.authorName || ""}`;
               return (
-                /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+                /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af\u0600-\u06ffăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
                 /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
               );
             });
@@ -196,7 +197,7 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
               const cleanPosts = updated.lastScannedPosts.filter((p: any) => {
                 const fullText = `${p.text || ""} ${p.authorName || ""}`;
                 return !(
-                  /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5ăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
+                  /[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af\u0600-\u06ffăâđêôơưĂÂĐÊÔƠƯ]/.test(fullText) ||
                   /\b(шукаємо|вакансия|вакансія|we-edit|career opportunity|hiring)\b/i.test(fullText)
                 );
               });
@@ -250,9 +251,9 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
         hadModifications = true;
         return false;
       }
-      // Purgar residuos de búsquedas previas con alfabetos no soportados (ej. cirílico en monitores occidentales)
+      // Purgar residuos de búsquedas previas con alfabetos no soportados (ej. cirílico, coreano, chino, etc.)
       const leadText = `${l.fullName} ${l.headline || ""} ${l.signalSnippet || ""} ${l.sourcePostTitle || ""}`;
-      if (/[\u0400-\u04FF\u0500-\u052F]/.test(leadText)) {
+      if (/[\u0400-\u04FF\u0500-\u052F\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af\u0600-\u06ff]/.test(leadText)) {
         hadModifications = true;
         return false;
       }
