@@ -214,6 +214,12 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
         hadModifications = true;
         return false;
       }
+      // Purgar residuos de búsquedas previas con alfabetos no soportados (ej. cirílico en monitores occidentales)
+      const leadText = `${l.fullName} ${l.headline || ""} ${l.signalSnippet || ""} ${l.sourcePostTitle || ""}`;
+      if (/[\u0400-\u04FF\u0500-\u052F]/.test(leadText)) {
+        hadModifications = true;
+        return false;
+      }
       return true;
     });
 

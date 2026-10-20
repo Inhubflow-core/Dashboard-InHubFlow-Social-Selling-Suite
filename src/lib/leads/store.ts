@@ -53,6 +53,13 @@ export function getStoredLeads(): Lead360Item[] {
           }
         }
 
+        // Purgar leads residuales de ofertas de empleo / alfabetos incompatibles (cirílico)
+        const combinedText = `${l.fullName} ${l.title || ""} ${l.location || ""}`;
+        if (/[\u0400-\u04FF\u0500-\u052F]/.test(combinedText)) {
+          hadFixes = true;
+          return false;
+        }
+
         return true;
       })
       .map((l: Lead360Item) => {
