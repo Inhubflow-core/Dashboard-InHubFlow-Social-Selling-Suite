@@ -23,7 +23,7 @@ import { Link } from "@/i18n/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { viralPostsB2B } from "@/lib/signals/mock-data";
-import { Pencil, X, Flame } from "lucide-react";
+import { Pencil, X, TrendingUp } from "lucide-react";
 
 export interface CountryOption {
   code: string;
@@ -476,7 +476,7 @@ export default function GlobalSignalsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-amber-200 bg-amber-50/40 dark:border-amber-900 dark:bg-amber-950/20">
         <div>
           <div className="flex items-center gap-2">
-            <Flame className="size-5 text-amber-600 dark:text-amber-400" />
+            <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
             <h4 className="text-sm font-bold text-amber-950 dark:text-amber-200">
               Mecánica de Prospección por Tendencias y Debate Viral (Nivel 3 - Opción B)
             </h4>
@@ -863,9 +863,9 @@ export default function GlobalSignalsPage() {
                         {/* 1. Temática & Problema en LinkedIn */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
-                            {/* Icono de Llama / Radar */}
-                            <div className="h-8 w-8 text-base font-bold flex items-center justify-center shrink-0 shadow-xs rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 mt-0.5 text-amber-600 dark:text-amber-400">
-                              🔥
+                            {/* Icono de Radar de Tendencias */}
+                            <div className="h-8 w-8 flex items-center justify-center shrink-0 shadow-xs rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 mt-0.5 text-brand-600 dark:text-brand-400">
+                              <TrendingUp className="size-4" />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -895,7 +895,6 @@ export default function GlobalSignalsPage() {
                                   className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
                                   title={isExpanded ? "Ocultar las publicaciones cazadas" : "Ver todas las publicaciones cazadas"}
                                 >
-                                  <span>🔥</span>
                                   <span>
                                     {isExpanded
                                       ? "Ocultar Publicaciones Virales"
@@ -920,9 +919,6 @@ export default function GlobalSignalsPage() {
                             </span>
                             <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                               {countryFlag} {countryName}
-                            </span>
-                            <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800">
-                              Sin engagement interno
                             </span>
                           </div>
                         </td>
@@ -1063,7 +1059,7 @@ export default function GlobalSignalsPage() {
                             <div className="w-full rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                                  <span>🔥</span>
+                                  <TrendingUp className="size-3.5 text-amber-700 dark:text-amber-400" />
                                   <span>Publicaciones Virales Cazadas con Alto Debate ({scannedPosts.length})</span>
                                 </span>
                                 <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
@@ -1166,7 +1162,7 @@ export default function GlobalSignalsPage() {
               <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                    <span>🔥</span>
+                    <TrendingUp className="size-3.5 text-amber-700 dark:text-amber-400" />
                     <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
                   </span>
                   <span className="text-[10px] text-amber-700 dark:text-amber-400">
