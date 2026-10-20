@@ -472,25 +472,22 @@ export default function GlobalSignalsPage() {
         </div>
       </div>
 
-      {/* Explicación de la Estrategia (Opción B: Feed de Oportunidades & Posts Virales) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-amber-200 bg-amber-50/40 dark:border-amber-900 dark:bg-amber-950/20">
+      {/* Explicación de la Estrategia (Nivel 3) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
         <div>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
-            <h4 className="text-sm font-bold text-amber-950 dark:text-amber-200">
-              Mecánica de Prospección por Tendencias y Debate Viral (Nivel 3 - Opción B)
-            </h4>
-          </div>
-          <p className="text-xs text-amber-900/90 dark:text-amber-300/90 mt-1 max-w-3xl leading-relaxed">
-            En lugar de depender de que una sola persona publique, este radar rastrea las <strong>publicaciones con mayor tracción, debate y volumen de comentarios de todo LinkedIn</strong> sobre los problemas que tu solución resuelve. Filtra solo publicaciones que superen un umbral mínimo de debate (ej. +15 o +25 comentarios), garantizando que siempre prospectes a decisores calientes que están participando activamente en tu mercado.
+          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
+            Mecánica de Prospección por Tendencias y Debate Viral (Nivel 3)
+          </h4>
+          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
+            Rastrea las publicaciones con mayor tracción, debate y volumen de comentarios de todo LinkedIn sobre los problemas que tu solución resuelve. Filtra solo publicaciones con alto debate para prospectar decisores calientes que participan activamente en tu mercado.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsAddingRule(!isAddingRule)}
-          className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
+          className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          <span>{isAddingRule ? "Cerrar Configurador" : "+ Nuevo Radar de Tendencias"}</span>
+          {isAddingRule ? "Cerrar Configurador" : "+ Nuevo Radar de Tendencias"}
         </button>
       </div>
 
@@ -558,7 +555,7 @@ export default function GlobalSignalsPage() {
                       onClick={() => setMinCommentThreshold(thresh.value)}
                       className={`p-2 rounded-lg border text-left transition ${
                         minCommentThreshold === thresh.value
-                          ? "border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-2 ring-amber-500/20 shadow-xs"
+                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
                           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
                       }`}
                     >
@@ -567,7 +564,7 @@ export default function GlobalSignalsPage() {
                           {thresh.label}
                         </span>
                         {thresh.recommended && (
-                          <span className="text-[9px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/60 dark:text-amber-300 px-1 rounded">
+                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
@@ -625,7 +622,7 @@ export default function GlobalSignalsPage() {
                             }}
                             className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition ${
                               isSelected
-                                ? "bg-amber-50 text-amber-700 font-semibold dark:bg-amber-950/40 dark:text-amber-300"
+                                ? "bg-brand-50 text-brand-700 font-semibold dark:bg-brand-950/40 dark:text-brand-300"
                                 : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60"
                             }`}
                           >
@@ -633,7 +630,7 @@ export default function GlobalSignalsPage() {
                               <span className="text-base">{c.flag}</span>
                               <span>{c.name}</span>
                             </span>
-                            {isSelected && <span className="text-amber-600 font-bold">✓</span>}
+                            {isSelected && <span className="text-brand-600 font-bold">✓</span>}
                           </div>
                         );
                       })}
@@ -649,12 +646,12 @@ export default function GlobalSignalsPage() {
             {/* Fila 3: Control de Lote de Absorción Anti-Bloqueo y Filtro Anti-Colaboradores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Control de Lote */}
-              <div className="rounded-xl border border-amber-200 bg-amber-50/30 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+              <div className="rounded-xl border border-brand-200 bg-brand-25/40 p-3.5 dark:border-brand-900/40 dark:bg-brand-950/20">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-amber-950 dark:text-amber-200">
+                  <span className="text-xs font-bold text-brand-950 dark:text-brand-200">
                     🛡️ Lote de Cosecha por Publicación
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">
                     Protección LinkedIn
                   </span>
                 </div>
@@ -873,7 +870,7 @@ export default function GlobalSignalsPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white">
                                   {rule.searchQuery}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                                   Feed Viral
                                 </span>
                               </div>
@@ -914,7 +911,7 @@ export default function GlobalSignalsPage() {
                         {/* 2. Filtro de Debate & Región */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex flex-wrap gap-1">
-                            <span className="rounded bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:border-amber-900 dark:text-amber-300">
+                            <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                               Mín. {rule.minPostReactions || 15} comentarios
                             </span>
                             <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -1056,13 +1053,13 @@ export default function GlobalSignalsPage() {
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${rule.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20 shadow-xs">
+                            <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-xs font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                                  <TrendingUp className="size-3.5 text-amber-700 dark:text-amber-400" />
+                                <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                                  <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
                                   <span>Publicaciones Virales Cazadas con Alto Debate ({scannedPosts.length})</span>
                                 </span>
-                                <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
                                   Tracción real en {countryName} • {rule.searchQuery}
                                 </span>
                               </div>
@@ -1071,7 +1068,7 @@ export default function GlobalSignalsPage() {
                                 {scannedPosts.map((post, pIdx) => (
                                   <div
                                     key={post.id || pIdx}
-                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/90 p-3 rounded-lg border border-amber-100 dark:border-amber-900/30 shadow-2xs hover:border-amber-300 dark:hover:border-amber-700 transition"
+                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/90 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs hover:border-blue-200 dark:hover:border-blue-800 transition"
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">
@@ -1159,13 +1156,13 @@ export default function GlobalSignalsPage() {
 
             {/* Publicaciones Seleccionadas en LinkedIn */}
             {selectedRuleForLeads.lastScannedPosts && selectedRuleForLeads.lastScannedPosts.length > 0 && (
-              <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                    <TrendingUp className="size-3.5 text-amber-700 dark:text-amber-400" />
+                  <span className="text-xs font-bold text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
+                    <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
                     <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
                   </span>
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400">
+                  <span className="text-[10px] text-blue-700 dark:text-blue-400">
                     Tracción en {selectedRuleForLeads.targetCountryName || "la región"}
                   </span>
                 </div>
@@ -1173,7 +1170,7 @@ export default function GlobalSignalsPage() {
                   {selectedRuleForLeads.lastScannedPosts.map((post, pIdx) => (
                     <div
                       key={post.id || pIdx}
-                      className="flex items-center justify-between gap-3 text-xs bg-white dark:bg-gray-800/80 p-2.5 rounded-lg border border-amber-100 dark:border-amber-900/30"
+                      className="flex items-center justify-between gap-3 text-xs bg-white dark:bg-gray-800/80 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-800 dark:text-gray-200 truncate">
