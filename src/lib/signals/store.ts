@@ -181,7 +181,12 @@ export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
 
         // Sanitización automática de posts previos en cache: Si el monitor es de USA o país occidental, purgar posts residuales en cirílico/coreano/chino/japonés/árabe o vacantes
         const country = (updated.targetCountry || "").toUpperCase();
-        const westernCodes = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
+        const westernCodes = [
+          "US", "CA", "MX", "LATAM", "GT", "CR", "PA", "SV", "HN", "NI", "BZ",
+          "CO", "AR", "CL", "PE", "BR", "UY", "EC", "BO", "PY", "VE", "GY", "SR",
+          "DO", "PR", "CU", "JM", "TT", "BS", "BB", "HT",
+          "ES", "UK", "DE", "FR", "IT", "PT", "NL", "CH", "BE", "SE", "NO", "DK", "FI", "IE", "PL", "AT"
+        ];
         if (westernCodes.includes(country)) {
           if (Array.isArray(updated.lastScannedPosts) && updated.lastScannedPosts.length > 0) {
             const hasInvalidPosts = updated.lastScannedPosts.some((p: any) => {

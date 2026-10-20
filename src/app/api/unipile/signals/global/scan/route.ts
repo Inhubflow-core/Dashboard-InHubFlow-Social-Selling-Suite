@@ -12,6 +12,7 @@ interface CountryConfig {
 }
 
 const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
+  // --- Norteamérica ---
   US: {
     name: "Estados Unidos",
     englishName: "United States",
@@ -26,23 +27,12 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     ],
     primaryLanguage: "en",
   },
-  KR: {
-    name: "Corea del Sur",
-    englishName: "South Korea",
-    flag: "🇰🇷",
-    keywords: [
-      "south korea", "korea", "seoul", "busan", "incheon", "daegu", "daejeon",
-      "gwangju", "suwon", "ulsan", "changwon", "seongnam", "pangyo", "gangnam",
-      "대한민국", "한국", "서울", "부산"
-    ],
-    primaryLanguage: "ko",
-  },
-  ES: {
-    name: "España",
-    englishName: "Spain",
-    flag: "🇪🇸",
-    keywords: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "málaga", "malaga", "zaragoza", "alicante", "galicia", "andalucía", "cataluña"],
-    primaryLanguage: "es",
+  CA: {
+    name: "Canadá",
+    englishName: "Canada",
+    flag: "🇨🇦",
+    keywords: ["canada", "canadá", "toronto", "vancouver", "montreal", "ottawa", "calgary", "ontario", "quebec", "alberta", "edmonton"],
+    primaryLanguage: "en",
   },
   MX: {
     name: "México",
@@ -51,6 +41,72 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     keywords: ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "puebla", "querétaro", "queretaro", "tijuana", "mérida", "merida", "jalisco", "nuevo león"],
     primaryLanguage: "es",
   },
+
+  // --- Multirregión LATAM ---
+  LATAM: {
+    name: "Hispanoamérica / LATAM",
+    englishName: "Latin America",
+    flag: "🌎",
+    keywords: [
+      "latam", "hispanoamérica", "latinoamérica", "mexico", "méxico", "colombia", "argentina",
+      "chile", "peru", "perú", "uruguay", "ecuador", "panama", "panamá", "costa rica", "guatemala",
+      "el salvador", "honduras", "nicaragua", "bolivia", "paraguay", "venezuela", "república dominicana", "puerto rico"
+    ],
+    primaryLanguage: "es",
+  },
+
+  // --- Centroamérica ---
+  GT: {
+    name: "Guatemala",
+    englishName: "Guatemala",
+    flag: "🇬🇹",
+    keywords: ["guatemala", "ciudad de guatemala", "quetzaltenango", "antigua guatemala"],
+    primaryLanguage: "es",
+  },
+  CR: {
+    name: "Costa Rica",
+    englishName: "Costa Rica",
+    flag: "🇨🇷",
+    keywords: ["costa rica", "san josé", "san jose", "alajuela", "heredia", "cartago"],
+    primaryLanguage: "es",
+  },
+  PA: {
+    name: "Panamá",
+    englishName: "Panama",
+    flag: "🇵🇦",
+    keywords: ["panamá", "panama", "ciudad de panamá", "ciudad de panama", "colón", "david"],
+    primaryLanguage: "es",
+  },
+  SV: {
+    name: "El Salvador",
+    englishName: "El Salvador",
+    flag: "🇸🇻",
+    keywords: ["el salvador", "san salvador", "santa ana", "san miguel", "la libertad"],
+    primaryLanguage: "es",
+  },
+  HN: {
+    name: "Honduras",
+    englishName: "Honduras",
+    flag: "🇭🇳",
+    keywords: ["honduras", "tegucigalpa", "san pedro sula", "choluteca", "la ceiba"],
+    primaryLanguage: "es",
+  },
+  NI: {
+    name: "Nicaragua",
+    englishName: "Nicaragua",
+    flag: "🇳🇮",
+    keywords: ["nicaragua", "managua", "león", "granada", "matagalpa"],
+    primaryLanguage: "es",
+  },
+  BZ: {
+    name: "Belice",
+    englishName: "Belize",
+    flag: "🇧🇿",
+    keywords: ["belize", "belice", "belmopan", "belize city", "san pedro"],
+    primaryLanguage: "en",
+  },
+
+  // --- Suramérica ---
   CO: {
     name: "Colombia",
     englishName: "Colombia",
@@ -69,7 +125,7 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     name: "Chile",
     englishName: "Chile",
     flag: "🇨🇱",
-    keywords: ["chile", "santiago", "valparaíso", "valparaiso", "concepción", "concepcion", "antofagasta", "viña", "vina", "temuco", "iquique"],
+    keywords: ["chile", "santiago", "valparaíso", "valparaiso", "concepción", "concepcion", "antofagasta", "viña del mar", "vina", "temuco", "iquique"],
     primaryLanguage: "es",
   },
   PE: {
@@ -86,74 +142,127 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     keywords: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte", "porto alegre", "campinas", "recife", "salvador", "florianópolis", "florianopolis", "brasília"],
     primaryLanguage: "pt",
   },
-  PT: {
-    name: "Portugal",
-    englishName: "Portugal",
-    flag: "🇵🇹",
-    keywords: ["portugal", "lisboa", "porto", "braga", "coimbra", "faro", "aveiro", "setúbal"],
-    primaryLanguage: "pt",
-  },
-  LATAM: {
-    name: "Hispanoamérica / LATAM",
-    englishName: "Latin America",
-    flag: "🌎",
-    keywords: ["latam", "hispanoamérica", "latinoamérica", "mexico", "méxico", "colombia", "argentina", "chile", "peru", "perú", "uruguay", "ecuador", "panama", "costa rica", "guatemala"],
-    primaryLanguage: "es",
-  },
   UY: {
     name: "Uruguay",
     englishName: "Uruguay",
     flag: "🇺🇾",
-    keywords: ["uruguay", "montevideo", "punta del este"],
-    primaryLanguage: "es",
-  },
-  PA: {
-    name: "Panamá",
-    englishName: "Panama",
-    flag: "🇵🇦",
-    keywords: ["panamá", "panama", "ciudad de panamá", "ciudad de panama"],
+    keywords: ["uruguay", "montevideo", "punta del este", "ciudad de la costa", "maldonado"],
     primaryLanguage: "es",
   },
   EC: {
     name: "Ecuador",
     englishName: "Ecuador",
     flag: "🇪🇨",
-    keywords: ["ecuador", "quito", "guayaquil", "cuenca"],
+    keywords: ["ecuador", "quito", "guayaquil", "cuenca", "ambato", "manta"],
     primaryLanguage: "es",
   },
-  CR: {
-    name: "Costa Rica",
-    englishName: "Costa Rica",
-    flag: "🇨🇷",
-    keywords: ["costa rica", "san josé", "san jose"],
+  BO: {
+    name: "Bolivia",
+    englishName: "Bolivia",
+    flag: "🇧🇴",
+    keywords: ["bolivia", "la paz", "santa cruz de la sierra", "cochabamba", "sucre", "el alto"],
     primaryLanguage: "es",
   },
+  PY: {
+    name: "Paraguay",
+    englishName: "Paraguay",
+    flag: "🇵🇾",
+    keywords: ["paraguay", "asunción", "asuncion", "ciudad del este", "encarnación", "san lorenzo"],
+    primaryLanguage: "es",
+  },
+  VE: {
+    name: "Venezuela",
+    englishName: "Venezuela",
+    flag: "🇻🇪",
+    keywords: ["venezuela", "caracas", "maracaibo", "valencia", "barquisimeto", "maracay"],
+    primaryLanguage: "es",
+  },
+  GY: {
+    name: "Guyana",
+    englishName: "Guyana",
+    flag: "🇬🇾",
+    keywords: ["guyana", "georgetown", "linden", "new amsterdam"],
+    primaryLanguage: "en",
+  },
+  SR: {
+    name: "Surinam",
+    englishName: "Suriname",
+    flag: "🇸🇷",
+    keywords: ["suriname", "surinam", "paramaribo", "lelydorp"],
+    primaryLanguage: "nl",
+  },
+
+  // --- El Caribe ---
   DO: {
     name: "Rep. Dominicana",
     englishName: "Dominican Republic",
     flag: "🇩🇴",
-    keywords: ["república dominicana", "republica dominicana", "santo domingo", "santiago de los caballeros"],
+    keywords: ["república dominicana", "republica dominicana", "dominican republic", "santo domingo", "santiago de los caballeros", "punta cana"],
     primaryLanguage: "es",
   },
-  GT: {
-    name: "Guatemala",
-    englishName: "Guatemala",
-    flag: "🇬🇹",
-    keywords: ["guatemala", "ciudad de guatemala"],
+  PR: {
+    name: "Puerto Rico",
+    englishName: "Puerto Rico",
+    flag: "🇵🇷",
+    keywords: ["puerto rico", "san juan", "bayamón", "carolina", "ponce", "caguas", "guaynabo"],
+    primaryLanguage: "es",
+  },
+  CU: {
+    name: "Cuba",
+    englishName: "Cuba",
+    flag: "🇨🇺",
+    keywords: ["cuba", "la habana", "havana", "santiago de cuba", "camagüey"],
+    primaryLanguage: "es",
+  },
+  JM: {
+    name: "Jamaica",
+    englishName: "Jamaica",
+    flag: "🇯🇲",
+    keywords: ["jamaica", "kingston", "montego bay", "spanish town"],
+    primaryLanguage: "en",
+  },
+  TT: {
+    name: "Trinidad y Tobago",
+    englishName: "Trinidad and Tobago",
+    flag: "🇹🇹",
+    keywords: ["trinidad and tobago", "trinidad y tobago", "port of spain", "san fernando", "chaguanas"],
+    primaryLanguage: "en",
+  },
+  BS: {
+    name: "Bahamas",
+    englishName: "Bahamas",
+    flag: "🇧🇸",
+    keywords: ["bahamas", "nassau", "freeport"],
+    primaryLanguage: "en",
+  },
+  BB: {
+    name: "Barbados",
+    englishName: "Barbados",
+    flag: "🇧🇧",
+    keywords: ["barbados", "bridgetown"],
+    primaryLanguage: "en",
+  },
+  HT: {
+    name: "Haití",
+    englishName: "Haiti",
+    flag: "🇭🇹",
+    keywords: ["haiti", "haití", "port-au-prince", "cap-haïtien"],
+    primaryLanguage: "fr",
+  },
+
+  // --- Europa (Principales) ---
+  ES: {
+    name: "España",
+    englishName: "Spain",
+    flag: "🇪🇸",
+    keywords: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "málaga", "malaga", "zaragoza", "alicante", "galicia", "andalucía", "cataluña"],
     primaryLanguage: "es",
   },
   UK: {
     name: "Reino Unido",
     englishName: "United Kingdom",
     flag: "🇬🇧",
-    keywords: ["united kingdom", "uk", "london", "manchester", "birmingham", "england", "scotland"],
-    primaryLanguage: "en",
-  },
-  CA: {
-    name: "Canadá",
-    englishName: "Canada",
-    flag: "🇨🇦",
-    keywords: ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary", "ontario", "quebec"],
+    keywords: ["united kingdom", "uk", "london", "manchester", "birmingham", "england", "scotland", "edinburgh", "bristol", "leeds", "glasgow"],
     primaryLanguage: "en",
   },
   DE: {
@@ -167,7 +276,7 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     name: "Francia",
     englishName: "France",
     flag: "🇫🇷",
-    keywords: ["france", "paris", "lyon", "marseille", "toulouse", "bordeaux", "nantes", "lille"],
+    keywords: ["france", "paris", "lyon", "marseille", "toulouse", "bordeaux", "nantes", "lille", "strasbourg", "nice"],
     primaryLanguage: "fr",
   },
   IT: {
@@ -176,6 +285,187 @@ const COUNTRY_DEFINITIONS: Record<string, CountryConfig> = {
     flag: "🇮🇹",
     keywords: ["italy", "italia", "rome", "roma", "milan", "milano", "turin", "torino", "florence", "firenze", "bologna", "naples", "napoli"],
     primaryLanguage: "it",
+  },
+  PT: {
+    name: "Portugal",
+    englishName: "Portugal",
+    flag: "🇵🇹",
+    keywords: ["portugal", "lisboa", "porto", "braga", "coimbra", "faro", "aveiro", "setúbal"],
+    primaryLanguage: "pt",
+  },
+  NL: {
+    name: "Países Bajos",
+    englishName: "Netherlands",
+    flag: "🇳🇱",
+    keywords: ["netherlands", "países bajos", "holanda", "amsterdam", "rotterdam", "the hague", "utrecht", "eindhoven", "groningen"],
+    primaryLanguage: "nl",
+  },
+  CH: {
+    name: "Suiza",
+    englishName: "Switzerland",
+    flag: "🇨🇭",
+    keywords: ["switzerland", "suiza", "zurich", "zürich", "geneva", "ginebra", "basel", "bern", "lausanne"],
+    primaryLanguage: "de",
+  },
+  BE: {
+    name: "Bélgica",
+    englishName: "Belgium",
+    flag: "🇧🇪",
+    keywords: ["belgium", "bélgica", "brussels", "bruselas", "antwerp", "ghent", "liege", "leuven"],
+    primaryLanguage: "fr",
+  },
+  SE: {
+    name: "Suecia",
+    englishName: "Sweden",
+    flag: "🇸🇪",
+    keywords: ["sweden", "suecia", "stockholm", "gothenburg", "malmo", "malmö", "uppsala"],
+    primaryLanguage: "sv",
+  },
+  NO: {
+    name: "Noruega",
+    englishName: "Norway",
+    flag: "🇳🇴",
+    keywords: ["norway", "noruega", "oslo", "bergen", "trondheim", "stavanger"],
+    primaryLanguage: "no",
+  },
+  DK: {
+    name: "Dinamarca",
+    englishName: "Denmark",
+    flag: "🇩🇰",
+    keywords: ["denmark", "dinamarca", "copenhagen", "copenhague", "aarhus", "odense", "aalborg"],
+    primaryLanguage: "da",
+  },
+  FI: {
+    name: "Finlandia",
+    englishName: "Finland",
+    flag: "🇫🇮",
+    keywords: ["finland", "finlandia", "helsinki", "espoo", "tampere", "vantaa", "oulu"],
+    primaryLanguage: "fi",
+  },
+  IE: {
+    name: "Irlanda",
+    englishName: "Ireland",
+    flag: "🇮🇪",
+    keywords: ["ireland", "irlanda", "dublin", "cork", "galway", "limerick"],
+    primaryLanguage: "en",
+  },
+  PL: {
+    name: "Polonia",
+    englishName: "Poland",
+    flag: "🇵🇱",
+    keywords: ["poland", "polonia", "warsaw", "warszawa", "krakow", "cracow", "wroclaw", "poznan", "gdansk"],
+    primaryLanguage: "pl",
+  },
+  AT: {
+    name: "Austria",
+    englishName: "Austria",
+    flag: "🇦🇹",
+    keywords: ["austria", "vienna", "viena", "salzburg", "graz", "innsbruck", "linz"],
+    primaryLanguage: "de",
+  },
+
+  // --- Asia (Principales) ---
+  KR: {
+    name: "Corea del Sur",
+    englishName: "South Korea",
+    flag: "🇰🇷",
+    keywords: [
+      "south korea", "korea", "seoul", "busan", "incheon", "daegu", "daejeon",
+      "gwangju", "suwon", "ulsan", "changwon", "seongnam", "pangyo", "gangnam",
+      "대한민국", "한국", "서울", "부산"
+    ],
+    primaryLanguage: "ko",
+  },
+  JP: {
+    name: "Japón",
+    englishName: "Japan",
+    flag: "🇯🇵",
+    keywords: ["japan", "japon", "japón", "tokyo", "tokio", "osaka", "kyoto", "yokohama", "nagoya", "fukuoka", "sapporo"],
+    primaryLanguage: "ja",
+  },
+  SG: {
+    name: "Singapur",
+    englishName: "Singapore",
+    flag: "🇸🇬",
+    keywords: ["singapore", "singapur"],
+    primaryLanguage: "en",
+  },
+  IN: {
+    name: "India",
+    englishName: "India",
+    flag: "🇮🇳",
+    keywords: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "new delhi", "hyderabad", "pune", "chennai", "kolkata", "noida", "gurgaon"],
+    primaryLanguage: "en",
+  },
+  AE: {
+    name: "Emiratos Árabes",
+    englishName: "United Arab Emirates",
+    flag: "🇦🇪",
+    keywords: ["united arab emirates", "uae", "emiratos árabes", "dubai", "abu dhabi", "sharjah"],
+    primaryLanguage: "ar",
+  },
+  SA: {
+    name: "Arabia Saudita",
+    englishName: "Saudi Arabia",
+    flag: "🇸🇦",
+    keywords: ["saudi arabia", "arabia saudita", "riyadh", "jeddah", "dammam", "khobar"],
+    primaryLanguage: "ar",
+  },
+  IL: {
+    name: "Israel",
+    englishName: "Israel",
+    flag: "🇮🇱",
+    keywords: ["israel", "tel aviv", "jerusalem", "haifa", "herzliya", "be'er sheva"],
+    primaryLanguage: "he",
+  },
+  HK: {
+    name: "Hong Kong",
+    englishName: "Hong Kong",
+    flag: "🇭🇰",
+    keywords: ["hong kong", "kowloon"],
+    primaryLanguage: "en",
+  },
+  TW: {
+    name: "Taiwán",
+    englishName: "Taiwan",
+    flag: "🇹🇼",
+    keywords: ["taiwan", "taiwán", "taipei", "kaohsiung", "taichung", "hsinchu"],
+    primaryLanguage: "zh",
+  },
+  MY: {
+    name: "Malasia",
+    englishName: "Malaysia",
+    flag: "🇲🇾",
+    keywords: ["malaysia", "malasia", "kuala lumpur", "penang", "johor bahru"],
+    primaryLanguage: "en",
+  },
+  ID: {
+    name: "Indonesia",
+    englishName: "Indonesia",
+    flag: "🇮🇩",
+    keywords: ["indonesia", "jakarta", "surabaya", "bandung", "bali", "medan"],
+    primaryLanguage: "id",
+  },
+  PH: {
+    name: "Filipinas",
+    englishName: "Philippines",
+    flag: "🇵🇭",
+    keywords: ["philippines", "filipinas", "manila", "cebu", "quezon city", "makati", "taguig"],
+    primaryLanguage: "en",
+  },
+  VN: {
+    name: "Vietnam",
+    englishName: "Vietnam",
+    flag: "🇻🇳",
+    keywords: ["vietnam", "hanoi", "ho chi minh", "da nang", "haiphong"],
+    primaryLanguage: "vi",
+  },
+  TH: {
+    name: "Tailandia",
+    englishName: "Thailand",
+    flag: "🇹🇭",
+    keywords: ["thailand", "tailandia", "bangkok", "chiang mai", "phuket"],
+    primaryLanguage: "th",
   },
 };
 
@@ -314,6 +604,7 @@ function matchesIcp(headline: string | null | undefined, icpTitles: string[]): b
 
 // Mapa exhaustivo de países y sus indicadores geográficos clave para descartar orígenes incompatibles
 const FOREIGN_GEO_MAP: Record<string, string[]> = {
+  // Norteamérica
   US: [
     "united states", "usa", "u.s.", "u.s.a.", "new york", "san francisco", "silicon valley",
     "austin", "chicago", "los angeles", "seattle", "boston", "miami", "texas", "california",
@@ -321,29 +612,80 @@ const FOREIGN_GEO_MAP: Record<string, string[]> = {
     "virginia", "illinois", "massachusetts", "pennsylvania", "ohio", "michigan", "georgia",
     "colorado", "arizona", "utah", "salt lake city", "nashville", "tennessee", "portland", "oregon"
   ],
-  RO: ["romania", "bucharest", "bucuresti", "cluj", "timisoara", "iasi", "brasov"],
-  UA: ["ukraine", "kyiv", "kiev", "lviv", "kharkiv", "odesa", "dnipro"],
-  RU: ["russia", "moscow", "saint petersburg", "novosibirsk", "ekaterinburg"],
-  PL: ["poland", "polska", "warsaw", "warszawa", "krakow", "cracow", "wroclaw", "poznan", "gdansk"],
-  VN: ["vietnam", "hanoi", "ho chi minh", "da nang", "haiphong"],
-  IN: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "new delhi", "hyderabad", "pune", "chennai", "kolkata", "noida", "gurgaon"],
-  PK: ["pakistan", "karachi", "lahore", "islamabad"],
-  PH: ["philippines", "manila", "cebu"],
-  NG: ["nigeria", "lagos", "abuja"],
-  ES: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "malaga", "zaragoza"],
+  CA: ["canada", "canadá", "toronto", "vancouver", "montreal", "ottawa", "calgary", "ontario", "quebec"],
   MX: ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "puebla", "queretaro", "tijuana"],
+
+  // Centroamérica
+  GT: ["guatemala", "ciudad de guatemala", "quetzaltenango"],
+  CR: ["costa rica", "san josé", "san jose", "alajuela"],
+  PA: ["panamá", "panama", "ciudad de panamá", "ciudad de panama"],
+  SV: ["el salvador", "san salvador", "santa ana", "san miguel"],
+  HN: ["honduras", "tegucigalpa", "san pedro sula"],
+  NI: ["nicaragua", "managua", "león", "granada"],
+  BZ: ["belize", "belice", "belmopan", "belize city"],
+
+  // Suramérica
   CO: ["colombia", "bogotá", "bogota", "medellín", "medellin", "cali", "barranquilla"],
   AR: ["argentina", "buenos aires", "córdoba", "cordoba", "rosario", "mendoza"],
   CL: ["chile", "santiago de chile", "valparaiso", "concepcion"],
   PE: ["perú", "peru", "lima", "arequipa", "trujillo"],
   BR: ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "curitiba", "belo horizonte"],
-  FR: ["france", "francia", "paris", "lyon", "marseille", "toulouse", "bordeaux"],
-  DE: ["germany", "alemania", "deutschland", "berlin", "munich", "münchen", "hamburg", "frankfurt"],
-  IT: ["italy", "italia", "rome", "roma", "milan", "milano", "turin", "naples"],
+  UY: ["uruguay", "montevideo", "punta del este"],
+  EC: ["ecuador", "quito", "guayaquil", "cuenca"],
+  BO: ["bolivia", "la paz", "santa cruz de la sierra", "cochabamba"],
+  PY: ["paraguay", "asunción", "asuncion", "ciudad del este"],
+  VE: ["venezuela", "caracas", "maracaibo", "valencia", "barquisimeto"],
+  GY: ["guyana", "georgetown"],
+  SR: ["suriname", "surinam", "paramaribo"],
+
+  // El Caribe
+  DO: ["república dominicana", "republica dominicana", "dominican republic", "santo domingo"],
+  PR: ["puerto rico", "san juan", "bayamón", "ponce"],
+  CU: ["cuba", "la habana", "havana"],
+  JM: ["jamaica", "kingston", "montego bay"],
+  TT: ["trinidad and tobago", "trinidad y tobago", "port of spain"],
+  BS: ["bahamas", "nassau"],
+  BB: ["barbados", "bridgetown"],
+  HT: ["haiti", "haití", "port-au-prince"],
+
+  // Europa
+  ES: ["españa", "espana", "spain", "madrid", "barcelona", "valencia", "sevilla", "bilbao", "malaga", "zaragoza"],
   UK: ["united kingdom", "uk", "london", "manchester", "birmingham", "england", "scotland", "edinburgh"],
-  CA: ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary"],
+  DE: ["germany", "alemania", "deutschland", "berlin", "munich", "münchen", "hamburg", "frankfurt"],
+  FR: ["france", "francia", "paris", "lyon", "marseille", "toulouse", "bordeaux"],
+  IT: ["italy", "italia", "rome", "roma", "milan", "milano", "turin", "naples"],
+  PT: ["portugal", "lisboa", "porto", "braga"],
+  NL: ["netherlands", "países bajos", "holanda", "amsterdam", "rotterdam", "the hague", "utrecht", "eindhoven"],
+  CH: ["switzerland", "suiza", "zurich", "zürich", "geneva", "ginebra", "basel", "bern"],
+  BE: ["belgium", "bélgica", "brussels", "bruselas", "antwerp", "ghent"],
+  SE: ["sweden", "suecia", "stockholm", "gothenburg", "malmo", "malmö"],
+  NO: ["norway", "noruega", "oslo", "bergen", "trondheim"],
+  DK: ["denmark", "dinamarca", "copenhagen", "copenhague", "aarhus"],
+  FI: ["finland", "finlandia", "helsinki", "espoo", "tampere"],
+  IE: ["ireland", "irlanda", "dublin", "cork", "galway"],
+  PL: ["poland", "polska", "polonia", "warsaw", "warszawa", "krakow", "cracow", "wroclaw", "poznan", "gdansk"],
+  AT: ["austria", "vienna", "viena", "salzburg", "graz"],
+  RO: ["romania", "bucharest", "bucuresti", "cluj", "timisoara", "iasi", "brasov"],
+  UA: ["ukraine", "kyiv", "kiev", "lviv", "kharkiv", "odesa", "dnipro"],
+  RU: ["russia", "moscow", "saint petersburg", "novosibirsk", "ekaterinburg"],
+
+  // Asia
   KR: ["south korea", "korea", "seoul", "busan", "incheon", "daegu", "daejeon", "대한민국", "한국", "서울", "부산"],
-  JP: ["japan", "tokyo", "osaka", "kyoto"],
+  JP: ["japan", "japon", "japón", "tokyo", "tokio", "osaka", "kyoto", "yokohama"],
+  SG: ["singapore", "singapur"],
+  IN: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "new delhi", "hyderabad", "pune", "chennai", "kolkata", "noida", "gurgaon"],
+  AE: ["united arab emirates", "uae", "emiratos árabes", "dubai", "abu dhabi"],
+  SA: ["saudi arabia", "arabia saudita", "riyadh", "jeddah"],
+  IL: ["israel", "tel aviv", "jerusalem", "haifa"],
+  HK: ["hong kong", "kowloon"],
+  TW: ["taiwan", "taiwán", "taipei", "kaohsiung"],
+  MY: ["malaysia", "malasia", "kuala lumpur", "penang"],
+  ID: ["indonesia", "jakarta", "surabaya", "bali"],
+  PH: ["philippines", "filipinas", "manila", "cebu"],
+  VN: ["vietnam", "hanoi", "ho chi minh", "da nang", "haiphong"],
+  TH: ["thailand", "tailandia", "bangkok", "chiang mai"],
+  PK: ["pakistan", "karachi", "lahore", "islamabad"],
+  NG: ["nigeria", "lagos", "abuja"],
 };
 
 /**
@@ -358,7 +700,10 @@ function isExplicitlyForeignLocation(
   if (!norm) return false;
 
   const targetCode = targetCountryCode.toUpperCase();
-  const LATAM_CODES = ["MX", "CO", "AR", "CL", "PE", "UY", "EC", "PA", "CR", "DO", "GT"];
+  const LATAM_CODES = [
+    "MX", "CO", "AR", "CL", "PE", "UY", "EC", "PA", "CR", "DO", "GT",
+    "SV", "HN", "NI", "BZ", "BO", "PY", "VE", "PR", "CU"
+  ];
 
   for (const [countryKey, geoKeywords] of Object.entries(FOREIGN_GEO_MAP)) {
     // Si el país analizado es el país objetivo, no es extranjero
@@ -428,7 +773,12 @@ function isPostHighQualityDebate(
 
   // 3. Control de compatibilidad alfabética según el país objetivo
   const targetCode = targetCountryCode.toUpperCase();
-  const latinCountries = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA", "FR", "DE", "IT"];
+  const latinCountries = [
+    "US", "CA", "MX", "LATAM", "GT", "CR", "PA", "SV", "HN", "NI", "BZ",
+    "CO", "AR", "CL", "PE", "BR", "UY", "EC", "BO", "PY", "VE", "GY", "SR",
+    "DO", "PR", "CU", "JM", "TT", "BS", "BB", "HT",
+    "ES", "UK", "DE", "FR", "IT", "PT", "NL", "CH", "BE", "SE", "NO", "DK", "FI", "IE", "PL", "AT"
+  ];
 
   if (latinCountries.includes(targetCode)) {
     for (const script of NON_LATIN_SCRIPTS) {
@@ -744,7 +1094,12 @@ export async function POST(req: NextRequest) {
       return { isMatch: false, resolvedLocation: "No verificado" };
     }
 
-    const isWesternCountry = ["US", "ES", "LATAM", "MX", "CO", "AR", "CL", "PE", "BR", "UY", "PA", "EC", "CR", "DO", "GT", "PT", "UK", "CA"].includes(countryCode);
+    const isWesternCountry = [
+      "US", "CA", "MX", "LATAM", "GT", "CR", "PA", "SV", "HN", "NI", "BZ",
+      "CO", "AR", "CL", "PE", "BR", "UY", "EC", "BO", "PY", "VE", "GY", "SR",
+      "DO", "PR", "CU", "JM", "TT", "BS", "BB", "HT",
+      "ES", "UK", "DE", "FR", "IT", "PT", "NL", "CH", "BE", "SE", "NO", "DK", "FI", "IE", "PL", "AT"
+    ].includes(countryCode);
 
     for (const item of interactions) {
       if (leadMap.size >= effectiveLimit) break;
