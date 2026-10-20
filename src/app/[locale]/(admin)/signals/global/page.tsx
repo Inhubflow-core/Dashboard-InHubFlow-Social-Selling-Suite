@@ -878,7 +878,7 @@ export default function GlobalSignalsPage() {
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Escanear Posts&quot; para escanear publicaciones en vivo.
+                                  Sin posts escaneados. Pulsa &quot;Escanear&quot; para escanear publicaciones en vivo.
                                 </span>
                               )}
                             </div>
@@ -965,7 +965,7 @@ export default function GlobalSignalsPage() {
                               })}
                             </div>
 
-                            {/* Botón Escanear Posts con Lote */}
+                            {/* Botón Escanear con Lote */}
                             <button
                               type="button"
                               disabled={isScanningId === rule.id}
@@ -980,7 +980,7 @@ export default function GlobalSignalsPage() {
                                 </>
                               ) : (
                                 <>
-                                  <span>Escanear Posts</span>
+                                  <span>Escanear</span>
                                   <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
                                     {activeBatch}
                                   </span>
@@ -1165,7 +1165,7 @@ export default function GlobalSignalsPage() {
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
                 <div className="py-8 text-center text-xs text-gray-400">
                   <p>Aún no se han capturado leads en este radar.</p>
-                  <p className="mt-1">Pulsa &quot;Escanear Posts&quot; en la tabla para extraer comentarios y participantes en vivo.</p>
+                  <p className="mt-1">Pulsa &quot;Escanear&quot; en la tabla para extraer comentarios y participantes en vivo.</p>
                 </div>
               ) : (
                 getRuleLeads(selectedRuleForLeads.id).map((lead) => (
