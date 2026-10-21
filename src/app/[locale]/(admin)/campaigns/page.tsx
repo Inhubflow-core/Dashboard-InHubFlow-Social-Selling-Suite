@@ -433,8 +433,8 @@ export default function CampaignsPage() {
 
       {/* Contenedor Vertical de la Secuencia Lineal */}
       <div className="max-w-3xl mx-auto space-y-0 py-2">
-        {/* Card del Disparador / Activador */}
-        <div className="rounded-2xl border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-brand-50/30 dark:bg-brand-950/20 p-4 shadow-2xs">
+        {/* Card del Disparador / Activador con Contraste #E9F0F7 */}
+        <div className="rounded-2xl border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-[#E9F0F7] dark:bg-brand-950/20 p-4 shadow-2xs">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs">
               <Zap className="h-4 w-4" />

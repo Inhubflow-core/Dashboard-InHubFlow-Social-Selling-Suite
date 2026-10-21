@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 
 export default function CompetitorsSignalRadarPage() {
   const { currentUser } = useAuth();
@@ -1328,7 +1328,7 @@ export default function CompetitorsSignalRadarPage() {
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${comp.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
+                            <div className="w-full rounded-xl border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <span>🔗</span>
@@ -1343,7 +1343,7 @@ export default function CompetitorsSignalRadarPage() {
                                 {scannedPosts.map((post, pIdx) => (
                                   <div
                                     key={post.id || pIdx}
-                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs hover:border-blue-200 dark:hover:border-blue-800 transition"
+                                    className="flex items-center justify-between gap-4 text-xs bg-white dark:bg-gray-900 p-3.5 rounded-lg border border-blue-200/60 dark:border-gray-700 shadow-2xs hover:border-brand-500/50 transition"
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">

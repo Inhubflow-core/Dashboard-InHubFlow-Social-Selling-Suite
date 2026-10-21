@@ -17,7 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLeadsStore } from "@/lib/leads/store";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 
 function parseCommentAuthor(c: any) {
   const rawAuthor = c.author;
@@ -1233,22 +1233,22 @@ export default function MyPostsSignalRadarPage() {
                         </td>
                       </tr>
 
-                      {/* Card de Ancho Completo para la Publicación Monitoreada (Estilo Nivel 2) */}
+                      {/* Card de Ancho Completo para la Publicación Monitoreada (Estilo Nivel 2 con Fondo #E9F0F7) */}
                       {isExpanded && (
                         <tr key={`${mon.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20 shadow-xs">
+                            <div className="w-full rounded-xl border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                                  <span>🔗</span>
+                                <span className="text-xs font-bold text-gray-800 dark:text-blue-200 flex items-center gap-1.5">
+                                  <Link2 className="size-3.5 text-brand-600 dark:text-brand-400" />
                                   <span>Publicación(es) de LinkedIn Monitoreada(s): Mis propios Posts (1)</span>
                                 </span>
-                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                                <span className="text-[11px] font-semibold text-brand-600 dark:text-brand-400">
                                   Publicado por {currentDisplayName}
                                 </span>
                               </div>
 
-                              <div className="text-xs bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-2xs flex items-center justify-between gap-4">
+                              <div className="text-xs bg-white dark:bg-gray-900 p-3.5 rounded-lg border border-blue-200/60 dark:border-gray-700 shadow-2xs flex items-center justify-between gap-4">
                                 <div className="min-w-0 flex-1">
                                   <p className="font-semibold text-gray-900 dark:text-white leading-snug">
                                     <span className="font-bold text-gray-900 dark:text-white mr-1.5">
@@ -1274,10 +1274,10 @@ export default function MyPostsSignalRadarPage() {
                                     href={mon.postUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
+                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
                                   >
                                     <span>Ver Post</span>
-                                    <span>↗</span>
+                                    <ExternalLink className="size-3" />
                                   </a>
                                 ) : (
                                   <button
@@ -1289,7 +1289,7 @@ export default function MyPostsSignalRadarPage() {
                                     className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition shadow-xs"
                                   >
                                     <span>Vincular URL</span>
-                                    <span>🔗</span>
+                                    <Link2 className="size-3" />
                                   </button>
                                 )}
                               </div>
