@@ -53,3 +53,50 @@ export interface CampaignWorkflow {
   createdAt: string;
   updatedAt: string;
 }
+
+// ─── Estructura de Secuencias Lineales Estilo Outreach B2B ────────────────────
+
+export type SocialStepType =
+  | "visit"
+  | "like_comment"
+  | "connect"
+  | "connect_message"
+  | "message_icebreaker"
+  | "message_followup"
+  | "message_value_prop";
+
+export interface SequenceStepItem {
+  id: string;
+  order: number;
+  type: SocialStepType;
+  title: string;
+  description: string;
+  delayDaysBefore: number; // Retardo en días antes de este paso (0 para el primero)
+  messageTemplate?: string;
+  connectNote?: string;
+  commentTemplate?: string;
+  useAiComment?: boolean;
+  attachedResource?: string;
+  isInheritedFromMonitor?: boolean;
+}
+
+export interface LinearSequenceCampaign {
+  id: "seq-lead-lists" | "seq-lead-magnet" | string;
+  name: string;
+  code: "01_lists" | "02_lead_magnet";
+  triggerTitle: string;
+  triggerDescription: string;
+  status: "active" | "paused";
+  targetListId?: string;
+  targetListName?: string;
+  steps: SequenceStepItem[];
+  dailyLimits: {
+    maxVisitsPerDay: number;
+    maxConnectionsPerDay: number;
+    maxMessagesPerDay: number;
+  };
+  stopOnReply: boolean;
+  workingHoursOnly: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
