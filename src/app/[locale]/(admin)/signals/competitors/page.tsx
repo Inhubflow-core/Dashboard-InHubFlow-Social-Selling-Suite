@@ -190,6 +190,7 @@ export default function CompetitorsSignalRadarPage() {
   // Form states
   const [competitorName, setCompetitorName] = useState("");
   const [competitorUrl, setCompetitorUrl] = useState("");
+  const [minCommentThreshold, setMinCommentThreshold] = useState<number>(20);
   const [keywordsFilterInput, setKeywordsFilterInput] = useState(
     "Agentes IA, Prospeccion B2B, Outreach"
   );
@@ -284,22 +285,33 @@ export default function CompetitorsSignalRadarPage() {
     if (trackLikes) interactions.push("likes");
     if (trackComments) interactions.push("comments");
 
-    const isPerson = selectedCompetitorItem?.type === "person" || competitorUrl.includes("/in/");
-    if (!selectedCompetitorItem || !competitorUrl) {
-      setScanFeedback({ type: "error", text: "Selecciona un resultado real de LinkedIn antes de agregarlo." });
-      return;
+    // Auto-resolver competitorUrl desde selectedCompetitorItem o fallback canónico
+    let resolvedUrl = competitorUrl.trim();
+    if (!resolvedUrl && selectedCompetitorItem?.linkedinUrl) {
+      resolvedUrl = selectedCompetitorItem.linkedinUrl;
     }
+    if (!resolvedUrl) {
+      if (competitorName.startsWith("http")) {
+        resolvedUrl = competitorName.trim();
+      } else {
+        const slug = competitorName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        resolvedUrl = `https://www.linkedin.com/company/${slug}`;
+      }
+    }
+
+    const isPerson = selectedCompetitorItem?.type === "person" || resolvedUrl.includes("/in/");
 
     const newMonitor: Level2CompetitorMonitor = {
       id: `mon-l2-${Date.now()}`,
-      competitorName,
-      competitorUrl,
+      competitorName: selectedCompetitorItem?.name || competitorName.trim(),
+      competitorUrl: resolvedUrl,
       logoUrl: selectedCompetitorItem?.logoUrl,
       competitorType: isPerson ? "person" : "company",
       keywordsFilter: keywords.length > 0 ? keywords : ["Prospeccion B2B"],
       status: "active",
       interactionTypes: interactions.length > 0 ? interactions : ["comments"],
       excludeAuthorEmployees,
+      minCommentThreshold: Number(minCommentThreshold) || 20,
       batchLeadLimit,
       outreachTemplate,
       leadsIdentifiedCount: 0,
@@ -321,6 +333,7 @@ export default function CompetitorsSignalRadarPage() {
     setIsSearchDropdownOpen(false);
     setCompetitorName("");
     setCompetitorUrl("");
+    setMinCommentThreshold(20);
     setScanFeedback({
       type: "success",
       text: `Competidor "${newMonitor.competitorName}" agregado con escaneo diario activo y su lista inteligente "${targetList.name}" creada automáticamente.`,
@@ -349,6 +362,7 @@ export default function CompetitorsSignalRadarPage() {
           competitorUrl: comp.competitorUrl,
           interactionTypes: comp.interactionTypes,
           keywordsFilter: comp.keywordsFilter,
+          minCommentThreshold: comp.minCommentThreshold || 20,
           excludeAuthorEmployees: comp.excludeAuthorEmployees !== false,
           limit: 10,
           batchLimit: effectiveBatchLimit,
@@ -565,7 +579,7 @@ export default function CompetitorsSignalRadarPage() {
           desc="Define la cuenta objetivo y los criterios para extraer a quienes comentan o reaccionan a sus posts."
         >
           <form onSubmit={handleAddCompetitor} className="space-y-4">
-            {/* Fila 1: Cuenta Objetivo y URL de LinkedIn */}
+            {/* Fila 1: Nombre de la Cuenta y Palabras Clave */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Buscador inteligente en tiempo real de LinkedIn */}
               <div className="relative">
@@ -802,34 +816,7 @@ export default function CompetitorsSignalRadarPage() {
                 )}
               </div>
 
-              {/* Campo 2: URL de LinkedIn */}
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  URL de LinkedIn de la Cuenta o Perfil
-                </label>
-                <div className="relative">
-                  <input
-                    type="url"
-                    value={competitorUrl}
-                    onChange={(e) => setCompetitorUrl(e.target.value)}
-                    placeholder="https://www.linkedin.com/company/nombre o https://www.linkedin.com/in/nombre"
-                    className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  />
-                  {selectedCompetitorItem && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600" title="URL confirmada">
-                      ✓
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  Enlace directo a la página de LinkedIn que se auditará periódicamente.
-                </span>
-              </div>
-            </div>
-
-            {/* Fila 2: Palabras Clave y Lote de Absorción (Diseño Gemelo Lado a Lado) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Palabras Clave en Contenido del Post */}
+              {/* Columna 2: Palabras Clave en Contenido del Post */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   Palabras Clave en Contenido del Post (Opcional)
@@ -843,6 +830,51 @@ export default function CompetitorsSignalRadarPage() {
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">
                   Separa por comas. Si se define, solo se auditarán posts que contengan estos temas.
+                </span>
+              </div>
+            </div>
+
+            {/* Fila 2: Filtro de Tracción Mínima y Lote de Absorción (Diseño Gemelo al Nivel 3) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Filtro de Tracción Mínima (Volumen de Comentarios) */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 10, label: "+10 comentarios", tag: "Moderado" },
+                    { value: 20, label: "+20 comentarios", tag: "Recomendado", recommended: true },
+                    { value: 50, label: "+50 comentarios", tag: "Viral Masivo" },
+                  ].map((thresh) => (
+                    <button
+                      key={thresh.value}
+                      type="button"
+                      onClick={() => setMinCommentThreshold(thresh.value)}
+                      className={`p-2 rounded-lg border text-left transition ${
+                        minCommentThreshold === thresh.value
+                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">
+                          {thresh.label}
+                        </span>
+                        {thresh.recommended && (
+                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                            Óptimo
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                        {thresh.tag}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
                 </span>
               </div>
 
@@ -1164,6 +1196,11 @@ export default function CompetitorsSignalRadarPage() {
                                 {kw}
                               </span>
                             ))}
+                            {comp.minCommentThreshold && (
+                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-[10px] font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                                +{comp.minCommentThreshold} com.
+                              </span>
+                            )}
                           </div>
                         </td>
 
@@ -1419,6 +1456,37 @@ export default function CompetitorsSignalRadarPage() {
                 <p className="mt-1 text-[11px] text-gray-500">
                   Deja vacío para auditar todos los posts del competidor sin filtro de temáticas.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                </label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {[
+                    { value: 10, label: "+10 comentarios" },
+                    { value: 20, label: "+20 comentarios" },
+                    { value: 50, label: "+50 comentarios" },
+                  ].map((thresh) => (
+                    <button
+                      key={thresh.value}
+                      type="button"
+                      onClick={() =>
+                        setEditingMonitor({
+                          ...editingMonitor,
+                          minCommentThreshold: thresh.value,
+                        })
+                      }
+                      className={`p-2 rounded-lg border text-left text-xs font-semibold transition ${
+                        (editingMonitor.minCommentThreshold || 20) === thresh.value
+                          ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {thresh.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">

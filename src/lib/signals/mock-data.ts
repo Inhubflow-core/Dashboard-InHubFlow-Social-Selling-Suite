@@ -160,6 +160,8 @@ export const initialLevel2Monitors: Level2CompetitorMonitor[] = [
     status: "active",
     interactionTypes: ["comments", "likes"],
     excludeAuthorEmployees: true,
+    minCommentThreshold: 20,
+    batchLeadLimit: 50,
     outreachTemplate: "Hola {{first_name}}, vi tu interaccion en el post de Claudia Curi sobre prospección B2B...",
     leadsIdentifiedCount: 113,
     lastScanAt: "15:34",

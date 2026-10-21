@@ -70,6 +70,7 @@ export interface Level2CompetitorMonitor {
   status: MonitorStatus;
   interactionTypes: ("likes" | "comments")[];
   excludeAuthorEmployees?: boolean;
+  minCommentThreshold?: number;
   batchLeadLimit?: 25 | 50 | 100;
   outreachTemplate: string;
   leadsIdentifiedCount: number;

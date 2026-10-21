@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       : ["comments"];
     const limit = Math.min(10, Math.max(1, Number(body.limit) || 10));
     const batchLimit = Math.min(100, Math.max(10, Number(body.batchLimit) || 50));
+    const minCommentThreshold = Math.max(0, Number(body.minCommentThreshold) || 0);
     const excludeAuthorEmployees = body.excludeAuthorEmployees !== false;
 
     const rawKeywords = Array.isArray(body.keywordsFilter)
@@ -109,12 +110,24 @@ export async function POST(req: NextRequest) {
     });
 
     // Si se especificaron palabras clave, priorizar publicaciones que contengan alguno de los términos
-    const matchingPosts = keywordsFilter.length > 0
+    let matchingPosts = keywordsFilter.length > 0
       ? posts.filter((post) => {
           const text = String(post.text || "").toLowerCase();
           return keywordsFilter.some((kw: string) => text.includes(kw));
         })
       : posts;
+
+    // Si se especificó umbral mínimo de comentarios (tracción mínima), filtrar publicaciones
+    if (minCommentThreshold > 0) {
+      const postsMeetingThreshold = matchingPosts.filter((post) => {
+        const comments = Number(post.comments_count ?? post.commentsCount ?? (post as any).comments ?? post.num_comments ?? 0);
+        return comments >= minCommentThreshold;
+      });
+      if (postsMeetingThreshold.length > 0) {
+        matchingPosts = postsMeetingThreshold;
+      }
+    }
+
     const postsToProcess = matchingPosts.length > 0 ? matchingPosts : posts;
 
     const safePostsToProcess = postsToProcess.slice(0, limit);
