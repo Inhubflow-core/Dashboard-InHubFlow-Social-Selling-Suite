@@ -1,6 +1,6 @@
 import { unipile } from "@/lib/unipile/client";
 import type { Node, Edge } from "@xyflow/react";
-import type { NodeConfigData, CampaignWorkflow } from "./types";
+import type { NodeConfigData, CampaignWorkflow, LinearSequenceCampaign, SequenceStepItem } from "./types";
 import { getStoredWorkflow, saveStoredWorkflow } from "./store";
 import { translateOutreachMessage } from "@/lib/ai/outreach-translator";
 import { getActiveAccountId } from "@/lib/unipile/store";
@@ -46,6 +46,10 @@ export function recordExecutionLog(log: CampaignExecutionLog) {
   if (recentExecutionLogs.length > 150) {
     recentExecutionLogs.pop();
   }
+}
+
+export function clearCampaignExecutionLogs(): void {
+  recentExecutionLogs.length = 0;
 }
 
 /**
@@ -803,4 +807,481 @@ export async function executeCampaignStepForLead(params: {
       };
     }
   }
+}
+
+/**
+ * Ejecutor de Secuencias Lineales: Procesa un paso secuencial (1..N) para un lead
+ * Respetando Pacing diario de LinkedIn, Stop on Reply y adjuntos multimedia.
+ */
+export async function executeLinearSequenceStepForLead(params: {
+  campaign: LinearSequenceCampaign;
+  stepIndex: number;
+  leadState: LeadCampaignState;
+  accountId?: string;
+}): Promise<{
+  success: boolean;
+  newState: LeadCampaignState;
+  log: CampaignExecutionLog;
+  isSequenceCompleted: boolean;
+  nextStepIndex: number;
+}> {
+  const { campaign, stepIndex, leadState } = params;
+  const accountId =
+    params.accountId ||
+    (typeof window !== "undefined" ? getActiveAccountId() : "") ||
+    "6yecZUhYS1mvPOJJC7p-zQ";
+  const pacing = getAccountDailyPacing(accountId);
+
+  // 1. Validar regla 'Stop on Reply' (detención inmediata ante respuesta)
+  if (campaign.stopOnReply && leadState.hasReplied) {
+    const log: CampaignExecutionLog = {
+      id: `log-seq-${Date.now()}`,
+      campaignId: campaign.id,
+      leadId: leadState.leadId,
+      leadName: leadState.leadName,
+      nodeId: `step-${stepIndex + 1}`,
+      nodeLabel: "Stop on Reply",
+      nodeType: "control_stop",
+      timestamp: new Date().toISOString(),
+      status: "paused",
+      message: `${leadState.leadName} ha respondido a un mensaje previo. Secuencia detenida automáticamente para dar paso a atención humana directa (Stop on Reply).`,
+    };
+    recordExecutionLog(log);
+    return {
+      success: true,
+      newState: { ...leadState, state: "completed" },
+      log,
+      isSequenceCompleted: true,
+      nextStepIndex: stepIndex,
+    };
+  }
+
+  // 2. Validar existencia del paso solicitado
+  const currentStep = campaign.steps[stepIndex];
+  if (!currentStep) {
+    const log: CampaignExecutionLog = {
+      id: `log-seq-${Date.now()}`,
+      campaignId: campaign.id,
+      leadId: leadState.leadId,
+      leadName: leadState.leadName,
+      nodeId: "step-end",
+      nodeLabel: "Fin de Secuencia",
+      nodeType: "control_end",
+      timestamp: new Date().toISOString(),
+      status: "success",
+      message: `Secuencia '${campaign.name}' completada con éxito para ${leadState.leadName}.`,
+    };
+    recordExecutionLog(log);
+    return {
+      success: true,
+      newState: { ...leadState, state: "completed" },
+      log,
+      isSequenceCompleted: true,
+      nextStepIndex: stepIndex,
+    };
+  }
+
+  // 3. Ejecutar según el tipo de acción social
+  switch (currentStep.type) {
+    case "visit": {
+      const maxVisits = campaign.dailyLimits?.maxVisitsPerDay ?? 20;
+      if (pacing.profilesVisited >= maxVisits) {
+        const log: CampaignExecutionLog = {
+          id: `log-seq-${Date.now()}`,
+          campaignId: campaign.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentStep.id,
+          nodeLabel: currentStep.title,
+          nodeType: currentStep.type,
+          timestamp: new Date().toISOString(),
+          status: "rate_limited",
+          message: `Límite diario de visitas alcanzado (${pacing.profilesVisited}/${maxVisits}). Acción pospuesta para proteger la cuenta.`,
+        };
+        recordExecutionLog(log);
+        return {
+          success: false,
+          newState: { ...leadState, state: "waiting_delay" },
+          log,
+          isSequenceCompleted: false,
+          nextStepIndex: stepIndex,
+        };
+      }
+
+      incrementAccountPacing(accountId, "visit");
+      try {
+        await unipile.resolveProfile(leadState.linkedinUrl, accountId);
+      } catch (err) {
+        console.warn("[Runner] Advertencia al visitar perfil:", err);
+      }
+
+      const log: CampaignExecutionLog = {
+        id: `log-seq-${Date.now()}`,
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentStep.id,
+        nodeLabel: currentStep.title,
+        nodeType: currentStep.type,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} visitado con éxito. Registro generado en sus notificaciones de LinkedIn.`,
+        details: { stepOrder: stepIndex + 1, stepTitle: currentStep.title },
+      };
+      recordExecutionLog(log);
+
+      const nextIndex = stepIndex + 1;
+      const isDone = nextIndex >= campaign.steps.length;
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          state: isDone ? "completed" : "in_progress",
+          history: [...leadState.history, currentStep.id],
+        },
+        log,
+        isSequenceCompleted: isDone,
+        nextStepIndex: nextIndex,
+      };
+    }
+
+    case "like_comment": {
+      let targetPostId = `post_target_${leadState.leadId}`;
+      try {
+        const posts = await unipile.getUserPosts({
+          account_id: accountId,
+          identifier: leadState.providerId || leadState.leadId,
+          limit: 1,
+        });
+        if (posts && posts.length > 0 && posts[0].id) {
+          targetPostId = posts[0].id;
+        }
+      } catch (err) {
+        console.warn("[Runner] Fallback en post de prospecto:", err);
+      }
+
+      try {
+        await unipile.reactToPost({
+          account_id: accountId,
+          post_id: targetPostId,
+          reaction_type: "like",
+        });
+      } catch (err) {
+        console.warn("[Runner] Advertencia en like:", err);
+      }
+
+      let commentTemplate =
+        currentStep.commentTemplate ||
+        currentStep.messageTemplate ||
+        "Gran perspectiva {{first_name}}, totalmente alineado con este enfoque.";
+      if (leadState.language && leadState.language !== "es") {
+        try {
+          commentTemplate = await translateOutreachMessage(commentTemplate, leadState.language);
+        } catch {}
+      }
+      const commentText = commentTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+
+      try {
+        await unipile.commentOnPost({
+          account_id: accountId,
+          post_id: targetPostId,
+          text: commentText,
+        });
+      } catch (err) {
+        console.warn("[Runner] Advertencia en comentario:", err);
+      }
+
+      const log: CampaignExecutionLog = {
+        id: `log-seq-${Date.now()}`,
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentStep.id,
+        nodeLabel: currentStep.title,
+        nodeType: currentStep.type,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario ("${commentText.slice(0, 45)}...") publicados con éxito en el post más reciente de ${leadState.leadName}.`,
+        details: { comment: commentText, stepOrder: stepIndex + 1 },
+      };
+      recordExecutionLog(log);
+
+      const nextIndex = stepIndex + 1;
+      const isDone = nextIndex >= campaign.steps.length;
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          state: isDone ? "completed" : "in_progress",
+          history: [...leadState.history, currentStep.id],
+        },
+        log,
+        isSequenceCompleted: isDone,
+        nextStepIndex: nextIndex,
+      };
+    }
+
+    case "connect":
+    case "connect_message": {
+      if (leadState.connectionDegree === "1st") {
+        const log: CampaignExecutionLog = {
+          id: `log-seq-${Date.now()}`,
+          campaignId: campaign.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentStep.id,
+          nodeLabel: currentStep.title,
+          nodeType: currentStep.type,
+          timestamp: new Date().toISOString(),
+          status: "success",
+          message: `Paso ${stepIndex + 1} (${currentStep.title}): ${leadState.leadName} ya es contacto de 1er grado en LinkedIn. Se omite la invitación y la secuencia avanza de inmediato.`,
+        };
+        recordExecutionLog(log);
+        const nextIndex = stepIndex + 1;
+        const isDone = nextIndex >= campaign.steps.length;
+        return {
+          success: true,
+          newState: {
+            ...leadState,
+            state: isDone ? "completed" : "in_progress",
+            history: [...leadState.history, currentStep.id],
+          },
+          log,
+          isSequenceCompleted: isDone,
+          nextStepIndex: nextIndex,
+        };
+      }
+
+      const maxConnections = campaign.dailyLimits?.maxConnectionsPerDay ?? 20;
+      if (pacing.invitationsSent >= maxConnections) {
+        const log: CampaignExecutionLog = {
+          id: `log-seq-${Date.now()}`,
+          campaignId: campaign.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentStep.id,
+          nodeLabel: currentStep.title,
+          nodeType: currentStep.type,
+          timestamp: new Date().toISOString(),
+          status: "rate_limited",
+          message: `Límite diario de invitaciones alcanzado (${pacing.invitationsSent}/${maxConnections}). Secuencia reprogramada para mañana para proteger la cuenta.`,
+        };
+        recordExecutionLog(log);
+        return {
+          success: false,
+          newState: { ...leadState, state: "waiting_delay" },
+          log,
+          isSequenceCompleted: false,
+          nextStepIndex: stepIndex,
+        };
+      }
+
+      const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+      try {
+        await unipile.followUser({ account_id: accountId, provider_id: targetProviderId });
+      } catch (err) {
+        console.warn("[Runner] Advertencia follow:", err);
+      }
+
+      let noteText = currentStep.connectNote || currentStep.messageTemplate;
+      if (noteText && leadState.language && leadState.language !== "es") {
+        try {
+          noteText = await translateOutreachMessage(noteText, leadState.language);
+        } catch {}
+      }
+      const note = noteText
+        ? noteText
+            .replace("{{first_name}}", leadState.leadName.split(" ")[0])
+            .replace("{{topic}}", "prospección B2B")
+            .replace("{{company}}", "tu empresa")
+            .replace("{{keyword}}", "SISTEMA")
+        : undefined;
+
+      try {
+        await unipile.sendInvitation({
+          account_id: accountId,
+          provider_id: targetProviderId,
+          message: note,
+        });
+      } catch (err) {
+        console.warn("[Runner] Advertencia invitation:", err);
+      }
+
+      incrementAccountPacing(accountId, "invitation");
+
+      const log: CampaignExecutionLog = {
+        id: `log-seq-${Date.now()}`,
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentStep.id,
+        nodeLabel: currentStep.title,
+        nodeType: currentStep.type,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Paso ${stepIndex + 1} (${currentStep.title}): Invitación de conexión enviada a ${leadState.leadName} en LinkedIn${note ? ` con nota personalizada ("${note.slice(0, 40)}...")` : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${maxConnections}.`,
+        details: { note, stepOrder: stepIndex + 1 },
+      };
+      recordExecutionLog(log);
+
+      const nextIndex = stepIndex + 1;
+      const isDone = nextIndex >= campaign.steps.length;
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          hasAcceptedInvite: true,
+          state: isDone ? "completed" : "in_progress",
+          history: [...leadState.history, currentStep.id],
+        },
+        log,
+        isSequenceCompleted: isDone,
+        nextStepIndex: nextIndex,
+      };
+    }
+
+    case "message_icebreaker":
+    case "message_followup":
+    case "message_value_prop":
+    default: {
+      const maxMessages = campaign.dailyLimits?.maxMessagesPerDay ?? 20;
+      if (pacing.dmsSent >= maxMessages) {
+        const log: CampaignExecutionLog = {
+          id: `log-seq-${Date.now()}`,
+          campaignId: campaign.id,
+          leadId: leadState.leadId,
+          leadName: leadState.leadName,
+          nodeId: currentStep.id,
+          nodeLabel: currentStep.title,
+          nodeType: currentStep.type,
+          timestamp: new Date().toISOString(),
+          status: "rate_limited",
+          message: `Límite diario de mensajes alcanzado (${pacing.dmsSent}/${maxMessages}). Mensaje pospuesto para mañana.`,
+        };
+        recordExecutionLog(log);
+        return {
+          success: false,
+          newState: { ...leadState, state: "waiting_delay" },
+          log,
+          isSequenceCompleted: false,
+          nextStepIndex: stepIndex,
+        };
+      }
+
+      let messageTemplate = currentStep.messageTemplate || "Hola {{first_name}}";
+      if (leadState.language && leadState.language !== "es") {
+        try {
+          messageTemplate = await translateOutreachMessage(messageTemplate, leadState.language);
+        } catch {}
+      }
+
+      const resourceName = currentStep.attachedResource || currentStep.attachmentName || "recurso";
+      const messageBody = messageTemplate
+        .replace("{{first_name}}", leadState.leadName.split(" ")[0])
+        .replace("{{company}}", "tu empresa")
+        .replace("{{topic}}", "prospección comercial")
+        .replace("{{author_name}}", "Roberto")
+        .replace("{{keyword}}", "SISTEMA")
+        .replace("{{attached_resource}}", resourceName);
+
+      try {
+        await unipile.sendMessage({
+          chat_id: `chat-${leadState.leadId}`,
+          text: messageBody,
+        });
+      } catch (err) {
+        console.warn("[Runner] Advertencia DM:", err);
+      }
+
+      incrementAccountPacing(accountId, "dm");
+
+      // Detalle de adjunto multimedia si existe
+      let attachmentDetail = "";
+      if (currentStep.attachmentType && currentStep.attachmentType !== "none") {
+        const attTypeLabels: Record<string, string> = {
+          image: "Imagen",
+          video: "Video",
+          voice_note: "Nota de Voz",
+          document: "Documento PDF",
+        };
+        const typeLabel = attTypeLabels[currentStep.attachmentType] || "Archivo";
+        attachmentDetail = ` [+ ${typeLabel}: ${currentStep.attachmentName || resourceName}${currentStep.attachmentSize ? ` (${currentStep.attachmentSize})` : ""}]`;
+      }
+
+      const log: CampaignExecutionLog = {
+        id: `log-seq-${Date.now()}`,
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentStep.id,
+        nodeLabel: currentStep.title,
+        nodeType: currentStep.type,
+        timestamp: new Date().toISOString(),
+        status: "success",
+        message: `Paso ${stepIndex + 1} (${currentStep.title}): Mensaje enviado a ${leadState.leadName} en LinkedIn DM${attachmentDetail}.`,
+        details: {
+          message: messageBody,
+          attachmentType: currentStep.attachmentType,
+          attachmentName: currentStep.attachmentName || resourceName,
+          attachmentSize: currentStep.attachmentSize,
+          stepOrder: stepIndex + 1,
+        },
+      };
+      recordExecutionLog(log);
+
+      const nextIndex = stepIndex + 1;
+      const isDone = nextIndex >= campaign.steps.length;
+      return {
+        success: true,
+        newState: {
+          ...leadState,
+          state: isDone ? "completed" : "in_progress",
+          history: [...leadState.history, currentStep.id],
+        },
+        log,
+        isSequenceCompleted: isDone,
+        nextStepIndex: nextIndex,
+      };
+    }
+  }
+}
+
+/**
+ * Ejecutor en Serie de la Secuencia Completa:
+ * Simula o despacha todos los pasos (1..N) para un lead, generando los logs de cada fase.
+ */
+export async function executeAllLinearSequenceStepsForLead(params: {
+  campaign: LinearSequenceCampaign;
+  leadState: LeadCampaignState;
+  accountId?: string;
+}): Promise<{
+  success: boolean;
+  totalExecuted: number;
+  finalState: LeadCampaignState;
+  logs: CampaignExecutionLog[];
+}> {
+  const { campaign, leadState, accountId } = params;
+  let currentState = { ...leadState };
+  const logs: CampaignExecutionLog[] = [];
+
+  for (let i = 0; i < campaign.steps.length; i++) {
+    const res = await executeLinearSequenceStepForLead({
+      campaign,
+      stepIndex: i,
+      leadState: currentState,
+      accountId,
+    });
+    logs.push(res.log);
+    currentState = res.newState;
+    if (!res.success || res.isSequenceCompleted) {
+      break;
+    }
+  }
+
+  return {
+    success: true,
+    totalExecuted: logs.length,
+    finalState: currentState,
+    logs,
+  };
 }

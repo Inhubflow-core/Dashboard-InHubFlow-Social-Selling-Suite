@@ -59,6 +59,7 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<LinearSequenceCampaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("seq-lead-lists");
   const [leadLists, setLeadLists] = useState<LeadListGroup[]>([]);
+  const [linkedList, setLinkedList] = useState<LeadListGroup | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Modales
@@ -72,6 +73,7 @@ export default function CampaignsPage() {
 
   // Runner y Avisos
   const [isExecutingRunner, setIsExecutingRunner] = useState(false);
+  const [simulatedStepIndex, setSimulatedStepIndex] = useState<number>(0);
   const [runnerLogs, setRunnerLogs] = useState<CampaignExecutionLog[]>([]);
   const [runnerNotice, setRunnerNotice] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -218,6 +220,8 @@ export default function CampaignsPage() {
       const params = new URLSearchParams(window.location.search);
       const listIdParam = params.get("listId");
       if (listIdParam && stored.length > 0) {
+        const found = lists.find((l) => l.id === listIdParam);
+        if (found) setLinkedList(found);
         const isMagnet = listIdParam.includes("n1") || listIdParam.includes("magnet");
         setSelectedCampaignId(isMagnet ? "seq-lead-magnet" : "seq-lead-lists");
       }
@@ -367,10 +371,13 @@ export default function CampaignsPage() {
     setIsExecutingRunner(true);
     setRunnerNotice(null);
     try {
+      const stepToExecute = simulatedStepIndex < activeCampaign.steps.length ? simulatedStepIndex : 0;
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          campaign: activeCampaign,
+          stepIndex: stepToExecute,
           leadName: "Roberto OrSe (Prospecto)",
           linkedinUrl: "https://www.linkedin.com/in/robertoorse-agencia",
           connectionDegree: "2nd",
@@ -379,16 +386,63 @@ export default function CampaignsPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        setRunnerNotice("Simulación completada: Paso de secuencia procesado con éxito.");
+        const currentTitle = activeCampaign.steps[stepToExecute]?.title || "Paso";
+        if (data.result.isSequenceCompleted) {
+          setRunnerNotice(`Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados con éxito.`);
+          setSimulatedStepIndex(0);
+        } else {
+          setRunnerNotice(`Simulación: Paso ${stepToExecute + 1} (${currentTitle}) ejecutado con éxito.`);
+          setSimulatedStepIndex(data.result.nextStepIndex ?? (stepToExecute + 1));
+        }
         setTimeout(() => setRunnerNotice(null), 4000);
-        fetch("/api/campaigns/run")
-          .then((r) => r.json())
-          .then((d) => setRunnerLogs(d.logs || []));
+        setRunnerLogs(data.logs || []);
       }
     } catch (err: any) {
       console.warn("Error en runner:", err);
     } finally {
       setIsExecutingRunner(false);
+    }
+  };
+
+  const handleExecuteAllStepsSim = async () => {
+    setIsExecutingRunner(true);
+    setRunnerNotice(null);
+    try {
+      const res = await fetch("/api/campaigns/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaign: activeCampaign,
+          runAll: true,
+          leadName: "Roberto OrSe (Prospecto)",
+          linkedinUrl: "https://www.linkedin.com/in/robertoorse-agencia",
+          connectionDegree: "2nd",
+          accountId: activeAccount?.unipileAccountId || activeAccount?.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRunnerNotice(`Secuencia completa simulada con éxito: ${activeCampaign.steps.length} pasos procesados.`);
+        setTimeout(() => setRunnerNotice(null), 4000);
+        setRunnerLogs(data.logs || []);
+        setSimulatedStepIndex(0);
+      }
+    } catch (err: any) {
+      console.warn("Error simulando todos los pasos:", err);
+    } finally {
+      setIsExecutingRunner(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    try {
+      await fetch("/api/campaigns/run", { method: "DELETE" });
+      setRunnerLogs([]);
+      setSimulatedStepIndex(0);
+      setFeedbackMessage("Historial de logs limpiado.");
+      setTimeout(() => setFeedbackMessage(null), 3000);
+    } catch (err) {
+      console.warn("Error limpiando logs:", err);
     }
   };
 
@@ -457,24 +511,38 @@ export default function CampaignsPage() {
             <span>Límites de Seguridad ({activeCampaign.dailyLimits.maxConnectionsPerDay}/día)</span>
           </button>
 
-          <button
-            type="button"
-            disabled={isExecutingRunner}
-            onClick={handleExecuteRunnerSim}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold shadow-xs transition disabled:opacity-50"
-          >
-            {isExecutingRunner ? (
-              <>
-                <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                <span>Ejecutando...</span>
-              </>
-            ) : (
-              <>
-                <Play className="size-3.5" />
-                <span>Simular Ejecución</span>
-              </>
-            )}
-          </button>
+          <div className="inline-flex rounded-lg shadow-xs">
+            <button
+              type="button"
+              disabled={isExecutingRunner}
+              onClick={handleExecuteRunnerSim}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-l-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition disabled:opacity-50"
+              title={`Simular paso ${Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)} de ${activeCampaign.steps.length}`}
+            >
+              {isExecutingRunner ? (
+                <>
+                  <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                  <span>Ejecutando...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="size-3.5" />
+                  <span>
+                    Simular Paso {Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)}/{activeCampaign.steps.length}
+                  </span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isExecutingRunner}
+              onClick={handleExecuteAllStepsSim}
+              className="px-2.5 py-2 rounded-r-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold border-l border-brand-400/40 transition disabled:opacity-50"
+              title="Simular toda la secuencia completa en serie"
+            >
+              <Sparkles className="size-3.5" />
+            </button>
+          </div>
 
           <button
             type="button"
@@ -496,7 +564,10 @@ export default function CampaignsPage() {
               <button
                 key={camp.id}
                 type="button"
-                onClick={() => setSelectedCampaignId(camp.id)}
+                onClick={() => {
+                  setSelectedCampaignId(camp.id);
+                  setSimulatedStepIndex(0);
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
                   isSelected
                     ? "bg-brand-500 text-white shadow-2xs"
@@ -546,6 +617,46 @@ export default function CampaignsPage() {
 
       {/* Contenedor Vertical de la Secuencia Lineal */}
       <div className="max-w-3xl mx-auto space-y-0 py-2">
+        {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
+        {linkedList && (
+          <div className="mb-3 rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 flex items-center justify-center shrink-0">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                    Lista Vinculada: {linkedList.name}
+                  </span>
+                  <span className="text-[10px] bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
+                    {linkedList.leadsCount} prospectos
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                  {linkedList.description || "Prospectos captados en Signal Radar"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/leads/lists/${linkedList.id}`}
+                className="px-2.5 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 rounded-lg transition"
+              >
+                Ver Prospectos
+              </Link>
+              <button
+                type="button"
+                onClick={() => setLinkedList(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1"
+                title="Desvincular vista"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Card del Disparador / Activador con Contraste #E9F0F7 */}
         <div className="rounded-2xl border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-[#E9F0F7] dark:bg-brand-950/20 p-4 shadow-2xs">
           <div className="flex items-center gap-3">
@@ -1791,13 +1902,26 @@ export default function CampaignsPage() {
                   Historial de Ejecución en Vivo de Secuencias
                 </h3>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowLogsModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                {runnerLogs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearLogs}
+                    className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition px-2 py-1 rounded"
+                    title="Limpiar todos los registros"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Limpiar
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowLogsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
@@ -1811,8 +1935,8 @@ export default function CampaignsPage() {
                     key={log.id}
                     className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
                   >
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <span className="font-bold text-gray-900 dark:text-white">
                           {log.leadName}
                         </span>
@@ -1828,19 +1952,36 @@ export default function CampaignsPage() {
                         >
                           {log.status.toUpperCase()}
                         </span>
+                        {Boolean(log.details?.attachmentName) && (
+                          <span className="inline-flex items-center gap-1 rounded bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 text-[9px] font-semibold border border-brand-200 dark:border-brand-900">
+                            <Paperclip className="h-2.5 w-2.5" />
+                            {String(log.details?.attachmentName ?? "")}
+                            {log.details?.attachmentSize ? ` (${String(log.details.attachmentSize)})` : ""}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-[11px]">{log.message}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-[11px] leading-relaxed">{log.message}</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="button"
+                disabled={isExecutingRunner}
+                onClick={handleExecuteAllStepsSim}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-950/40 dark:text-brand-300 text-xs font-semibold border border-brand-200 dark:border-brand-800 transition disabled:opacity-50"
+              >
+                <Sparkles className="size-3.5 text-brand-500" />
+                <span>Simular Secuencia Completa</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowLogsModal(false)}
-                className="rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300"
+                className="rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 Cerrar
               </button>

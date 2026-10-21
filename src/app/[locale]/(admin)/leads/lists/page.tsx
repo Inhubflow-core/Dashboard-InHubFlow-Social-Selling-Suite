@@ -51,7 +51,7 @@ export default function SignalListsPage() {
   const [newListDesc, setNewListDesc] = useState("");
   const [newSignalSource, setNewSignalSource] = useState("Post SISTEMA");
   const [newSignalLevel, setNewSignalLevel] = useState<"level_1" | "level_2" | "level_3" | "level_4">("level_1");
-  const [newAssignedCampaign, setNewAssignedCampaign] = useState("Secuencia Lead Magnet Automatizada (Nivel 1)");
+  const [newAssignedCampaign, setNewAssignedCampaign] = useState("01. Secuencia: Listas de Leads");
 
   const handleCreateList = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,12 +146,14 @@ export default function SignalListsPage() {
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   Campaña Asignada
                 </label>
-                <input
-                  type="text"
+                <select
                   value={newAssignedCampaign}
                   onChange={(e) => setNewAssignedCampaign(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
+                >
+                  <option value="01. Secuencia: Listas de Leads">01. Secuencia: Listas de Leads</option>
+                  <option value="02. Secuencia: Lead Magnet">02. Secuencia: Lead Magnet</option>
+                </select>
               </div>
             </div>
 

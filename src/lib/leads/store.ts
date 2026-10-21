@@ -166,9 +166,14 @@ export function getStoredLeadLists(): LeadListGroup[] {
           } else {
             name = name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim();
           }
-          return { ...lg, name };
         }
-        return lg;
+        let assignedCampaign = lg.assignedCampaign;
+        if (lg.signalLevel === "level_1" || /magnet|n1/i.test(lg.id)) {
+          assignedCampaign = "02. Secuencia: Lead Magnet";
+        } else if (!assignedCampaign || assignedCampaign === "Secuencia de Social Selling" || assignedCampaign.includes("Social Selling")) {
+          assignedCampaign = "01. Secuencia: Listas de Leads";
+        }
+        return { ...lg, name, assignedCampaign };
       });
 
     // Sincronizar contadores exactos si existen leads en localStorage
@@ -279,7 +284,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 signalSource: "Competitor Posts (Nivel 2)",
                 signalLevel: "level_2",
                 leadsCount: mon.leadsIdentifiedCount || 0,
-                assignedCampaign: "Secuencia de Social Selling",
+                assignedCampaign: "01. Secuencia: Listas de Leads",
                 createdAt: mon.createdAt || new Date().toISOString(),
                 competitorName: mon.competitorName,
                 keywords: mon.keywordsFilter,
@@ -337,7 +342,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 signalSource: `Grupo de LinkedIn (${mon.groupName})`,
                 signalLevel: "level_3",
                 leadsCount: mon.leadsIdentifiedCount || 0,
-                assignedCampaign: "Secuencia de Social Selling",
+                assignedCampaign: "01. Secuencia: Listas de Leads",
                 createdAt: mon.createdAt || new Date().toISOString(),
                 groupName: mon.groupName,
                 keywords: mon.topicsFilter,
@@ -397,7 +402,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 signalSource: `Interacciones Globales (${mon.searchQuery})`,
                 signalLevel: "level_4",
                 leadsCount: mon.leadsIdentifiedCount || 0,
-                assignedCampaign: "Secuencia de Social Selling",
+                assignedCampaign: "01. Secuencia: Listas de Leads",
                 createdAt: mon.createdAt || new Date().toISOString(),
                 keywords: [mon.searchQuery, locLabel],
                 sourceMonitorId: mon.id,
@@ -441,7 +446,7 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 signalSource: "Mis Posts (Nivel 1)",
                 signalLevel: "level_1",
                 leadsCount: mon.leadsCapturedCount || 0,
-                assignedCampaign: "Secuencia Lead Magnet Automatizada (Nivel 1)",
+                assignedCampaign: "02. Secuencia: Lead Magnet",
                 createdAt: mon.createdAt || new Date().toISOString(),
                 keywords: [mon.keyword],
                 sourceMonitorId: mon.id,
@@ -875,8 +880,8 @@ export function importSignalLeadsToList(
       activeCampaignName:
         targetList.assignedCampaign ||
         (targetList.signalLevel === "level_1"
-          ? "Secuencia Lead Magnet Automatizada (Nivel 1)"
-          : "Secuencia de Social Selling"),
+          ? "02. Secuencia: Lead Magnet"
+          : "01. Secuencia: Listas de Leads"),
       language: detectedLang,
       timeline: [
         {
@@ -1065,7 +1070,7 @@ export function getOrCreateLevel1MonitorList(params: {
     signalSource: "Mis Posts (Nivel 1)",
     signalLevel: "level_1",
     leadsCount: 0,
-    assignedCampaign: "Secuencia Lead Magnet Automatizada (Nivel 1)",
+    assignedCampaign: "02. Secuencia: Lead Magnet",
     createdAt: new Date().toISOString(),
     keywords: [params.keyword],
     sourceMonitorId: params.monitorId,
