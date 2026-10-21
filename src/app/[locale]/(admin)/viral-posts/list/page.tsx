@@ -4,14 +4,132 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost, PostFormat, PostStatus } from "@/lib/viral-posts/types";
-import { useState } from "react";
+import { useSignalRadar } from "@/lib/signals/store";
+import { useLeadsStore } from "@/lib/leads/store";
+import { useAuth } from "@/context/AuthContext";
+import { getActiveAccountForUser } from "@/lib/unipile/store";
+import { Link } from "@/i18n/navigation";
+import { ExternalLink, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+function getLinkedInPostUrl(post: CreatedPost, matchedMonitorUrl?: string): string | null {
+  if (post.postUrl && post.postUrl.startsWith("http")) return post.postUrl;
+  if (matchedMonitorUrl && matchedMonitorUrl.startsWith("http")) return matchedMonitorUrl;
+  const rawId = post.linkedinPostId;
+  if (!rawId) return null;
+  if (rawId.startsWith("http")) return rawId;
+  const cleanId = rawId.replace(/^urn:li:activity:/, "").trim();
+  if (!cleanId) return null;
+  return `https://www.linkedin.com/feed/update/urn:li:activity:${cleanId}`;
+}
 
 export default function PostsListPage() {
   const { posts, isLoaded, updatePost, deletePost } = useCreatedPosts();
+  const { l1Monitors, updateLevel1Monitor } = useSignalRadar();
+  const { lists: allLeadLists, leads: crmLeads } = useLeadsStore();
+  const { currentUser } = useAuth();
+
   const [filterStatus, setFilterStatus] = useState<"all" | PostStatus>("all");
   const [filterFormat, setFilterFormat] = useState<"all" | PostFormat>("all");
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [isSyncingMetrics, setIsSyncingMetrics] = useState(false);
   const [feedback, setFeedback] = useState<{ id: string; type: "success" | "error"; message: string } | null>(null);
+
+  const syncAllPublishedPostsMetrics = useCallback(
+    async (forcedPosts?: CreatedPost[]) => {
+      setIsSyncingMetrics(true);
+      const targetPosts = forcedPosts || posts;
+      const published = targetPosts.filter(
+        (p) =>
+          p.status === "published" &&
+          (p.linkedinPostId || l1Monitors.some((m) => m.postTitle.toLowerCase() === p.title.toLowerCase()))
+      );
+
+      const activeAcc = getActiveAccountForUser(currentUser);
+      const rawAccId = (activeAcc as any)?.unipileAccountId || activeAcc?.id || "";
+
+      await Promise.allSettled(
+        published.map(async (p) => {
+          try {
+            const matchedMon = l1Monitors.find((m) => {
+              const cleanPostId = (p.linkedinPostId || "").replace(/^urn:li:activity:/, "").trim();
+              if (cleanPostId && m.postUrl?.includes(cleanPostId)) return true;
+              if (m.postTitle && p.title && m.postTitle.trim().toLowerCase() === p.title.trim().toLowerCase()) return true;
+              return false;
+            });
+
+            const cleanId = (p.linkedinPostId || "").replace(/^urn:li:activity:/, "").trim();
+            const targetUrl =
+              matchedMon?.postUrl ||
+              (cleanId ? `https://www.linkedin.com/feed/update/urn:li:activity:${cleanId}` : "");
+            if (!targetUrl) return;
+
+            const res = await fetch(
+              `/api/unipile/signals?postId=${encodeURIComponent(targetUrl)}&accountId=${encodeURIComponent(rawAccId)}`
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+
+            if (data.ok) {
+              const commentsCount = Math.max(
+                data.comments?.length || 0,
+                data.post?.comment_counter || 0,
+                matchedMon?.scannedCommentsCount || 0
+              );
+              const likesCount = data.post?.reaction_counter ?? (p.metrics?.likes || 0);
+              const impressionsCount = data.post?.impressions_counter ?? (p.metrics?.impressions || 0);
+              const postShareUrl = data.post?.share_url || p.postUrl || targetUrl;
+
+              // Leads captados desde la lista de CRM y del monitor
+              const targetList = matchedMon
+                ? allLeadLists.find(
+                    (l) => l.sourceMonitorId === matchedMon.id || l.id === `list-sig-n1-${matchedMon.id}`
+                  )
+                : null;
+              const leadsInCrm = targetList
+                ? crmLeads.filter((l) => l.listId === targetList.id || (l as any).monitorId === matchedMon?.id).length
+                : 0;
+              const leadsCount = Math.max(
+                matchedMon?.leadsCapturedCount || 0,
+                leadsInCrm,
+                p.metrics?.leadsCaptured || 0
+              );
+
+              updatePost(p.id, {
+                postUrl: postShareUrl,
+                metrics: {
+                  likes: likesCount,
+                  comments: commentsCount,
+                  impressions: impressionsCount,
+                  leadsCaptured: leadsCount,
+                },
+              });
+
+              if (matchedMon) {
+                updateLevel1Monitor(matchedMon.id, {
+                  scannedCommentsCount: Math.max(matchedMon.scannedCommentsCount, commentsCount),
+                  leadsCapturedCount: Math.max(matchedMon.leadsCapturedCount, leadsCount),
+                  postUrl: matchedMon.postUrl || postShareUrl,
+                });
+              }
+            }
+          } catch (err) {
+            console.warn("[syncMetrics] Error sincronizando métricas de post:", p.title, err);
+          }
+        })
+      );
+
+      setIsSyncingMetrics(false);
+    },
+    [posts, l1Monitors, allLeadLists, crmLeads, currentUser, updatePost, updateLevel1Monitor]
+  );
+
+  const hasAutoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || posts.length === 0 || hasAutoSyncedRef.current) return;
+    hasAutoSyncedRef.current = true;
+    syncAllPublishedPostsMetrics();
+  }, [isLoaded, posts.length, syncAllPublishedPostsMetrics]);
 
   const filteredPosts = posts.filter((p) => {
     const matchesStatus = filterStatus === "all" || p.status === filterStatus;
@@ -105,12 +223,24 @@ export default function PostsListPage() {
             Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
           </p>
         </div>
-        <a
-          href="/viral-posts/create"
-          className="rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
-        >
-          + Crear Nueva Publicación
-        </a>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            disabled={isSyncingMetrics}
+            onClick={() => syncAllPublishedPostsMetrics()}
+            className="rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+            title="Sincronizar métricas reales de publicaciones emitidas con LinkedIn"
+          >
+            <RefreshCw className={`size-3.5 ${isSyncingMetrics ? "animate-spin text-brand-500" : ""}`} />
+            <span>{isSyncingMetrics ? "Sincronizando..." : "Sincronizar Métricas"}</span>
+          </button>
+          <a
+            href="/viral-posts/create"
+            className="rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
+          >
+            + Crear Nueva Publicación
+          </a>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -196,6 +326,35 @@ export default function PostsListPage() {
               const isCurrentlyPublishing = publishingId === post.id;
               const postFeedback = feedback?.id === post.id ? feedback : null;
 
+              const matchedMonitor = l1Monitors.find((m) => {
+                const cleanPostId = (post.linkedinPostId || "").replace(/^urn:li:activity:/, "").trim();
+                if (cleanPostId && m.postUrl?.includes(cleanPostId)) return true;
+                if (m.postTitle && post.title && m.postTitle.trim().toLowerCase() === post.title.trim().toLowerCase()) return true;
+                return false;
+              });
+
+              const targetList = matchedMonitor
+                ? allLeadLists.find((l) => l.sourceMonitorId === matchedMonitor.id || l.id === `list-sig-n1-${matchedMonitor.id}`)
+                : null;
+
+              const leadsInCrm = targetList
+                ? crmLeads.filter((l) => l.listId === targetList.id || (l as any).monitorId === matchedMonitor?.id).length
+                : 0;
+
+              const effectiveLikes = post.metrics?.likes ?? 0;
+              const effectiveComments = Math.max(
+                post.metrics?.comments || 0,
+                matchedMonitor?.scannedCommentsCount || 0
+              );
+              const effectiveImpressions = post.metrics?.impressions ?? 0;
+              const effectiveLeadsCaptured = Math.max(
+                post.metrics?.leadsCaptured || 0,
+                matchedMonitor?.leadsCapturedCount || 0,
+                leadsInCrm
+              );
+
+              const linkedInUrl = getLinkedInPostUrl(post, matchedMonitor?.postUrl);
+
               return (
                 <div
                   key={post.id}
@@ -244,30 +403,63 @@ export default function PostsListPage() {
                         </div>
                       )}
 
-                      {post.status === "published" && post.metrics && (
-                        <div className="flex items-center gap-5 pt-2 text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800">
+                      {post.status === "published" && (
+                        <div className="flex flex-wrap items-center gap-5 pt-2 text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800">
                           <span>
-                            <strong className="text-gray-900 dark:text-white">{post.metrics.likes}</strong> Likes
-                          </span>
-                          <span>
-                            <strong className="text-gray-900 dark:text-white">{post.metrics.comments}</strong> Comentarios
+                            <strong className="text-gray-900 dark:text-white">{effectiveLikes}</strong> Likes
                           </span>
                           <span>
-                            <strong className="text-gray-900 dark:text-white">{post.metrics.impressions}</strong> Impresiones
+                            <strong className="text-gray-900 dark:text-white">{effectiveComments}</strong> {effectiveComments === 1 ? "Comentario" : "Comentarios"}
                           </span>
-                          <span className="text-brand-600 font-semibold dark:text-brand-400">
-                            {post.metrics.leadsCaptured} Leads Captados
+                          <span>
+                            <strong className="text-gray-900 dark:text-white">{effectiveImpressions}</strong> Impresiones
                           </span>
-                          {post.linkedinPostId && (
-                            <span className="text-[10px] text-gray-400 font-mono">
-                              ID: {post.linkedinPostId}
+                          {effectiveLeadsCaptured > 0 ? (
+                            <Link
+                              href={targetList ? `/leads?list=${targetList.id}` : "/leads"}
+                              className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 underline"
+                            >
+                              <span><strong className="text-brand-700 dark:text-brand-300">{effectiveLeadsCaptured}</strong> {effectiveLeadsCaptured === 1 ? "Lead Captado" : "Leads Captados"}</span>
+                            </Link>
+                          ) : (
+                            <span className="text-brand-600 font-semibold dark:text-brand-400">
+                              <strong>{effectiveLeadsCaptured}</strong> Leads Captados
                             </span>
+                          )}
+                          {post.linkedinPostId && (
+                            linkedInUrl ? (
+                              <a
+                                href={linkedInUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-gray-500 hover:text-brand-600 font-mono transition"
+                                title="Ver publicación original en LinkedIn"
+                              >
+                                <span>ID: {post.linkedinPostId.replace(/^urn:li:activity:/, "")}</span>
+                                <ExternalLink className="size-3" />
+                              </a>
+                            ) : (
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                ID: {post.linkedinPostId}
+                              </span>
+                            )
                           )}
                         </div>
                       )}
                     </div>
 
                     <div className="flex lg:flex-col items-center gap-2 shrink-0">
+                      {post.status === "published" && linkedInUrl && (
+                        <a
+                          href={linkedInUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full rounded-xl bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5"
+                        >
+                          <span>Ver en LinkedIn</span>
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      )}
                       {post.status !== "published" && (
                         <button
                           type="button"

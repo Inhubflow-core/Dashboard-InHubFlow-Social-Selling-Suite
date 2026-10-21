@@ -60,6 +60,7 @@ export interface CreatedPost {
   createdAt: string;
   publishedAt?: string;
   linkedinPostId?: string;
+  postUrl?: string;
   targetAccountId?: string;
   metrics?: {
     likes: number;

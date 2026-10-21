@@ -72,9 +72,20 @@ export function getStoredCreatedPosts(): CreatedPost[] {
     let hadModifications = clean.length !== parsed.length;
 
     for (const initPost of initialCreatedPosts) {
-      if (!merged.some((p) => p.id === initPost.id)) {
+      const existingIdx = merged.findIndex(
+        (p) =>
+          p.id === initPost.id ||
+          (p.linkedinPostId && initPost.linkedinPostId && p.linkedinPostId === initPost.linkedinPostId) ||
+          (p.title && initPost.title && p.title.trim().toLowerCase() === initPost.title.trim().toLowerCase())
+      );
+      if (existingIdx === -1) {
         merged.push(initPost);
         hadModifications = true;
+      } else {
+        if (!merged[existingIdx].postUrl && initPost.postUrl) {
+          merged[existingIdx].postUrl = initPost.postUrl;
+          hadModifications = true;
+        }
       }
     }
 
