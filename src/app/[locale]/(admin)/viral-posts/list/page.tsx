@@ -10,7 +10,7 @@ import { useLeadsStore } from "@/lib/leads/store";
 import { useAuth } from "@/context/AuthContext";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
 import { Link } from "@/i18n/navigation";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ExternalLink, Pencil, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function parseCommentAuthor(c: any) {
@@ -88,6 +88,34 @@ export default function PostsListPage() {
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [isSyncingMetrics, setIsSyncingMetrics] = useState(false);
   const [feedback, setFeedback] = useState<{ id: string; type: "success" | "error"; message: string } | null>(null);
+
+  // Estados para modal de edición
+  const [editingPost, setEditingPost] = useState<CreatedPost | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editKeyword, setEditKeyword] = useState("");
+  const [editContent, setEditContent] = useState("");
+
+  const handleOpenEdit = (post: CreatedPost) => {
+    setEditingPost(post);
+    setEditTitle(post.title || "");
+    setEditKeyword(post.leadMagnetKeyword || "");
+    setEditContent(post.content || "");
+  };
+
+  const handleSaveEditPost = () => {
+    if (!editingPost) return;
+    updatePost(editingPost.id, {
+      title: editTitle.trim(),
+      leadMagnetKeyword: editKeyword.trim().toUpperCase(),
+      content: editContent.trim(),
+    });
+    setEditingPost(null);
+    setFeedback({
+      id: editingPost.id,
+      type: "success",
+      message: "Publicación actualizada correctamente.",
+    });
+  };
 
   const syncAllPublishedPostsMetrics = useCallback(
     async (forcedPosts?: CreatedPost[]) => {
@@ -462,10 +490,10 @@ export default function PostsListPage() {
               return (
                 <div
                   key={post.id}
-                  className="rounded-2xl border border-gray-200 bg-white p-5 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
+                  className="rounded-xl border border-gray-200 bg-white p-4 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="space-y-1.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${formatBadge.color}`}>
                           {formatBadge.label}
@@ -487,17 +515,13 @@ export default function PostsListPage() {
                         </span>
                       </div>
 
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm" title={post.title}>
                         {post.title}
                       </h4>
 
-                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3 font-mono leading-relaxed whitespace-pre-wrap">
-                        {post.content}
-                      </p>
-
                       {postFeedback && (
                         <div
-                          className={`mt-2 p-2 rounded-lg text-xs font-medium border ${
+                          className={`p-1.5 rounded-lg text-xs font-medium border ${
                             postFeedback.type === "success"
                               ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
                               : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300"
@@ -508,7 +532,7 @@ export default function PostsListPage() {
                       )}
 
                       {post.status === "published" && (
-                        <div className="flex flex-wrap items-center gap-5 pt-2 text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-gray-500">
                           <span>
                             <strong className="text-gray-900 dark:text-white">{effectiveLikes}</strong> Likes
                           </span>
@@ -552,47 +576,66 @@ export default function PostsListPage() {
                       )}
                     </div>
 
-                    <div className="flex lg:flex-col items-center gap-2 shrink-0">
-                      {post.status === "published" && linkedInUrl && (
+                    {/* Botonera estilo Monitores: Azul (Publicar/LinkedIn), Blanco (Calendario), Cuadrado Editar, Cuadrado Eliminar */}
+                    <div className="flex items-center gap-2 shrink-0 self-start lg:self-center">
+                      {post.status === "published" && linkedInUrl ? (
                         <a
                           href={linkedInUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full rounded-xl bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5"
+                          className="rounded-md bg-brand-500 px-3 py-1.5 text-white hover:bg-brand-600 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-2xs shrink-0"
+                          title="Ver en LinkedIn"
                         >
                           <span>Ver en LinkedIn</span>
                           <ExternalLink className="size-3.5" />
                         </a>
-                      )}
-                      {post.status !== "published" && (
+                      ) : post.status !== "published" ? (
                         <button
                           type="button"
                           disabled={isCurrentlyPublishing}
                           onClick={() => handlePublishNow(post)}
-                          className="w-full rounded-xl bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                          className="rounded-md bg-brand-500 px-3 py-1.5 text-white hover:bg-brand-600 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-2xs shrink-0 disabled:opacity-50"
+                          title="Publicar ahora en LinkedIn"
                         >
                           {isCurrentlyPublishing ? (
                             <>
                               <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                              Publicando...
+                              <span>Publicando...</span>
                             </>
                           ) : (
-                            "Publicar Inmediato"
+                            <span>Publicar ahora</span>
                           )}
                         </button>
-                      )}
+                      ) : null}
+
                       <a
                         href="/viral-posts/calendar"
-                        className="w-full text-center rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
+                        title="Ver en Calendario"
                       >
-                        Ver en Calendario
+                        <span>Ver en Calendario</span>
                       </a>
+
                       <button
                         type="button"
-                        onClick={() => deletePost(post.id)}
-                        className="w-full rounded-xl border border-red-200 px-3.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400"
+                        onClick={() => handleOpenEdit(post)}
+                        className="h-[30px] w-[30px] rounded-md border border-gray-200 bg-white text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition shrink-0"
+                        title="Editar publicación"
                       >
-                        Eliminar
+                        <Pencil className="size-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`¿Eliminar publicación "${post.title}"?`)) {
+                            deletePost(post.id);
+                          }
+                        }}
+                        className="h-[30px] w-[30px] rounded-md border border-red-200 bg-red-50/50 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                        title="Eliminar publicación"
+                      >
+                        <X className="size-3.5" />
                       </button>
                     </div>
                   </div>
@@ -602,6 +645,82 @@ export default function PostsListPage() {
           </div>
         )}
       </ComponentCard>
+
+      {/* Modal para Editar Publicación */}
+      {editingPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                Editar Publicación
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingPost(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Palabra Clave Lead Magnet
+                </label>
+                <input
+                  type="text"
+                  value={editKeyword}
+                  onChange={(e) => setEditKeyword(e.target.value.toUpperCase())}
+                  placeholder="Ej: SISTEMA"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-mono font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Contenido
+                </label>
+                <textarea
+                  rows={5}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-mono leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setEditingPost(null)}
+                className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditPost}
+                className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
