@@ -135,7 +135,63 @@ export async function GET(req: NextRequest) {
       unipile.getPost(postId, cleanAccountId),
     ]);
 
-    const comments = commentsResult.status === 'fulfilled' ? commentsResult.value.items || [] : [];
+    const rawComments = commentsResult.status === 'fulfilled' ? commentsResult.value.items || [] : [];
+    const normalizedComments = rawComments.map((c: any) => {
+      const authorStr = typeof c.author === 'string' ? c.author : (c.author?.name || '');
+      const details = c.author_details || {};
+      const authorObj = typeof c.author === 'object' && c.author !== null ? c.author : {};
+
+      const name =
+        authorStr ||
+        details.name ||
+        authorObj.name ||
+        [details.first_name || authorObj.first_name, details.last_name || authorObj.last_name].filter(Boolean).join(' ') ||
+        'Decisor en LinkedIn';
+
+      const headline =
+        details.headline ||
+        authorObj.headline ||
+        details.title ||
+        authorObj.title ||
+        'Profesional B2B en LinkedIn';
+
+      const profileUrl =
+        details.profile_url ||
+        authorObj.profile_url ||
+        details.linkedin_url ||
+        authorObj.linkedin_url ||
+        (details.public_identifier
+          ? `https://www.linkedin.com/in/${details.public_identifier}`
+          : authorObj.public_identifier
+          ? `https://www.linkedin.com/in/${authorObj.public_identifier}`
+          : '');
+
+      const avatarUrl =
+        details.profile_picture_url ||
+        authorObj.profile_picture_url ||
+        details.picture_url ||
+        authorObj.picture_url ||
+        undefined;
+
+      return {
+        ...c,
+        author: {
+          id: details.id || authorObj.id || (typeof c.author === 'string' ? c.author : '') || `author-${Math.random()}`,
+          name,
+          headline,
+          profile_url: profileUrl,
+          picture_url: avatarUrl,
+          profile_picture_url: avatarUrl,
+          public_identifier:
+            details.public_identifier ||
+            authorObj.public_identifier ||
+            (profileUrl ? profileUrl.split('/in/')[1]?.replace(/\/$/, '') : undefined),
+          ...authorObj,
+          ...details,
+        },
+      };
+    });
+
     const reactions = reactionsResult.status === 'fulfilled' ? reactionsResult.value.items || [] : [];
     const postDetails = postResult.status === 'fulfilled' ? postResult.value : null;
 
@@ -143,7 +199,7 @@ export async function GET(req: NextRequest) {
       ok: true,
       postId,
       post: postDetails,
-      comments,
+      comments: normalizedComments,
       reactions,
       mode: unipile.isSandboxMode() ? 'sandbox' : 'live',
     });

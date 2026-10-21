@@ -60,6 +60,16 @@ export function getStoredLeads(): Lead360Item[] {
           return false;
         }
 
+        // Purgar leads con datos genéricos residuales por el bug previo
+        if (
+          l.fullName === "Prospecto de LinkedIn" ||
+          l.linkedinUrl === "https://www.linkedin.com" ||
+          l.linkedinUrl === "https://www.linkedin.com/"
+        ) {
+          hadFixes = true;
+          return false;
+        }
+
         return true;
       })
       .map((l: Lead360Item) => {
@@ -396,10 +406,24 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
 
             let targetList = currentLists.find(
               (lg) =>
-                (sLead.monitorId && lg.sourceMonitorId === sLead.monitorId) ||
+                (sLead.monitorId && (lg.sourceMonitorId === sLead.monitorId || lg.id === `list-sig-n1-${sLead.monitorId}`)) ||
                 (targetComp && lg.competitorName && lg.competitorName.trim().toLowerCase() === targetComp) ||
                 (targetComp && lg.name.toLowerCase().startsWith(`[signal n2] ${targetComp}`))
             );
+
+            // Si es un lead de N1 y targetList no existe aún:
+            if (!targetList && (sLead.signalLevel === "level_1" || sLead.monitorId?.includes("l1"))) {
+              const l1MonitorsRaw = typeof localStorage !== "undefined" ? localStorage.getItem("inhubflow_signals_l1") : null;
+              const l1Mons = l1MonitorsRaw ? JSON.parse(l1MonitorsRaw) : [];
+              const matchedMon = Array.isArray(l1Mons) ? l1Mons.find((m: any) => m.id === sLead.monitorId) : null;
+              targetList = getOrCreateLevel1MonitorList({
+                monitorId: sLead.monitorId || `mon-l1-${Date.now()}`,
+                postTitle: matchedMon?.postTitle || sLead.sourcePostTitle || "Publicación Lead Magnet",
+                keyword: matchedMon?.keyword || "SISTEMA",
+              });
+              currentLists = getStoredLeadLists();
+              modified = true;
+            }
 
             if (!targetList && compName) {
               targetList = getOrCreateMonitorList({
@@ -655,6 +679,19 @@ export function useLeadsStore() {
     return list;
   }, []);
 
+  const getOrCreateLevel1List = useCallback((params: {
+    monitorId: string;
+    postTitle: string;
+    keyword: string;
+  }) => {
+    const prevLists = getStoredLeadLists();
+    const list = getOrCreateLevel1MonitorList(params);
+    if (!prevLists.some((l) => l.id === list.id)) {
+      setLists(getStoredLeadLists());
+    }
+    return list;
+  }, []);
+
   return {
     leads,
     lists,
@@ -668,6 +705,7 @@ export function useLeadsStore() {
     batchUpdateLeadPhotos,
     getOrCreateList,
     getOrCreateGlobalList,
+    getOrCreateLevel1List,
   };
 }
 
@@ -713,12 +751,22 @@ export function importSignalLeadsToList(
       firstName,
       lastName,
       title: sLead.headline || "Profesional en LinkedIn",
-      company: sLead.company || (targetList.competitorName ? `Interactuó con ${targetList.competitorName}` : "No especificado"),
+      company:
+        sLead.company ||
+        (targetList.competitorName
+          ? `Interactuó con ${targetList.competitorName}`
+          : targetList.signalLevel === "level_1"
+          ? "Empresa en LinkedIn"
+          : "No especificado"),
       location: sLead.location || "Remoto / No especificado",
       linkedinUrl: sLead.linkedinUrl || "",
       avatarUrl: cleanAvatar,
-      signalSource: targetList.signalSource || `Signal: ${targetList.competitorName || "Competidor"}`,
-      signalLevel: targetList.signalLevel || "level_2",
+      signalSource:
+        targetList.signalSource ||
+        (targetList.signalLevel === "level_1"
+          ? "Mis Posts (Nivel 1)"
+          : `Signal: ${targetList.competitorName || "Competidor"}`),
+      signalLevel: targetList.signalLevel || sLead.signalLevel || "level_2",
       intentScore: calculateSignalScore({
         intentScore: sLead.intentScore,
         signalType: sLead.signalType,
@@ -731,7 +779,11 @@ export function importSignalLeadsToList(
       sequenceStatus: "in_progress",
       listId: targetList.id,
       listName: targetList.name,
-      activeCampaignName: targetList.assignedCampaign || "Secuencia de Social Selling",
+      activeCampaignName:
+        targetList.assignedCampaign ||
+        (targetList.signalLevel === "level_1"
+          ? "Secuencia Lead Magnet Automatizada (Nivel 1)"
+          : "Secuencia de Social Selling"),
       language: detectedLang,
       timeline: [
         {
@@ -745,6 +797,7 @@ export function importSignalLeadsToList(
       createdAt: new Date().toISOString(),
       lastActivityAt: "Reciente",
     };
+    (lead360 as any).monitorId = sLead.monitorId;
     convertedLeads.push(lead360);
   }
 
@@ -848,6 +901,40 @@ export function getOrCreateGlobalMonitorList(params: {
     assignedCampaign: "Secuencia de Social Selling",
     createdAt: new Date().toISOString(),
     keywords: [params.searchQuery, locLabel],
+    sourceMonitorId: params.monitorId,
+  };
+
+  const updatedLists = [newList, ...currentLists];
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+  }
+  return newList;
+}
+
+export function getOrCreateLevel1MonitorList(params: {
+  monitorId: string;
+  postTitle: string;
+  keyword: string;
+}): LeadListGroup {
+  const currentLists = getStoredLeadLists();
+  const existing = currentLists.find(
+    (l) =>
+      l.sourceMonitorId === params.monitorId ||
+      l.id === `list-sig-n1-${params.monitorId}` ||
+      (params.keyword && l.keywords?.includes(params.keyword))
+  );
+  if (existing) return existing;
+
+  const newList: LeadListGroup = {
+    id: `list-sig-n1-${params.monitorId}`,
+    name: params.postTitle,
+    description: `Lista inteligente de prospectos que comentaron "${params.keyword}" en tu publicación.`,
+    signalSource: "Mis Posts (Nivel 1)",
+    signalLevel: "level_1",
+    leadsCount: 0,
+    assignedCampaign: "Secuencia Lead Magnet Automatizada (Nivel 1)",
+    createdAt: new Date().toISOString(),
+    keywords: [params.keyword],
     sourceMonitorId: params.monitorId,
   };
 

@@ -262,6 +262,17 @@ export function getStoredSignalLeads(): SignalLeadItem[] {
         hadModifications = true;
         return false;
       }
+
+      // Purgar leads residuales defectuosos ("Prospecto de LinkedIn" o URL genérica sin identificador)
+      if (
+        l.fullName === "Prospecto de LinkedIn" ||
+        l.linkedinUrl === "https://www.linkedin.com" ||
+        l.linkedinUrl === "https://www.linkedin.com/"
+      ) {
+        hadModifications = true;
+        return false;
+      }
+
       return true;
     });
 

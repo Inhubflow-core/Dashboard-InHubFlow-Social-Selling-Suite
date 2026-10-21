@@ -14,9 +14,116 @@ import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLeadsStore } from "@/lib/leads/store";
 import { Pencil, X } from "lucide-react";
+
+function parseCommentAuthor(c: any) {
+  const rawAuthor = c.author;
+  const authorDetails = c.author_details || {};
+  const authorObj = typeof rawAuthor === "object" && rawAuthor !== null ? rawAuthor : {};
+  const rawAuthorStr = typeof rawAuthor === "string" ? rawAuthor.trim() : "";
+
+  // 1. Nombre completo
+  const fullName =
+    rawAuthorStr ||
+    authorDetails.name ||
+    authorObj.name ||
+    [authorDetails.first_name || authorObj.first_name, authorDetails.last_name || authorObj.last_name]
+      .filter(Boolean)
+      .join(" ") ||
+    authorDetails.display_name ||
+    authorObj.display_name ||
+    authorDetails.fullName ||
+    authorObj.fullName ||
+    "Decisor en LinkedIn";
+
+  // 2. Titular / Cargo
+  const headline =
+    authorDetails.headline ||
+    authorObj.headline ||
+    authorDetails.title ||
+    authorObj.title ||
+    authorDetails.occupation ||
+    authorObj.occupation ||
+    "Profesional B2B en LinkedIn";
+
+  // 3. URL de LinkedIn (nunca dejar genérico si existe identificador)
+  let linkedinUrl =
+    authorDetails.profile_url ||
+    authorObj.profile_url ||
+    authorDetails.linkedin_url ||
+    authorObj.linkedin_url ||
+    authorDetails.url ||
+    authorObj.url ||
+    "";
+
+  if (!linkedinUrl) {
+    const pubId =
+      authorDetails.public_identifier ||
+      authorObj.public_identifier ||
+      authorDetails.vanity_name ||
+      authorObj.vanity_name;
+    if (pubId && typeof pubId === "string" && pubId.trim()) {
+      linkedinUrl = pubId.startsWith("http") ? pubId : `https://www.linkedin.com/in/${pubId.trim()}`;
+    }
+  }
+
+  if (!linkedinUrl) {
+    const rawId = authorDetails.id || authorObj.id || c.author_id;
+    if (rawId && typeof rawId === "string") {
+      const cleanId = rawId.replace(/^urn:li:(member|person):/, "").trim();
+      if (cleanId && !cleanId.includes("http")) {
+        linkedinUrl = `https://www.linkedin.com/in/${cleanId}`;
+      } else if (cleanId.startsWith("http")) {
+        linkedinUrl = cleanId;
+      }
+    }
+  }
+
+  // 4. Foto de perfil
+  const rawPic =
+    authorDetails.profile_picture_url ||
+    authorObj.profile_picture_url ||
+    authorDetails.picture_url ||
+    authorObj.picture_url ||
+    authorDetails.avatar_url ||
+    authorObj.avatar_url;
+
+  const avatarUrl =
+    rawPic && typeof rawPic === "string" && !rawPic.includes("unsplash.com")
+      ? rawPic
+      : undefined;
+
+  // 5. Empresa
+  let company = authorDetails.company || authorObj.company || "";
+  if (!company && headline) {
+    const match = headline.match(/(?:en|at|@)\s+([^|•,\n]+)/i);
+    if (match && match[1]) {
+      company = match[1].trim();
+    } else {
+      company = "Empresa en LinkedIn";
+    }
+  }
+
+  // 6. Grado de conexión
+  const connectionDegree =
+    authorDetails.network_distance === "DISTANCE_1" || authorObj.network_distance === "DISTANCE_1"
+      ? "1st"
+      : authorDetails.network_distance === "DISTANCE_3" || authorObj.network_distance === "DISTANCE_3"
+      ? "3rd"
+      : "2nd";
+
+  return {
+    fullName,
+    headline,
+    linkedinUrl,
+    avatarUrl,
+    company: company || "Empresa en LinkedIn",
+    connectionDegree,
+  };
+}
 
 export default function MyPostsSignalRadarPage() {
   const { currentUser } = useAuth();
@@ -31,9 +138,30 @@ export default function MyPostsSignalRadarPage() {
     recordDiscoveredLeads,
   } = useSignalRadar();
 
+  const {
+    lists: allLeadLists,
+    leads: crmLeads,
+    importSignalLeads,
+    getOrCreateLevel1List,
+  } = useLeadsStore();
+
   const [editingMonitor, setEditingMonitor] = useState<Level1Monitor | null>(null);
   const [expandedMonitorsPosts, setExpandedMonitorsPosts] = useState<Record<string, boolean>>({});
   const [selectedBatchSize, setSelectedBatchSize] = useState<Record<string, 25 | 50 | 100>>({});
+
+  // Auto-sincronización única al montar monitores hacia sus listas inteligentes y CRM
+  const hasAutoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || l1Monitors.length === 0 || hasAutoSyncedRef.current) return;
+    hasAutoSyncedRef.current = true;
+    for (const mon of l1Monitors) {
+      getOrCreateLevel1List({
+        monitorId: mon.id,
+        postTitle: mon.postTitle,
+        keyword: mon.keyword,
+      });
+    }
+  }, [isLoaded, l1Monitors, getOrCreateLevel1List]);
 
   // Cuentas de LinkedIn reactivas según el usuario autenticado
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
@@ -75,7 +203,35 @@ export default function MyPostsSignalRadarPage() {
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false);
   const [selectedMonitorForLeads, setSelectedMonitorForLeads] = useState<Level1Monitor | null>(null);
   const [isScanningId, setIsScanningId] = useState<string | null>(null);
-  const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [scanFeedback, setScanFeedback] = useState<{ type: "success" | "error"; text: string; listId?: string } | null>(null);
+
+  const getEffectiveLevel1LeadCount = useCallback(
+    (mon: Level1Monitor) => {
+      const targetList = allLeadLists.find(
+        (l) => l.sourceMonitorId === mon.id || l.id === `list-sig-n1-${mon.id}`
+      );
+      const monLeads = leads.filter((l) => l.monitorId === mon.id);
+      const listMatchingLeads = targetList
+        ? crmLeads.filter(
+            (l) =>
+              l.listId === targetList.id ||
+              (l as any).monitorId === mon.id
+          )
+        : [];
+      const effectiveCount = Math.max(
+        targetList?.leadsCount || 0,
+        listMatchingLeads.length,
+        mon.leadsCapturedCount || 0,
+        monLeads.length
+      );
+      return {
+        count: effectiveCount,
+        targetList,
+        targetListId: targetList?.id || `list-sig-n1-${mon.id}`,
+      };
+    },
+    [allLeadLists, crmLeads, leads]
+  );
 
   // Form states
   const [newPostTitle, setNewPostTitle] = useState("");
@@ -200,21 +356,18 @@ export default function MyPostsSignalRadarPage() {
       });
 
       const newLeadsToAdd: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => {
-        const authorIdentifier = c.author?.public_identifier || (c.author?.id ? String(c.author.id).replace(/^urn:li:member:/, "") : "");
-        const profileUrl = authorIdentifier
-          ? (authorIdentifier.startsWith("http") ? authorIdentifier : `https://www.linkedin.com/in/${authorIdentifier}`)
-          : "https://www.linkedin.com";
+        const parsed = parseCommentAuthor(c);
 
         return {
           id: `sig-lead-${Date.now()}-${idx}`,
           monitorId: mon.id,
-          fullName: c.author?.name || "Prospecto de LinkedIn",
-          headline: c.author?.headline || "Profesional B2B en LinkedIn",
-          company: "Empresa detectada",
+          fullName: parsed.fullName,
+          headline: parsed.headline,
+          company: parsed.company,
           location: "España / Latam",
-          linkedinUrl: profileUrl,
-          avatarUrl: c.author?.profile_picture_url || c.author?.avatar_url,
-          connectionDegree: "2nd",
+          linkedinUrl: parsed.linkedinUrl,
+          avatarUrl: parsed.avatarUrl,
+          connectionDegree: parsed.connectionDegree,
           intentLevel: "very_high",
           intentScore: 100,
           signalType: "keyword",
@@ -223,12 +376,23 @@ export default function MyPostsSignalRadarPage() {
           detectedAt: new Date().toISOString(),
           status: "dm_sent",
           attachedResource: mon.attachedPdfName,
+          sourcePostId: mon.postUrl,
+          sourcePostUrl: mon.postUrl,
+          sourcePostTitle: mon.postTitle,
         };
       });
 
+      const targetList = getOrCreateLevel1List({
+        monitorId: mon.id,
+        postTitle: mon.postTitle,
+        keyword: mon.keyword,
+      });
+
       const added = recordDiscoveredLeads(newLeadsToAdd);
+      importSignalLeads(targetList, newLeadsToAdd);
+
       const newTotalScanned = Math.max(mon.scannedCommentsCount, rawComments.length);
-      const newCapturedCount = mon.leadsCapturedCount + added.length;
+      const newCapturedCount = Math.max(mon.leadsCapturedCount, added.length, newLeadsToAdd.length);
 
       updateLevel1Monitor(mon.id, {
         scannedCommentsCount: newTotalScanned,
@@ -241,16 +405,19 @@ export default function MyPostsSignalRadarPage() {
         setScanFeedback({
           type: "success",
           text: `Auditoría en LinkedIn completada. El post aún no refleja comentarios indexados en la API de LinkedIn. (Nota: LinkedIn demora de 2 a 5 minutos en sincronizar comentarios nuevos hacia la API).`,
+          listId: targetList.id,
         });
       } else if (matchingComments.length === 0) {
         setScanFeedback({
           type: "success",
           text: `Auditoría completada: Se analizaron ${rawComments.length} comentarios en LinkedIn, pero ninguno contiene aún la palabra clave exacta "${mon.keyword}".`,
+          listId: targetList.id,
         });
       } else {
         setScanFeedback({
           type: "success",
-          text: `¡Auditoría exitosa! Se detectaron ${matchingComments.length} comentarios con la palabra clave "${mon.keyword}" (${added.length} nuevos leads captados e incorporados al CRM).`,
+          text: `¡Auditoría exitosa! Se detectaron ${matchingComments.length} comentarios con la palabra clave "${mon.keyword}" (${newLeadsToAdd.length} leads captados e incorporados al CRM).`,
+          listId: targetList.id,
         });
       }
     } catch (err: any) {
@@ -319,6 +486,13 @@ export default function MyPostsSignalRadarPage() {
       attachedResource: mon.attachedPdfName,
     };
     const added = recordDiscoveredLeads([simulatedLead]);
+    const targetList = getOrCreateLevel1List({
+      monitorId: mon.id,
+      postTitle: mon.postTitle,
+      keyword: mon.keyword,
+    });
+    importSignalLeads(targetList, [simulatedLead]);
+
     if (added.length > 0) {
       updateLevel1Monitor(mon.id, {
         scannedCommentsCount: mon.scannedCommentsCount + 1,
@@ -328,6 +502,7 @@ export default function MyPostsSignalRadarPage() {
       setScanFeedback({
         type: "success",
         text: `Comentario simulado con éxito: ${simulatedLead.fullName} activó la entrega automática del recurso "${mon.attachedPdfName}".`,
+        listId: targetList.id,
       });
     }
   };
@@ -777,13 +952,23 @@ export default function MyPostsSignalRadarPage() {
             <span className="font-bold">{scanFeedback.type === "success" ? "✓" : "⚠"}</span>
             <span>{scanFeedback.text}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setScanFeedback(null)}
-            className="text-xs font-bold hover:underline px-2"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            {scanFeedback.listId && (
+              <Link
+                href={`/leads/lists?listId=${encodeURIComponent(scanFeedback.listId)}`}
+                className="font-bold underline hover:text-emerald-950 dark:hover:text-emerald-200"
+              >
+                Abrir Lista Inteligente &rarr;
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setScanFeedback(null)}
+              className="text-xs font-bold hover:underline px-2"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
@@ -824,6 +1009,7 @@ export default function MyPostsSignalRadarPage() {
                 {l1Monitors.map((mon) => {
                   const isExpanded = Boolean(expandedMonitorsPosts[mon.id]);
                   const activeBatch = selectedBatchSize[mon.id] || 50;
+                  const { count: effectiveCount, targetListId } = getEffectiveLevel1LeadCount(mon);
 
                   return (
                     <Fragment key={mon.id}>
@@ -910,7 +1096,7 @@ export default function MyPostsSignalRadarPage() {
                         {/* 3. Leads Captados */}
                         <td className="px-4 py-3.5 whitespace-nowrap align-top">
                           <span className="font-bold text-brand-600 dark:text-brand-400">
-                            {mon.leadsCapturedCount} leads
+                            {effectiveCount} leads
                           </span>
                         </td>
 
@@ -1011,15 +1197,14 @@ export default function MyPostsSignalRadarPage() {
                             )}
 
                             {/* Botón Ver Lista / Leads */}
-                            <button
-                              type="button"
-                              onClick={() => setSelectedMonitorForLeads(mon)}
+                            <Link
+                              href={`/leads/lists?listId=${encodeURIComponent(targetListId)}`}
                               className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
-                              title={`Abrir prospectos captados de ${mon.postTitle}`}
+                              title={`Abrir lista inteligente de "${mon.postTitle}"`}
                             >
-                              <span>Ver Leads ({mon.leadsCapturedCount})</span>
+                              <span>Ver Leads ({effectiveCount})</span>
                               <span aria-hidden="true">&rarr;</span>
-                            </button>
+                            </Link>
 
                             {/* Botón Editar Monitor */}
                             <button
@@ -1221,13 +1406,27 @@ export default function MyPostsSignalRadarPage() {
               >
                 + Simular Comentario de Prueba
               </button>
-              <button
-                type="button"
-                onClick={() => setSelectedMonitorForLeads(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-              >
-                Cerrar
-              </button>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const { targetListId } = getEffectiveLevel1LeadCount(selectedMonitorForLeads);
+                  return (
+                    <Link
+                      href={`/leads/lists?listId=${encodeURIComponent(targetListId)}`}
+                      className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition inline-flex items-center gap-1.5"
+                    >
+                      <span>Abrir Lista Dinámica en CRM</span>
+                      <span aria-hidden="true">&rarr;</span>
+                    </Link>
+                  );
+                })()}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonitorForLeads(null)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>
