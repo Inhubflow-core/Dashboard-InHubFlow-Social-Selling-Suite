@@ -53,7 +53,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
-      <body className={`${outfit.className} bg-[#d0d9e9] dark:bg-gray-900`}>
+      <body className={`${outfit.className} bg-[#e3e7ed] dark:bg-gray-900`}>
         <NextIntlClientProvider>
           <ThemeProvider>
             <AuthProvider>
