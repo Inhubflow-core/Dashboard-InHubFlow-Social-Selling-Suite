@@ -561,10 +561,11 @@ export default function CompetitorsSignalRadarPage() {
       {/* Formulario para Agregar Competidor */}
       {isAddingCompetitor && (
         <ComponentCard
-          title="Configurador de Auditoria de Competidor"
+          title="Configurador de Auditoría de Competidor"
           desc="Define la cuenta objetivo y los criterios para extraer a quienes comentan o reaccionan a sus posts."
         >
           <form onSubmit={handleAddCompetitor} className="space-y-4">
+            {/* Fila 1: Cuenta Objetivo y URL de LinkedIn */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Buscador inteligente en tiempo real de LinkedIn */}
               <div className="relative">
@@ -598,7 +599,7 @@ export default function CompetitorsSignalRadarPage() {
                       }
                     }}
                     placeholder="Ej. Prospect Me, Adapta IA, Lemlist..."
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
+                    className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
                   />
                   {competitorName && (
                     <button
@@ -610,7 +611,7 @@ export default function CompetitorsSignalRadarPage() {
                         setSearchResults([]);
                         setIsSearchDropdownOpen(false);
                       }}
-                      className="absolute right-2.5 top-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                       title="Limpiar búsqueda"
                     >
                       ✕
@@ -760,7 +761,7 @@ export default function CompetitorsSignalRadarPage() {
 
                     {/* Footer informativo de scroll */}
                     <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
-                      <span>Desplaza con el cursor para explorar mas opciones</span>
+                      <span>Desplaza con el cursor para explorar más opciones</span>
                       <span className="font-semibold text-brand-600 dark:text-brand-400">
                         {filteredSearchResults.length} opciones
                       </span>
@@ -768,7 +769,7 @@ export default function CompetitorsSignalRadarPage() {
                   </div>
                 )}
 
-                {selectedCompetitorItem && (
+                {selectedCompetitorItem ? (
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
                     {selectedCompetitorItem.logoUrl && (
                       <img
@@ -794,9 +795,14 @@ export default function CompetitorsSignalRadarPage() {
                       )}
                     </div>
                   </div>
+                ) : (
+                  <span className="text-[10px] text-gray-400 mt-1 block">
+                    Busca una empresa o referente del sector para autocompletar su información.
+                  </span>
                 )}
               </div>
 
+              {/* Campo 2: URL de LinkedIn */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                   URL de LinkedIn de la Cuenta o Perfil
@@ -807,131 +813,133 @@ export default function CompetitorsSignalRadarPage() {
                     value={competitorUrl}
                     onChange={(e) => setCompetitorUrl(e.target.value)}
                     placeholder="https://www.linkedin.com/company/nombre o https://www.linkedin.com/in/nombre"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                   {selectedCompetitorItem && (
-                    <span className="absolute right-2.5 top-2 text-xs font-bold text-emerald-600" title="URL confirmada">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600" title="URL confirmada">
                       ✓
                     </span>
                   )}
                 </div>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Enlace directo a la página de LinkedIn que se auditará periódicamente.
+                </span>
               </div>
             </div>
 
-
+            {/* Fila 2: Palabras Clave y Lote de Absorción (Diseño Gemelo Lado a Lado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Palabras Clave en Contenido del Post */}
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Palabras Clave en Contenido del Post (Separadas por coma)
+                  Palabras Clave en Contenido del Post (Opcional)
                 </label>
                 <input
                   type="text"
                   value={keywordsFilterInput}
                   onChange={(e) => setKeywordsFilterInput(e.target.value)}
-                  placeholder="Agentes IA, Prospeccion B2B, Outreach..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  placeholder="Ej. Agentes IA, Prospección B2B, Outreach..."
+                  className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Separa por comas. Si se define, solo se auditarán posts que contengan estos temas.
+                </span>
               </div>
 
-              <div className="flex items-center gap-6 pt-5">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={trackComments}
-                    onChange={(e) => setTrackComments(e.target.checked)}
-                    className="rounded border-gray-300 text-brand-500"
-                  />
-                  <span>Comentarios (Mayor intencion)</span>
+              {/* Lote de Absorción por Auditoría */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                  Lote de Absorción por Auditoría (Protección LinkedIn)
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={trackLikes}
-                    onChange={(e) => setTrackLikes(e.target.checked)}
-                    className="rounded border-gray-300 text-brand-500"
-                  />
-                  <span>Likes / Reacciones</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Filtro Anti-Engagement Interno / Excluir empleados del autor */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                  Filtros Inteligentes de Post
-                </span>
-                <span className="text-[10px] font-semibold text-brand-600 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
-                  Calidad Anti-Spam
-                </span>
-              </div>
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={excludeAuthorEmployees}
-                  onChange={(e) => setExcludeAuthorEmployees(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 cursor-pointer"
-                />
-                <div className="min-w-0">
-                  <span className="block text-xs font-bold text-gray-800 dark:text-gray-200">
-                    Excluir engagement interno
-                  </span>
-                  <span className="block text-[11px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
-                    Descarta interacciones de empleados y colaboradores de la misma empresa.
-                  </span>
-                </div>
-              </label>
-            </div>
-
-            {/* Control de Lote de Absorción Anti-Bloqueo */}
-            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-blue-950 dark:text-blue-200">
-                    🛡️ Lote de Absorción por Auditoría (Protección Anti-Bloqueo)
-                  </span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
-                  Seguridad LinkedIn
-                </span>
-              </div>
-              <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80 mb-3">
-                Para evitar alertas de scraping en tu cuenta de LinkedIn, el sistema monitorea hasta 10 publicaciones pero absorbe los leads en bloques controlados priorizando comentarios sobre likes.
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
-                  { value: 50, label: "50 perfiles", tag: "Recomendado", recommended: true },
-                  { value: 100, label: "100 perfiles", tag: "Intensivo" },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setBatchLeadLimit(opt.value as 25 | 50 | 100)}
-                    className={`p-2.5 rounded-lg border text-left transition ${
-                      batchLeadLimit === opt.value
-                        ? "border-brand-500 bg-white dark:bg-gray-900 ring-2 ring-brand-500/20 shadow-xs"
-                        : "border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/50 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-900 dark:text-white">
-                        {opt.label}
-                      </span>
-                      {opt.recommended && (
-                        <span className="text-[9px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 rounded">
-                          Óptimo
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
+                    { value: 50, label: "50 perfiles", tag: "Recomendado", recommended: true },
+                    { value: 100, label: "100 perfiles", tag: "Intensivo" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setBatchLeadLimit(opt.value as 25 | 50 | 100)}
+                      className={`p-2 rounded-lg border text-left transition ${
+                        batchLeadLimit === opt.value
+                          ? "border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-xs"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">
+                          {opt.label}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
-                      {opt.tag}
-                    </span>
-                  </button>
-                ))}
+                        {opt.recommended && (
+                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                            Óptimo
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                        {opt.tag}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
+                </span>
               </div>
             </div>
 
+            {/* Fila 3: Tipo de Interacciones y Filtro Anti-Colaboradores (Diseño Armonioso Lado a Lado) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Tarjeta 1: Tipo de Interacciones a Monitorear */}
+              <div className="flex flex-col justify-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
+                  🎯 Tipo de Interacciones a Capturar
+                </span>
+                <div className="flex items-center gap-5">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={trackComments}
+                      onChange={(e) => setTrackComments(e.target.checked)}
+                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                    />
+                    <span>Comentarios (Mayor intención)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={trackLikes}
+                      onChange={(e) => setTrackLikes(e.target.checked)}
+                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                    />
+                    <span>Likes / Reacciones</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Tarjeta 2: Filtro Anti-Engagement Interno */}
+              <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={excludeAuthorEmployees}
+                    onChange={(e) => setExcludeAuthorEmployees(e.target.checked)}
+                    className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                  />
+                  <div>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
+                      🛡️ Descartar engagement de colaboradores del autor
+                    </span>
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      Descarta interacciones de empleados del competidor para extraer clientes potenciales reales.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Fila 4: Plantilla Relacional Contextual */}
             <div>
               <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                 Plantilla de Secuencia Relacional Contextual
@@ -942,8 +950,12 @@ export default function CompetitorsSignalRadarPage() {
                 onChange={(e) => setOutreachTemplate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
+              <span className="text-[10px] text-gray-400 mt-1 block">
+                Mensaje base para la secuencia de contacto relacional hacia quienes interactúen con el contenido del competidor.
+              </span>
             </div>
 
+            {/* Fila 5: Botones de Acción */}
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -954,9 +966,9 @@ export default function CompetitorsSignalRadarPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
               >
-                Activar Monitor en LinkedIn
+                <span>Activar Monitor en LinkedIn</span>
               </button>
             </div>
           </form>

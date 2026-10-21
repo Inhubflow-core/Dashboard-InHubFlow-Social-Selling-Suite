@@ -427,16 +427,17 @@ export default function MyPostsSignalRadarPage() {
       {/* Formulario de Creación de Monitor */}
       {isCreatingMonitor && (
         <ComponentCard
-          title="Configurador de Monitor Nivel 1"
-          desc="Ingresa los datos de tu publicacion o selecciona un post creado en la plataforma para autocompletar titulo, palabra clave y URL."
+          title="Configurador de Monitor de Publicaciones Propias"
+          desc="Ingresa los datos de tu publicación o selecciona un post creado en la plataforma para autocompletar título, palabra clave y recurso descargable."
         >
           <form onSubmit={handleCreateMonitor} className="space-y-4">
+            {/* Fila 1: Título de la Publicación y URL o URN */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Buscador Inteligente con Dropdown desde /viral-posts/list */}
               <div className="relative">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-semibold uppercase text-gray-500">
-                    Titulo Descriptivo del Post
+                    Título Descriptivo del Post
                   </label>
                   {createdPosts.length > 0 && (
                     <span className="text-[10px] text-brand-600 dark:text-brand-400 font-medium">
@@ -459,7 +460,7 @@ export default function MyPostsSignalRadarPage() {
                       }
                     }}
                     placeholder="Escribe o selecciona una publicación de tu lista..."
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
+                    className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
                   />
                   {selectedCreatedPost && (
                     <button
@@ -469,7 +470,7 @@ export default function MyPostsSignalRadarPage() {
                         setNewPostTitle("");
                         setNewPostUrl("");
                       }}
-                      className="absolute right-2.5 top-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                       title="Desvincular post seleccionado"
                     >
                       ✕
@@ -480,7 +481,7 @@ export default function MyPostsSignalRadarPage() {
                 {/* Dropdown de Sugerencias de /viral-posts/list */}
                 {isDropdownOpen && createdPosts.length > 0 && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
@@ -560,11 +561,18 @@ export default function MyPostsSignalRadarPage() {
                   </div>
                 )}
 
-                {selectedCreatedPost && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-                    <span>✓ Post vinculado:</span>
-                    <span className="font-bold truncate max-w-[200px]">{selectedCreatedPost.title}</span>
+                {selectedCreatedPost ? (
+                  <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
+                    <span className="font-bold">✓ Publicación vinculada:</span>
+                    <span className="font-semibold underline truncate max-w-[200px]">{selectedCreatedPost.title}</span>
+                    <span className="ml-1.5 inline-block text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
+                      {selectedCreatedPost.status === "published" ? "Publicada" : selectedCreatedPost.status === "scheduled" ? "Programada" : "Borrador"}
+                    </span>
                   </div>
+                ) : (
+                  <span className="text-[10px] text-gray-400 mt-1 block">
+                    Selecciona una publicación creada o escribe un título personalizado.
+                  </span>
                 )}
               </div>
 
@@ -575,35 +583,46 @@ export default function MyPostsSignalRadarPage() {
                 </label>
 
                 {isPostPendingPublish ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 dark:border-amber-900/50 dark:bg-amber-950/20 text-xs space-y-1">
-                    <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
-                      <span>⏳ Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
-                      {selectedCreatedPost?.scheduledAt && (
-                        <span className="font-normal text-[11px] text-amber-700 dark:text-amber-400">
-                          • Previsto para: {new Date(selectedCreatedPost.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      )}
+                  <>
+                    <div className="h-10 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/80 px-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="font-bold">⏳ Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
+                        {selectedCreatedPost?.scheduledAt && (
+                          <span className="text-[11px] text-amber-700 dark:text-amber-300 truncate">
+                            • {new Date(selectedCreatedPost.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                        Pre-Configurado
+                      </span>
                     </div>
-                    <p className="text-[11px] text-amber-700 dark:text-amber-400">
-                      Aún no tiene URL en LinkedIn. Se creará como <b>Monitor Pre-Configurado</b> y se activará automáticamente al publicarse.
-                    </p>
-                  </div>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 block">
+                      Se activará automáticamente en LinkedIn cuando la publicación sea lanzada.
+                    </span>
+                  </>
                 ) : (
-                  <input
-                    type="url"
-                    value={newPostUrl}
-                    onChange={(e) => setNewPostUrl(e.target.value)}
-                    placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  />
+                  <>
+                    <input
+                      type="url"
+                      value={newPostUrl}
+                      onChange={(e) => setNewPostUrl(e.target.value)}
+                      placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                      className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                    <span className="text-[10px] text-gray-400 mt-1 block">
+                      Enlace directo a la publicación para escuchar comentarios en vivo.
+                    </span>
+                  </>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Fila 2: Lead Magnet Trigger y Recurso Adjunto */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Palabra Clave Activadora
+                  Palabra Clave Activadora (Trigger)
                 </label>
                 <input
                   type="text"
@@ -611,61 +630,86 @@ export default function MyPostsSignalRadarPage() {
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value.toUpperCase())}
                   placeholder="SISTEMA, GUIA, PLANTILLA..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-mono font-bold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
+                  className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs font-mono font-bold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Palabra que el usuario debe comentar en el post para activar la automatización.
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Recurso Adjunto (PDF Lead Magnet)
+                  Recurso Adjunto (PDF o Enlace del Lead Magnet)
                 </label>
                 <input
                   type="text"
                   value={newAttachedPdf}
                   onChange={(e) => setNewAttachedPdf(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  placeholder="Ej. /downloads/guia-prospeccion.pdf o enlace externo..."
+                  className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-              </div>
-
-              <div className="flex items-center pt-5">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={newAutoLike}
-                    onChange={(e) => setNewAutoLike(e.target.checked)}
-                    className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                  />
-                  <span>Dar Like automatico al comentario del lead</span>
-                </label>
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Enlace descargable o recurso de valor que se entregará al lead.
+                </span>
               </div>
             </div>
 
+            {/* Fila 3: Smart Automation Card - Reacción Automática */}
+            <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newAutoLike}
+                  onChange={(e) => setNewAutoLike(e.target.checked)}
+                  className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                />
+                <div>
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
+                    ⚡ Dar Like automático al comentario del lead
+                  </span>
+                  <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                    Aumenta el algoritmo orgánico de tu post y confirma al usuario que su comentario ha sido recibido.
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {/* Fila 4: Pasos de Automatización Relacional */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Paso A: Respuesta Publica en el Post
+                  Paso A: Respuesta Pública en el Post
                 </label>
-                <input
-                  type="text"
+                <textarea
+                  rows={3}
                   value={newPublicReply}
                   onChange={(e) => setNewPublicReply(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  placeholder="¡Hola {name}, te lo acabo de enviar por mensaje privado! Revisa tu bandeja 🚀"
+                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Respuesta automática visible en el hilo del comentario en LinkedIn.
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
-                  Paso B: Nota de Invitacion si no estan conectados
+                  Paso B: Nota de Invitación si no están conectados
                 </label>
-                <input
-                  type="text"
+                <textarea
+                  rows={3}
                   value={newConnectionNote}
                   onChange={(e) => setNewConnectionNote(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  placeholder="Hola {name}, aquí tienes el acceso a {pdf_url} que comentaste en mi publicación..."
+                  className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">
+                  Mensaje directo entregando el recurso prometido junto al enlace.
+                </span>
               </div>
             </div>
 
+            {/* Fila 5: Botones de Acción */}
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -679,21 +723,22 @@ export default function MyPostsSignalRadarPage() {
               </button>
               <button
                 type="submit"
-                className={`rounded-lg px-5 py-2 text-xs font-semibold text-white transition ${
+                className={`rounded-lg px-5 py-2 text-xs font-semibold text-white transition shadow-xs flex items-center gap-1.5 ${
                   isPostPendingPublish
                     ? "bg-amber-500 hover:bg-amber-600"
                     : "bg-brand-500 hover:bg-brand-600"
                 }`}
               >
-                {isPostPendingPublish
-                  ? "Pre-Configurar Monitor (En Espera)"
-                  : "Activar Monitor en LinkedIn"}
+                <span>
+                  {isPostPendingPublish
+                    ? "Pre-Configurar Monitor (En Espera)"
+                    : "Activar Monitor en LinkedIn"}
+                </span>
               </button>
             </div>
           </form>
         </ComponentCard>
       )}
-
 
       {/* Barra de Cuenta Conectada & Estado de Escucha */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
