@@ -108,7 +108,7 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
       { text: "Panel de control maestro de suscriptores y licencias SaaS", included: true },
       { text: "Capacidad para crear, modificar y suspender cuentas de clientes", included: true },
       { text: "Acceso y auditoria a todos los workspaces del ecosistema", included: true },
-      { text: "Monitoreo global de infraestructura Unipile y proxies", included: true },
+      { text: "Monitoreo global de infraestructura de conexión y proxies", included: true },
       { text: "Todas las caracteristicas de la suite desbloqueadas", included: true },
     ],
     limits: {

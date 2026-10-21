@@ -34,7 +34,7 @@ Garantía: Todos los planes cuentan con periodo de prueba guiado y sin contratos
 - Objeción: "Ya usamos Waalaxy, Expandi o Lemlist".
   Respuesta clave: Destacar que InHubFlow no hace prospección en frío ciega; captura leads 'tibios' mediante el Signal Radar cuando interactúan con contenido relevante, logrando tasas de aceptación superiores al 45% frente al 12% del outreach tradicional.
 - Objeción: "Tengo miedo de que LinkedIn bloquee o restrinja mi perfil personal".
-  Respuesta clave: InHubFlow opera con la infraestructura de Unipile, rotando User-Agents residenciales y respetando estrictamente los intervalos humanos de actividad (máximo 20-25 invitaciones diarias por cuenta, distribuidas en horario laboral).
+  Respuesta clave: InHubFlow opera con infraestructura de nube segura, rotando User-Agents residenciales y respetando estrictamente los intervalos humanos de actividad (máximo 20-25 invitaciones diarias por cuenta, distribuidas en horario laboral).
 - Objeción: "No tengo tiempo para capacitar a mi equipo en otra herramienta".
   Respuesta clave: La plataforma está diseñada con una interfaz visual intuitiva sin código. El Asistente SDR IA redacta los mensajes y solo requiere 10 minutos al día para revisar y aprobar la cola de respuestas.`,
     status: "approved",

@@ -186,7 +186,7 @@ La gran diferencia es que nosotros no enviamos mensajes a ciegas; nuestro Signal
 
 ¿Te interesaría ver una breve comparativa de 5 minutos sobre cómo complementamos o potenciamos lo que ya tienen?`;
     } else if (text.includes("bloqueo") || text.includes("restringir")) {
-      replyDraft = `Esa es una preocupación muy válida, ${sender}. Justamente por eso en InHubFlow no usamos extensiones de Chrome riesgosas. Toda la conexión opera con emulación humana vía Unipile, respetando rotación de IPs residenciales y límites prudentes de 20 a 25 invitaciones diarias por cuenta.
+      replyDraft = `Esa es una preocupación muy válida, ${sender}. Justamente por eso en InHubFlow no usamos extensiones de Chrome riesgosas. Toda la conexión opera con emulación humana segura, respetando rotación de IPs residenciales y límites prudentes de 20 a 25 invitaciones diarias por cuenta.
 
 Tu seguridad es la prioridad número uno. ¿Te gustaría conocer más sobre nuestras capas de protección?`;
     } else {

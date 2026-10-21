@@ -163,6 +163,40 @@ export const initialLinearCampaigns: LinearSequenceCampaign[] = [
   },
 ];
 
+export function sanitizeUnipileText(text?: string | null): string {
+  if (!text) return "";
+  return text
+    .replace(/mediante\s+Unipile/gi, "")
+    .replace(/a\s+través\s+de\s+Unipile/gi, "")
+    .replace(/vía\s+Unipile/gi, "")
+    .replace(/por\s+Unipile/gi, "")
+    .replace(/con\s+Unipile/gi, "")
+    .replace(/Unipile/gi, "LinkedIn")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
+  return {
+    ...step,
+    title: sanitizeUnipileText(step.title),
+    description: sanitizeUnipileText(step.description),
+    messageTemplate: step.messageTemplate ? sanitizeUnipileText(step.messageTemplate) : step.messageTemplate,
+    commentTemplate: step.commentTemplate ? sanitizeUnipileText(step.commentTemplate) : step.commentTemplate,
+    connectNote: step.connectNote ? sanitizeUnipileText(step.connectNote) : step.connectNote,
+  };
+}
+
+export function sanitizeLinearCampaign(campaign: LinearSequenceCampaign): LinearSequenceCampaign {
+  return {
+    ...campaign,
+    name: sanitizeUnipileText(campaign.name),
+    triggerTitle: sanitizeUnipileText(campaign.triggerTitle),
+    triggerDescription: sanitizeUnipileText(campaign.triggerDescription),
+    steps: Array.isArray(campaign.steps) ? campaign.steps.map(sanitizeSequenceStep) : [],
+  };
+}
+
 export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
   if (typeof window === "undefined") return initialLinearCampaigns;
   try {
@@ -176,7 +210,13 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(initialLinearCampaigns));
       return initialLinearCampaigns;
     }
-    return parsed;
+    const sanitized = parsed.map(sanitizeLinearCampaign);
+    if (/unipile/i.test(raw)) {
+      try {
+        localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
+      } catch {}
+    }
+    return sanitized;
   } catch {
     return initialLinearCampaigns;
   }
@@ -185,7 +225,8 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
 export function saveStoredLinearCampaigns(campaigns: LinearSequenceCampaign[]): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(campaigns));
+    const sanitized = campaigns.map(sanitizeLinearCampaign);
+    localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
   } catch {}
 }
 
@@ -197,6 +238,19 @@ export function getStoredWorkflow(): CampaignWorkflow {
       localStorage.setItem(WORKFLOW_KEY, JSON.stringify(initialWorkflow));
       return initialWorkflow;
     }
+    if (/unipile/i.test(raw)) {
+      const sanitizedRaw = raw
+        .replace(/mediante\s+Unipile/gi, "")
+        .replace(/a\s+través\s+de\s+Unipile/gi, "")
+        .replace(/vía\s+Unipile/gi, "")
+        .replace(/por\s+Unipile/gi, "")
+        .replace(/con\s+Unipile/gi, "")
+        .replace(/Unipile/gi, "LinkedIn");
+      try {
+        localStorage.setItem(WORKFLOW_KEY, sanitizedRaw);
+      } catch {}
+      return JSON.parse(sanitizedRaw);
+    }
     return JSON.parse(raw);
   } catch {
     return initialWorkflow;
@@ -205,5 +259,13 @@ export function getStoredWorkflow(): CampaignWorkflow {
 
 export function saveStoredWorkflow(wf: CampaignWorkflow): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(WORKFLOW_KEY, JSON.stringify(wf));
+  try {
+    const sanitized = {
+      ...wf,
+      name: sanitizeUnipileText(wf.name),
+      description: sanitizeUnipileText(wf.description),
+      nodesJson: wf.nodesJson ? wf.nodesJson.replace(/mediante\s+Unipile/gi, "").replace(/Unipile/gi, "LinkedIn API") : wf.nodesJson,
+    };
+    localStorage.setItem(WORKFLOW_KEY, JSON.stringify(sanitized));
+  } catch {}
 }

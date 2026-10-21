@@ -7,6 +7,8 @@ import {
   initialLinearCampaigns,
   defaultListsSequenceSteps,
   defaultLeadMagnetSequenceSteps,
+  sanitizeUnipileText,
+  sanitizeSequenceStep,
 } from "@/lib/campaigns/store";
 import type {
   LinearSequenceCampaign,
@@ -151,9 +153,10 @@ export default function CampaignsPage() {
 
   const handleSaveStepModal = (updatedStep: SequenceStepItem) => {
     if (!editingStep) return;
+    const sanitized = sanitizeSequenceStep(updatedStep);
     updateActiveCampaign((c) => {
       const nextSteps = [...c.steps];
-      nextSteps[editingStep.index] = updatedStep;
+      nextSteps[editingStep.index] = sanitized;
       return {
         ...c,
         steps: nextSteps,
@@ -445,11 +448,11 @@ export default function CampaignsPage() {
                   Activador
                 </span>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                  {activeCampaign.triggerTitle}
+                  {sanitizeUnipileText(activeCampaign.triggerTitle)}
                 </h4>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                {activeCampaign.triggerDescription}
+                {sanitizeUnipileText(activeCampaign.triggerDescription)}
               </p>
             </div>
           </div>
@@ -617,7 +620,7 @@ export default function CampaignsPage() {
                           {String(idx + 1).padStart(2, "0")}.
                         </span>
                         <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                          {step.title}
+                          {sanitizeUnipileText(step.title)}
                         </h4>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${getStepBadgeColor(
@@ -643,7 +646,7 @@ export default function CampaignsPage() {
                       </div>
 
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {step.description}
+                        {sanitizeUnipileText(step.description)}
                       </p>
                     </div>
                   </div>
@@ -653,7 +656,7 @@ export default function CampaignsPage() {
                     {/* Botón Editar (Pencil) */}
                     <button
                       type="button"
-                      onClick={() => setEditingStep({ step, index: idx })}
+                      onClick={() => setEditingStep({ step: sanitizeSequenceStep(step), index: idx })}
                       className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
                       title="Editar paso de la secuencia"
                     >
@@ -701,7 +704,7 @@ export default function CampaignsPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                    Configurar Paso: {editingStep.step.title}
+                    Configurar Paso: {sanitizeUnipileText(editingStep.step.title)}
                   </h3>
                   <p className="text-[11px] text-gray-400">
                     Edita el contenido del mensaje, notas, archivos y parámetros de ejecución.
