@@ -337,9 +337,13 @@ export function addStoredSignalLead(lead: SignalLeadItem): void {
     const lName = (l.fullName || "").toLowerCase().trim();
     const lSource = (l.sourceAuthorName || l.monitorId || "").toLowerCase().trim();
 
-    if (leadUrl && lUrl && leadUrl === lUrl) return true;
-    if (leadName && lName && leadName === lName && (leadSource === lSource || l.monitorId === lead.monitorId)) {
-      return true;
+    const isSameMonitor =
+      (lead.monitorId && l.monitorId && lead.monitorId === l.monitorId) ||
+      (leadSource && lSource && leadSource === lSource);
+
+    if (isSameMonitor) {
+      if (leadUrl && lUrl && leadUrl === lUrl) return true;
+      if (leadName && lName && leadName === lName) return true;
     }
     return false;
   });
@@ -364,9 +368,13 @@ export function addMultipleStoredSignalLeads(newLeads: SignalLeadItem[]): Signal
       const lName = (l.fullName || "").toLowerCase().trim();
       const lSource = (l.sourceAuthorName || l.monitorId || "").toLowerCase().trim();
 
-      if (leadUrl && lUrl && leadUrl === lUrl) return true;
-      if (leadName && lName && leadName === lName && (leadSource === lSource || l.monitorId === lead.monitorId)) {
-        return true;
+      const isSameMonitor =
+        (lead.monitorId && l.monitorId && lead.monitorId === l.monitorId) ||
+        (leadSource && lSource && leadSource === lSource);
+
+      if (isSameMonitor) {
+        if (leadUrl && lUrl && leadUrl === lUrl) return true;
+        if (leadName && lName && leadName === lName) return true;
       }
       return false;
     });

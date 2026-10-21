@@ -523,9 +523,9 @@ export const initialCreatedPosts: CreatedPost[] = [
     targetAccountId: "HfrdagEmSrONX8jqE9IYjQ",
     metrics: {
       likes: 0,
-      comments: 0,
-      impressions: 1,
-      leadsCaptured: 0,
+      comments: 1,
+      impressions: 2,
+      leadsCaptured: 1,
     },
   },
   {

@@ -5,12 +5,66 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost, PostFormat, PostStatus } from "@/lib/viral-posts/types";
 import { useSignalRadar } from "@/lib/signals/store";
+import type { SignalLeadItem } from "@/lib/signals/types";
 import { useLeadsStore } from "@/lib/leads/store";
 import { useAuth } from "@/context/AuthContext";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
 import { Link } from "@/i18n/navigation";
 import { ExternalLink, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+function parseCommentAuthor(c: any) {
+  const authorDetails = c.author_details || {};
+  const authorObj = typeof c.author === "object" && c.author !== null ? c.author : {};
+  const rawAuthor = typeof c.author === "string" ? c.author : "";
+
+  const fullName =
+    authorDetails.name ||
+    authorObj.name ||
+    rawAuthor ||
+    [authorDetails.first_name || authorObj.first_name, authorDetails.last_name || authorObj.last_name].filter(Boolean).join(" ") ||
+    "Prospecto en LinkedIn";
+
+  const headline =
+    authorDetails.headline ||
+    authorObj.headline ||
+    authorDetails.title ||
+    authorObj.title ||
+    "Profesional B2B en LinkedIn";
+
+  let linkedinUrl =
+    authorDetails.profile_url ||
+    authorObj.profile_url ||
+    authorDetails.linkedin_url ||
+    authorObj.linkedin_url ||
+    "";
+
+  if (!linkedinUrl) {
+    const pubId = authorDetails.public_identifier || authorObj.public_identifier;
+    if (pubId && typeof pubId === "string" && pubId.trim()) {
+      linkedinUrl = pubId.startsWith("http") ? pubId : `https://www.linkedin.com/in/${pubId.trim()}`;
+    }
+  }
+
+  const rawPic =
+    authorDetails.profile_picture_url ||
+    authorObj.profile_picture_url ||
+    authorDetails.picture_url ||
+    authorObj.picture_url;
+  const avatarUrl = rawPic && typeof rawPic === "string" && !rawPic.includes("unsplash.com") ? rawPic : undefined;
+
+  let company = authorDetails.company || authorObj.company || "";
+  if (!company && headline) {
+    const match = headline.match(/(?:en|at|@)\s+([^|•,\n]+)/i);
+    if (match && match[1]) {
+      company = match[1].trim();
+    } else {
+      company = "Empresa en LinkedIn";
+    }
+  }
+
+  return { fullName, headline, linkedinUrl, avatarUrl, company };
+}
 
 function getLinkedInPostUrl(post: CreatedPost, matchedMonitorUrl?: string): string | null {
   if (post.postUrl && post.postUrl.startsWith("http")) return post.postUrl;
@@ -25,8 +79,8 @@ function getLinkedInPostUrl(post: CreatedPost, matchedMonitorUrl?: string): stri
 
 export default function PostsListPage() {
   const { posts, isLoaded, updatePost, deletePost } = useCreatedPosts();
-  const { l1Monitors, updateLevel1Monitor } = useSignalRadar();
-  const { lists: allLeadLists, leads: crmLeads } = useLeadsStore();
+  const { l1Monitors, updateLevel1Monitor, recordDiscoveredLeads } = useSignalRadar();
+  const { lists: allLeadLists, leads: crmLeads, importSignalLeads, getOrCreateLevel1List } = useLeadsStore();
   const { currentUser } = useAuth();
 
   const [filterStatus, setFilterStatus] = useState<"all" | PostStatus>("all");
@@ -80,18 +134,68 @@ export default function PostsListPage() {
               const impressionsCount = data.post?.impressions_counter ?? (p.metrics?.impressions || 0);
               const postShareUrl = data.post?.share_url || p.postUrl || targetUrl;
 
-              // Leads captados desde la lista de CRM y del monitor
-              const targetList = matchedMon
-                ? allLeadLists.find(
-                    (l) => l.sourceMonitorId === matchedMon.id || l.id === `list-sig-n1-${matchedMon.id}`
-                  )
-                : null;
+              // Identificar comentarios que coincidan con la palabra clave
+              const matchingComments = (data.comments || []).filter((c: any) => {
+                const kw = (p.leadMagnetKeyword || matchedMon?.keyword || "").toUpperCase();
+                if (!kw) return false;
+                return String(c.text || "").toUpperCase().includes(kw);
+              });
+
+              // Lista inteligente destino en CRM
+              const monitorId = matchedMon?.id || `mon-l1-${p.id}`;
+              const targetList =
+                allLeadLists.find(
+                  (l) => l.sourceMonitorId === monitorId || l.id === `list-sig-n1-${monitorId}`
+                ) ||
+                getOrCreateLevel1List({
+                  monitorId,
+                  postTitle: p.title,
+                  keyword: p.leadMagnetKeyword || "SISTEMA",
+                });
+
+              // Si hay comentarios coincidentes no capturados aún, incorporarlos a Signal Radar y CRM
+              let newlyImportedCount = 0;
+              if (matchingComments.length > 0 && targetList) {
+                const discoveredLeads: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => {
+                  const author = parseCommentAuthor(c);
+                  return {
+                    id: `sig-lead-${Date.now()}-${idx}`,
+                    monitorId,
+                    fullName: author.fullName,
+                    headline: author.headline,
+                    company: author.company,
+                    location: "España / Latam",
+                    linkedinUrl: author.linkedinUrl,
+                    avatarUrl: author.avatarUrl,
+                    connectionDegree: "1st",
+                    intentLevel: "very_high",
+                    intentScore: 100,
+                    signalType: "keyword",
+                    signalLevel: "level_1",
+                    signalSnippet: `Comentó: "${c.text}"`,
+                    detectedAt: new Date().toISOString(),
+                    status: "dm_sent",
+                    attachedResource: matchedMon?.attachedPdfName || "Framework-Prospeccion-B2B.pdf",
+                    sourcePostId: targetUrl,
+                    sourcePostUrl: targetUrl,
+                    sourcePostTitle: p.title,
+                  };
+                });
+
+                recordDiscoveredLeads(discoveredLeads);
+                importSignalLeads(targetList, discoveredLeads);
+                newlyImportedCount = discoveredLeads.length;
+              }
+
               const leadsInCrm = targetList
-                ? crmLeads.filter((l) => l.listId === targetList.id || (l as any).monitorId === matchedMon?.id).length
+                ? crmLeads.filter((l) => l.listId === targetList.id || (l as any).monitorId === monitorId).length
                 : 0;
+
               const leadsCount = Math.max(
                 matchedMon?.leadsCapturedCount || 0,
                 leadsInCrm,
+                matchingComments.length,
+                newlyImportedCount,
                 p.metrics?.leadsCaptured || 0
               );
 
@@ -121,7 +225,7 @@ export default function PostsListPage() {
 
       setIsSyncingMetrics(false);
     },
-    [posts, l1Monitors, allLeadLists, crmLeads, currentUser, updatePost, updateLevel1Monitor]
+    [posts, l1Monitors, allLeadLists, crmLeads, currentUser, updatePost, updateLevel1Monitor, recordDiscoveredLeads, importSignalLeads, getOrCreateLevel1List]
   );
 
   const hasAutoSyncedRef = useRef(false);

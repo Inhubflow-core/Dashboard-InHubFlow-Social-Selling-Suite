@@ -129,6 +129,25 @@ export const initialLevel1Monitors: Level1Monitor[] = [
     originPostId: "created-roberto-secuencias",
     originPostStatus: "published",
   },
+  {
+    id: "mon-l1-roberto-fracasan",
+    postTitle: "El 90 de las empresas fracasan en su prospección B2B porque confian en",
+    postUrl: "https://www.linkedin.com/posts/robertoorse-agencia_el-90-de-las-empresas-fracasan-en-su-prospecci%C3%B3n-activity-7518660758377840640-m8zx?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAAF6cQ1YBvZ8OnTP5kVc_ulf5r9m-0SaHNzU",
+    keyword: "SISTEMA",
+    status: "active",
+    autoLikeComment: true,
+    publicReplyTemplate: "¡Hola! Te acabo de enviar la auditoría completa por mensaje privado. Revisa tus DMs.",
+    nonConnectedNoteTemplate: "Hola {{first_name}}, vi tu interés en mi publicación sobre el sistema de prospección B2B. Te conecto por aquí para enviarte la guía.",
+    attachedPdfName: "Auditoria-Prospeccion-B2B-InHubFlow.pdf",
+    scannedCommentsCount: 1,
+    leadsCapturedCount: 1,
+    lastScanAt: "12:15",
+    lastScanAtIso: "2026-10-21T15:15:00.000Z",
+    scanFrequency: "daily",
+    createdAt: "2026-10-20T12:47:00.000Z",
+    originPostId: "created-roberto-fracasan",
+    originPostStatus: "published",
+  },
 ];
 
 export const initialLevel2Monitors: Level2CompetitorMonitor[] = [

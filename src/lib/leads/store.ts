@@ -364,7 +364,10 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
           for (const mon of l1Monitors) {
             if (!mon || !mon.postTitle) continue;
             let existingList = currentLists.find(
-              (l) => l.sourceMonitorId === mon.id || (mon.keyword && l.name.includes(mon.keyword))
+              (l) =>
+                l.sourceMonitorId === mon.id ||
+                l.id === `list-sig-n1-${mon.id}` ||
+                l.name.trim().toLowerCase() === mon.postTitle.trim().toLowerCase()
             );
             if (!existingList) {
               existingList = {
@@ -921,7 +924,7 @@ export function getOrCreateLevel1MonitorList(params: {
     (l) =>
       l.sourceMonitorId === params.monitorId ||
       l.id === `list-sig-n1-${params.monitorId}` ||
-      (params.keyword && l.keywords?.includes(params.keyword))
+      (params.postTitle && l.name.trim().toLowerCase() === params.postTitle.trim().toLowerCase())
   );
   if (existing) return existing;
 
