@@ -56,7 +56,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     type: "message_icebreaker",
     title: "Mensaje DM 01 'Icebreakers'",
     description: "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.",
-    delayDaysBefore: 2,
+    delayDaysBefore: 1,
     isInheritedFromMonitor: true,
     messageTemplate: "Hola {{first_name}}, vi tu interacción en la publicación sobre {{topic}} de {{author_name}} y me pareció un punto clave. ¿Cómo lo están abordando en {{company}}?",
   },
@@ -66,7 +66,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     type: "message_followup",
     title: "Mensaje DM 02 'Follow-up'",
     description: "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.",
-    delayDaysBefore: 2,
+    delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, te comparto este caso breve sobre cómo resolver {{topic}} sin quemar tu dominio ni depender de prospección invasiva. ¿Te hace sentido?",
   },
   {
@@ -75,7 +75,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     type: "message_value_prop",
     title: "Mensaje DM 03 'Value Prop'",
     description: "Propuesta de valor y llamado suave a la acción para agendar una sesión de diagnóstico de 15 minutos.",
-    delayDaysBefore: 3,
+    delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, si estás evaluando optimizar este trimestre el pipeline de {{company}}, me encantaría compartirte una demo rápida de 15 min de nuestro sistema. ¿Cómo ves tu agenda este jueves?",
   },
 ];
@@ -110,7 +110,7 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     type: "message_followup",
     title: "Mensaje DM 02 'Follow-up'",
     description: "Verificación de lectura y apertura de conversación consultiva.",
-    delayDaysBefore: 2,
+    delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, ¿pudiste revisar el documento? Quería saber qué parte del sistema te llamó más la atención para aplicarlo en {{company}}.",
   },
   {
@@ -119,7 +119,7 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     type: "message_value_prop",
     title: "Mensaje DM 03 'Value Prop'",
     description: "Propuesta de auditoría personalizada o sesión de diagnóstico.",
-    delayDaysBefore: 3,
+    delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, si quieres que auditemos juntos cómo aterrizar este sistema directamente en {{company}}, podemos agendar una sesión de 15 minutos esta semana. ¿Tienes un hueco libre?",
   },
 ];
@@ -196,12 +196,26 @@ export function sanitizeLinearCampaign(campaign: LinearSequenceCampaign): Linear
     .replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")
     .trim();
 
+  const steps = Array.isArray(campaign.steps)
+    ? campaign.steps.map((s, idx) => {
+        const clean = sanitizeSequenceStep(s);
+        if (idx === 0) {
+          return { ...clean, delayDaysBefore: 0 };
+        }
+        // Retardo por defecto unificado en 1 día si proviene de plantillas iniciales con 2 o 3 días
+        if (clean.delayDaysBefore > 1 && (clean.id.startsWith("step-lists-") || clean.id.startsWith("step-magnet-"))) {
+          return { ...clean, delayDaysBefore: 1 };
+        }
+        return clean;
+      })
+    : [];
+
   return {
     ...campaign,
     name: sanitizedName,
     triggerTitle: sanitizeUnipileText(campaign.triggerTitle),
     triggerDescription: sanitizedTriggerDesc,
-    steps: Array.isArray(campaign.steps) ? campaign.steps.map(sanitizeSequenceStep) : [],
+    steps,
   };
 }
 
@@ -222,7 +236,9 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
     if (
       /unipile/i.test(raw) ||
       /Palabra Clave SISTEMA/i.test(raw) ||
-      /Competencia,\s*Grupos\s*o\s*Globales/i.test(raw)
+      /Competencia,\s*Grupos\s*o\s*Globales/i.test(raw) ||
+      raw.includes('"delayDaysBefore":2') ||
+      raw.includes('"delayDaysBefore":3')
     ) {
       try {
         localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
