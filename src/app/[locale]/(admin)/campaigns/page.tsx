@@ -393,7 +393,7 @@ export default function CampaignsPage() {
                     : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300"
                 }`}
               >
-                <span>{camp.name}</span>
+                <span>{camp.name.replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                     isSelected ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"

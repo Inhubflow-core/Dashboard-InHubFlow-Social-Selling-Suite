@@ -145,7 +145,7 @@ export const initialLinearCampaigns: LinearSequenceCampaign[] = [
   },
   {
     id: "seq-lead-magnet",
-    name: "02. Secuencia: Lead Magnet (Palabra Clave SISTEMA)",
+    name: "02. Secuencia: Lead Magnet",
     code: "02_lead_magnet",
     triggerTitle: "Activador: Entrar en la lista",
     triggerDescription: "Se dispara cuando el prospecto comenta la palabra clave (ej: SISTEMA) en tu publicación Lead Magnet de Nivel 1.",
@@ -188,9 +188,13 @@ export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
 }
 
 export function sanitizeLinearCampaign(campaign: LinearSequenceCampaign): LinearSequenceCampaign {
+  const sanitizedName = sanitizeUnipileText(campaign.name)
+    .replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")
+    .trim();
+
   return {
     ...campaign,
-    name: sanitizeUnipileText(campaign.name),
+    name: sanitizedName,
     triggerTitle: sanitizeUnipileText(campaign.triggerTitle),
     triggerDescription: sanitizeUnipileText(campaign.triggerDescription),
     steps: Array.isArray(campaign.steps) ? campaign.steps.map(sanitizeSequenceStep) : [],
@@ -211,7 +215,7 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       return initialLinearCampaigns;
     }
     const sanitized = parsed.map(sanitizeLinearCampaign);
-    if (/unipile/i.test(raw)) {
+    if (/unipile/i.test(raw) || /Palabra Clave SISTEMA/i.test(raw)) {
       try {
         localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
       } catch {}
