@@ -431,7 +431,7 @@ export default function InboxPage() {
                 href={`/leads`}
                 className="text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
               >
-                <span>Ver Ficha 360</span>
+                <span>Ver Ficha</span>
                 <ChevronRight className="size-3" />
               </a>
             </div>

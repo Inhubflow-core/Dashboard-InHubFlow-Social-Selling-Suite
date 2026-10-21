@@ -459,7 +459,7 @@ export default function DynamicListDetailPage() {
                           className="rounded-lg border border-brand-500 px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
                           title="Abrir expediente completo del contacto con todo el cargo y trazabilidad"
                         >
-                          Ficha 360
+                          Ficha
                         </button>
                         <a
                           href="/inbox"
@@ -478,11 +478,11 @@ export default function DynamicListDetailPage() {
         )}
       </ComponentCard>
 
-      {/* Modal Interactivo: Ficha 360 del Contacto */}
+      {/* Modal Interactivo: Ficha del Contacto */}
       {selectedLeadFor360 && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
           <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
-            {/* Cabecera de la Ficha 360 */}
+            {/* Cabecera de la Ficha */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <ProspectAvatar
@@ -529,7 +529,7 @@ export default function DynamicListDetailPage() {
                 type="button"
                 onClick={() => setSelectedLeadFor360(null)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold p-1 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
-                title="Cerrar Ficha 360"
+                title="Cerrar Ficha"
               >
                 ✕ Cerrar
               </button>
