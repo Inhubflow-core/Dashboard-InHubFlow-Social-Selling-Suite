@@ -154,6 +154,9 @@ export default function CampaignsPage() {
   const handleSaveStepModal = (updatedStep: SequenceStepItem) => {
     if (!editingStep) return;
     const sanitized = sanitizeSequenceStep(updatedStep);
+    if (editingStep.index === 0) {
+      sanitized.delayDaysBefore = 0;
+    }
     updateActiveCampaign((c) => {
       const nextSteps = [...c.steps];
       nextSteps[editingStep.index] = sanitized;
@@ -440,7 +443,24 @@ export default function CampaignsPage() {
           return (
             <div key={step.id}>
               {/* Conector de Delay (NO es una card, pastilla simple como en #b2b) */}
-              {!isFirst && (
+              {isFirst ? (
+                <div className="flex items-center gap-2 py-1.5 pl-6 select-none">
+                  {/* Línea vertical con punto */}
+                  <div className="flex flex-col items-center gap-0.5 shrink-0">
+                    <div className="w-px h-3 bg-gray-300 dark:bg-gray-700" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                    <div className="w-px h-3 bg-gray-300 dark:bg-gray-700" />
+                  </div>
+
+                  {/* Píldora fija por defecto: Inmediato (0 días) no editable */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
+                    <Clock className="h-3 w-3 text-brand-500 shrink-0" />
+                    <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
+                      Inmediato (0 días)
+                    </span>
+                  </div>
+                </div>
+              ) : (
                 <div
                   className="flex items-center gap-2 py-1.5 pl-6 select-none"
                   data-delay-popover
@@ -699,27 +719,38 @@ export default function CampaignsPage() {
                   <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
                     Retardo Previo (Días de Espera)
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={60}
-                      value={editingStep.step.delayDaysBefore}
-                      onChange={(e) =>
-                        setEditingStep({
-                          ...editingStep,
-                          step: {
-                            ...editingStep.step,
-                            delayDaysBefore: Math.max(0, parseInt(e.target.value) || 0),
-                          },
-                        })
-                      }
-                      className="h-9 w-24 rounded-lg border border-gray-300 px-3 text-xs text-center dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
-                    />
-                    <span className="text-xs text-gray-500">
-                      {editingStep.step.delayDaysBefore === 1 ? "día tras el paso anterior" : "días tras el paso anterior"}
-                    </span>
-                  </div>
+                  {editingStep.index === 0 ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800/60 text-gray-500 flex items-center justify-center text-xs font-semibold select-none cursor-not-allowed">
+                        Inmediato (0 días)
+                      </div>
+                      <span className="text-[11px] text-gray-400">
+                        Disparo automático tras el activador
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={60}
+                        value={editingStep.step.delayDaysBefore}
+                        onChange={(e) =>
+                          setEditingStep({
+                            ...editingStep,
+                            step: {
+                              ...editingStep.step,
+                              delayDaysBefore: Math.max(0, parseInt(e.target.value) || 0),
+                            },
+                          })
+                        }
+                        className="h-9 w-24 rounded-lg border border-gray-300 px-3 text-xs text-center dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
+                      />
+                      <span className="text-xs text-gray-500">
+                        {editingStep.step.delayDaysBefore === 1 ? "día tras el paso anterior" : "días tras el paso anterior"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
