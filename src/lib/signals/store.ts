@@ -42,7 +42,16 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
     }
     let hadModifications = false;
     const monitors = parsed
-      .filter((m: Level1Monitor) => Boolean(m && m.id && m.postTitle))
+      .filter(
+        (m: Level1Monitor) =>
+          Boolean(m && m.id && m.postTitle) &&
+          m.id !== "mon-l1-roberto-sistema" &&
+          m.id !== "mon-l1-roberto-prospeccion" &&
+          !m.postUrl?.includes("7419089920785190912") &&
+          !m.postUrl?.includes("7418727192660910080") &&
+          !m.postTitle?.toLowerCase().includes("20 lugares. cierro el lunes") &&
+          !m.postTitle?.toLowerCase().includes("buscando 20 empresas b2b")
+      )
       .map((m: Level1Monitor) => {
         if (m.scanFrequency !== "daily") {
           hadModifications = true;
@@ -50,6 +59,10 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
         }
         return m;
       });
+
+    if (monitors.length !== parsed.length) {
+      hadModifications = true;
+    }
 
     for (const initMon of initialLevel1Monitors) {
       if (!monitors.some((m) => m.id === initMon.id)) {

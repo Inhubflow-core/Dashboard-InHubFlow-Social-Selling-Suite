@@ -67,7 +67,17 @@ export function getStoredCreatedPosts(): CreatedPost[] {
       localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(initialCreatedPosts));
       return initialCreatedPosts;
     }
-    const clean = parsed.filter((p: CreatedPost) => p && !/^created-0[1-3]$/.test(p.id));
+    const clean = parsed.filter(
+      (p: CreatedPost) =>
+        p &&
+        !/^created-0[1-3]$/.test(p.id) &&
+        p.id !== "created-roberto-sistema" &&
+        p.id !== "created-roberto-prospeccion" &&
+        !p.linkedinPostId?.includes("7419089920785190912") &&
+        !p.linkedinPostId?.includes("7418727192660910080") &&
+        !p.title?.toLowerCase().includes("20 lugares. cierro el lunes") &&
+        !p.title?.toLowerCase().includes("buscando 20 empresas b2b")
+    );
     const merged = [...clean];
     let hadModifications = clean.length !== parsed.length;
 
