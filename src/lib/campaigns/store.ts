@@ -45,8 +45,8 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     id: "step-lists-03",
     order: 3,
     type: "connect",
-    title: "Solicitar Conexión",
-    description: "Envía solicitud de conexión con nota contextual para crear el primer puente de confianza profesional.",
+    title: "Seguir + Conectar",
+    description: "Sigue el perfil en LinkedIn y envía solicitud de conexión con nota contextual en una sola acción.",
     delayDaysBefore: 1,
     connectNote: "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.",
   },
@@ -85,8 +85,8 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     id: "step-magnet-01",
     order: 1,
     type: "connect_message",
-    title: "Solicitar Conexión + Mensaje",
-    description: "Envía solicitud de conexión indicando el motivo de entrega del material solicitado en el post.",
+    title: "Seguir + Conectar",
+    description: "Sigue el perfil y envía solicitud de conexión indicando el motivo de entrega del material solicitado en el post.",
     delayDaysBefore: 0,
     isInheritedFromMonitor: true,
     connectNote: "Hola {{first_name}}, vi que comentaste {{keyword}} en mi post. Te estoy solicitando conectar contigo para entregarte el recurso por mensaje privado.",
@@ -177,9 +177,13 @@ export function sanitizeUnipileText(text?: string | null): string {
 }
 
 export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
+  let title = sanitizeUnipileText(step.title);
+  if (title === "Solicitar Conexión" || title === "Solicitar Conexión + Mensaje") {
+    title = "Seguir + Conectar";
+  }
   return {
     ...step,
-    title: sanitizeUnipileText(step.title),
+    title,
     description: sanitizeUnipileText(step.description),
     messageTemplate: step.messageTemplate ? sanitizeUnipileText(step.messageTemplate) : step.messageTemplate,
     commentTemplate: step.commentTemplate ? sanitizeUnipileText(step.commentTemplate) : step.commentTemplate,
@@ -237,6 +241,7 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       /unipile/i.test(raw) ||
       /Palabra Clave SISTEMA/i.test(raw) ||
       /Competencia,\s*Grupos\s*o\s*Globales/i.test(raw) ||
+      /Solicitar Conexión/i.test(raw) ||
       raw.includes('"delayDaysBefore":2') ||
       raw.includes('"delayDaysBefore":3')
     ) {

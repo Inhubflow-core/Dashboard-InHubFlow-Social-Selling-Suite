@@ -315,9 +315,9 @@ export default function CampaignsPage() {
       description = "Interactúa con la publicación más reciente del prospecto.";
       messageTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
     } else if (type === "connect") {
-      title = "Solicitar Conexión";
-      description = "Envía solicitud de conexión con nota contextual.";
-      messageTemplate = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y quería conectar contigo.";
+      title = "Seguir + Conectar";
+      description = "Sigue el perfil en LinkedIn y envía solicitud de conexión con nota contextual en una sola acción.";
+      messageTemplate = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.";
     } else if (type === "message_icebreaker") {
       title = "Mensaje DM 01 'Icebreakers'";
       description = "Primer mensaje directo en LinkedIn tras conectar.";
@@ -1013,7 +1013,12 @@ export default function CampaignsPage() {
               {(editingStep.step.type === "connect" ||
                 editingStep.step.type === "connect_message" ||
                 editingStep.step.connectNote !== undefined) && (
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2">
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2.5">
+                  <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] flex items-start gap-2">
+                    <span className="font-bold shrink-0">Acción 2-en-1:</span>
+                    <span>Al enviar la invitación de conexión, LinkedIn activa automáticamente el seguimiento del perfil para maximizar la visibilidad mutua en el feed.</span>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
@@ -1730,7 +1735,7 @@ export default function CampaignsPage() {
               {[
                 { type: "visit" as const, title: "Visitar Perfil", desc: "Visita previa para figurar en notificaciones" },
                 { type: "like_comment" as const, title: "Like + Comentar", desc: "Interacción combinada en el post del prospecto" },
-                { type: "connect" as const, title: "Solicitar Conexión", desc: "Envío de invitación con nota opcional" },
+                { type: "connect" as const, title: "Seguir + Conectar", desc: "Acción 2-en-1: sigue el perfil y envía invitación de conexión" },
                 { type: "message_icebreaker" as const, title: "Mensaje DM Icebreaker", desc: "Mensaje contextualizado según la señal" },
                 { type: "message_followup" as const, title: "Mensaje DM Follow-up", desc: "Seguimiento de valor" },
                 { type: "message_value_prop" as const, title: "Mensaje DM Value Prop", desc: "Propuesta de valor y agenda de llamada" },
