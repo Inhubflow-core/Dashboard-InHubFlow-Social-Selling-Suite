@@ -275,34 +275,30 @@ export default function CampaignsPage() {
   const getStepIcon = (type: SocialStepType) => {
     switch (type) {
       case "visit":
-        return <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+        return <Eye className="h-4 w-4 text-amber-600 dark:text-amber-400" />;
       case "like_comment":
         return <ThumbsUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
       case "connect":
       case "connect_message":
         return <UserPlus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
       case "message_icebreaker":
-        return <Send className="h-4 w-4 text-brand-600 dark:text-brand-400" />;
       case "message_followup":
-        return <MessageCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />;
       case "message_value_prop":
-        return <Sparkles className="h-4 w-4 text-brand-500" />;
+        return <Send className="h-4 w-4 text-brand-600 dark:text-brand-400" />;
     }
   };
 
   const getStepBadgeColor = (type: SocialStepType) => {
     switch (type) {
       case "visit":
-        return "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+        return "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800";
       case "like_comment":
         return "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800";
       case "connect":
       case "connect_message":
         return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
       case "message_icebreaker":
-        return "bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border-brand-200 dark:border-brand-800";
       case "message_followup":
-        return "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800";
       case "message_value_prop":
         return "bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border-brand-200 dark:border-brand-800";
     }
