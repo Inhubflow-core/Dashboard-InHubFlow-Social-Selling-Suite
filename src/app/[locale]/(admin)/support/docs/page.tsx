@@ -135,7 +135,7 @@ export default function ApiDocsPage() {
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-3 dark:border-gray-800">
               <Webhook className="size-4 text-[#0099ff]" />
               <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                Estructura del Webhook Entrante de Mensajería (`/api/unipile/webhook`)
+                Estructura del Webhook Entrante de Mensajería de LinkedIn
               </h4>
             </div>
 

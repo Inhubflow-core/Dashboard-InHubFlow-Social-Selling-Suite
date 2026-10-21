@@ -49,7 +49,7 @@ export function ActionCustomNode({ data, selected }: NodeProps) {
         <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full dark:bg-blue-950 dark:text-blue-300">
           ACCION
         </span>
-        <span className="text-[10px] text-gray-400">Unipile</span>
+        <span className="text-[10px] text-gray-400">LinkedIn API</span>
       </div>
       <div className="pt-2">
         <h4 className="text-xs font-bold text-gray-900 dark:text-white leading-snug">

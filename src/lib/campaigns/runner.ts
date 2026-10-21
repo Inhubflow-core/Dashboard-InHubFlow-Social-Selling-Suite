@@ -207,7 +207,7 @@ export async function executeCampaignStepForLead(params: {
           nodeType: nodeData.nodeType,
           timestamp: new Date().toISOString(),
           status: "error",
-          message: error instanceof Error ? error.message : "No se pudo visitar el perfil mediante Unipile.",
+          message: error instanceof Error ? error.message : "No se pudo visitar el perfil en LinkedIn.",
         };
         recordExecutionLog(log);
         return { success: false, newState: { ...leadState, state: "failed" }, log };
@@ -296,7 +296,7 @@ export async function executeCampaignStepForLead(params: {
           nodeType: nodeData.nodeType,
           timestamp: new Date().toISOString(),
           status: "error",
-          message: error instanceof Error ? error.message : "No se pudo publicar el comentario en el post mediante Unipile.",
+          message: error instanceof Error ? error.message : "No se pudo publicar el comentario en el post de LinkedIn.",
         };
         recordExecutionLog(log);
         return { success: false, newState: { ...leadState, state: "failed" }, log };
@@ -429,7 +429,7 @@ export async function executeCampaignStepForLead(params: {
           nodeType: nodeData.nodeType,
           timestamp: new Date().toISOString(),
           status: "error",
-          message: error instanceof Error ? error.message : "No se pudo enviar la invitacion de conexion mediante Unipile.",
+          message: error instanceof Error ? error.message : "No se pudo enviar la invitacion de conexion en LinkedIn.",
         };
         recordExecutionLog(log);
         return { success: false, newState: { ...leadState, state: "failed" }, log };
@@ -520,7 +520,7 @@ export async function executeCampaignStepForLead(params: {
           nodeType: nodeData.nodeType,
           timestamp: new Date().toISOString(),
           status: "error",
-          message: error instanceof Error ? error.message : "No se pudo enviar la invitacion mediante Unipile.",
+          message: error instanceof Error ? error.message : "No se pudo enviar la invitacion en LinkedIn.",
         };
         recordExecutionLog(log);
         return { success: false, newState: { ...leadState, state: "failed" }, log };
@@ -629,7 +629,7 @@ export async function executeCampaignStepForLead(params: {
           nodeType: nodeData.nodeType,
           timestamp: new Date().toISOString(),
           status: "error",
-          message: error instanceof Error ? error.message : "No se pudo enviar el mensaje mediante Unipile.",
+          message: error instanceof Error ? error.message : "No se pudo enviar el mensaje en LinkedIn.",
         };
         recordExecutionLog(log);
         return { success: false, newState: { ...leadState, state: "failed" }, log };

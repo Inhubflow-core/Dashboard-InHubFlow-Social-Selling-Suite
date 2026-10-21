@@ -1438,7 +1438,7 @@ export default function CampaignsPage() {
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-gray-500" />
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                  Historial de Ejecución en Vivo (Unipile)
+                  Historial de Ejecución en Vivo de Secuencias
                 </h3>
               </div>
               <button

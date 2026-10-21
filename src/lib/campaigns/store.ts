@@ -28,7 +28,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 1,
     type: "visit",
     title: "Visitar Perfil",
-    description: "Visita el perfil en LinkedIn mediante Unipile para figurar en las notificaciones del prospecto y generar visibilidad previa.",
+    description: "Visita el perfil en LinkedIn para figurar en las notificaciones del prospecto y generar visibilidad previa.",
     delayDaysBefore: 0,
   },
   {

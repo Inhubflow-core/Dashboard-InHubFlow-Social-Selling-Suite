@@ -23,7 +23,7 @@ export const defaultCampaignNodes: Node[] = [
       label: "AC-01: Visitar Perfil",
       category: "action",
       nodeType: "action_visit",
-      description: "Ejecuta visita mediante Unipile para figurar en notificaciones",
+      description: "Ejecuta visita en LinkedIn para figurar en notificaciones",
     } as NodeConfigData,
   },
   {
