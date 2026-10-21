@@ -31,7 +31,7 @@ export const defaultCampaignNodes: Node[] = [
     type: "actionNode",
     position: { x: 340, y: 290 },
     data: {
-      label: "AC-02: Dar Like y Comentar",
+      label: "AC-02: Like + Comentario",
       category: "action",
       nodeType: "action_like_comment",
       description: "Reacciona con Like y publica comentario contextual en el post del prospecto",
@@ -137,14 +137,14 @@ export const availablePaletteNodes = [
   },
   {
     type: "actionNode",
-    label: "AC-02: Dar Like y Comentar",
+    label: "AC-02: Like + Comentario",
     category: "action" as const,
     nodeType: "action_like_comment" as const,
     description: "Reacciona con Like y publica un comentario en el post en un solo paso",
   },
   {
     type: "actionNode",
-    label: "AC-03: Seguir y Conectar",
+    label: "AC-03: Seguir + Conectar",
     category: "action" as const,
     nodeType: "action_follow_connect" as const,
     description: "Sigue el perfil y envia solicitud de conexion con nota opcional en un solo paso",

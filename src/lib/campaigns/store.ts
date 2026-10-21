@@ -35,7 +35,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     id: "step-lists-02",
     order: 2,
     type: "like_comment",
-    title: "Like + Comentar",
+    title: "Like + Comentario",
     description: "Interactúa con la publicación más reciente del prospecto con una reacción de Like y un comentario de valor.",
     delayDaysBefore: 1,
     commentTemplate: "Gran perspectiva {{first_name}}, totalmente alineado con este enfoque.",
@@ -180,6 +180,8 @@ export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
   let title = sanitizeUnipileText(step.title);
   if (title === "Solicitar Conexión" || title === "Solicitar Conexión + Mensaje") {
     title = "Seguir + Conectar";
+  } else if (title === "Like + Comentar" || title === "Dar Like y Comentar") {
+    title = "Like + Comentario";
   }
   return {
     ...step,
@@ -242,6 +244,8 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       /Palabra Clave SISTEMA/i.test(raw) ||
       /Competencia,\s*Grupos\s*o\s*Globales/i.test(raw) ||
       /Solicitar Conexión/i.test(raw) ||
+      /Like \+ Comentar/i.test(raw) ||
+      /Dar Like y Comentar/i.test(raw) ||
       raw.includes('"delayDaysBefore":2') ||
       raw.includes('"delayDaysBefore":3')
     ) {

@@ -311,7 +311,7 @@ export default function CampaignsPage() {
       title = "Visitar Perfil";
       description = "Visita el perfil en LinkedIn para generar visibilidad previa en notificaciones.";
     } else if (type === "like_comment") {
-      title = "Like + Comentar";
+      title = "Like + Comentario";
       description = "Interactúa con la publicación más reciente del prospecto.";
       messageTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
     } else if (type === "connect") {
@@ -1734,7 +1734,7 @@ export default function CampaignsPage() {
             <div className="space-y-2">
               {[
                 { type: "visit" as const, title: "Visitar Perfil", desc: "Visita previa para figurar en notificaciones" },
-                { type: "like_comment" as const, title: "Like + Comentar", desc: "Interacción combinada en el post del prospecto" },
+                { type: "like_comment" as const, title: "Like + Comentario", desc: "Interacción combinada en el post del prospecto" },
                 { type: "connect" as const, title: "Seguir + Conectar", desc: "Acción 2-en-1: sigue el perfil y envía invitación de conexión" },
                 { type: "message_icebreaker" as const, title: "Mensaje DM Icebreaker", desc: "Mensaje contextualizado según la señal" },
                 { type: "message_followup" as const, title: "Mensaje DM Follow-up", desc: "Seguimiento de valor" },
