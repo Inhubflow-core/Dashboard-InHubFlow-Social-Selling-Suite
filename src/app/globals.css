@@ -190,7 +190,7 @@
   }
 
   body {
-    background-color: #e3e7ed;
+    background-color: #EDEDF5;
     @apply relative z-1 font-outfit font-normal;
   }
 }
