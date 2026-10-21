@@ -130,7 +130,7 @@ export const initialLinearCampaigns: LinearSequenceCampaign[] = [
     name: "01. Secuencia: Listas de Leads",
     code: "01_lists",
     triggerTitle: "Activador: Entrar en la lista",
-    triggerDescription: "Se dispara automáticamente cuando un prospecto entra en una lista inteligente de Signal Radar (Competencia, Grupos o Globales).",
+    triggerDescription: "Se dispara automáticamente cuando un prospecto entra en una lista inteligente de Signal Radar.",
     status: "active",
     steps: defaultListsSequenceSteps,
     dailyLimits: {
@@ -192,11 +192,15 @@ export function sanitizeLinearCampaign(campaign: LinearSequenceCampaign): Linear
     .replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")
     .trim();
 
+  const sanitizedTriggerDesc = sanitizeUnipileText(campaign.triggerDescription)
+    .replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")
+    .trim();
+
   return {
     ...campaign,
     name: sanitizedName,
     triggerTitle: sanitizeUnipileText(campaign.triggerTitle),
-    triggerDescription: sanitizeUnipileText(campaign.triggerDescription),
+    triggerDescription: sanitizedTriggerDesc,
     steps: Array.isArray(campaign.steps) ? campaign.steps.map(sanitizeSequenceStep) : [],
   };
 }
@@ -215,7 +219,11 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       return initialLinearCampaigns;
     }
     const sanitized = parsed.map(sanitizeLinearCampaign);
-    if (/unipile/i.test(raw) || /Palabra Clave SISTEMA/i.test(raw)) {
+    if (
+      /unipile/i.test(raw) ||
+      /Palabra Clave SISTEMA/i.test(raw) ||
+      /Competencia,\s*Grupos\s*o\s*Globales/i.test(raw)
+    ) {
       try {
         localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
       } catch {}

@@ -430,7 +430,7 @@ export default function CampaignsPage() {
                 {sanitizeUnipileText(activeCampaign.triggerTitle)}
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                {sanitizeUnipileText(activeCampaign.triggerDescription)}
+                {sanitizeUnipileText(activeCampaign.triggerDescription).replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")}
               </p>
             </div>
           </div>
