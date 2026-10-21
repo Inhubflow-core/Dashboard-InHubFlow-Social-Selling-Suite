@@ -288,22 +288,6 @@ export default function CampaignsPage() {
     }
   };
 
-  const getStepBadgeColor = (type: SocialStepType) => {
-    switch (type) {
-      case "visit":
-        return "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800";
-      case "like_comment":
-        return "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800";
-      case "connect":
-      case "connect_message":
-        return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
-      case "message_icebreaker":
-      case "message_followup":
-      case "message_value_prop":
-        return "bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border-brand-200 dark:border-brand-800";
-    }
-  };
-
   return (
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="Campañas de Social Selling (Secuencias Lineales)" />
@@ -439,14 +423,9 @@ export default function CampaignsPage() {
               <Zap className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded-md">
-                  Activador
-                </span>
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                  {sanitizeUnipileText(activeCampaign.triggerTitle)}
-                </h4>
-              </div>
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                {sanitizeUnipileText(activeCampaign.triggerTitle)}
+              </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                 {sanitizeUnipileText(activeCampaign.triggerDescription)}
               </p>
@@ -609,36 +588,15 @@ export default function CampaignsPage() {
                       {getStepIcon(step.type)}
                     </div>
 
-                    {/* Contenido del Paso: Título, Badge y Descripción (Sin vista previa de mensajes) */}
+                    {/* Contenido del Paso: Título y Descripción (Limpio, sin badges ni vista previa de mensajes) */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
                           {String(idx + 1).padStart(2, "0")}.
                         </span>
                         <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                           {sanitizeUnipileText(step.title)}
                         </h4>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${getStepBadgeColor(
-                            step.type
-                          )}`}
-                        >
-                          {step.type.replace(/_/g, " ").toUpperCase()}
-                        </span>
-                        {step.isInheritedFromMonitor && (
-                          <span className="rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
-                            Heredado de Signal Radar
-                          </span>
-                        )}
-                        {step.attachmentType && step.attachmentType !== "none" && (
-                          <span className="rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 text-[10px] font-semibold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
-                            <Paperclip className="h-2.5 w-2.5" />
-                            {step.attachmentType === "image" && "Imagen"}
-                            {step.attachmentType === "video" && "Video"}
-                            {step.attachmentType === "voice_note" && "Nota de Voz"}
-                            {step.attachmentType === "document" && "Archivo"}
-                          </span>
-                        )}
                       </div>
 
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
