@@ -82,6 +82,7 @@ export interface SequenceStepItem {
   attachmentType?: MessageAttachmentType;
   attachmentUrl?: string;
   attachmentName?: string;
+  attachmentSize?: string;
   voiceNoteDurationSec?: number;
   isInheritedFromMonitor?: boolean;
 }

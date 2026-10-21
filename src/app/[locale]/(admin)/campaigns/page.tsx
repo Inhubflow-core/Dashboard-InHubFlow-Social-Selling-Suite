@@ -45,6 +45,9 @@ import {
   Mic,
   Paperclip,
   Volume2,
+  Upload,
+  Trash2,
+  Square,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -77,6 +80,130 @@ export default function CampaignsPage() {
   const activeAccount = useMemo(() => {
     return getActiveAccountForUser(currentUser);
   }, [currentUser]);
+
+  // Referencias para carga de archivos
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Grabación de notas de voz con micrófono en vivo
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Limpiar temporizadores de grabación al desmontar
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
+  const handleUploadAttachmentFile = (e: React.ChangeEvent<HTMLInputElement>, type: MessageAttachmentType) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingStep) return;
+
+    const sizeFormatted =
+      file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.round(file.size / 1024)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      const dataUrl = loadEvent.target?.result as string;
+      setEditingStep((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          step: {
+            ...prev.step,
+            attachmentType: type,
+            attachmentName: file.name,
+            attachmentSize: sizeFormatted,
+            attachmentUrl: dataUrl,
+            attachedResource: type === "document" ? file.name : prev.step.attachedResource,
+          },
+        };
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleRemoveAttachment = () => {
+    if (!editingStep) return;
+    setEditingStep({
+      ...editingStep,
+      step: {
+        ...editingStep.step,
+        attachmentType: "none",
+        attachmentName: undefined,
+        attachmentUrl: undefined,
+        attachmentSize: undefined,
+        attachedResource: undefined,
+      },
+    });
+  };
+
+  const startVoiceRecording = async () => {
+    try {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        alert("La grabación de audio no está disponible en este navegador.");
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setEditingStep((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            step: {
+              ...prev.step,
+              attachmentType: "voice_note",
+              attachmentName: `nota-voz-${Date.now()}.webm`,
+              attachmentUrl: audioUrl,
+              voiceNoteDurationSec: Math.max(1, recordingSeconds),
+              attachmentSize: `${Math.round(audioBlob.size / 1024)} KB`,
+            },
+          };
+        });
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setIsRecordingVoice(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((s) => s + 1);
+      }, 1000);
+    } catch (err) {
+      console.warn("Error accediendo al micrófono:", err);
+      alert("No se pudo acceder al micrófono. Puedes subir un archivo de audio (.mp3, .m4a) directamente.");
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecordingVoice) {
+      mediaRecorderRef.current.stop();
+      setIsRecordingVoice(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  };
 
   // Cargar campañas y listas
   useEffect(() => {
@@ -918,6 +1045,36 @@ export default function CampaignsPage() {
 
               {/* Bloque: Selector de Contenido Adjunto y Multimedia (Imagen, Video, Notas de Voz, Archivos) */}
               <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
+                {/* Inputs de archivo ocultos nativos */}
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => handleUploadAttachmentFile(e, "image")}
+                />
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  className="hidden"
+                  onChange={(e) => handleUploadAttachmentFile(e, "video")}
+                />
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept="audio/mp3,audio/mpeg,audio/m4a,audio/wav,audio/webm,audio/ogg"
+                  className="hidden"
+                  onChange={(e) => handleUploadAttachmentFile(e, "voice_note")}
+                />
+                <input
+                  ref={documentInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                  className="hidden"
+                  onChange={(e) => handleUploadAttachmentFile(e, "document")}
+                />
+
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="text-[11px] font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -925,15 +1082,25 @@ export default function CampaignsPage() {
                       Adjuntos y Multimedia para LinkedIn
                     </label>
                     <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                      Selecciona si deseas enviar un archivo, imagen, video o nota de voz humana junto al paso.
+                      Selecciona si deseas enviar una imagen, video, nota de voz humana o archivo PDF junto al paso.
                     </p>
                   </div>
+                  {editingStep.step.attachmentType && editingStep.step.attachmentType !== "none" && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAttachment}
+                      className="text-[11px] text-red-500 hover:text-red-700 dark:text-red-400 font-semibold flex items-center gap-1 transition"
+                      title="Quitar archivo adjunto del paso"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Quitar adjunto
+                    </button>
+                  )}
                 </div>
 
-                {/* Tabs de tipo de adjunto */}
-                <div className="grid grid-cols-5 gap-1.5">
+                {/* Tabs de tipo de adjunto (4 opciones, sin "Solo Texto") */}
+                <div className="grid grid-cols-4 gap-2">
                   {[
-                    { type: "none" as MessageAttachmentType, label: "Solo Texto", icon: MessageSquare },
                     { type: "image" as MessageAttachmentType, label: "Imagen", icon: ImageIcon },
                     { type: "video" as MessageAttachmentType, label: "Video", icon: VideoIcon },
                     { type: "voice_note" as MessageAttachmentType, label: "Nota de Voz", icon: Mic },
@@ -945,37 +1112,40 @@ export default function CampaignsPage() {
                       <button
                         key={type}
                         type="button"
-                        onClick={() =>
-                          setEditingStep({
-                            ...editingStep,
-                            step: {
-                              ...editingStep.step,
-                              attachmentType: type,
-                              attachmentName:
-                                type === "image"
-                                  ? editingStep.step.attachmentName || "infografia-prospeccion.png"
-                                  : type === "video"
-                                  ? editingStep.step.attachmentName || "demo-sistema-b2b.mp4"
-                                  : type === "voice_note"
-                                  ? "nota-de-voz-personalizada.m4a"
-                                  : type === "document"
-                                  ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
-                                  : undefined,
-                              attachedResource:
-                                type === "document"
-                                  ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
-                                  : undefined,
-                            },
-                          })
-                        }
-                        className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition gap-1 ${
+                        onClick={() => {
+                          if (active) {
+                            handleRemoveAttachment();
+                          } else {
+                            setEditingStep({
+                              ...editingStep,
+                              step: {
+                                ...editingStep.step,
+                                attachmentType: type,
+                                attachmentName:
+                                  editingStep.step.attachmentName ||
+                                  (type === "image"
+                                    ? "infografia-prospeccion.png"
+                                    : type === "video"
+                                    ? "demo-sistema-b2b.mp4"
+                                    : type === "voice_note"
+                                    ? "nota-de-voz-personalizada.m4a"
+                                    : "Framework-Prospeccion-B2B-InHubFlow.pdf"),
+                                attachedResource:
+                                  type === "document"
+                                    ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
+                                    : undefined,
+                              },
+                            });
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition gap-1.5 ${
                           active
-                            ? "bg-brand-500 text-white border-brand-500 shadow-2xs font-semibold"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            ? "bg-brand-500 text-white border-brand-500 shadow-2xs font-semibold ring-2 ring-brand-500/20"
+                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-brand-300 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                         }`}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span className="text-[10px] leading-tight">{label}</span>
+                        <span className="text-xs font-medium">{label}</span>
                       </button>
                     );
                   })}
@@ -984,22 +1154,48 @@ export default function CampaignsPage() {
                 {/* Subpanel interactivo según la opción seleccionada */}
                 {/* 1. Imagen */}
                 {editingStep.step.attachmentType === "image" && (
-                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                      Archivo de Imagen o Enlace
-                    </label>
+                  <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                        Cargar Imagen o Enlace
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Explorar archivo
+                      </button>
+                    </div>
+
+                    {/* Botón de carga principal estilo dropzone */}
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                    >
+                      <Upload className="h-4 w-4 text-brand-500" />
+                      Haz clic para subir una imagen (PNG, JPG, WEBP)
+                    </button>
+
                     <input
                       type="text"
-                      value={editingStep.step.attachmentName || ""}
+                      value={editingStep.step.attachmentUrl || editingStep.step.attachmentName || ""}
                       onChange={(e) =>
                         setEditingStep({
                           ...editingStep,
-                          step: { ...editingStep.step, attachmentName: e.target.value },
+                          step: {
+                            ...editingStep.step,
+                            attachmentName: e.target.value,
+                            attachmentUrl: e.target.value,
+                          },
                         })
                       }
-                      placeholder="ej: infografia-prospeccion-b2b.png"
+                      placeholder="O pega una URL: https://ejemplo.com/infografia.png"
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
+
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-gray-400">Presets sugeridos:</span>
                       {["infografia-prospeccion.png", "grafico-resultados-3x.jpg", "framework-visual.png"].map((img) => (
@@ -1009,7 +1205,12 @@ export default function CampaignsPage() {
                           onClick={() =>
                             setEditingStep({
                               ...editingStep,
-                              step: { ...editingStep.step, attachmentName: img },
+                              step: {
+                                ...editingStep.step,
+                                attachmentName: img,
+                                attachmentUrl: undefined,
+                                attachmentSize: "1.2 MB",
+                              },
                             })
                           }
                           className="text-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
@@ -1020,17 +1221,46 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de imagen */}
-                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 shrink-0">
-                        <ImageIcon className="h-6 w-6" />
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {editingStep.step.attachmentUrl &&
+                        (editingStep.step.attachmentUrl.startsWith("data:image") ||
+                          editingStep.step.attachmentUrl.startsWith("http")) ? (
+                          <img
+                            src={editingStep.step.attachmentUrl}
+                            alt="Previsualización"
+                            className="h-12 w-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shrink-0"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-lg bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 shrink-0">
+                            <ImageIcon className="h-6 w-6" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                            {editingStep.step.attachmentName || "infografia-prospeccion.png"}
+                          </div>
+                          <div className="text-[10px] text-gray-400">
+                            {editingStep.step.attachmentSize || "Imagen PNG / JPG"} para entrega en LinkedIn DM.
+                          </div>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                          {editingStep.step.attachmentName || "infografia-prospeccion.png"}
-                        </div>
-                        <div className="text-[10px] text-gray-400">
-                          Imagen PNG / JPG adjunta al mensaje directo en LinkedIn.
-                        </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                        >
+                          Cambiar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveAttachment}
+                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          title="Eliminar imagen"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1038,10 +1268,30 @@ export default function CampaignsPage() {
 
                 {/* 2. Video */}
                 {editingStep.step.attachmentType === "video" && (
-                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                      Enlace de Video o Archivo MP4
-                    </label>
+                  <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                        Cargar Video o Enlace (Loom / MP4)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => videoInputRef.current?.click()}
+                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Explorar archivo
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => videoInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                    >
+                      <Upload className="h-4 w-4 text-brand-500" />
+                      Haz clic para subir un video MP4, WebM o MOV
+                    </button>
+
                     <input
                       type="text"
                       value={editingStep.step.attachmentUrl || editingStep.step.attachmentName || ""}
@@ -1055,25 +1305,44 @@ export default function CampaignsPage() {
                           },
                         })
                       }
-                      placeholder="https://loom.com/share/demo-prospeccion o video-demo.mp4"
+                      placeholder="O pega un enlace: https://loom.com/share/... o https://youtube.com/..."
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
 
                     {/* Previsualización visual de Video */}
-                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
-                      <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
-                        <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
-                        <span className="absolute bottom-1 right-1 text-[8px] bg-black/80 px-1 rounded text-white font-mono">
-                          01:30
-                        </span>
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
+                          <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
+                          <span className="absolute bottom-1 right-1 text-[8px] bg-black/80 px-1 rounded text-white font-mono">
+                            01:30
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                            {editingStep.step.attachmentName || "demo-sistema-b2b.mp4"}
+                          </div>
+                          <div className="text-[10px] text-gray-400">
+                            {editingStep.step.attachmentSize || "Video MP4"} interactivo para LinkedIn.
+                          </div>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                          {editingStep.step.attachmentName || "Video Demo Personalizado"}
-                        </div>
-                        <div className="text-[10px] text-gray-400">
-                          Video explicativo embebido en la bandeja de entrada de LinkedIn.
-                        </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => videoInputRef.current?.click()}
+                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                        >
+                          Cambiar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveAttachment}
+                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          title="Eliminar video"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1084,8 +1353,52 @@ export default function CampaignsPage() {
                   <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                        Duración Estimada del Mensaje de Voz
+                        Grabación o Archivo de Audio
                       </label>
+                      <button
+                        type="button"
+                        onClick={() => audioInputRef.current?.click()}
+                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Subir archivo .mp3/.m4a
+                      </button>
+                    </div>
+
+                    {/* Barra de Grabación en Vivo con Micrófono */}
+                    <div className="flex items-center gap-2">
+                      {isRecordingVoice ? (
+                        <button
+                          type="button"
+                          onClick={stopVoiceRecording}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition animate-pulse"
+                        >
+                          <Square className="h-3.5 w-3.5 fill-white" />
+                          Detener Grabación (00:{String(recordingSeconds).padStart(2, "0")})
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={startVoiceRecording}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-xs transition"
+                        >
+                          <Mic className="h-4 w-4" />
+                          Grabar Nota de Voz con Micrófono
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => audioInputRef.current?.click()}
+                        className="flex items-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                      >
+                        <Upload className="h-3.5 w-3.5 text-brand-500" />
+                        Subir Audio
+                      </button>
+                    </div>
+
+                    {/* Presets de duración estimada */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] text-gray-400">Duración estimada:</span>
                       <div className="flex items-center gap-1">
                         {[15, 30, 45, 60].map((sec) => (
                           <button
@@ -1094,7 +1407,11 @@ export default function CampaignsPage() {
                             onClick={() =>
                               setEditingStep({
                                 ...editingStep,
-                                step: { ...editingStep.step, voiceNoteDurationSec: sec },
+                                step: {
+                                  ...editingStep.step,
+                                  voiceNoteDurationSec: sec,
+                                  attachmentName: `nota-voz-${sec}s.m4a`,
+                                },
                               })
                             }
                             className={`text-[10px] px-2 py-0.5 rounded font-semibold transition ${
@@ -1133,25 +1450,50 @@ export default function CampaignsPage() {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                           <span>0:00 / 0:{editingStep.step.voiceNoteDurationSec || 45}</span>
-                          <span className="font-semibold text-brand-600 dark:text-brand-400">
-                            Nota de Voz Humana
+                          <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[150px]">
+                            {editingStep.step.attachmentName || "Nota de Voz Humana"}
                           </span>
                         </div>
                       </div>
-                    </div>
 
-                    <p className="text-[10px] text-gray-400 italic">
-                      Las notas de voz en LinkedIn DM alcanzan una tasa de respuesta hasta 3 veces mayor gracias a su tono conversacional auténtico.
-                    </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveAttachment}
+                        className="p-1 text-gray-400 hover:text-red-500 rounded"
+                        title="Eliminar nota de voz"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 {/* 4. Archivo / PDF */}
                 {editingStep.step.attachmentType === "document" && (
-                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                      Nombre del Archivo Adjunto (Lead Magnet / PDF)
-                    </label>
+                  <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                        Cargar Documento o PDF (Lead Magnet)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => documentInputRef.current?.click()}
+                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Explorar archivo
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => documentInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                    >
+                      <Upload className="h-4 w-4 text-brand-500" />
+                      Haz clic para subir un PDF o recurso descargable
+                    </button>
+
                     <input
                       type="text"
                       value={editingStep.step.attachedResource || editingStep.step.attachmentName || ""}
@@ -1165,7 +1507,7 @@ export default function CampaignsPage() {
                           },
                         })
                       }
-                      placeholder="Framework-Prospeccion-B2B-InHubFlow.pdf"
+                      placeholder="O escribe el nombre: Framework-Prospeccion-B2B-InHubFlow.pdf"
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
 
@@ -1186,6 +1528,7 @@ export default function CampaignsPage() {
                                 ...editingStep.step,
                                 attachedResource: doc,
                                 attachmentName: doc,
+                                attachmentSize: "2.8 MB",
                               },
                             })
                           }
@@ -1197,17 +1540,36 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de documento */}
-                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-                        <FileText className="h-5 w-5" />
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="h-10 w-10 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                            {editingStep.step.attachedResource || editingStep.step.attachmentName || "Framework-Prospeccion-B2B-InHubFlow.pdf"}
+                          </div>
+                          <div className="text-[10px] text-gray-400">
+                            {editingStep.step.attachmentSize || "Documento PDF"} listo para entrega automática al prospecto.
+                          </div>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                          {editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"}
-                        </div>
-                        <div className="text-[10px] text-gray-400">
-                          Documento PDF listo para entrega automática al prospecto.
-                        </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => documentInputRef.current?.click()}
+                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                        >
+                          Cambiar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveAttachment}
+                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          title="Eliminar archivo"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
