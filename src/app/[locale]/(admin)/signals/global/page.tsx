@@ -759,9 +759,9 @@ export default function GlobalSignalsPage() {
 
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: Publicaciones Virales & Tendencias" />
+      <PageBreadcrumb pageTitle="Signal Radar - Nivel 04: Posts Globales en LinkedIn (Top Voices & Tendencias)" />
 
-      {/* Métricas del Nivel 3 - Opción B */}
+      {/* Métricas del Nivel 4 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -783,7 +783,7 @@ export default function GlobalSignalsPage() {
             {totalGlobalLeads} Prospectos
           </p>
           <span className="text-xs text-emerald-600 font-semibold dark:text-emerald-400">
-            Intención Alta 🥇 Comentaristas (90 pts) y Reposts (80 pts)
+            Intención Alta: Comentaristas (90 pts) y Reposts (80 pts)
           </span>
         </div>
 
@@ -800,11 +800,11 @@ export default function GlobalSignalsPage() {
         </div>
       </div>
 
-      {/* Explicación de la Estrategia (Nivel 3) */}
+      {/* Explicación de la Estrategia (Nivel 4) */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
         <div>
           <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
-            Mecánica de Prospección por Tendencias y Debate Viral (Nivel 3)
+            Mecánica de Prospección por Tendencias y Debate Viral (Nivel 4)
           </h4>
           <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
             Rastrea las publicaciones con mayor tracción, debate y volumen de comentarios de todo LinkedIn sobre los problemas que tu solución resuelve. Filtra solo publicaciones con alto debate para prospectar decisores calientes que participan activamente en tu mercado.

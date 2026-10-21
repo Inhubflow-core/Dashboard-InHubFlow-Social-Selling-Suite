@@ -1,4 +1,4 @@
-export type SignalLevel = "level_1" | "level_2" | "level_3";
+export type SignalLevel = "level_1" | "level_2" | "level_3" | "level_4";
 export type IntentLevel = "very_high" | "medium_high" | "medium";
 export type ConnectionDegree = "1st" | "2nd" | "3rd";
 export type MonitorStatus = "active" | "paused" | "completed" | "pending_publish";
@@ -26,6 +26,7 @@ export interface SignalLeadItem {
   sourcePostUrl?: string;
   sourceAuthorName?: string;
   sourceAuthorUrl?: string;
+  sourceGroupName?: string;
 }
 
 export interface Level1Monitor {
@@ -81,10 +82,28 @@ export interface Level2CompetitorMonitor {
   lastScannedPosts?: ScannedCompetitorPost[];
 }
 
-
-export interface Level3GlobalMonitor {
+export interface Level3GroupMonitor {
   id: string;
-  searchQuery: string; // ej. "Pedro Valladolid 🚀" o "Ventas B2B"
+  groupName: string;
+  groupUrl: string;
+  logoUrl?: string;
+  topicsFilter: string[]; // ej. ["Prospección B2B", "Outbound", "Ventas"]
+  status: MonitorStatus;
+  interactionTypes: ("comments" | "likes")[];
+  minCommentThreshold?: number;
+  batchLeadLimit?: 25 | 50 | 100;
+  outreachTemplate: string; // "Hola {{first_name}}, vi tu comentario en el debate del grupo {{group_name}} sobre {{topic}}..."
+  leadsIdentifiedCount: number;
+  lastScanAt: string;
+  lastScanAtIso?: string;
+  scanFrequency?: "daily" | "weekly" | "manual";
+  createdAt: string;
+  lastScannedPosts?: ScannedCompetitorPost[];
+}
+
+export interface Level4GlobalMonitor {
+  id: string;
+  searchQuery: string; // ej. "Pedro Valladolid" o "Ventas B2B"
   leaderName?: string; // Nombre del Top Voice o Referente
   leaderUrl?: string; // URL oficial al perfil de LinkedIn (/in/...)
   leaderAvatarUrl?: string; // Foto real de perfil de LinkedIn
@@ -116,6 +135,9 @@ export interface Level3GlobalMonitor {
     scannedAt?: string;
   }>;
 }
+
+// Alias de compatibilidad retrocompatible
+export type Level3GlobalMonitor = Level4GlobalMonitor;
 
 /**
  * Calcula la puntuación oficial de prospección B2B y Social Selling (0 a 100):

@@ -310,7 +310,65 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
       }
     }
 
-    // 2. Sincronizar monitores N3 existentes desde inhubflow_signals_l3
+    // 2. Sincronizar monitores N3 de Grupos existentes desde inhubflow_signals_l3_groups
+    const rawL3Groups = localStorage.getItem("inhubflow_signals_l3_groups");
+    const l3GroupsMap = new Map<string, any>();
+    if (rawL3Groups) {
+      try {
+        const l3Groups = JSON.parse(rawL3Groups);
+        if (Array.isArray(l3Groups)) {
+          for (const mon of l3Groups) {
+            if (!mon || !mon.groupName) continue;
+            l3GroupsMap.set(mon.id, mon);
+            const targetGroup = mon.groupName.trim().toLowerCase();
+            let existingList = currentLists.find(
+              (l) =>
+                l.sourceMonitorId === mon.id ||
+                l.id === `list-sig-n3-group-${mon.id}` ||
+                (l.groupName && l.groupName.trim().toLowerCase() === targetGroup) ||
+                l.name.toLowerCase() === targetGroup ||
+                l.name.toLowerCase().startsWith(`[signal n3] ${targetGroup}`)
+            );
+            if (!existingList) {
+              existingList = {
+                id: `list-sig-n3-group-${mon.id}`,
+                name: mon.groupName,
+                description: `Lista inteligente auto-alimentada por debates y comentarios en el grupo de LinkedIn "${mon.groupName}".`,
+                signalSource: `Grupo de LinkedIn (${mon.groupName})`,
+                signalLevel: "level_3",
+                leadsCount: mon.leadsIdentifiedCount || 0,
+                assignedCampaign: "Secuencia de Social Selling",
+                createdAt: mon.createdAt || new Date().toISOString(),
+                groupName: mon.groupName,
+                keywords: mon.topicsFilter,
+                sourceMonitorId: mon.id,
+              };
+              currentLists = [existingList, ...currentLists];
+              modified = true;
+            } else {
+              let listUpdated = false;
+              if (!existingList.sourceMonitorId) {
+                existingList.sourceMonitorId = mon.id;
+                listUpdated = true;
+              }
+              if (!existingList.groupName) {
+                existingList.groupName = mon.groupName;
+                listUpdated = true;
+              }
+              if (existingList.signalLevel !== "level_3") {
+                existingList.signalLevel = "level_3";
+                listUpdated = true;
+              }
+              if (listUpdated) modified = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error sincronizando monitores L3 Grupos:", e);
+      }
+    }
+
+    // 3. Sincronizar monitores N4 Globales existentes desde inhubflow_signals_l3
     const rawL3 = localStorage.getItem("inhubflow_signals_l3");
     if (rawL3) {
       try {
@@ -322,19 +380,22 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
             let existingList = currentLists.find(
               (l) =>
                 l.sourceMonitorId === mon.id ||
+                l.id === `list-sig-n4-${mon.id}` ||
+                l.id === `list-sig-n3-${mon.id}` ||
                 l.name.toLowerCase() === targetQuery ||
-                l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
+                l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`) ||
+                l.name.toLowerCase().startsWith(`[signal n4] ${targetQuery.slice(0, 32)}`)
             );
             if (!existingList) {
               const locLabel = mon.targetCountryFlag && mon.targetCountryName 
                 ? `${mon.targetCountryFlag} ${mon.targetCountryName}` 
                 : mon.targetCountryName || "Global";
               existingList = {
-                id: `list-sig-n3-${mon.id}`,
+                id: `list-sig-n4-${mon.id}`,
                 name: mon.searchQuery,
                 description: `Lista inteligente auto-alimentada por publicaciones e interacciones globales en LinkedIn sobre "${mon.searchQuery}" (${locLabel}).`,
                 signalSource: `Interacciones Globales (${mon.searchQuery})`,
-                signalLevel: "level_3",
+                signalLevel: "level_4",
                 leadsCount: mon.leadsIdentifiedCount || 0,
                 assignedCampaign: "Secuencia de Social Selling",
                 createdAt: mon.createdAt || new Date().toISOString(),
@@ -343,15 +404,18 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
               };
               currentLists = [existingList, ...currentLists];
               modified = true;
-            } else if (!existingList.sourceMonitorId || /^\[signal\s*n3\]/i.test(existingList.name)) {
+            } else if (!existingList.sourceMonitorId || /^\[signal\s*n[34]\]/i.test(existingList.name)) {
               existingList.name = mon.searchQuery;
               existingList.sourceMonitorId = mon.id;
+              if (existingList.signalLevel === "level_3" && !existingList.groupName) {
+                existingList.signalLevel = "level_4";
+              }
               modified = true;
             }
           }
         }
       } catch (e) {
-        console.error("Error sincronizando monitores L3:", e);
+        console.error("Error sincronizando monitores Globales:", e);
       }
     }
 
@@ -423,6 +487,18 @@ export function syncSignalLeadsToCrm(): { leads: Lead360Item[]; lists: LeadListG
                 monitorId: sLead.monitorId || `mon-l1-${Date.now()}`,
                 postTitle: matchedMon?.postTitle || sLead.sourcePostTitle || "Publicación Lead Magnet",
                 keyword: matchedMon?.keyword || "SISTEMA",
+              });
+              currentLists = getStoredLeadLists();
+              modified = true;
+            }
+
+            // Si es un lead de N3 Grupos y targetList no existe aún:
+            if (!targetList && (sLead.signalLevel === "level_3" || sLead.sourceGroupName || sLead.monitorId?.includes("group"))) {
+              const groupName = sLead.sourceGroupName || (sLead.monitorId && l3GroupsMap.get(sLead.monitorId)?.groupName) || "Grupo de LinkedIn";
+              targetList = getOrCreateGroupMonitorList({
+                monitorId: sLead.monitorId || `mon-l3-group-${Date.now()}`,
+                groupName,
+                topics: ["Social Selling"],
               });
               currentLists = getStoredLeadLists();
               modified = true;
@@ -695,6 +771,19 @@ export function useLeadsStore() {
     return list;
   }, []);
 
+  const getOrCreateGroupList = useCallback((params: {
+    monitorId: string;
+    groupName: string;
+    topics?: string[];
+  }) => {
+    const prevLists = getStoredLeadLists();
+    const list = getOrCreateGroupMonitorList(params);
+    if (!prevLists.some((l) => l.id === list.id)) {
+      setLists(getStoredLeadLists());
+    }
+    return list;
+  }, []);
+
   return {
     leads,
     lists,
@@ -709,6 +798,7 @@ export function useLeadsStore() {
     getOrCreateList,
     getOrCreateGlobalList,
     getOrCreateLevel1List,
+    getOrCreateGroupList,
   };
 }
 
@@ -874,6 +964,43 @@ export function getOrCreateMonitorList(params: {
   return newList;
 }
 
+export function getOrCreateGroupMonitorList(params: {
+  monitorId: string;
+  groupName: string;
+  topics?: string[];
+}): LeadListGroup {
+  const currentLists = getStoredLeadLists();
+  const targetGroup = params.groupName.trim().toLowerCase();
+  const existing = currentLists.find(
+    (l) =>
+      l.sourceMonitorId === params.monitorId ||
+      l.id === `list-sig-n3-group-${params.monitorId}` ||
+      (l.groupName && l.groupName.trim().toLowerCase() === targetGroup) ||
+      l.name.toLowerCase() === targetGroup
+  );
+  if (existing) return existing;
+
+  const newList: LeadListGroup = {
+    id: `list-sig-n3-group-${params.monitorId}`,
+    name: params.groupName,
+    description: `Lista inteligente auto-alimentada por debates y comentarios en el grupo de LinkedIn "${params.groupName}".`,
+    signalSource: `Grupo de LinkedIn (${params.groupName})`,
+    signalLevel: "level_3",
+    leadsCount: 0,
+    assignedCampaign: "Secuencia de Social Selling",
+    createdAt: new Date().toISOString(),
+    groupName: params.groupName,
+    keywords: params.topics,
+    sourceMonitorId: params.monitorId,
+  };
+
+  const updatedLists = [newList, ...currentLists];
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+  }
+  return newList;
+}
+
 export function getOrCreateGlobalMonitorList(params: {
   monitorId: string;
   searchQuery: string;
@@ -886,8 +1013,11 @@ export function getOrCreateGlobalMonitorList(params: {
   const existing = currentLists.find(
     (l) =>
       l.sourceMonitorId === params.monitorId ||
+      l.id === `list-sig-n4-${params.monitorId}` ||
+      l.id === `list-sig-n3-${params.monitorId}` ||
       l.name.toLowerCase() === targetQuery ||
-      l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
+      l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`) ||
+      l.name.toLowerCase().startsWith(`[signal n4] ${targetQuery.slice(0, 32)}`)
   );
   if (existing) return existing;
 
@@ -895,11 +1025,11 @@ export function getOrCreateGlobalMonitorList(params: {
     ? `${params.countryFlag} ${params.countryName}` 
     : params.countryName || "Global";
   const newList: LeadListGroup = {
-    id: `list-sig-n3-${params.monitorId}`,
+    id: `list-sig-n4-${params.monitorId}`,
     name: params.searchQuery,
     description: `Lista inteligente auto-alimentada por publicaciones e interacciones globales en LinkedIn sobre "${params.searchQuery}" (${locLabel}).`,
     signalSource: `Interacciones Globales (${params.searchQuery})`,
-    signalLevel: "level_3",
+    signalLevel: "level_4",
     leadsCount: 0,
     assignedCampaign: "Secuencia de Social Selling",
     createdAt: new Date().toISOString(),

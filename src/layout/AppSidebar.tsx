@@ -69,6 +69,7 @@ const navItems: NavItem[] = [
     subItems: [
       { key: "myPosts", path: "/signals/my-posts" },
       { key: "competitorPosts", path: "/signals/competitors" },
+      { key: "groupPosts", path: "/signals/groups" },
       { key: "globalPosts", path: "/signals/global" },
     ],
   },

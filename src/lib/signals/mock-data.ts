@@ -1,6 +1,8 @@
 import type {
   Level1Monitor,
   Level2CompetitorMonitor,
+  Level3GroupMonitor,
+  Level4GlobalMonitor,
   Level3GlobalMonitor,
   ScannedCompetitorPost,
   SignalLeadItem,
@@ -20,7 +22,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
   {
     id: "7516527180680564736",
     url: "https://www.linkedin.com/posts/claudiacuri-prospeccion_20-lugares-cierro-el-lunes-19-ayer-activity-7516527180680564736-TrWo?utm_source=social_share_send&utm_medium=member_desktop_web",
-    text: "🔥 20 LUGARES. CIERRO EL LUNES 19. 🔥 Ayer dije que buscaba 20 empresas B2B. Hoy te digo exactamente qué pasa si levantas la mano...",
+    text: "20 LUGARES. CIERRO EL LUNES 19. Ayer dije que buscaba 20 empresas B2B. Hoy te digo exactamente qué pasa si levantas la mano...",
     authorName: "Claudia Curi",
     reactionsCount: 0,
     commentsCount: 1,
@@ -30,7 +32,7 @@ export const claudiaCuriRealPosts: ScannedCompetitorPost[] = [
   {
     id: "7516263543676276736",
     url: "https://www.linkedin.com/posts/claudiacuri-prospeccion_estoy-buscando-20-empresas-b2b-que-activity-7516263543676276736-bFYA?utm_source=social_share_send&utm_medium=member_desktop_web",
-    text: "🔥 ESTOY BUSCANDO 20 EMPRESAS B2B 🔥 Que quieran convertir LinkedIn en un sistema real de prospección. No busco conseguirte likes. Ni seguidores...",
+    text: "ESTOY BUSCANDO 20 EMPRESAS B2B Que quieran convertir LinkedIn en un sistema real de prospección. No busco conseguirte likes. Ni seguidores...",
     authorName: "Claudia Curi",
     reactionsCount: 12,
     commentsCount: 8,
@@ -265,7 +267,7 @@ export const initialLevel3Monitors: Level3GlobalMonitor[] = [
     nicheTopic: "Prospección B2B & Social Selling",
     targetCountry: "ES",
     targetCountryName: "España",
-    targetCountryFlag: "🇪🇸",
+    targetCountryFlag: "",
     status: "active",
     minPostReactions: 15,
     interactionTypes: ["comments", "likes"],
@@ -283,7 +285,7 @@ export const initialLevel3Monitors: Level3GlobalMonitor[] = [
     nicheTopic: "Agentes IA & Automatización Comercial",
     targetCountry: "latam",
     targetCountryName: "LATAM / Hispanoamérica",
-    targetCountryFlag: "🌎",
+    targetCountryFlag: "",
     status: "active",
     minPostReactions: 20,
     interactionTypes: ["comments", "likes"],
@@ -317,4 +319,90 @@ export const initialLevel3Monitors: Level3GlobalMonitor[] = [
     ],
   },
 ];
+
+export const groupB2bSalesPosts: ScannedCompetitorPost[] = [
+  {
+    id: "group-post-7519102938102938101",
+    url: "https://www.linkedin.com/groups/7123984/",
+    text: "Debate abierto: ¿Cuál es el mayor cuello de botella que encuentran sus SDRs al prospectar en frío por LinkedIn en 2026? ¿Baja tasa de aceptación o falta de respuesta al primer mensaje?",
+    authorName: "Carlos Méndez (Growth Lead)",
+    reactionsCount: 42,
+    commentsCount: 19,
+    repostsCount: 4,
+    scannedAt: "16:20",
+  },
+  {
+    id: "group-post-7519102938102938102",
+    url: "https://www.linkedin.com/groups/7123984/",
+    text: "Comparto nuestro framework de 3 toques relacionales antes de pedir demo. Pasamos de un 3% a un 27% de conversión en cuentas enterprise sin quemar el dominio.",
+    authorName: "Elena Salgado (VP Sales)",
+    reactionsCount: 68,
+    commentsCount: 23,
+    repostsCount: 7,
+    scannedAt: "16:20",
+  },
+];
+
+export const groupSaasFoundersPosts: ScannedCompetitorPost[] = [
+  {
+    id: "group-post-7519203948203948201",
+    url: "https://www.linkedin.com/groups/8234910/",
+    text: "Pregunta para CEOs y Founders B2B: ¿Cómo estructuran su cuota comercial para que el equipo no dependa únicamente de inbound en mercados maduros?",
+    authorName: "Javier Arismendi (Founder & CEO)",
+    reactionsCount: 51,
+    commentsCount: 14,
+    repostsCount: 5,
+    scannedAt: "14:10",
+  },
+  {
+    id: "group-post-7519203948203948202",
+    url: "https://www.linkedin.com/groups/8234910/",
+    text: "La transición de Social Selling a Pipeline predecible: Lo que aprendimos tras 6 meses monitoreando señales de compra en LinkedIn en lugar de automatizar spam masivo.",
+    authorName: "Marcos Varela (Head of Revenue)",
+    reactionsCount: 37,
+    commentsCount: 15,
+    repostsCount: 3,
+    scannedAt: "14:10",
+  },
+];
+
+export const initialLevel3GroupMonitors: Level3GroupMonitor[] = [
+  {
+    id: "mon-l3-group-b2b-sales",
+    groupName: "B2B Sales & Prospección Outbound",
+    groupUrl: "https://www.linkedin.com/groups/7123984/",
+    topicsFilter: ["Prospección en frío", "Outbound B2B", "Cierre de ventas"],
+    status: "active",
+    interactionTypes: ["comments", "likes"],
+    minCommentThreshold: 5,
+    batchLeadLimit: 50,
+    outreachTemplate: "Hola {{first_name}}, vi tu aportación en el debate del grupo B2B Sales & Prospección Outbound sobre {{topic}} y coincidí totalmente con tu punto de vista...",
+    leadsIdentifiedCount: 42,
+    lastScanAt: "16:20",
+    lastScanAtIso: "2026-10-21T16:20:00.000Z",
+    scanFrequency: "daily",
+    createdAt: "2026-10-18T10:00:00.000Z",
+    lastScannedPosts: groupB2bSalesPosts,
+  },
+  {
+    id: "mon-l3-group-saas-founders",
+    groupName: "Directores Comerciales y CEOs - SaaS & Tecnología",
+    groupUrl: "https://www.linkedin.com/groups/8234910/",
+    topicsFilter: ["Generación de demanda", "Social Selling", "Pipeline comercial"],
+    status: "active",
+    interactionTypes: ["comments", "likes"],
+    minCommentThreshold: 8,
+    batchLeadLimit: 50,
+    outreachTemplate: "Hola {{first_name}}, estuve leyendo tus comentarios en el grupo Directores Comerciales sobre {{topic}}. Quería conectar contigo por aquí.",
+    leadsIdentifiedCount: 29,
+    lastScanAt: "14:10",
+    lastScanAtIso: "2026-10-21T14:10:00.000Z",
+    scanFrequency: "daily",
+    createdAt: "2026-10-19T09:30:00.000Z",
+    lastScannedPosts: groupSaasFoundersPosts,
+  },
+];
+
+export const initialLevel4GlobalMonitors: Level4GlobalMonitor[] = initialLevel3Monitors;
+
 export const initialDiscoveredLeads: SignalLeadItem[] = [];

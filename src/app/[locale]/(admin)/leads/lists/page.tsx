@@ -50,7 +50,7 @@ export default function SignalListsPage() {
   const [newListName, setNewListName] = useState("");
   const [newListDesc, setNewListDesc] = useState("");
   const [newSignalSource, setNewSignalSource] = useState("Post SISTEMA");
-  const [newSignalLevel, setNewSignalLevel] = useState<"level_1" | "level_2" | "level_3">("level_1");
+  const [newSignalLevel, setNewSignalLevel] = useState<"level_1" | "level_2" | "level_3" | "level_4">("level_1");
   const [newAssignedCampaign, setNewAssignedCampaign] = useState("Secuencia Lead Magnet Automatizada (Nivel 1)");
 
   const handleCreateList = (e: React.FormEvent) => {
@@ -175,12 +175,13 @@ export default function SignalListsPage() {
                 </label>
                 <select
                   value={newSignalLevel}
-                  onChange={(e) => setNewSignalLevel(e.target.value as "level_1" | "level_2" | "level_3")}
+                  onChange={(e) => setNewSignalLevel(e.target.value as "level_1" | "level_2" | "level_3" | "level_4")}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 >
                   <option value="level_1">Nivel 1: Mis Posts (Lead Magnet)</option>
                   <option value="level_2">Nivel 2: Posts de la Competencia</option>
-                  <option value="level_3">Nivel 3: LinkedIn Global</option>
+                  <option value="level_3">Nivel 3: Grupos de LinkedIn</option>
+                  <option value="level_4">Nivel 4: LinkedIn Global</option>
                 </select>
               </div>
             </div>
@@ -249,6 +250,8 @@ export default function SignalListsPage() {
                             ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                             : list.signalLevel === "level_2"
                             ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                            : list.signalLevel === "level_3"
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                             : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
                         }`}
                       >
@@ -256,7 +259,9 @@ export default function SignalListsPage() {
                           ? "Nivel 1: Mis Posts"
                           : list.signalLevel === "level_2"
                           ? "Nivel 2: Competencia"
-                          : "Nivel 3: Global"}
+                          : list.signalLevel === "level_3"
+                          ? "Nivel 3: Grupos"
+                          : "Nivel 4: Global"}
                       </span>
 
                       {isHighlighted && (
@@ -267,7 +272,8 @@ export default function SignalListsPage() {
 
                       <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                         {list.competitorName?.trim() ||
-                          list.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim()}
+                          list.groupName?.trim() ||
+                          list.name.replace(/^\[signal\s*n[1-4]\]\s*/i, "").split(" • ")[0].trim()}
                       </h4>
                     </div>
 
@@ -291,6 +297,15 @@ export default function SignalListsPage() {
                           <span className="text-gray-400 text-[11px]">Competidor:</span>
                           <span className="font-bold text-purple-700 dark:text-purple-300">
                             {list.competitorName}
+                          </span>
+                        </div>
+                      )}
+
+                      {list.groupName && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-gray-400 text-[11px]">Grupo:</span>
+                          <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                            {list.groupName}
                           </span>
                         </div>
                       )}

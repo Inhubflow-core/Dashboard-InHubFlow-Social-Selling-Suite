@@ -31,7 +31,7 @@ export interface Lead360Item {
   linkedinUrl: string;
   avatarUrl?: string;
   signalSource: string;
-  signalLevel: "level_1" | "level_2" | "level_3";
+  signalLevel: "level_1" | "level_2" | "level_3" | "level_4";
   intentScore: number; // 0 a 100
   stage: CrmStage;
   sequenceStatus: SequenceStatus;
@@ -49,11 +49,12 @@ export interface LeadListGroup {
   name: string;
   description: string;
   signalSource: string;
-  signalLevel: "level_1" | "level_2" | "level_3";
+  signalLevel: "level_1" | "level_2" | "level_3" | "level_4";
   leadsCount: number;
   assignedCampaign: string;
   createdAt: string;
   competitorName?: string;
+  groupName?: string;
   keywords?: string[];
   sourceMonitorId?: string;
 }

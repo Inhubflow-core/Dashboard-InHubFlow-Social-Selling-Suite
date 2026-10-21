@@ -9,10 +9,14 @@ import {
   initialLevel1Monitors,
   initialLevel2Monitors,
   initialLevel3Monitors,
+  initialLevel3GroupMonitors,
+  initialLevel4GlobalMonitors,
 } from "./mock-data";
 import type {
   Level1Monitor,
   Level2CompetitorMonitor,
+  Level3GroupMonitor,
+  Level4GlobalMonitor,
   Level3GlobalMonitor,
   SignalLeadItem,
 } from "./types";
@@ -21,7 +25,9 @@ import { isAuthorEmployeeOrAffiliate } from "./employee-filter";
 const L1_KEY = "inhubflow_signals_l1";
 const L1_DELETED_KEY = "inhubflow_signals_l1_deleted";
 const L2_KEY = "inhubflow_signals_l2";
+const L3_GROUPS_KEY = "inhubflow_signals_l3_groups";
 const L3_KEY = "inhubflow_signals_l3";
+const L4_KEY = "inhubflow_signals_l3";
 const LEADS_KEY = "inhubflow_signals_leads";
 
 export function getLevel1MonitorKey(m: Level1Monitor): string {
@@ -242,6 +248,47 @@ export function saveStoredLevel2Monitors(monitors: Level2CompetitorMonitor[]): v
   } catch {}
 }
 
+export function getStoredLevel3GroupMonitors(): Level3GroupMonitor[] {
+  if (typeof window === "undefined") return initialLevel3GroupMonitors;
+  try {
+    const raw = localStorage.getItem(L3_GROUPS_KEY);
+    if (!raw) {
+      if (initialLevel3GroupMonitors.length > 0) {
+        localStorage.setItem(L3_GROUPS_KEY, JSON.stringify(initialLevel3GroupMonitors));
+      }
+      return initialLevel3GroupMonitors;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      if (initialLevel3GroupMonitors.length > 0) {
+        localStorage.setItem(L3_GROUPS_KEY, JSON.stringify(initialLevel3GroupMonitors));
+      }
+      return initialLevel3GroupMonitors;
+    }
+
+    const monitors = parsed
+      .filter((m: Level3GroupMonitor) => Boolean(m && m.id && m.groupName))
+      .map((m: Level3GroupMonitor) => {
+        let updated = { ...m };
+        if (updated.scanFrequency !== "daily") {
+          updated.scanFrequency = "daily" as const;
+        }
+        return updated;
+      });
+
+    return monitors;
+  } catch {
+    return initialLevel3GroupMonitors;
+  }
+}
+
+export function saveStoredLevel3GroupMonitors(monitors: Level3GroupMonitor[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(L3_GROUPS_KEY, JSON.stringify(monitors));
+  } catch {}
+}
+
 export function getStoredLevel3Monitors(): Level3GlobalMonitor[] {
   if (typeof window === "undefined") return initialLevel3Monitors;
   try {
@@ -342,6 +389,9 @@ export function saveStoredLevel3Monitors(monitors: Level3GlobalMonitor[]): void 
     localStorage.setItem(L3_KEY, JSON.stringify(monitors));
   } catch {}
 }
+
+export const getStoredLevel4GlobalMonitors = getStoredLevel3Monitors;
+export const saveStoredLevel4GlobalMonitors = saveStoredLevel3Monitors;
 
 export function getStoredSignalLeads(): SignalLeadItem[] {
   if (typeof window === "undefined") return initialDiscoveredLeads;
@@ -484,14 +534,16 @@ export function addMultipleStoredSignalLeads(newLeads: SignalLeadItem[]): Signal
 export function useSignalRadar() {
   const [l1Monitors, setL1Monitors] = useState<Level1Monitor[]>([]);
   const [l2Monitors, setL2Monitors] = useState<Level2CompetitorMonitor[]>([]);
-  const [l3Monitors, setL3Monitors] = useState<Level3GlobalMonitor[]>([]);
+  const [l3GroupMonitors, setL3GroupMonitors] = useState<Level3GroupMonitor[]>([]);
+  const [l4GlobalMonitors, setL4GlobalMonitors] = useState<Level4GlobalMonitor[]>([]);
   const [leads, setLeads] = useState<SignalLeadItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setL1Monitors(getStoredLevel1Monitors());
     setL2Monitors(getStoredLevel2Monitors());
-    setL3Monitors(getStoredLevel3Monitors());
+    setL3GroupMonitors(getStoredLevel3GroupMonitors());
+    setL4GlobalMonitors(getStoredLevel4GlobalMonitors());
     setLeads(getStoredSignalLeads());
     setIsLoaded(true);
   }, []);
@@ -554,31 +606,65 @@ export function useSignalRadar() {
     saveStoredLevel2Monitors(updated);
   };
 
-  const addLevel3Monitor = (monitor: Level3GlobalMonitor) => {
-    const updated = [monitor, ...l3Monitors];
-    setL3Monitors(updated);
-    saveStoredLevel3Monitors(updated);
+  // --- Nivel 3: Grupos de LinkedIn ---
+  const addLevel3GroupMonitor = (monitor: Level3GroupMonitor) => {
+    const updated = [monitor, ...l3GroupMonitors];
+    setL3GroupMonitors(updated);
+    saveStoredLevel3GroupMonitors(updated);
   };
 
-  const updateLevel3Monitor = (id: string, updates: Partial<Level3GlobalMonitor>) => {
-    const updated = l3Monitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
-    setL3Monitors(updated);
-    saveStoredLevel3Monitors(updated);
+  const updateLevel3GroupMonitor = (id: string, updates: Partial<Level3GroupMonitor>) => {
+    const updated = l3GroupMonitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    setL3GroupMonitors(updated);
+    saveStoredLevel3GroupMonitors(updated);
   };
 
-  const deleteLevel3Monitor = (id: string) => {
-    const updated = l3Monitors.filter((m) => m.id !== id);
-    setL3Monitors(updated);
-    saveStoredLevel3Monitors(updated);
+  const deleteLevel3GroupMonitor = (id: string) => {
+    const updated = l3GroupMonitors.filter((m) => m.id !== id);
+    setL3GroupMonitors(updated);
+    saveStoredLevel3GroupMonitors(updated);
   };
 
-  const toggleLevel3Status = (id: string) => {
-    const updated = l3Monitors.map((m) =>
+  const toggleLevel3GroupStatus = (id: string) => {
+    const updated = l3GroupMonitors.map((m) =>
       m.id === id ? { ...m, status: m.status === "active" ? ("paused" as const) : ("active" as const) } : m
     );
-    setL3Monitors(updated);
-    saveStoredLevel3Monitors(updated);
+    setL3GroupMonitors(updated);
+    saveStoredLevel3GroupMonitors(updated);
   };
+
+  // --- Nivel 4: Posts Globales en LinkedIn ---
+  const addLevel4GlobalMonitor = (monitor: Level4GlobalMonitor) => {
+    const updated = [monitor, ...l4GlobalMonitors];
+    setL4GlobalMonitors(updated);
+    saveStoredLevel4GlobalMonitors(updated);
+  };
+
+  const updateLevel4GlobalMonitor = (id: string, updates: Partial<Level4GlobalMonitor>) => {
+    const updated = l4GlobalMonitors.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    setL4GlobalMonitors(updated);
+    saveStoredLevel4GlobalMonitors(updated);
+  };
+
+  const deleteLevel4GlobalMonitor = (id: string) => {
+    const updated = l4GlobalMonitors.filter((m) => m.id !== id);
+    setL4GlobalMonitors(updated);
+    saveStoredLevel4GlobalMonitors(updated);
+  };
+
+  const toggleLevel4GlobalStatus = (id: string) => {
+    const updated = l4GlobalMonitors.map((m) =>
+      m.id === id ? { ...m, status: m.status === "active" ? ("paused" as const) : ("active" as const) } : m
+    );
+    setL4GlobalMonitors(updated);
+    saveStoredLevel4GlobalMonitors(updated);
+  };
+
+  // Alias retrocompatibles
+  const addLevel3Monitor = addLevel4GlobalMonitor;
+  const updateLevel3Monitor = updateLevel4GlobalMonitor;
+  const deleteLevel3Monitor = deleteLevel4GlobalMonitor;
+  const toggleLevel3Status = toggleLevel4GlobalStatus;
 
   const recordDiscoveredLeads = (newLeads: SignalLeadItem[]) => {
     const added = addMultipleStoredSignalLeads(newLeads);
@@ -616,7 +702,10 @@ export function useSignalRadar() {
   return {
     l1Monitors,
     l2Monitors,
-    l3Monitors,
+    l3GroupMonitors,
+    l4GlobalMonitors,
+    l4Monitors: l4GlobalMonitors,
+    l3Monitors: l4GlobalMonitors, // alias retrocompatible
     leads,
     isLoaded,
     addLevel1Monitor,
@@ -627,6 +716,14 @@ export function useSignalRadar() {
     updateLevel2Monitor,
     deleteLevel2Monitor,
     toggleLevel2Status,
+    addLevel3GroupMonitor,
+    updateLevel3GroupMonitor,
+    deleteLevel3GroupMonitor,
+    toggleLevel3GroupStatus,
+    addLevel4GlobalMonitor,
+    updateLevel4GlobalMonitor,
+    deleteLevel4GlobalMonitor,
+    toggleLevel4GlobalStatus,
     addLevel3Monitor,
     updateLevel3Monitor,
     deleteLevel3Monitor,
