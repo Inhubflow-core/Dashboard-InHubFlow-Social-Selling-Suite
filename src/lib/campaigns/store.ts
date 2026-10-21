@@ -101,6 +101,8 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     isInheritedFromMonitor: true,
     messageTemplate: "Hola {{first_name}}, aquí tienes el material que te ofrecí sobre el sistema de prospección B2B: {{attached_resource}}. Espero que te sea de gran utilidad.",
     attachedResource: "Framework-Prospeccion-B2B-InHubFlow.pdf",
+    attachmentType: "document",
+    attachmentName: "Framework-Prospeccion-B2B-InHubFlow.pdf",
   },
   {
     id: "step-magnet-03",

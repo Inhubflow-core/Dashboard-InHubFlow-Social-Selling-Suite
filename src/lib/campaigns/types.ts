@@ -65,6 +65,8 @@ export type SocialStepType =
   | "message_followup"
   | "message_value_prop";
 
+export type MessageAttachmentType = "none" | "image" | "video" | "voice_note" | "document";
+
 export interface SequenceStepItem {
   id: string;
   order: number;
@@ -77,6 +79,10 @@ export interface SequenceStepItem {
   commentTemplate?: string;
   useAiComment?: boolean;
   attachedResource?: string;
+  attachmentType?: MessageAttachmentType;
+  attachmentUrl?: string;
+  attachmentName?: string;
+  voiceNoteDurationSec?: number;
   isInheritedFromMonitor?: boolean;
 }
 

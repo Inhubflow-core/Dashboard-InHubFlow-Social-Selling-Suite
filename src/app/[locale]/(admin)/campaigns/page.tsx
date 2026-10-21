@@ -12,6 +12,7 @@ import type {
   LinearSequenceCampaign,
   SequenceStepItem,
   SocialStepType,
+  MessageAttachmentType,
 } from "@/lib/campaigns/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
 import { getStoredLeadLists } from "@/lib/leads/store";
@@ -37,6 +38,11 @@ import {
   FileText,
   ChevronDown,
   Terminal,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Mic,
+  Paperclip,
+  Volume2,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -595,7 +601,7 @@ export default function CampaignsPage() {
                 </div>
               )}
 
-              {/* Card del Paso */}
+              {/* Card del Paso (Limpia y Compacta: Solo Título, Badge, Descripción y Botones Cuadraditos) */}
               <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs hover:border-gray-300 dark:hover:border-gray-700 transition">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -604,7 +610,7 @@ export default function CampaignsPage() {
                       {getStepIcon(step.type)}
                     </div>
 
-                    {/* Contenido del Paso */}
+                    {/* Contenido del Paso: Título, Badge y Descripción (Sin vista previa de mensajes) */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
@@ -614,15 +620,24 @@ export default function CampaignsPage() {
                           {step.title}
                         </h4>
                         <span
-                          className={`rounded-full px-2 py-0.2 text-[10px] font-bold border ${getStepBadgeColor(
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${getStepBadgeColor(
                             step.type
                           )}`}
                         >
                           {step.type.replace(/_/g, " ").toUpperCase()}
                         </span>
                         {step.isInheritedFromMonitor && (
-                          <span className="rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.2 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                          <span className="rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
                             Heredado de Signal Radar
+                          </span>
+                        )}
+                        {step.attachmentType && step.attachmentType !== "none" && (
+                          <span className="rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 text-[10px] font-semibold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                            <Paperclip className="h-2.5 w-2.5" />
+                            {step.attachmentType === "image" && "Imagen"}
+                            {step.attachmentType === "video" && "Video"}
+                            {step.attachmentType === "voice_note" && "Nota de Voz"}
+                            {step.attachmentType === "document" && "Archivo"}
                           </span>
                         )}
                       </div>
@@ -630,29 +645,6 @@ export default function CampaignsPage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {step.description}
                       </p>
-
-                      {/* Preview de Mensaje o Nota */}
-                      {step.messageTemplate && (
-                        <div className="mt-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/40 p-2 text-xs font-mono text-gray-700 dark:text-gray-300 line-clamp-2">
-                          {step.messageTemplate}
-                        </div>
-                      )}
-
-                      {step.connectNote && (
-                        <div className="mt-2.5 rounded-lg border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-2 text-xs font-mono text-emerald-800 dark:text-emerald-300 line-clamp-2">
-                          <span className="font-bold font-sans text-[10px] uppercase text-emerald-600 block mb-0.5">
-                            Nota de Invitación:
-                          </span>
-                          {step.connectNote}
-                        </div>
-                      )}
-
-                      {step.attachedResource && (
-                        <div className="mt-2 flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 font-semibold">
-                          <FileText className="h-3.5 w-3.5" />
-                          <span>Adjunto: {step.attachedResource}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -697,48 +689,117 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* Modal de Edición de Paso */}
+      {/* Modal de Edición Completo: Mensajes, Imagen, Video, Notas de Voz y Archivos Adjuntos */}
       {editingStep && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                Configurar Paso: {editingStep.step.title}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden">
+            {/* Cabecera del Modal */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                  {getStepIcon(editingStep.step.type)}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                    Configurar Paso: {editingStep.step.title}
+                  </h3>
+                  <p className="text-[11px] text-gray-400">
+                    Edita el contenido del mensaje, notas, archivos y parámetros de ejecución.
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setEditingStep(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold"
+                className="h-7 w-7 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3">
+            {/* Contenido Scrolleable del Modal */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+              {/* Bloque: Información General */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                    Título del Paso
+                  </label>
+                  <input
+                    type="text"
+                    value={editingStep.step.title}
+                    onChange={(e) =>
+                      setEditingStep({
+                        ...editingStep,
+                        step: { ...editingStep.step, title: e.target.value },
+                      })
+                    }
+                    className="h-9 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                    Retardo Previo (Días de Espera)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={editingStep.step.delayDaysBefore}
+                      onChange={(e) =>
+                        setEditingStep({
+                          ...editingStep,
+                          step: {
+                            ...editingStep.step,
+                            delayDaysBefore: Math.max(0, parseInt(e.target.value) || 0),
+                          },
+                        })
+                      }
+                      className="h-9 w-24 rounded-lg border border-gray-300 px-3 text-xs text-center dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
+                    />
+                    <span className="text-xs text-gray-500">
+                      {editingStep.step.delayDaysBefore === 1 ? "día tras el paso anterior" : "días tras el paso anterior"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  Nombre del Paso
+                <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                  Descripción Operativa
                 </label>
                 <input
                   type="text"
-                  value={editingStep.step.title}
+                  value={editingStep.step.description}
                   onChange={(e) =>
                     setEditingStep({
                       ...editingStep,
-                      step: { ...editingStep.step, title: e.target.value },
+                      step: { ...editingStep.step, description: e.target.value },
                     })
                   }
-                  className="h-9 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="h-9 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
                 />
               </div>
 
-              {editingStep.step.connectNote !== undefined && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    Nota de Conexión en LinkedIn
-                  </label>
+              {/* Bloque: Nota de Conexión de LinkedIn (si aplica) */}
+              {(editingStep.step.type === "connect" ||
+                editingStep.step.type === "connect_message" ||
+                editingStep.step.connectNote !== undefined) && (
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
+                      Nota de Conexión en LinkedIn (Opcional)
+                    </label>
+                    <span className="text-[10px] text-gray-400">
+                      {(editingStep.step.connectNote || "").length}/300 caracteres
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
+                    maxLength={300}
                     value={editingStep.step.connectNote || ""}
                     onChange={(e) =>
                       setEditingStep({
@@ -746,19 +807,84 @@ export default function CampaignsPage() {
                         step: { ...editingStep.step, connectNote: e.target.value },
                       })
                     }
-                    className="w-full rounded-lg border border-gray-300 p-2.5 text-xs font-mono dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante..."
+                    className="w-full rounded-lg border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-emerald-500"
                   />
-                  <span className="text-[10px] text-gray-400 mt-0.5 block">
-                    Variables: &#123;&#123;first_name&#125;&#125;, &#123;&#123;topic&#125;&#125;, &#123;&#123;keyword&#125;&#125;.
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-gray-400">Variables rápidas:</span>
+                    {["{{first_name}}", "{{company}}", "{{topic}}", "{{keyword}}"].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() =>
+                          setEditingStep({
+                            ...editingStep,
+                            step: {
+                              ...editingStep.step,
+                              connectNote: `${editingStep.step.connectNote || ""} ${tag}`.trim(),
+                            },
+                          })
+                        }
+                        className="text-[10px] bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono hover:bg-emerald-50 transition"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {editingStep.step.messageTemplate !== undefined && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    Plantilla de Mensaje Directo (DM)
-                  </label>
+              {/* Bloque: Comentario en Publicación (si aplica) */}
+              {editingStep.step.type === "like_comment" && (
+                <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/20 dark:bg-purple-950/10 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <ThumbsUp className="h-3.5 w-3.5 text-purple-600" />
+                      Plantilla de Comentario en Post
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[10px] font-semibold text-purple-700 dark:text-purple-300">
+                      <input
+                        type="checkbox"
+                        checked={editingStep.step.useAiComment ?? true}
+                        onChange={(e) =>
+                          setEditingStep({
+                            ...editingStep,
+                            step: { ...editingStep.step, useAiComment: e.target.checked },
+                          })
+                        }
+                        className="rounded text-purple-600 focus:ring-0"
+                      />
+                      <span>Generar comentario contextualizado con IA</span>
+                    </label>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={editingStep.step.commentTemplate || ""}
+                    onChange={(e) =>
+                      setEditingStep({
+                        ...editingStep,
+                        step: { ...editingStep.step, commentTemplate: e.target.value },
+                      })
+                    }
+                    placeholder="Gran perspectiva {{first_name}}, totalmente de acuerdo con tu punto..."
+                    className="w-full rounded-lg border border-purple-200 dark:border-purple-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              )}
+
+              {/* Bloque: Mensaje Directo DM (si aplica) */}
+              {(editingStep.step.type.startsWith("message") ||
+                editingStep.step.messageTemplate !== undefined) && (
+                <div className="rounded-xl border border-brand-200 dark:border-brand-900/50 bg-brand-50/20 dark:bg-brand-950/10 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-brand-800 dark:text-brand-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Send className="h-3.5 w-3.5 text-brand-600" />
+                      Plantilla de Mensaje Directo (DM)
+                    </label>
+                    <span className="text-[10px] text-gray-400">
+                      {(editingStep.step.messageTemplate || "").length} caracteres
+                    </span>
+                  </div>
                   <textarea
                     rows={4}
                     value={editingStep.step.messageTemplate || ""}
@@ -768,11 +894,19 @@ export default function CampaignsPage() {
                         step: { ...editingStep.step, messageTemplate: e.target.value },
                       })
                     }
-                    className="w-full rounded-lg border border-gray-300 p-2.5 text-xs font-mono dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="Hola {{first_name}}, vi tu aportación..."
+                    className="w-full rounded-lg border border-brand-200 dark:border-brand-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-brand-500"
                   />
-                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                    <span className="text-[10px] text-gray-400">Insertar variable:</span>
-                    {["{{first_name}}", "{{company}}", "{{topic}}", "{{author_name}}"].map((tag) => (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-gray-400">Variables dinámicas:</span>
+                    {[
+                      "{{first_name}}",
+                      "{{company}}",
+                      "{{topic}}",
+                      "{{author_name}}",
+                      "{{keyword}}",
+                      "{{attached_resource}}",
+                    ].map((tag) => (
                       <button
                         key={tag}
                         type="button"
@@ -781,11 +915,11 @@ export default function CampaignsPage() {
                             ...editingStep,
                             step: {
                               ...editingStep.step,
-                              messageTemplate: `${editingStep.step.messageTemplate || ""} ${tag}`,
+                              messageTemplate: `${editingStep.step.messageTemplate || ""} ${tag}`.trim(),
                             },
                           })
                         }
-                        className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded font-mono hover:bg-gray-200"
+                        className="text-[10px] bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded font-mono hover:bg-brand-50 transition"
                       >
                         {tag}
                       </button>
@@ -794,27 +928,307 @@ export default function CampaignsPage() {
                 </div>
               )}
 
-              {editingStep.step.attachedResource !== undefined && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    Archivo o Recurso Adjunto
-                  </label>
-                  <input
-                    type="text"
-                    value={editingStep.step.attachedResource || ""}
-                    onChange={(e) =>
-                      setEditingStep({
-                        ...editingStep,
-                        step: { ...editingStep.step, attachedResource: e.target.value },
-                      })
-                    }
-                    className="h-9 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
+              {/* Bloque: Selector de Contenido Adjunto y Multimedia (Imagen, Video, Notas de Voz, Archivos) */}
+              <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Paperclip className="h-3.5 w-3.5 text-brand-500" />
+                      Adjuntos y Multimedia para LinkedIn
+                    </label>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Selecciona si deseas enviar un archivo, imagen, video o nota de voz humana junto al paso.
+                    </p>
+                  </div>
                 </div>
-              )}
+
+                {/* Tabs de tipo de adjunto */}
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    { type: "none" as MessageAttachmentType, label: "Solo Texto", icon: MessageSquare },
+                    { type: "image" as MessageAttachmentType, label: "Imagen", icon: ImageIcon },
+                    { type: "video" as MessageAttachmentType, label: "Video", icon: VideoIcon },
+                    { type: "voice_note" as MessageAttachmentType, label: "Nota de Voz", icon: Mic },
+                    { type: "document" as MessageAttachmentType, label: "Archivo / PDF", icon: FileText },
+                  ].map(({ type, label, icon: Icon }) => {
+                    const currentType = editingStep.step.attachmentType || (editingStep.step.attachedResource ? "document" : "none");
+                    const active = currentType === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() =>
+                          setEditingStep({
+                            ...editingStep,
+                            step: {
+                              ...editingStep.step,
+                              attachmentType: type,
+                              attachmentName:
+                                type === "image"
+                                  ? editingStep.step.attachmentName || "infografia-prospeccion.png"
+                                  : type === "video"
+                                  ? editingStep.step.attachmentName || "demo-sistema-b2b.mp4"
+                                  : type === "voice_note"
+                                  ? "nota-de-voz-personalizada.m4a"
+                                  : type === "document"
+                                  ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
+                                  : undefined,
+                              attachedResource:
+                                type === "document"
+                                  ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
+                                  : undefined,
+                            },
+                          })
+                        }
+                        className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition gap-1 ${
+                          active
+                            ? "bg-brand-500 text-white border-brand-500 shadow-2xs font-semibold"
+                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="text-[10px] leading-tight">{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Subpanel interactivo según la opción seleccionada */}
+                {/* 1. Imagen */}
+                {editingStep.step.attachmentType === "image" && (
+                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      Archivo de Imagen o Enlace
+                    </label>
+                    <input
+                      type="text"
+                      value={editingStep.step.attachmentName || ""}
+                      onChange={(e) =>
+                        setEditingStep({
+                          ...editingStep,
+                          step: { ...editingStep.step, attachmentName: e.target.value },
+                        })
+                      }
+                      placeholder="ej: infografia-prospeccion-b2b.png"
+                      className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-gray-400">Presets sugeridos:</span>
+                      {["infografia-prospeccion.png", "grafico-resultados-3x.jpg", "framework-visual.png"].map((img) => (
+                        <button
+                          key={img}
+                          type="button"
+                          onClick={() =>
+                            setEditingStep({
+                              ...editingStep,
+                              step: { ...editingStep.step, attachmentName: img },
+                            })
+                          }
+                          className="text-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                        >
+                          {img}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Previsualización visual de imagen */}
+                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-lg bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 shrink-0">
+                        <ImageIcon className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          {editingStep.step.attachmentName || "infografia-prospeccion.png"}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          Imagen PNG / JPG adjunta al mensaje directo en LinkedIn.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Video */}
+                {editingStep.step.attachmentType === "video" && (
+                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      Enlace de Video o Archivo MP4
+                    </label>
+                    <input
+                      type="text"
+                      value={editingStep.step.attachmentUrl || editingStep.step.attachmentName || ""}
+                      onChange={(e) =>
+                        setEditingStep({
+                          ...editingStep,
+                          step: {
+                            ...editingStep.step,
+                            attachmentUrl: e.target.value,
+                            attachmentName: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="https://loom.com/share/demo-prospeccion o video-demo.mp4"
+                      className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    />
+
+                    {/* Previsualización visual de Video */}
+                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
+                      <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
+                        <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
+                        <span className="absolute bottom-1 right-1 text-[8px] bg-black/80 px-1 rounded text-white font-mono">
+                          01:30
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          {editingStep.step.attachmentName || "Video Demo Personalizado"}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          Video explicativo embebido en la bandeja de entrada de LinkedIn.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Nota de Voz */}
+                {editingStep.step.attachmentType === "voice_note" && (
+                  <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                        Duración Estimada del Mensaje de Voz
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {[15, 30, 45, 60].map((sec) => (
+                          <button
+                            key={sec}
+                            type="button"
+                            onClick={() =>
+                              setEditingStep({
+                                ...editingStep,
+                                step: { ...editingStep.step, voiceNoteDurationSec: sec },
+                              })
+                            }
+                            className={`text-[10px] px-2 py-0.5 rounded font-semibold transition ${
+                              (editingStep.step.voiceNoteDurationSec || 45) === sec
+                                ? "bg-brand-500 text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                            }`}
+                          >
+                            {sec}s
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Reproductor de Nota de Voz Simulado estilo LinkedIn DM */}
+                    <div className="rounded-xl border border-brand-200 dark:border-brand-900/60 bg-gradient-to-r from-brand-50/50 via-white to-brand-50/30 dark:from-brand-950/30 dark:via-gray-800 dark:to-brand-950/20 p-3 flex items-center gap-3 shadow-2xs">
+                      <button
+                        type="button"
+                        className="h-10 w-10 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs hover:bg-brand-600 transition"
+                      >
+                        <Play className="h-4 w-4 fill-white translate-x-0.5" />
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        {/* Simulación de Ondas de Sonido de LinkedIn */}
+                        <div className="flex items-center gap-1 h-6">
+                          {[3, 7, 12, 18, 22, 15, 20, 24, 18, 10, 14, 22, 16, 8, 12, 18, 15, 6, 12, 19, 23, 14, 8, 4].map(
+                            (height, i) => (
+                              <div
+                                key={i}
+                                style={{ height: `${height}px` }}
+                                className="w-1 rounded-full bg-brand-500/70 dark:bg-brand-400"
+                              />
+                            )
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                          <span>0:00 / 0:{editingStep.step.voiceNoteDurationSec || 45}</span>
+                          <span className="font-semibold text-brand-600 dark:text-brand-400">
+                            Nota de Voz Humana
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-gray-400 italic">
+                      Las notas de voz en LinkedIn DM alcanzan una tasa de respuesta hasta 3 veces mayor gracias a su tono conversacional auténtico.
+                    </p>
+                  </div>
+                )}
+
+                {/* 4. Archivo / PDF */}
+                {editingStep.step.attachmentType === "document" && (
+                  <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      Nombre del Archivo Adjunto (Lead Magnet / PDF)
+                    </label>
+                    <input
+                      type="text"
+                      value={editingStep.step.attachedResource || editingStep.step.attachmentName || ""}
+                      onChange={(e) =>
+                        setEditingStep({
+                          ...editingStep,
+                          step: {
+                            ...editingStep.step,
+                            attachedResource: e.target.value,
+                            attachmentName: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Framework-Prospeccion-B2B-InHubFlow.pdf"
+                      className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    />
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-gray-400">Presets de Lead Magnet:</span>
+                      {[
+                        "Framework-Prospeccion-B2B-InHubFlow.pdf",
+                        "Playbook-Secuencias-LinkedIn-2026.pdf",
+                        "Plantilla-Social-Selling-SISTEMA.pdf",
+                      ].map((doc) => (
+                        <button
+                          key={doc}
+                          type="button"
+                          onClick={() =>
+                            setEditingStep({
+                              ...editingStep,
+                              step: {
+                                ...editingStep.step,
+                                attachedResource: doc,
+                                attachmentName: doc,
+                              },
+                            })
+                          }
+                          className="text-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                        >
+                          {doc}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Previsualización visual de documento */}
+                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          {editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          Documento PDF listo para entrega automática al prospecto.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            {/* Pie del Modal */}
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 shrink-0">
               <button
                 type="button"
                 onClick={() => setEditingStep(null)}
@@ -825,7 +1239,7 @@ export default function CampaignsPage() {
               <button
                 type="button"
                 onClick={() => handleSaveStepModal(editingStep.step)}
-                className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+                className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
               >
                 Guardar Cambios
               </button>
