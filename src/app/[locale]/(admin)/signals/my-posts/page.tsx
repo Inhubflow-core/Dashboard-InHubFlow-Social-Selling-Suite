@@ -586,7 +586,7 @@ export default function MyPostsSignalRadarPage() {
                   <>
                     <div className="h-10 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/80 px-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
                       <div className="flex items-center gap-1.5 truncate">
-                        <span className="font-bold">⏳ Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
+                        <span className="font-bold">Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
                         {selectedCreatedPost?.scheduledAt && (
                           <span className="text-[11px] text-amber-700 dark:text-amber-300 truncate">
                             • {new Date(selectedCreatedPost.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
@@ -665,7 +665,7 @@ export default function MyPostsSignalRadarPage() {
                 />
                 <div>
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
-                    ⚡ Dar Like automático al comentario del lead
+                    Dar Like automático al comentario del lead
                   </span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
                     Aumenta el algoritmo orgánico de tu post y confirma al usuario que su comentario ha sido recibido.
@@ -684,7 +684,7 @@ export default function MyPostsSignalRadarPage() {
                   rows={3}
                   value={newPublicReply}
                   onChange={(e) => setNewPublicReply(e.target.value)}
-                  placeholder="¡Hola {name}, te lo acabo de enviar por mensaje privado! Revisa tu bandeja 🚀"
+                  placeholder="¡Hola {name}, te lo acabo de enviar por mensaje privado! Revisa tu bandeja"
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-[10px] text-gray-400 mt-1 block">

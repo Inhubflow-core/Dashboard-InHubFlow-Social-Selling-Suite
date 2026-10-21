@@ -1007,7 +1007,7 @@ export default function GlobalSignalsPage() {
                 />
                 <div>
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
-                    🛡️ Descartar engagement de colaboradores del autor
+                    Descartar engagement de colaboradores del autor
                   </span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
                     Filtra comentarios y reacciones de empleados de la misma empresa para extraer únicamente clientes potenciales externos.

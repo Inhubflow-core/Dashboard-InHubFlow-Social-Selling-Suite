@@ -894,7 +894,7 @@ export default function CompetitorsSignalRadarPage() {
               {/* Tarjeta 1: Tipo de Interacciones a Monitorear */}
               <div className="flex flex-col justify-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
-                  🎯 Tipo de Interacciones a Capturar
+                  Tipo de Interacciones a Capturar
                 </span>
                 <div className="flex items-center gap-5">
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -929,7 +929,7 @@ export default function CompetitorsSignalRadarPage() {
                   />
                   <div>
                     <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
-                      🛡️ Descartar engagement de colaboradores del autor
+                      Descartar engagement de colaboradores del autor
                     </span>
                     <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
                       Descarta interacciones de empleados del competidor para extraer clientes potenciales reales.
