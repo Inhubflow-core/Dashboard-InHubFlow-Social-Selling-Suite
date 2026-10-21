@@ -19,9 +19,89 @@ import type {
 import { isAuthorEmployeeOrAffiliate } from "./employee-filter";
 
 const L1_KEY = "inhubflow_signals_l1";
+const L1_DELETED_KEY = "inhubflow_signals_l1_deleted";
 const L2_KEY = "inhubflow_signals_l2";
 const L3_KEY = "inhubflow_signals_l3";
 const LEADS_KEY = "inhubflow_signals_leads";
+
+export function getLevel1MonitorKey(m: Level1Monitor): string {
+  const idMatch = m.postUrl?.match(/([0-9]{16,25})/);
+  if (idMatch && idMatch[1]) {
+    return `li_id::${idMatch[1]}`;
+  }
+  if (m.originPostId) {
+    return `origin::${m.originPostId}`;
+  }
+  if (m.postUrl && m.postUrl.startsWith("http")) {
+    const cleanUrl = m.postUrl.split("?")[0].replace(/\/$/, "").toLowerCase();
+    return `url::${cleanUrl}`;
+  }
+  if (m.postTitle) {
+    const cleanTitle = m.postTitle.trim().toLowerCase().slice(0, 40);
+    return `title::${cleanTitle}`;
+  }
+  return m.id;
+}
+
+export function getDeletedLevel1MonitorKeys(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(L1_DELETED_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function recordDeletedLevel1Monitor(m: Level1Monitor | string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const keys = getDeletedLevel1MonitorKeys();
+    const idToAdd = typeof m === "string" ? m : m.id;
+    const additionalKey = typeof m === "object" ? getLevel1MonitorKey(m) : null;
+    const next = Array.from(new Set([...keys, idToAdd, additionalKey].filter(Boolean))) as string[];
+    localStorage.setItem(L1_DELETED_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+export function deduplicateLevel1Monitors(monitorsList: Level1Monitor[]): Level1Monitor[] {
+  const map = new Map<string, Level1Monitor>();
+
+  for (const mon of monitorsList) {
+    if (!mon || !mon.postTitle) continue;
+    const key = getLevel1MonitorKey(mon);
+
+    if (!map.has(key)) {
+      map.set(key, mon);
+    } else {
+      const existing = map.get(key)!;
+      const merged: Level1Monitor = {
+        ...existing,
+        id: existing.id.startsWith("mon-l1-roberto")
+          ? existing.id
+          : mon.id.startsWith("mon-l1-roberto")
+          ? mon.id
+          : existing.id,
+        postUrl: existing.postUrl && existing.postUrl.startsWith("http") ? existing.postUrl : mon.postUrl,
+        scannedCommentsCount: Math.max(existing.scannedCommentsCount || 0, mon.scannedCommentsCount || 0),
+        leadsCapturedCount: Math.max(existing.leadsCapturedCount || 0, mon.leadsCapturedCount || 0),
+        autoLikeComment: existing.autoLikeComment || mon.autoLikeComment,
+        publicReplyTemplate: existing.publicReplyTemplate || mon.publicReplyTemplate,
+        nonConnectedNoteTemplate: existing.nonConnectedNoteTemplate || mon.nonConnectedNoteTemplate,
+        attachedPdfName: existing.attachedPdfName || mon.attachedPdfName,
+        originPostId: existing.originPostId || mon.originPostId,
+        lastScanAt:
+          existing.lastScanAt && existing.lastScanAt !== "Recién creado"
+            ? existing.lastScanAt
+            : mon.lastScanAt,
+        lastScanAtIso: existing.lastScanAtIso || mon.lastScanAtIso,
+      };
+      map.set(key, merged);
+    }
+  }
+
+  return Array.from(map.values());
+}
 
 export function getStoredLevel1Monitors(): Level1Monitor[] {
   if (typeof window === "undefined") return initialLevel1Monitors;
@@ -41,10 +121,15 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
       return initialLevel1Monitors;
     }
     let hadModifications = false;
-    const monitors = parsed
+    const deletedKeys = new Set(getDeletedLevel1MonitorKeys());
+
+    // 1. Filtrar monitores inválidos, falsos o eliminados explícitamente
+    const filtered = parsed
       .filter(
         (m: Level1Monitor) =>
           Boolean(m && m.id && m.postTitle) &&
+          !deletedKeys.has(m.id) &&
+          !deletedKeys.has(getLevel1MonitorKey(m)) &&
           m.id !== "mon-l1-roberto-sistema" &&
           m.id !== "mon-l1-roberto-prospeccion" &&
           !m.postUrl?.includes("7419089920785190912") &&
@@ -60,21 +145,28 @@ export function getStoredLevel1Monitors(): Level1Monitor[] {
         return m;
       });
 
-    if (monitors.length !== parsed.length) {
+    // 2. Deduplicar estrictamente por publicación
+    const deduplicated = deduplicateLevel1Monitors(filtered);
+    if (deduplicated.length !== parsed.length) {
       hadModifications = true;
     }
 
+    // 3. Incorporar de initialLevel1Monitors solo si no existe ya un monitor para esa publicación Y no fue eliminado
     for (const initMon of initialLevel1Monitors) {
-      if (!monitors.some((m) => m.id === initMon.id)) {
-        monitors.push(initMon);
-        hadModifications = true;
+      const initKey = getLevel1MonitorKey(initMon);
+      if (!deletedKeys.has(initMon.id) && !deletedKeys.has(initKey)) {
+        const alreadyExists = deduplicated.some((m) => getLevel1MonitorKey(m) === initKey);
+        if (!alreadyExists) {
+          deduplicated.push(initMon);
+          hadModifications = true;
+        }
       }
     }
 
     if (hadModifications) {
-      localStorage.setItem(L1_KEY, JSON.stringify(monitors));
+      localStorage.setItem(L1_KEY, JSON.stringify(deduplicated));
     }
-    return monitors;
+    return deduplicated;
   } catch {
     return initialLevel1Monitors;
   }
@@ -417,6 +509,12 @@ export function useSignalRadar() {
   };
 
   const deleteLevel1Monitor = (id: string) => {
+    const toDelete = l1Monitors.find((m) => m.id === id);
+    if (toDelete) {
+      recordDeletedLevel1Monitor(toDelete);
+    } else {
+      recordDeletedLevel1Monitor(id);
+    }
     const updated = l1Monitors.filter((m) => m.id !== id);
     setL1Monitors(updated);
     saveStoredLevel1Monitors(updated);
