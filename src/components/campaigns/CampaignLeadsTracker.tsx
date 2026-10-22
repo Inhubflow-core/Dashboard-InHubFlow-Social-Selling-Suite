@@ -102,12 +102,6 @@ interface CampaignLeadsTrackerProps {
   leadLists: LeadListGroup[];
   allLeads: Lead360Item[];
   activeAccount: ConnectedLinkedInAccount | null;
-  onSelectLeadForTestBench?: (lead: {
-    fullName: string;
-    linkedinUrl: string;
-    company: string;
-    connectionDegree: "1st" | "2nd";
-  }) => void;
   onLogGenerated?: (log: CampaignExecutionLog) => void;
 }
 
@@ -116,7 +110,6 @@ export function CampaignLeadsTracker({
   leadLists,
   allLeads,
   activeAccount,
-  onSelectLeadForTestBench,
   onLogGenerated,
 }: CampaignLeadsTrackerProps) {
   const [leadsTracker, setLeadsTracker] = useState<LeadCampaignTrackerItem[]>([]);

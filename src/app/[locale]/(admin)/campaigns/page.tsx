@@ -1221,10 +1221,6 @@ export default function CampaignsPage() {
           leadLists={leadLists}
           allLeads={allLeads}
           activeAccount={activeAccount}
-          onSelectLeadForTestBench={(lead) => {
-            setFeedbackMessage(`Lead seleccionado: ${lead.fullName}`);
-            setTimeout(() => setFeedbackMessage(null), 3500);
-          }}
           onLogGenerated={(log) => {
             setRunnerLogs((prev) => [log, ...prev]);
             setLastTestResultLog(log);
