@@ -24,6 +24,9 @@ import {
   ArrowRight,
   ShieldCheck,
   UserCheck,
+  Trash2,
+  RefreshCw,
+  Users,
 } from "lucide-react";
 import type {
   LinearSequenceCampaign,
@@ -54,8 +57,27 @@ export interface LeadCampaignTrackerItem {
   language?: "es" | "pt" | "en";
 }
 
-const STORAGE_KEY = "inhubflow_campaign_leads_tracker_v1";
+const STORAGE_KEY = "inhubflow_campaign_leads_tracker_v2";
+const LEGACY_STORAGE_KEY = "inhubflow_campaign_leads_tracker_v1";
 
+// Filtros para depurar leads de ejemplo anteriores
+const FAKE_MOCK_IDS = new Set([
+  "lead-carolina-mendes",
+  "lead-carlos-aranguren",
+  "lead-mariana-rios",
+  "lead-diego-forlan",
+  "lead-sofia-valenzuela",
+]);
+
+const FAKE_NAMES = [
+  "Carolina Mendes",
+  "Carlos Aranguren",
+  "Mariana Ríos",
+  "Diego Forlán",
+  "Sofía Valenzuela",
+];
+
+// Lead real verificado de prueba
 const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
   {
     id: "lead-roberto-orse",
@@ -73,99 +95,9 @@ const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
     currentStepIndex: 2, // Paso 3: Conectar (ya visitado y comentado)
     completedStepIndices: [0, 1],
     status: "in_progress",
-    lastActionTitle: "Like + Comentario IA Gemini en post de NewSteel",
-    lastActionAt: "Hace unos momentos",
+    lastActionTitle: "Like + Comentario IA Gemini en post reciente",
+    lastActionAt: "Completado en vivo",
     language: "pt",
-  },
-  {
-    id: "lead-carolina-mendes",
-    fullName: "Dra. Carolina Mendes",
-    headline: "Directora de Operaciones & Descarbonización",
-    company: "Vale Mining S.A.",
-    linkedinUrl: "https://www.linkedin.com/in/carolina-mendes-mining",
-    listId: "list-competitors",
-    listName: "Competidores Minería & Sustentabilidad",
-    monitorName: "Monitor N2: Competidores B2B",
-    monitorType: "competitor",
-    connectionDegree: "2nd",
-    currentStepIndex: 3, // DM 01
-    completedStepIndices: [0, 1, 2],
-    status: "waiting_delay",
-    lastActionTitle: "Invitación de conexión enviada con nota",
-    lastActionAt: "Hoy, 08:30",
-    language: "pt",
-  },
-  {
-    id: "lead-carlos-aranguren",
-    fullName: "Carlos Aranguren",
-    headline: "VP of Business Development & Sales Tech",
-    company: "TechSales Solutions",
-    linkedinUrl: "https://www.linkedin.com/in/carlos-aranguren-tech",
-    listId: "list-top-voices",
-    listName: "Top Voices Prospección B2B",
-    monitorName: "Monitor N4: Top Voice Pedro Valladolid",
-    monitorType: "global",
-    connectionDegree: "1st",
-    currentStepIndex: 4, // DM 02 Follow-up
-    completedStepIndices: [0, 1, 2, 3],
-    status: "in_progress",
-    lastActionTitle: "Mensaje DM 01 'Icebreakers' enviado",
-    lastActionAt: "Ayer, 17:15",
-    language: "es",
-  },
-  {
-    id: "lead-mariana-rios",
-    fullName: "Mariana Ríos",
-    headline: "Head of Growth & Outbound Revenue",
-    company: "Fintech Growth Hub",
-    linkedinUrl: "https://www.linkedin.com/in/mariana-rios-growth",
-    listId: "list-l1-sistema",
-    listName: "Leads Captados por Signal Radar",
-    monitorName: "Signal Radar N1: Lead Magnet SISTEMA",
-    monitorType: "lead_magnet",
-    connectionDegree: "1st",
-    currentStepIndex: 6, // Completado todos los pasos
-    completedStepIndices: [0, 1, 2, 3, 4, 5],
-    status: "completed",
-    lastActionTitle: "Secuencia completa de 6 pasos finalizada",
-    lastActionAt: "Hace 2 días",
-    language: "es",
-  },
-  {
-    id: "lead-diego-forlan",
-    fullName: "Diego Forlán Silva",
-    headline: "Director General de Operaciones Logísticas",
-    company: "Logística Cono Sur",
-    linkedinUrl: "https://www.linkedin.com/in/diego-forlan-silva",
-    listId: "list-groups-b2b",
-    listName: "Grupo LinkedIn Prospección B2B",
-    monitorName: "Monitor N3: Grupos B2B Outreach",
-    monitorType: "group",
-    connectionDegree: "2nd",
-    currentStepIndex: 3,
-    completedStepIndices: [0, 1, 2, 3],
-    status: "replied",
-    lastActionTitle: "Respondió al DM 01 (Secuencia detenida por Stop on Reply)",
-    lastActionAt: "Hoy, 09:12",
-    language: "es",
-  },
-  {
-    id: "lead-sofia-valenzuela",
-    fullName: "Sofía Valenzuela",
-    headline: "Revenue Operations & CRM Strategy Lead",
-    company: "SaaS Enterprise Latam",
-    linkedinUrl: "https://www.linkedin.com/in/sofia-valenzuela-revops",
-    listId: "list-competitors",
-    listName: "Competidores Minería & Sustentabilidad",
-    monitorName: "Monitor N2: Competidores B2B",
-    monitorType: "competitor",
-    connectionDegree: "2nd",
-    currentStepIndex: 1, // En paso 2
-    completedStepIndices: [0],
-    status: "waiting_delay",
-    lastActionTitle: "Perfil visitado en LinkedIn",
-    lastActionAt: "Hoy, 07:40",
-    language: "es",
   },
 ];
 
@@ -204,36 +136,58 @@ export function CampaignLeadsTracker({
   const [executingLeadId, setExecutingLeadId] = useState<string | null>(null);
   const [rowNotice, setRowNotice] = useState<{ leadId: string; message: string; ok: boolean } | null>(null);
 
-  // Cargar estado desde localStorage fusionando con leads reales del sistema
+  // Cargar estado desde localStorage depurando datos fake y fusionando con prospectos reales
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      let initialList: LeadCampaignTrackerItem[] = [];
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        // Migrar de v1 limpiando datos fake
+        raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (raw) {
+          try {
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+          } catch {}
+        }
+      }
+
+      let loadedList: LeadCampaignTrackerItem[] = [];
       if (raw) {
-        initialList = JSON.parse(raw);
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) loadedList = parsed;
+        } catch {
+          loadedList = [];
+        }
       }
 
-      if (!Array.isArray(initialList) || initialList.length === 0) {
-        initialList = [...INITIAL_TRACKER_LEADS];
+      // Purgar rigurosamente los datos fake
+      let cleanList = loadedList.filter((item) => {
+        if (!item || !item.id) return false;
+        if (FAKE_MOCK_IDS.has(item.id)) return false;
+        if (FAKE_NAMES.some((fn) => item.fullName?.toLowerCase().includes(fn.toLowerCase()))) return false;
+        return true;
+      });
+
+      // Si la lista quedó vacía y no hay leads reales aún, inicializar con Roberto OrSe (perfil real de pruebas)
+      if (cleanList.length === 0) {
+        cleanList = [...INITIAL_TRACKER_LEADS];
       }
 
-      // Asegurar que Roberto OrSe siempre esté al tope y sincronizado con la URL correcta
-      const robertoIdx = initialList.findIndex(
-        (l) => l.fullName === "Roberto OrSe" || l.linkedinUrl.includes("robertoorse")
+      // Asegurar que Roberto OrSe tenga la URL limpia y verificada
+      const robertoIdx = cleanList.findIndex(
+        (l) => l.fullName === "Roberto OrSe" || l.linkedinUrl?.includes("robertoorse")
       );
-      if (robertoIdx === -1) {
-        initialList.unshift(INITIAL_TRACKER_LEADS[0]);
-      } else {
-        initialList[robertoIdx].linkedinUrl = "https://www.linkedin.com/in/robertoorse";
+      if (robertoIdx !== -1) {
+        cleanList[robertoIdx].linkedinUrl = "https://www.linkedin.com/in/robertoorse";
       }
 
       // Integrar leads reales de allLeads si no existen en el tracker
       for (const realLead of allLeads) {
-        const exists = initialList.find(
-          (t) => t.id === realLead.id || t.linkedinUrl === realLead.linkedinUrl
+        const exists = cleanList.find(
+          (t) => t.id === realLead.id || (realLead.linkedinUrl && t.linkedinUrl === realLead.linkedinUrl)
         );
         if (!exists && realLead.fullName) {
-          initialList.push({
+          cleanList.push({
             id: realLead.id,
             fullName: realLead.fullName,
             headline: realLead.title || `${realLead.company || "Profesional B2B"}`,
@@ -246,7 +200,7 @@ export function CampaignLeadsTracker({
             monitorType: "custom",
             connectionDegree: (realLead as any).connectionDegree || "2nd",
             currentStepIndex: realLead.sequenceStatus === "completed" ? activeCampaign.steps.length : 0,
-            completedStepIndices: realLead.sequenceStatus === "completed" ? [0, 1, 2, 3, 4, 5] : [],
+            completedStepIndices: realLead.sequenceStatus === "completed" ? activeCampaign.steps.map((_, i) => i) : [],
             status:
               realLead.sequenceStatus === "completed"
                 ? "completed"
@@ -260,7 +214,10 @@ export function CampaignLeadsTracker({
         }
       }
 
-      setLeadsTracker(initialList);
+      setLeadsTracker(cleanList);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanList));
+      } catch {}
       setIsLoaded(true);
     } catch {
       setLeadsTracker(INITIAL_TRACKER_LEADS);
@@ -274,6 +231,74 @@ export function CampaignLeadsTracker({
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {}
+  };
+
+  // Quitar un lead del seguimiento
+  const handleDeleteLeadFromTracker = (leadId: string) => {
+    const updated = leadsTracker.filter((l) => l.id !== leadId);
+    saveTrackerList(updated);
+    setRowNotice({
+      leadId,
+      message: "Prospecto quitado del seguimiento.",
+      ok: true,
+    });
+    setTimeout(() => setRowNotice(null), 3000);
+  };
+
+  // Sincronizar prospectos desde Signal Radar
+  const handleSyncLeadsFromRadar = () => {
+    const currentKeys = new Set(leadsTracker.map((l) => l.linkedinUrl || l.id));
+    const nextList = [...leadsTracker];
+    let addedCount = 0;
+
+    for (const realLead of allLeads) {
+      const key = realLead.linkedinUrl || realLead.id;
+      if (!currentKeys.has(key) && realLead.fullName) {
+        nextList.push({
+          id: realLead.id,
+          fullName: realLead.fullName,
+          headline: realLead.title || `${realLead.company || "Profesional B2B"}`,
+          company: realLead.company || "Empresa B2B",
+          linkedinUrl: realLead.linkedinUrl,
+          avatarUrl: realLead.avatarUrl,
+          listId: realLead.listId || "list-general",
+          listName: realLead.listName || "Leads Importados de Signal Radar",
+          monitorName: realLead.signalSource || "Signal Radar B2B",
+          monitorType: "custom",
+          connectionDegree: (realLead as any).connectionDegree || "2nd",
+          currentStepIndex: realLead.sequenceStatus === "completed" ? activeCampaign.steps.length : 0,
+          completedStepIndices: realLead.sequenceStatus === "completed" ? activeCampaign.steps.map((_, i) => i) : [],
+          status:
+            realLead.sequenceStatus === "completed"
+              ? "completed"
+              : realLead.sequenceStatus === "replied"
+              ? "replied"
+              : "in_progress",
+          lastActionTitle: "Sincronizado desde Signal Radar",
+          lastActionAt: "Ahora",
+          language: realLead.language || "es",
+        });
+        currentKeys.add(key);
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0) {
+      saveTrackerList(nextList);
+      setRowNotice({
+        leadId: "sync",
+        message: `✓ Se sincronizaron ${addedCount} prospectos reales desde tus listas de Signal Radar.`,
+        ok: true,
+      });
+      setTimeout(() => setRowNotice(null), 5000);
+    } else {
+      setRowNotice({
+        leadId: "sync",
+        message: `Todos los prospectos disponibles ya están integrados en el seguimiento.`,
+        ok: true,
+      });
+      setTimeout(() => setRowNotice(null), 4000);
+    }
   };
 
   // Obtener listas y monitores únicos para los filtros desplegables
@@ -471,8 +496,19 @@ export function CampaignLeadsTracker({
             </div>
           </div>
 
-          {/* Resumen Estadístico de Avance */}
+          {/* Resumen Estadístico de Avance y Sincronización */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            {allLeads.length > 0 && (
+              <button
+                type="button"
+                onClick={handleSyncLeadsFromRadar}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 dark:hover:bg-brand-900 border border-brand-200 dark:border-brand-800 text-xs font-semibold transition"
+                title="Sincronizar nuevos prospectos desde Signal Radar"
+              >
+                <RefreshCw className="size-3 text-brand-600" />
+                <span>Sincronizar Radar</span>
+              </button>
+            )}
             <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold border border-gray-200 dark:border-gray-700">
               Total: <strong className="text-gray-900 dark:text-white">{kpiStats.total}</strong>
             </span>
@@ -572,7 +608,40 @@ export function CampaignLeadsTracker({
 
       {/* Lista General de Prospectos con Estaciones de Secuencia */}
       <div className="divide-y divide-gray-100 dark:divide-gray-800">
-        {filteredLeads.length === 0 ? (
+        {leadsTracker.length === 0 ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center">
+            <div className="h-12 w-12 rounded-2xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
+              <Users className="size-6" />
+            </div>
+            <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+              No hay prospectos en esta campaña
+            </h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mt-1 mb-4">
+              Los prospectos reales aparecerán aquí al ser captados por Signal Radar o al sincronizarse desde tus listas de leads.
+            </p>
+            {allLeads.length > 0 ? (
+              <button
+                type="button"
+                onClick={handleSyncLeadsFromRadar}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 shadow-sm transition"
+              >
+                <RefreshCw className="size-3.5" />
+                <span>Sincronizar {allLeads.length} Prospectos de Signal Radar</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  const roberto = INITIAL_TRACKER_LEADS[0];
+                  saveTrackerList([roberto]);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold hover:border-brand-500 hover:text-brand-600 transition"
+              >
+                <span>Añadir Roberto OrSe para Pruebas</span>
+              </button>
+            )}
+          </div>
+        ) : filteredLeads.length === 0 ? (
           <div className="p-8 text-center text-xs text-gray-400">
             No se encontraron prospectos que coincidan con los filtros seleccionados.
           </div>
@@ -847,6 +916,16 @@ export function CampaignLeadsTracker({
                         <RotateCcw className="size-3" />
                       </button>
                     )}
+
+                    {/* Botón Quitar Lead del Seguimiento */}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteLeadFromTracker(lead.id)}
+                      className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-950/40 dark:text-gray-400 dark:hover:text-red-400 transition"
+                      title="Quitar este prospecto de la lista de seguimiento"
+                    >
+                      <Trash2 className="size-3" />
+                    </button>
                   </div>
                 </div>
               </div>
