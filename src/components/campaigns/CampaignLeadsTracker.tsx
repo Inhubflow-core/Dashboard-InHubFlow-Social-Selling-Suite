@@ -821,19 +821,19 @@ export function CampaignLeadsTracker({
                   </div>
                 </div>
 
-                {/* 4. Acciones Rápidas */}
-                <div className="shrink-0 flex items-center justify-end gap-1">
+                {/* 4. Acciones Rápidas Unificadas */}
+                <div className="shrink-0 flex items-center justify-end gap-1.5">
                   {/* Botón Ejecutar Siguiente Paso */}
                   <button
                     type="button"
                     disabled={isCompleted || isExecuting}
                     onClick={() => handleExecuteNextStepForLead(lead)}
-                    className={`p-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1 ${
+                    className={`h-[26px] w-[26px] rounded-md border inline-flex items-center justify-center transition ${
                       isCompleted
-                        ? "opacity-30 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
+                        ? "opacity-35 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-gray-800 dark:bg-gray-900/40"
                         : isExecuting
                         ? "bg-brand-500 text-white border-brand-500 cursor-wait"
-                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 text-gray-700 dark:text-gray-300"
+                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-brand-400 dark:hover:border-brand-500 dark:hover:text-brand-400"
                     }`}
                     title={
                       isCompleted
@@ -846,7 +846,7 @@ export function CampaignLeadsTracker({
                     {isExecuting ? (
                       <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
                     ) : (
-                      <Play className="size-3 text-brand-600 fill-brand-600" />
+                      <Play className="size-3.5 text-brand-600 fill-brand-600 ml-0.5" />
                     )}
                   </button>
 
@@ -855,10 +855,10 @@ export function CampaignLeadsTracker({
                     <button
                       type="button"
                       onClick={() => handleResetLeadProgress(lead.id)}
-                      className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 transition"
+                      className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
                       title="Reiniciar secuencia al Paso 1 para este lead"
                     >
-                      <RotateCcw className="size-3" />
+                      <RotateCcw className="size-3.5" />
                     </button>
                   )}
 
@@ -866,10 +866,10 @@ export function CampaignLeadsTracker({
                   <button
                     type="button"
                     onClick={() => handleDeleteLeadFromTracker(lead.id)}
-                    className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-950/40 dark:text-gray-400 dark:hover:text-red-400 transition"
+                    className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
                     title="Quitar este prospecto de la lista de seguimiento"
                   >
-                    <Trash2 className="size-3" />
+                    <Trash2 className="size-3.5" />
                   </button>
                 </div>
               </div>
