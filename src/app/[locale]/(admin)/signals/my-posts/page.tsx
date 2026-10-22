@@ -143,6 +143,8 @@ export default function MyPostsSignalRadarPage() {
     leads: crmLeads,
     importSignalLeads,
     getOrCreateLevel1List,
+    deleteList,
+    markListMonitorAsDeleted,
   } = useLeadsStore();
 
   const [editingMonitor, setEditingMonitor] = useState<Level1Monitor | null>(null);
@@ -1220,8 +1222,25 @@ export default function MyPostsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`¿Eliminar monitor de "${mon.postTitle}"?`)) {
-                                  deleteLevel1Monitor(mon.id);
+                                if (effectiveCount === 0) {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar monitor de "${mon.postTitle}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                    )
+                                  ) {
+                                    deleteLevel1Monitor(mon.id);
+                                    if (targetListId) deleteList(targetListId);
+                                  }
+                                } else {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar monitor de "${mon.postTitle}"?\n\nLos ${effectiveCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
+                                    )
+                                  ) {
+                                    deleteLevel1Monitor(mon.id);
+                                    markListMonitorAsDeleted(mon.id);
+                                    markListMonitorAsDeleted(mon.postTitle);
+                                  }
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"

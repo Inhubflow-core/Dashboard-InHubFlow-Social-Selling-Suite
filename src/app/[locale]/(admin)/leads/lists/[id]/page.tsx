@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import LeadScoreBadge from "@/components/leads/LeadScoreBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
+import { useSignalRadar } from "@/lib/signals/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -32,6 +33,7 @@ export default function DynamicListDetailPage() {
     updateLeadSequenceStatus,
     batchUpdateLeadPhotos,
   } = useLeadsStore();
+  const { l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors } = useSignalRadar();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
@@ -82,6 +84,52 @@ export default function DynamicListDetailPage() {
       null
     );
   }, [lists, listId]);
+
+  const isMonitorDeleted = useMemo(() => {
+    if (!currentList) return false;
+    if (currentList.isMonitorDeleted) return true;
+    if (!currentList.signalLevel && !currentList.sourceMonitorId && !currentList.competitorName && !currentList.groupName) return false;
+
+    if (currentList.signalLevel === "level_3") {
+      const exists = l3GroupMonitors.some(
+        (m) =>
+          (currentList.sourceMonitorId && m.id === currentList.sourceMonitorId) ||
+          (currentList.groupName && m.groupName.trim().toLowerCase() === currentList.groupName.trim().toLowerCase()) ||
+          (currentList.name && m.groupName.trim().toLowerCase() === currentList.name.trim().toLowerCase())
+      );
+      return !exists;
+    }
+
+    if (currentList.signalLevel === "level_2") {
+      const exists = l2Monitors.some(
+        (m) =>
+          (currentList.sourceMonitorId && m.id === currentList.sourceMonitorId) ||
+          (currentList.competitorName && m.competitorName.trim().toLowerCase() === currentList.competitorName.trim().toLowerCase()) ||
+          (currentList.name && m.competitorName.trim().toLowerCase() === currentList.name.trim().toLowerCase())
+      );
+      return !exists;
+    }
+
+    if (currentList.signalLevel === "level_1") {
+      const exists = l1Monitors.some(
+        (m) =>
+          (currentList.sourceMonitorId && m.id === currentList.sourceMonitorId) ||
+          (currentList.name && m.postTitle.trim().toLowerCase() === currentList.name.trim().toLowerCase())
+      );
+      return !exists;
+    }
+
+    if (currentList.signalLevel === "level_4") {
+      const exists = l4GlobalMonitors.some(
+        (m) =>
+          (currentList.sourceMonitorId && m.id === currentList.sourceMonitorId) ||
+          (currentList.name && m.searchQuery.trim().toLowerCase() === currentList.name.trim().toLowerCase())
+      );
+      return !exists;
+    }
+
+    return false;
+  }, [currentList, l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors]);
 
   // Prospectos pertenecientes a esta lista
   const listLeads = useMemo(() => {
@@ -216,6 +264,8 @@ export default function DynamicListDetailPage() {
                     ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                     : currentList.signalLevel === "level_2"
                     ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                    : currentList.signalLevel === "level_3"
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                     : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
                 }`}
               >
@@ -223,11 +273,22 @@ export default function DynamicListDetailPage() {
                   ? "Nivel 1: Mis Posts"
                   : currentList.signalLevel === "level_2"
                   ? "Nivel 2: Competencia"
-                  : "Nivel 3: Global"}
+                  : currentList.signalLevel === "level_3"
+                  ? "Nivel 3: Grupos"
+                  : "Nivel 4: Global"}
               </span>
-              <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
-                Segmento Activo
-              </span>
+
+              {isMonitorDeleted ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-[10px] font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
+                  <span className="size-1.5 rounded-full bg-red-500"></span>
+                  Monitor de Señales eliminado
+                </span>
+              ) : (
+                <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                  Segmento Activo
+                </span>
+              )}
+
               <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
                 {listLeads.length} Prospectos
               </span>

@@ -23,6 +23,7 @@ import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 
 export default function CompetitorsSignalRadarPage() {
   const { currentUser } = useAuth();
+  const { deleteList, markListMonitorAsDeleted } = useLeadsStore();
   const {
     l2Monitors,
     leads,
@@ -1311,8 +1312,25 @@ export default function CompetitorsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`¿Eliminar auditoría de "${comp.competitorName}"?`)) {
-                                  deleteLevel2Monitor(comp.id);
+                                if (leadCount === 0) {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar auditoría de "${comp.competitorName}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                    )
+                                  ) {
+                                    deleteLevel2Monitor(comp.id);
+                                    if (targetListId) deleteList(targetListId);
+                                  }
+                                } else {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar auditoría de "${comp.competitorName}"?\n\nLos ${leadCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
+                                    )
+                                  ) {
+                                    deleteLevel2Monitor(comp.id);
+                                    markListMonitorAsDeleted(comp.id);
+                                    markListMonitorAsDeleted(comp.competitorName);
+                                  }
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"

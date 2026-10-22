@@ -818,6 +818,27 @@ export function useLeadsStore() {
     return list;
   }, []);
 
+  const markListMonitorAsDeleted = useCallback((monitorIdOrName: string) => {
+    if (!monitorIdOrName) return;
+    const searchLower = monitorIdOrName.trim().toLowerCase();
+    setLists((prev) => {
+      const updated = prev.map((lg) => {
+        const matchesId = lg.sourceMonitorId && lg.sourceMonitorId === monitorIdOrName;
+        const matchesComp = lg.competitorName && lg.competitorName.trim().toLowerCase() === searchLower;
+        const matchesGroup = lg.groupName && lg.groupName.trim().toLowerCase() === searchLower;
+        const matchesName = lg.name && lg.name.trim().toLowerCase() === searchLower;
+        if (matchesId || matchesComp || matchesGroup || matchesName) {
+          return { ...lg, isMonitorDeleted: true };
+        }
+        return lg;
+      });
+      if (typeof window !== "undefined") {
+        localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
   return {
     leads,
     lists,
@@ -833,7 +854,34 @@ export function useLeadsStore() {
     getOrCreateGlobalList,
     getOrCreateLevel1List,
     getOrCreateGroupList,
+    markListMonitorAsDeleted,
   };
+}
+
+export function saveStoredLeadLists(lists: LeadListGroup[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(lists));
+  } catch {}
+}
+
+export function markStoredListMonitorAsDeleted(monitorIdOrName: string): void {
+  if (typeof window === "undefined" || !monitorIdOrName) return;
+  try {
+    const currentLists = getStoredLeadLists();
+    const searchLower = monitorIdOrName.trim().toLowerCase();
+    const updated = currentLists.map((lg) => {
+      const matchesId = lg.sourceMonitorId && lg.sourceMonitorId === monitorIdOrName;
+      const matchesComp = lg.competitorName && lg.competitorName.trim().toLowerCase() === searchLower;
+      const matchesGroup = lg.groupName && lg.groupName.trim().toLowerCase() === searchLower;
+      const matchesName = lg.name && lg.name.trim().toLowerCase() === searchLower;
+      if (matchesId || matchesComp || matchesGroup || matchesName) {
+        return { ...lg, isMonitorDeleted: true };
+      }
+      return lg;
+    });
+    saveStoredLeadLists(updated);
+  } catch {}
 }
 
 export const useLeads = useLeadsStore;

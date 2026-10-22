@@ -3,12 +3,14 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useLeadsStore } from "@/lib/leads/store";
+import { useSignalRadar } from "@/lib/signals/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function SignalListsPage() {
   const { lists, leads, isLoaded, createList, deleteList } = useLeadsStore();
+  const { l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors } = useSignalRadar();
 
   const [highlightedListId, setHighlightedListId] = useState<string | null>(null);
 
@@ -87,6 +89,58 @@ export default function SignalListsPage() {
     );
     return matching.length > 0 ? matching.length : list.leadsCount;
   };
+
+  const checkIsMonitorDeleted = useCallback(
+    (list: LeadListGroup): boolean => {
+      if (list.isMonitorDeleted) return true;
+      if (!list.signalLevel && !list.sourceMonitorId && !list.competitorName && !list.groupName) return false;
+
+      // Nivel 3: Grupos de LinkedIn
+      if (list.signalLevel === "level_3") {
+        const exists = l3GroupMonitors.some(
+          (m) =>
+            (list.sourceMonitorId && m.id === list.sourceMonitorId) ||
+            (list.groupName && m.groupName.trim().toLowerCase() === list.groupName.trim().toLowerCase()) ||
+            (list.name && m.groupName.trim().toLowerCase() === list.name.trim().toLowerCase())
+        );
+        return !exists;
+      }
+
+      // Nivel 2: Posts de la Competencia
+      if (list.signalLevel === "level_2") {
+        const exists = l2Monitors.some(
+          (m) =>
+            (list.sourceMonitorId && m.id === list.sourceMonitorId) ||
+            (list.competitorName && m.competitorName.trim().toLowerCase() === list.competitorName.trim().toLowerCase()) ||
+            (list.name && m.competitorName.trim().toLowerCase() === list.name.trim().toLowerCase())
+        );
+        return !exists;
+      }
+
+      // Nivel 1: Mis Propios Posts
+      if (list.signalLevel === "level_1") {
+        const exists = l1Monitors.some(
+          (m) =>
+            (list.sourceMonitorId && m.id === list.sourceMonitorId) ||
+            (list.name && m.postTitle.trim().toLowerCase() === list.name.trim().toLowerCase())
+        );
+        return !exists;
+      }
+
+      // Nivel 4: Posts Globales en LinkedIn
+      if (list.signalLevel === "level_4") {
+        const exists = l4GlobalMonitors.some(
+          (m) =>
+            (list.sourceMonitorId && m.id === list.sourceMonitorId) ||
+            (list.name && m.searchQuery.trim().toLowerCase() === list.name.trim().toLowerCase())
+        );
+        return !exists;
+      }
+
+      return false;
+    },
+    [l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors]
+  );
 
   return (
     <div className="space-y-6">
@@ -232,6 +286,7 @@ export default function SignalListsPage() {
           lists.map((list) => {
             const count = getRealLeadsCount(list);
             const isHighlighted = highlightedListId === list.id;
+            const isMonDeleted = checkIsMonitorDeleted(list);
 
             return (
               <div
@@ -265,6 +320,13 @@ export default function SignalListsPage() {
                           ? "Nivel 3: Grupos"
                           : "Nivel 4: Global"}
                       </span>
+
+                      {isMonDeleted && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-[10px] font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                          Monitor de Señales eliminado
+                        </span>
+                      )}
 
                       {isHighlighted && (
                         <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">

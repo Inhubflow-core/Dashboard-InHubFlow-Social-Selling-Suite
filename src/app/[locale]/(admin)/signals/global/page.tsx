@@ -431,7 +431,7 @@ export default function GlobalSignalsPage() {
     recordDiscoveredLeads,
   } = useSignalRadar();
 
-  const { importSignalLeads, getOrCreateGlobalList, lists } = useLeads();
+  const { importSignalLeads, getOrCreateGlobalList, lists, deleteList, markListMonitorAsDeleted } = useLeads();
 
   const { currentUser } = useAuth();
   const [editingRule, setEditingRule] = useState<Level3GlobalMonitor | null>(null);
@@ -1328,8 +1328,25 @@ export default function GlobalSignalsPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`¿Eliminar radar de "${rule.searchQuery}"?`)) {
-                                  deleteLevel3Monitor(rule.id);
+                                if (leadsCount === 0) {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar radar de "${rule.searchQuery}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                    )
+                                  ) {
+                                    deleteLevel3Monitor(rule.id);
+                                    if (targetList) deleteList(targetList.id);
+                                  }
+                                } else {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar radar de "${rule.searchQuery}"?\n\nLos ${leadsCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
+                                    )
+                                  ) {
+                                    deleteLevel3Monitor(rule.id);
+                                    markListMonitorAsDeleted(rule.id);
+                                    markListMonitorAsDeleted(rule.searchQuery);
+                                  }
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"

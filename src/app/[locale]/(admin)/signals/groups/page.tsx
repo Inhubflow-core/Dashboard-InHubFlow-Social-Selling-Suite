@@ -18,6 +18,7 @@ import { Pencil, X, Users, MessageSquare, ExternalLink, ChevronDown, ChevronUp }
 
 export default function LinkedInGroupsSignalRadarPage() {
   const { currentUser } = useAuth();
+  const { lists: leadLists, deleteList, markListMonitorAsDeleted } = useLeadsStore();
   const {
     l3GroupMonitors,
     leads,
@@ -795,8 +796,25 @@ export default function LinkedInGroupsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`¿Eliminar auditoria del grupo "${group.groupName}"?`)) {
-                                  deleteLevel3GroupMonitor(group.id);
+                                if (leadCount === 0) {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar auditoría del grupo "${group.groupName}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                    )
+                                  ) {
+                                    deleteLevel3GroupMonitor(group.id);
+                                    if (targetListId) deleteList(targetListId);
+                                  }
+                                } else {
+                                  if (
+                                    confirm(
+                                      `¿Eliminar auditoría del grupo "${group.groupName}"?\n\nLos ${leadCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
+                                    )
+                                  ) {
+                                    deleteLevel3GroupMonitor(group.id);
+                                    markListMonitorAsDeleted(group.id);
+                                    markListMonitorAsDeleted(group.groupName);
+                                  }
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"

@@ -57,4 +57,5 @@ export interface LeadListGroup {
   groupName?: string;
   keywords?: string[];
   sourceMonitorId?: string;
+  isMonitorDeleted?: boolean;
 }
