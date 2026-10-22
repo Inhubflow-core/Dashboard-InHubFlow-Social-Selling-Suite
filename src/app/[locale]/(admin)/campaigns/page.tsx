@@ -2437,9 +2437,9 @@ export default function CampaignsPage() {
                   Sin registros recientes. Ejecuta una simulación o activa la campaña para ver los logs.
                 </p>
               ) : (
-                runnerLogs.map((log) => (
+                runnerLogs.map((log, idx) => (
                   <div
-                    key={log.id}
+                    key={`${log.id}-${idx}`}
                     className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
                   >
                     <div className="min-w-0 flex-1">

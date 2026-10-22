@@ -40,6 +40,12 @@ export interface LeadCampaignState {
 // Almacén de logs de ejecución en memoria
 const recentExecutionLogs: CampaignExecutionLog[] = [];
 
+let logCounter = 0;
+export function generateLogId(prefix: "log-seq" | "log-run" = "log-seq"): string {
+  logCounter = (logCounter + 1) % 1000000;
+  return `${prefix}-${Date.now()}-${logCounter}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function getCampaignExecutionLogs(limit = 40): CampaignExecutionLog[] {
   return recentExecutionLogs.slice(0, limit);
 }
@@ -126,7 +132,7 @@ export async function executeCampaignStepForLead(params: {
 
   if (!currentNode) {
     const log: CampaignExecutionLog = {
-      id: `log-run-${Date.now()}`,
+      id: generateLogId("log-run"),
       campaignId: workflow.id,
       leadId: leadState.leadId,
       leadName: leadState.leadName,
@@ -147,7 +153,7 @@ export async function executeCampaignStepForLead(params: {
   // 1. Validar si el lead debe detenerse por respuesta (Stop on Reply)
   if (workflow.stopOnReply && leadState.hasReplied) {
     const log: CampaignExecutionLog = {
-      id: `log-run-${Date.now()}`,
+      id: generateLogId("log-run"),
       campaignId: workflow.id,
       leadId: leadState.leadId,
       leadName: leadState.leadName,
@@ -171,7 +177,7 @@ export async function executeCampaignStepForLead(params: {
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -205,7 +211,7 @@ export async function executeCampaignStepForLead(params: {
         await unipile.resolveProfile(leadState.linkedinUrl, accountId);
       } catch (error) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -224,7 +230,7 @@ export async function executeCampaignStepForLead(params: {
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -294,7 +300,7 @@ export async function executeCampaignStepForLead(params: {
         });
       } catch (error) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -314,7 +320,7 @@ export async function executeCampaignStepForLead(params: {
 
       const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -346,7 +352,7 @@ export async function executeCampaignStepForLead(params: {
         const nextNodeId = nextEdge ? nextEdge.target : null;
 
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -374,7 +380,7 @@ export async function executeCampaignStepForLead(params: {
       // Pacing check estricto: no superar límite diario de invitaciones
       if (pacing.invitationsSent >= workflow.dailyInvitationLimit) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -427,7 +433,7 @@ export async function executeCampaignStepForLead(params: {
         });
       } catch (error) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -448,7 +454,7 @@ export async function executeCampaignStepForLead(params: {
 
       const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -477,7 +483,7 @@ export async function executeCampaignStepForLead(params: {
       // Pacing check estricto: no superar límite diario configurado (ej. 25/día)
       if (pacing.invitationsSent >= workflow.dailyInvitationLimit) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -518,7 +524,7 @@ export async function executeCampaignStepForLead(params: {
         });
       } catch (error) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -539,7 +545,7 @@ export async function executeCampaignStepForLead(params: {
 
       const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -568,7 +574,7 @@ export async function executeCampaignStepForLead(params: {
       // Si el contacto aún no es de 1er grado ni ha aceptado, esperar aceptación antes de emitir DM
       if (leadState.connectionDegree !== "1st" && !leadState.hasAcceptedInvite) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -590,7 +596,7 @@ export async function executeCampaignStepForLead(params: {
       // Pacing check: DMs diarios (ej. 40/día)
       if (pacing.dmsSent >= workflow.dailyDmLimit) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -627,7 +633,7 @@ export async function executeCampaignStepForLead(params: {
         });
       } catch (error) {
         const log: CampaignExecutionLog = {
-          id: `log-run-${Date.now()}`,
+          id: generateLogId("log-run"),
           campaignId: workflow.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -648,7 +654,7 @@ export async function executeCampaignStepForLead(params: {
 
       const logLangSuffix = leadState.language && leadState.language !== "es" ? ` [Idioma: ${leadState.language.toUpperCase()}]` : "";
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -692,7 +698,7 @@ export async function executeCampaignStepForLead(params: {
       const nextNodeId = targetEdge ? targetEdge.target : null;
 
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -725,7 +731,7 @@ export async function executeCampaignStepForLead(params: {
       const nextNodeId = nextEdge ? nextEdge.target : null;
 
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -758,7 +764,7 @@ export async function executeCampaignStepForLead(params: {
       const targetStage = nodeData.crmStageTarget || "3. Material Entregado";
 
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -786,7 +792,7 @@ export async function executeCampaignStepForLead(params: {
     case "control_end":
     default: {
       const log: CampaignExecutionLog = {
-        id: `log-run-${Date.now()}`,
+        id: generateLogId("log-run"),
         campaignId: workflow.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -840,7 +846,7 @@ export async function executeLinearSequenceStepForLead(params: {
   // 1. Validar regla 'Stop on Reply' (detención inmediata ante respuesta)
   if (campaign.stopOnReply && leadState.hasReplied) {
     const log: CampaignExecutionLog = {
-      id: `log-seq-${Date.now()}`,
+      id: generateLogId("log-seq"),
       campaignId: campaign.id,
       leadId: leadState.leadId,
       leadName: leadState.leadName,
@@ -865,7 +871,7 @@ export async function executeLinearSequenceStepForLead(params: {
   const currentStep = campaign.steps[stepIndex];
   if (!currentStep) {
     const log: CampaignExecutionLog = {
-      id: `log-seq-${Date.now()}`,
+      id: generateLogId("log-seq"),
       campaignId: campaign.id,
       leadId: leadState.leadId,
       leadName: leadState.leadName,
@@ -896,7 +902,7 @@ export async function executeLinearSequenceStepForLead(params: {
         const maxVisits = campaign.dailyLimits?.maxVisitsPerDay ?? 20;
         if (pacing.profilesVisited >= maxVisits) {
           const log: CampaignExecutionLog = {
-            id: `log-seq-${Date.now()}`,
+            id: generateLogId("log-seq"),
             campaignId: campaign.id,
             leadId: leadState.leadId,
             leadName: leadState.leadName,
@@ -929,7 +935,7 @@ export async function executeLinearSequenceStepForLead(params: {
       }
 
       const log: CampaignExecutionLog = {
-        id: `log-seq-${Date.now()}`,
+        id: generateLogId("log-seq"),
         campaignId: campaign.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -1013,7 +1019,7 @@ export async function executeLinearSequenceStepForLead(params: {
       }
 
       const log: CampaignExecutionLog = {
-        id: `log-seq-${Date.now()}`,
+        id: generateLogId("log-seq"),
         campaignId: campaign.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -1049,7 +1055,7 @@ export async function executeLinearSequenceStepForLead(params: {
       // Si el contacto ya es de 1er grado (como Roberto OrSe y Roberto OrSe Agencia):
       if (leadState.connectionDegree === "1st") {
         const log: CampaignExecutionLog = {
-          id: `log-seq-${Date.now()}`,
+          id: generateLogId("log-seq"),
           campaignId: campaign.id,
           leadId: leadState.leadId,
           leadName: leadState.leadName,
@@ -1096,7 +1102,7 @@ export async function executeLinearSequenceStepForLead(params: {
         const maxConnections = campaign.dailyLimits?.maxConnectionsPerDay ?? 20;
         if (pacing.invitationsSent >= maxConnections) {
           const log: CampaignExecutionLog = {
-            id: `log-seq-${Date.now()}`,
+            id: generateLogId("log-seq"),
             campaignId: campaign.id,
             leadId: leadState.leadId,
             leadName: leadState.leadName,
@@ -1138,7 +1144,7 @@ export async function executeLinearSequenceStepForLead(params: {
       }
 
       const log: CampaignExecutionLog = {
-        id: `log-seq-${Date.now()}`,
+        id: generateLogId("log-seq"),
         campaignId: campaign.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
@@ -1194,7 +1200,7 @@ export async function executeLinearSequenceStepForLead(params: {
         const maxMessages = campaign.dailyLimits?.maxMessagesPerDay ?? 20;
         if (pacing.dmsSent >= maxMessages) {
           const log: CampaignExecutionLog = {
-            id: `log-seq-${Date.now()}`,
+            id: generateLogId("log-seq"),
             campaignId: campaign.id,
             leadId: leadState.leadId,
             leadName: leadState.leadName,
@@ -1253,7 +1259,7 @@ export async function executeLinearSequenceStepForLead(params: {
       }
 
       const log: CampaignExecutionLog = {
-        id: `log-seq-${Date.now()}`,
+        id: generateLogId("log-seq"),
         campaignId: campaign.id,
         leadId: leadState.leadId,
         leadName: leadState.leadName,
