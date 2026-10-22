@@ -1068,6 +1068,24 @@ export default function CampaignsPage() {
                     </p>
                   </div>
                 )}
+
+                {Boolean(lastTestResultLog.details?.comment) && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold text-gray-400">
+                        Comentario Publicado en LinkedIn:
+                      </span>
+                      {Boolean(lastTestResultLog.details?.isAiGeneratedComment) && (
+                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                          ✨ Generado por Gemini AI analizando el post real
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-800 dark:text-gray-200 italic">
+                      "{String(lastTestResultLog.details?.comment)}"
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

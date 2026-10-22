@@ -3,6 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { NodeConfigData, CampaignWorkflow, LinearSequenceCampaign, SequenceStepItem } from "./types";
 import { getStoredWorkflow, saveStoredWorkflow } from "./store";
 import { translateOutreachMessage } from "@/lib/ai/outreach-translator";
+import { generateSmartPostComment } from "@/lib/ai/post-comment-generator";
 import { getActiveAccountId } from "@/lib/unipile/store";
 
 export interface CampaignExecutionLog {
@@ -1059,11 +1060,13 @@ export async function executeLinearSequenceStepForLead(params: {
           commentTemplate = await translateOutreachMessage(commentTemplate, leadState.language);
         } catch {}
       }
-      const commentText = commentTemplate
+      let commentText = commentTemplate
         .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
         .replace(/{{company}}/gi, companyVal)
         .replace(/{{topic}}/gi, topicVal)
         .replace(/{{keyword}}/gi, "SISTEMA");
+
+      let isAiGeneratedComment = false;
 
       if (!isDry) {
         let targetPostId = "";
@@ -1078,6 +1081,25 @@ export async function executeLinearSequenceStepForLead(params: {
             targetPostId = firstPost.social_id || firstPost.id;
             if (targetPostId && !targetPostId.startsWith("urn:li:")) {
               targetPostId = `urn:li:ugcPost:${targetPostId}`;
+            }
+
+            // Lectura profunda con IA Gemini para generar comentario contextual de alto valor
+            const rawPostText = firstPost.text || (firstPost as any).content || "";
+            if (rawPostText && rawPostText.trim().length > 30) {
+              try {
+                const smartComment = await generateSmartPostComment({
+                  postText: rawPostText,
+                  leadName: leadState.leadName,
+                  company: companyVal,
+                  language: leadState.language,
+                });
+                if (smartComment) {
+                  commentText = smartComment;
+                  isAiGeneratedComment = true;
+                }
+              } catch (aiErr) {
+                console.warn("[Runner] Fallback en generacion de comentario IA:", aiErr);
+              }
             }
           }
         } catch (err) {
@@ -1163,6 +1185,7 @@ export async function executeLinearSequenceStepForLead(params: {
         }
       }
 
+      const logAiTag = isAiGeneratedComment ? " [IA Gemini Contextual]" : "";
       const log: CampaignExecutionLog = {
         id: generateLogId("log-seq"),
         campaignId: campaign.id,
@@ -1174,9 +1197,14 @@ export async function executeLinearSequenceStepForLead(params: {
         timestamp: new Date().toISOString(),
         status: "success",
         message: isDry
-          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario simulados ("${commentText.slice(0, 45)}...") para ${leadState.leadName}.`
-          : `Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario ("${commentText.slice(0, 45)}...") publicados con éxito en el post más reciente de ${leadState.leadName}.`,
-        details: { comment: commentText, stepOrder: stepIndex + 1, dryRun: isDry },
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario simulados ("${commentText.slice(0, 50)}...") para ${leadState.leadName}.`
+          : `Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario${logAiTag} publicados con éxito en el post más reciente de ${leadState.leadName}: "${commentText.slice(0, 85)}..."`,
+        details: {
+          comment: commentText,
+          isAiGeneratedComment,
+          stepOrder: stepIndex + 1,
+          dryRun: isDry,
+        },
       };
       recordExecutionLog(log);
 
