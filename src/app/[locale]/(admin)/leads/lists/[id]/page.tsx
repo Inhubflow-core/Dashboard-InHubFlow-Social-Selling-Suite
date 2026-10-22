@@ -316,7 +316,7 @@ export default function DynamicListDetailPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar prospecto por nombre, cargo, empresa o ubicación..."
+            placeholder="Buscar prospecto por nombre, cargo o ubicación..."
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
@@ -356,7 +356,7 @@ export default function DynamicListDetailPage() {
               <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
                 <tr>
                   <th className="pb-3 min-w-[190px]">Prospecto</th>
-                  <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo y Empresa</th>
+                  <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo</th>
                   <th className="pb-3 min-w-[140px] whitespace-nowrap">Origen de Señal</th>
                   <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">Puntuación</th>
                   <th className="pb-3 min-w-[130px] whitespace-nowrap">Etapa CRM</th>
@@ -408,7 +408,7 @@ export default function DynamicListDetailPage() {
                         </div>
                       </td>
 
-                      {/* Columna: Cargo y Empresa Truncado Elegante */}
+                      {/* Columna: Cargo (Truncado estético con ... y tooltip nativo) */}
                       <td className="py-3.5 pr-3 max-w-[270px]">
                         <p
                           className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate leading-snug cursor-help"
@@ -416,14 +416,6 @@ export default function DynamicListDetailPage() {
                         >
                           {truncateText(lead.title, 48)}
                         </p>
-                        {lead.company && !/no especificado/i.test(lead.company) && (
-                          <p
-                            className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
-                            title={lead.company}
-                          >
-                            {truncateText(lead.company, 40)}
-                          </p>
-                        )}
                       </td>
 
                       {/* Columna: Origen de Señal */}
