@@ -137,9 +137,18 @@ export default function CampaignsPage() {
 
   // Modales
   const [editingStep, setEditingStep] = useState<{ step: SequenceStepItem; index: number } | null>(null);
+  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
   const [showPacingModal, setShowPacingModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showAddStepModal, setShowAddStepModal] = useState(false);
+
+  const handleCloseDrawer = () => {
+    setIsDrawerClosing(true);
+    setTimeout(() => {
+      setEditingStep(null);
+      setIsDrawerClosing(false);
+    }, 240);
+  };
 
   // Popover de delay
   const [openDelayPopoverIndex, setOpenDelayPopoverIndex] = useState<number | null>(null);
@@ -468,7 +477,7 @@ export default function CampaignsPage() {
         updatedAt: new Date().toISOString(),
       };
     });
-    setEditingStep(null);
+    handleCloseDrawer();
     setFeedbackMessage("Paso de la secuencia actualizado exitosamente.");
     setTimeout(() => setFeedbackMessage(null), 3000);
   };
@@ -1738,13 +1747,19 @@ export default function CampaignsPage() {
         <div className="fixed inset-0 z-50 overflow-hidden">
           {/* Backdrop con desenfoque suave para cerrar al hacer clic fuera */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
-            onClick={() => setEditingStep(null)}
+            className={`fixed inset-0 bg-black/40 backdrop-blur-xs ${
+              isDrawerClosing ? "animate-fade-out" : "animate-fade-in"
+            }`}
+            onClick={handleCloseDrawer}
           />
 
-          {/* Panel Lateral Desplegable en el lado derecho */}
+          {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado */}
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-            <div className="w-screen max-w-xl xl:max-w-2xl bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full transform transition-all duration-300 ease-in-out">
+            <div
+              className={`w-screen max-w-xl xl:max-w-2xl bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full ${
+                isDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
+              }`}
+            >
               {/* Cabecera del Panel Lateral */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
@@ -1764,7 +1779,7 @@ export default function CampaignsPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setEditingStep(null)}
+                  onClick={handleCloseDrawer}
                   className="h-8 w-8 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition"
                   title="Cerrar panel de edición"
                 >
@@ -2537,7 +2552,7 @@ export default function CampaignsPage() {
               <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setEditingStep(null)}
+                  onClick={handleCloseDrawer}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 transition"
                 >
                   Cancelar
