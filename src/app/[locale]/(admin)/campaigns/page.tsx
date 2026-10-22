@@ -141,12 +141,26 @@ export default function CampaignsPage() {
   const [showPacingModal, setShowPacingModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showAddStepModal, setShowAddStepModal] = useState(false);
+  const [isAddDrawerClosing, setIsAddDrawerClosing] = useState(false);
 
   const handleCloseDrawer = () => {
     setIsDrawerClosing(true);
     setTimeout(() => {
       setEditingStep(null);
       setIsDrawerClosing(false);
+    }, 240);
+  };
+
+  const handleOpenAddDrawer = () => {
+    setIsAddDrawerClosing(false);
+    setShowAddStepModal(true);
+  };
+
+  const handleCloseAddDrawer = () => {
+    setIsAddDrawerClosing(true);
+    setTimeout(() => {
+      setShowAddStepModal(false);
+      setIsAddDrawerClosing(false);
     }, 240);
   };
 
@@ -550,7 +564,6 @@ export default function CampaignsPage() {
       updatedAt: new Date().toISOString(),
     }));
 
-    setShowAddStepModal(false);
     setFeedbackMessage(`Paso "${title}" añadido a la secuencia.`);
     setTimeout(() => setFeedbackMessage(null), 3000);
   };
@@ -1258,9 +1271,8 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* Layout de Secuencia: Workflow de Secuencia (Izquierda) + Paleta de Pasos Disponibles (Derecha) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start py-2">
-        {/* Columna Izquierda: Workflow de Secuencia con Zona de Drop */}
+      {/* Secuencia Lineal Centrada con Zona de Drop */}
+      <div className="py-2">
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -1286,22 +1298,19 @@ export default function CampaignsPage() {
             }
             setDraggedStepType(null);
           }}
-          className={`lg:col-span-8 xl:col-span-8 2xl:col-span-9 transition-all duration-200 py-1 ${
+          className={`w-full max-w-lg xl:max-w-xl mx-auto space-y-0 transition-all duration-200 p-2 rounded-2xl ${
             isDragOverWorkflow
-              ? "rounded-2xl bg-brand-50/20 dark:bg-brand-950/10 ring-2 ring-dashed ring-brand-500/50"
+              ? "bg-brand-50/20 dark:bg-brand-950/10 ring-2 ring-dashed ring-brand-500/50"
               : ""
           }`}
         >
           {/* Banner indicador cuando se está arrastrando sobre la zona de drop */}
           {isDragOverWorkflow && (
-            <div className="max-w-lg xl:max-w-xl mx-auto mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
+            <div className="w-full mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
               <Plus className="size-4" />
               <span>Suelta aquí para añadir este paso al flujo de la secuencia</span>
             </div>
           )}
-
-          {/* Contenedor Centrado de las Tarjetas de la Secuencia (-40% de ancho) */}
-          <div className="w-full max-w-lg xl:max-w-xl mx-auto space-y-0">
             {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
         {linkedList && (
           <div className="mb-3 rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
@@ -1576,144 +1585,34 @@ export default function CampaignsPage() {
           );
         })}
 
+        {/* Estado si la secuencia no tiene pasos activos */}
+        {activeCampaign.steps.length === 0 && (
+          <div className="py-6 flex flex-col items-center justify-center text-center">
+            <div className="w-px h-6 border-l-2 border-dashed border-gray-300 dark:border-gray-700 mb-2" />
+            <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 text-xs text-gray-500 dark:text-gray-400 max-w-sm">
+              <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                La secuencia no tiene pasos activos
+              </p>
+              <p className="text-[11px] text-gray-400">
+                Haz clic en el botón inferior o arrastra pasos para comenzar a interactuar tras el activador.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Botón para Añadir Nuevo Paso */}
         <div className="pt-4 flex justify-center">
           <button
             type="button"
-            onClick={() => setShowAddStepModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 hover:border-brand-500 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-600 hover:bg-brand-50/40 transition"
+            onClick={handleOpenAddDrawer}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-dashed border-brand-300 dark:border-brand-700 hover:border-brand-500 bg-white dark:bg-gray-800 text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-950/40 transition shadow-2xs cursor-pointer"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             <span>Agregar Paso a la Secuencia</span>
           </button>
         </div>
       </div>
     </div>
-
-        {/* Columna Derecha: Paleta de Pasos Disponibles (Queda detrás del Drawer al editar) */}
-        <div className="lg:col-span-4 xl:col-span-4 2xl:col-span-3 space-y-3 lg:sticky lg:top-20">
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center">
-                  <Layers className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 dark:text-white">
-                    Pasos Disponibles
-                  </h3>
-                  <p className="text-[10px] text-gray-400">
-                    Paleta para componer la secuencia
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} en uso
-              </span>
-            </div>
-
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
-              Arrastra un paso hacia la secuencia a la izquierda o usa <span className="font-semibold text-brand-600 dark:text-brand-400">+</span> para añadirlo.
-            </p>
-
-            {/* Lista de Tarjetas de la Paleta */}
-            <div className="space-y-2 pt-1">
-              {AVAILABLE_PALETTE_STEPS.map((paletteStep) => {
-                const inSequence = isStepInSequence(paletteStep.idKey, paletteStep.type);
-
-                return (
-                  <div
-                    key={paletteStep.idKey}
-                    draggable={!inSequence}
-                    onDragStart={(e) => {
-                      if (inSequence) return;
-                      e.dataTransfer.setData("text/plain", paletteStep.type);
-                      setDraggedStepType(paletteStep.type);
-                    }}
-                    onDragEnd={() => setDraggedStepType(null)}
-                    className={`group relative rounded-xl border p-2.5 transition-all duration-200 select-none ${
-                      inSequence
-                        ? "opacity-45 bg-gray-50/70 dark:bg-gray-800/30 border-dashed border-gray-200 dark:border-gray-800 cursor-not-allowed"
-                        : "bg-white dark:bg-gray-900/90 border-gray-200 dark:border-gray-750 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {/* Manija de arrastre (Grip) */}
-                      <div
-                        className={`pt-1 shrink-0 ${
-                          inSequence
-                            ? "text-gray-300 dark:text-gray-700"
-                            : "text-gray-400 group-hover:text-brand-500"
-                        }`}
-                        title={inSequence ? "Ya agregado a la secuencia" : "Arrastrar a la secuencia"}
-                      >
-                        <GripVertical className="size-3.5" />
-                      </div>
-
-                      {/* Icono del Paso */}
-                      <div
-                        className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${paletteStep.iconBg}`}
-                      >
-                        {paletteStep.icon}
-                      </div>
-
-                      {/* Contenido Textual */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] font-mono font-bold text-gray-400">
-                            {paletteStep.orderNumber}
-                          </span>
-                          {inSequence ? (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-200/60 dark:border-emerald-900/60">
-                              <Check className="size-2.5" /> En secuencia
-                            </span>
-                          ) : (
-                            <span className="text-[9px] font-semibold text-gray-400 group-hover:text-brand-600 transition">
-                              Arrastrar
-                            </span>
-                          )}
-                        </div>
-
-                        <h4
-                          className={`text-xs font-bold leading-tight truncate ${
-                            inSequence
-                              ? "text-gray-400 dark:text-gray-500"
-                              : "text-gray-900 dark:text-white"
-                          }`}
-                        >
-                          {paletteStep.title}
-                        </h4>
-
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-0.5">
-                          {paletteStep.subtitle}
-                        </p>
-                      </div>
-
-                      {/* Botón rápido '+' */}
-                      {!inSequence && (
-                        <button
-                          type="button"
-                          onClick={() => handleAddStep(paletteStep.type)}
-                          className="opacity-0 group-hover:opacity-100 transition size-6 rounded-md bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white dark:bg-brand-950/60 dark:hover:bg-brand-500 dark:text-brand-400 flex items-center justify-center shrink-0 self-center"
-                          title={`Añadir ${paletteStep.title}`}
-                        >
-                          <Plus className="size-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Tip al pie */}
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 flex items-center gap-1.5">
-              <span>💡</span>
-              <span>Al eliminar un paso del flujo, su tarjeta se reactiva automáticamente aquí.</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Sección General de Seguimiento de Prospectos por Estaciones de Secuencia */}
       <div className="pt-6">
@@ -1754,9 +1653,9 @@ export default function CampaignsPage() {
           />
 
           {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado */}
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6">
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6 pointer-events-none">
             <div
-              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full ${
+              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
                 isDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
               }`}
             >
@@ -2571,54 +2470,171 @@ export default function CampaignsPage() {
         </div>
       )}
 
-      {/* Modal de Selección para Añadir Paso */}
+      {/* Ventana Lateral Desplegable (Slide-over Drawer) para Añadir y Arrastrar Pasos */}
       {showAddStepModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                Seleccionar Tipo de Paso
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddStepModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold"
-              >
-                ✕
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop tenue - pointer-events-none mientras se arrastra para permitir soltar en la secuencia central */}
+          <div
+            className={`fixed inset-0 bg-black/15 backdrop-blur-[1px] ${
+              isAddDrawerClosing ? "animate-fade-out" : "animate-fade-in"
+            } ${draggedStepType ? "pointer-events-none" : ""}`}
+            onClick={handleCloseAddDrawer}
+          />
 
-            <div className="space-y-2">
-              {[
-                { type: "visit" as const, title: "Visitar Perfil", desc: "Visita previa para figurar en notificaciones" },
-                { type: "like_comment" as const, title: "Like + Comentario", desc: "Interacción combinada en el post del prospecto" },
-                { type: "connect" as const, title: "Seguir + Conectar", desc: "Acción 2-en-1: sigue el perfil y envía invitación de conexión" },
-                { type: "message_icebreaker" as const, title: "Mensaje DM Icebreaker", desc: "Mensaje contextualizado según la señal" },
-                { type: "message_followup" as const, title: "Mensaje DM Follow-up", desc: "Seguimiento de valor" },
-                { type: "message_value_prop" as const, title: "Mensaje DM Value Prop", desc: "Propuesta de valor y agenda de llamada" },
-              ].map((opt) => (
-                <button
-                  key={opt.type}
-                  type="button"
-                  onClick={() => handleAddStep(opt.type)}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 hover:bg-brand-50/30 transition text-left"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                      {getStepIcon(opt.type)}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-900 dark:text-white">
-                        {opt.title}
-                      </p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        {opt.desc}
-                      </p>
-                    </div>
+          {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado (mismo tamaño y proporciones exactas de editar) */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6 pointer-events-none">
+            <div
+              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
+                isAddDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
+              }`}
+            >
+              {/* Cabecera del Panel Lateral */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
+                    <Layers className="size-4.5" />
                   </div>
-                  <Plus className="h-4 w-4 text-brand-500" />
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
+                      Paleta de Pasos
+                    </span>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base mt-0.5">
+                      Agregar Paso a la Secuencia
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCloseAddDrawer}
+                  className="h-8 w-8 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition cursor-pointer"
+                  title="Cerrar panel"
+                >
+                  ✕
                 </button>
-              ))}
+              </div>
+
+              {/* Contenido Scrolleable del Drawer */}
+              <div className="p-5 overflow-y-auto space-y-3 flex-1 text-xs">
+                {/* Banner explicativo */}
+                <div className="p-3 rounded-xl bg-brand-50/50 dark:bg-brand-950/20 border border-brand-100 dark:border-brand-900/40 text-[11px] text-gray-600 dark:text-gray-300 flex items-start gap-2.5">
+                  <span className="text-base shrink-0">💡</span>
+                  <p className="leading-relaxed">
+                    Haz clic en cualquier paso para añadirlo al flujo o <strong>arrástralo</strong> directamente sobre la secuencia central.
+                  </p>
+                </div>
+
+                {/* Lista de Tarjetas de Pasos Disponibles */}
+                <div className="space-y-2.5 pt-1">
+                  {AVAILABLE_PALETTE_STEPS.map((paletteStep) => {
+                    const inSequence = isStepInSequence(paletteStep.idKey, paletteStep.type);
+
+                    return (
+                      <div
+                        key={paletteStep.idKey}
+                        draggable={!inSequence}
+                        onDragStart={(e) => {
+                          if (inSequence) return;
+                          e.dataTransfer.setData("text/plain", paletteStep.type);
+                          setDraggedStepType(paletteStep.type);
+                        }}
+                        onDragEnd={() => setDraggedStepType(null)}
+                        onClick={() => {
+                          if (!inSequence) {
+                            handleAddStep(paletteStep.type);
+                          }
+                        }}
+                        className={`group relative rounded-xl border p-3 transition-all duration-200 select-none ${
+                          inSequence
+                            ? "opacity-50 bg-gray-50/70 dark:bg-gray-800/30 border-dashed border-gray-200 dark:border-gray-800 cursor-not-allowed"
+                            : "bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Grip para arrastrar */}
+                          <div
+                            className={`pt-1 shrink-0 ${
+                              inSequence
+                                ? "text-gray-300 dark:text-gray-700"
+                                : "text-gray-400 group-hover:text-brand-500"
+                            }`}
+                            title={inSequence ? "Ya agregado a la secuencia" : "Arrastrar hacia la secuencia central"}
+                          >
+                            <GripVertical className="size-4" />
+                          </div>
+
+                          {/* Icono del tipo de paso */}
+                          <div
+                            className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${paletteStep.iconBg}`}
+                          >
+                            {paletteStep.icon}
+                          </div>
+
+                          {/* Información del paso */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                              <span className="text-[10px] font-mono font-bold text-gray-400">
+                                {paletteStep.orderNumber}
+                              </span>
+                              {inSequence ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60">
+                                  <Check className="size-3" /> En secuencia
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-0.5">
+                                  <Plus className="size-3" /> Clic o Arrastrar
+                                </span>
+                              )}
+                            </div>
+
+                            <h4
+                              className={`text-xs font-bold leading-tight ${
+                                inSequence
+                                  ? "text-gray-400 dark:text-gray-500"
+                                  : "text-gray-900 dark:text-white"
+                              }`}
+                            >
+                              {paletteStep.title}
+                            </h4>
+
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-1">
+                              {paletteStep.subtitle}
+                            </p>
+                          </div>
+
+                          {/* Botón rápido '+' */}
+                          {!inSequence && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddStep(paletteStep.type);
+                              }}
+                              className="size-7 rounded-lg bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white dark:bg-brand-950/60 dark:hover:bg-brand-500 dark:text-brand-400 flex items-center justify-center shrink-0 self-center transition shadow-2xs cursor-pointer"
+                              title={`Añadir ${paletteStep.title}`}
+                            >
+                              <Plus className="size-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pie del Panel Lateral */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
+                <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                  {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} pasos en secuencia
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCloseAddDrawer}
+                  className="rounded-lg bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-xs font-semibold shadow-xs transition cursor-pointer"
+                >
+                  Listo
+                </button>
+              </div>
             </div>
           </div>
         </div>
