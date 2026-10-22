@@ -9,14 +9,11 @@ import {
   UserPlus,
   Send,
   Check,
-  Clock,
-  Sparkles,
   ExternalLink,
   ChevronRight,
   RotateCcw,
   CheckCircle2,
   AlertCircle,
-  MessageSquare,
   Play,
   Folder,
   Radio,
@@ -831,109 +828,56 @@ export function CampaignLeadsTracker({
                   </div>
                 </div>
 
-                {/* 4. Estado Actual y Acciones Rápidas */}
-                <div className="w-full xl:w-56 shrink-0 flex items-center justify-between xl:justify-end gap-2.5">
-                  <div className="text-left xl:text-right">
-                    <span
-                      className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        lead.status === "completed"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300"
-                          : lead.status === "replied"
-                          ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300"
-                          : lead.status === "waiting_delay"
-                          ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300"
-                          : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300"
-                      }`}
-                    >
-                      {lead.status === "completed" && <Check className="size-3 text-emerald-600" />}
-                      {lead.status === "waiting_delay" && <Clock className="size-3 text-amber-600" />}
-                      {lead.status === "replied" && <MessageSquare className="size-3 text-purple-600" />}
-                      {lead.status === "in_progress" && <Play className="size-2.5 text-blue-600 fill-current" />}
-                      <span>
-                        {lead.status === "completed"
-                          ? "Completado"
-                          : lead.status === "replied"
-                          ? "Respondió"
-                          : lead.status === "waiting_delay"
-                          ? "Esperando"
-                          : "En Secuencia"}
-                      </span>
-                    </span>
-                    <p className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[140px]" title={lead.lastActionTitle}>
-                      {lead.lastActionTitle}
-                    </p>
-                  </div>
+                {/* 4. Acciones Rápidas */}
+                <div className="shrink-0 flex items-center justify-end gap-1">
+                  {/* Botón Ejecutar Siguiente Paso */}
+                  <button
+                    type="button"
+                    disabled={isCompleted || isExecuting}
+                    onClick={() => handleExecuteNextStepForLead(lead)}
+                    className={`p-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1 ${
+                      isCompleted
+                        ? "opacity-30 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
+                        : isExecuting
+                        ? "bg-brand-500 text-white border-brand-500 cursor-wait"
+                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 text-gray-700 dark:text-gray-300"
+                    }`}
+                    title={
+                      isCompleted
+                        ? "Secuencia finalizada para este lead"
+                        : `Ejecutar Paso ${lead.currentStepIndex + 1}: ${
+                            activeCampaign.steps[lead.currentStepIndex]?.title || "Siguiente Paso"
+                          }`
+                    }
+                  >
+                    {isExecuting ? (
+                      <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    ) : (
+                      <Play className="size-3 text-brand-600 fill-brand-600" />
+                    )}
+                  </button>
 
-                  {/* Botones de Acción */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    {/* Botón Ejecutar Siguiente Paso */}
+                  {/* Botón Reiniciar Avance de este Lead */}
+                  {isCompleted && (
                     <button
                       type="button"
-                      disabled={isCompleted || isExecuting}
-                      onClick={() => handleExecuteNextStepForLead(lead)}
-                      className={`p-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1 ${
-                        isCompleted
-                          ? "opacity-30 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
-                          : isExecuting
-                          ? "bg-brand-500 text-white border-brand-500 cursor-wait"
-                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 text-gray-700 dark:text-gray-300"
-                      }`}
-                      title={
-                        isCompleted
-                          ? "Secuencia finalizada para este lead"
-                          : `Ejecutar Paso ${lead.currentStepIndex + 1}: ${
-                              activeCampaign.steps[lead.currentStepIndex]?.title || "Siguiente Paso"
-                            }`
-                      }
+                      onClick={() => handleResetLeadProgress(lead.id)}
+                      className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 transition"
+                      title="Reiniciar secuencia al Paso 1 para este lead"
                     >
-                      {isExecuting ? (
-                        <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                      ) : (
-                        <Play className="size-3 text-brand-600 fill-brand-600" />
-                      )}
+                      <RotateCcw className="size-3" />
                     </button>
+                  )}
 
-                    {/* Botón Cargar en Banco de Pruebas Superior */}
-                    {onSelectLeadForTestBench && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onSelectLeadForTestBench({
-                            fullName: lead.fullName,
-                            linkedinUrl: lead.linkedinUrl,
-                            company: lead.company,
-                            connectionDegree: lead.connectionDegree === "1st" ? "1st" : "2nd",
-                          })
-                        }
-                        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition"
-                        title="Cargar en el Banco de Pruebas individual de arriba"
-                      >
-                        <Sparkles className="size-3 text-purple-600" />
-                      </button>
-                    )}
-
-                    {/* Botón Reiniciar Avance de este Lead */}
-                    {isCompleted && (
-                      <button
-                        type="button"
-                        onClick={() => handleResetLeadProgress(lead.id)}
-                        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 transition"
-                        title="Reiniciar secuencia al Paso 1 para este lead"
-                      >
-                        <RotateCcw className="size-3" />
-                      </button>
-                    )}
-
-                    {/* Botón Quitar Lead del Seguimiento */}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteLeadFromTracker(lead.id)}
-                      className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-950/40 dark:text-gray-400 dark:hover:text-red-400 transition"
-                      title="Quitar este prospecto de la lista de seguimiento"
-                    >
-                      <Trash2 className="size-3" />
-                    </button>
-                  </div>
+                  {/* Botón Quitar Lead del Seguimiento */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteLeadFromTracker(lead.id)}
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-950/40 dark:text-gray-400 dark:hover:text-red-400 transition"
+                    title="Quitar este prospecto de la lista de seguimiento"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
                 </div>
               </div>
             );
