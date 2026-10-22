@@ -5,6 +5,7 @@ import { initialLeadLists, initialLeadsData } from "./mock-data";
 import type { CrmStage, Lead360Item, LeadListGroup, SequenceStatus } from "./types";
 import { calculateSignalScore, type SignalLeadItem } from "@/lib/signals/types";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
+import { extractCompanyFromHeadline } from "@/lib/signals/employee-filter";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
 const LISTS_STORAGE_KEY = "inhubflow_leads_lists";
@@ -114,11 +115,27 @@ export function getStoredLeads(): Lead360Item[] {
           hadFixes = true;
         }
 
+        // Limpiar "No especificado" en empresa y ubicación para dar un formato profesional
+        let cleanCompany = l.company;
+        if (!cleanCompany || /no especificado/i.test(cleanCompany)) {
+          const fromHeadline = extractCompanyFromHeadline(l.title);
+          cleanCompany = fromHeadline || "Profesional Independiente";
+          hadFixes = true;
+        }
+
+        let cleanLocation = l.location;
+        if (!cleanLocation || /no especificado/i.test(cleanLocation)) {
+          cleanLocation = "Remoto";
+          hadFixes = true;
+        }
+
         return {
           ...l,
           intentScore: normalizedScore,
           avatarUrl: avatar,
           language: correctedLang,
+          company: cleanCompany,
+          location: cleanLocation,
         };
       });
 
@@ -685,7 +702,18 @@ export function useLeadsStore() {
   }, []);
 
   const batchUpdateLeadPhotos = (
-    updates: Record<string, string | { photoUrl?: string; location?: string; language?: "en" | "es" | "pt"; headline?: string; isEmployee?: boolean }>
+    updates: Record<
+      string,
+      | string
+      | {
+          photoUrl?: string;
+          location?: string;
+          language?: "en" | "es" | "pt";
+          headline?: string;
+          company?: string;
+          isEmployee?: boolean;
+        }
+    >
   ) => {
     if (!updates || Object.keys(updates).length === 0) return;
     setLeads((prev) => {
@@ -708,9 +736,10 @@ export function useLeadsStore() {
         return {
           ...l,
           avatarUrl: val.photoUrl || l.avatarUrl,
-          location: val.location || l.location,
+          location: (val.location && !/no especificado/i.test(val.location)) ? val.location : l.location,
           language: val.language || l.language,
           title: val.headline || l.title,
+          company: (val.company && !/no especificado/i.test(val.company)) ? val.company : l.company,
         };
       });
 
@@ -851,12 +880,13 @@ export function importSignalLeadsToList(
       title: sLead.headline || "Profesional en LinkedIn",
       company:
         sLead.company ||
+        extractCompanyFromHeadline(sLead.headline) ||
         (targetList.competitorName
           ? `Interactuó con ${targetList.competitorName}`
           : targetList.signalLevel === "level_1"
           ? "Empresa en LinkedIn"
-          : "No especificado"),
-      location: sLead.location || "Remoto / No especificado",
+          : "Profesional Independiente"),
+      location: (sLead.location && !/no especificado/i.test(sLead.location)) ? sLead.location : "Remoto",
       linkedinUrl: sLead.linkedinUrl || "",
       avatarUrl: cleanAvatar,
       signalSource:

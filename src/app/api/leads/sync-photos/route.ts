@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unipile } from "@/lib/unipile/client";
 import { detectLeadLanguage } from "@/lib/signals/language-detector";
-import { isAuthorEmployeeOrAffiliate } from "@/lib/signals/employee-filter";
+import { isAuthorEmployeeOrAffiliate, extractCompanyFromHeadline } from "@/lib/signals/employee-filter";
 
 function isAccountHealthy(acc: any): boolean {
   if (!acc) return false;
@@ -15,6 +15,7 @@ export interface SyncedLeadData {
   location?: string;
   language?: "en" | "es" | "pt";
   headline?: string;
+  company?: string;
   isEmployee?: boolean;
 }
 
@@ -172,6 +173,7 @@ export async function POST(req: NextRequest) {
           location: effectiveLocation,
           language: detectedLang,
           headline: effectiveHeadline,
+          company: currentCompany || (effectiveHeadline ? extractCompanyFromHeadline(effectiveHeadline) : undefined) || undefined,
         };
         syncedCount++;
       } catch (err) {

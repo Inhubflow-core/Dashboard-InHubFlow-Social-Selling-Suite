@@ -36,7 +36,7 @@ export default function LeadsPage() {
   useEffect(() => {
     if (!isLoaded || leads.length === 0 || isSyncingPhotosRef.current) return;
     const leadsToEnrich = leads
-      .filter((l) => (!l.avatarUrl || l.location === "Remoto / No especificado") && Boolean(l.linkedinUrl))
+      .filter((l) => (!l.avatarUrl || !l.location || /no especificado/i.test(l.location) || !l.company || /no especificado/i.test(l.company)) && Boolean(l.linkedinUrl))
       .slice(0, 15);
 
     if (leadsToEnrich.length === 0) return;
@@ -259,7 +259,9 @@ export default function LeadsPage() {
                               )}
                             </div>
                             <p className="text-[11px] text-gray-400 truncate mt-0.5">
-                              {lead.location || "Remoto / No especificado"}
+                              {lead.location && !/no especificado/i.test(lead.location)
+                                ? lead.location
+                                : "Remoto"}
                             </p>
                           </div>
                         </div>
@@ -273,12 +275,14 @@ export default function LeadsPage() {
                         >
                           {truncateText(lead.title, 48)}
                         </p>
-                        <p
-                          className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
-                          title={lead.company}
-                        >
-                          {truncateText(lead.company, 40)}
-                        </p>
+                        {lead.company && !/no especificado/i.test(lead.company) && (
+                          <p
+                            className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
+                            title={lead.company}
+                          >
+                            {truncateText(lead.company, 40)}
+                          </p>
+                        )}
                       </td>
 
                       {/* Columna: Origen de Señal */}
@@ -370,7 +374,12 @@ export default function LeadsPage() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {selectedLeadFor360.company} • {selectedLeadFor360.location}
+                    {selectedLeadFor360.company && !/no especificado/i.test(selectedLeadFor360.company)
+                      ? `${selectedLeadFor360.company} • `
+                      : ""}
+                    {selectedLeadFor360.location && !/no especificado/i.test(selectedLeadFor360.location)
+                      ? selectedLeadFor360.location
+                      : "Remoto"}
                   </p>
                   {selectedLeadFor360.linkedinUrl && (
                     <a
