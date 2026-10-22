@@ -2514,17 +2514,9 @@ export default function CampaignsPage() {
               </div>
 
               {/* Contenido Scrolleable del Drawer */}
-              <div className="p-5 overflow-y-auto space-y-3 flex-1 text-xs">
-                {/* Banner explicativo */}
-                <div className="p-3 rounded-xl bg-brand-50/50 dark:bg-brand-950/20 border border-brand-100 dark:border-brand-900/40 text-[11px] text-gray-600 dark:text-gray-300 flex items-start gap-2.5">
-                  <span className="text-base shrink-0">💡</span>
-                  <p className="leading-relaxed">
-                    Haz clic en cualquier paso para añadirlo al flujo o <strong>arrástralo</strong> directamente sobre la secuencia central.
-                  </p>
-                </div>
-
+              <div className="p-5 overflow-y-auto space-y-2.5 flex-1 text-xs">
                 {/* Lista de Tarjetas de Pasos Disponibles */}
-                <div className="space-y-2.5 pt-1">
+                <div className="space-y-2.5">
                   {AVAILABLE_PALETTE_STEPS.map((paletteStep) => {
                     const inSequence = isStepInSequence(paletteStep.idKey, paletteStep.type);
 
