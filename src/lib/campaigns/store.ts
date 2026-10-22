@@ -28,7 +28,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 1,
     type: "visit",
     title: "Visitar Perfil",
-    description: "Visita el perfil en LinkedIn para figurar en las notificaciones del prospecto y generar visibilidad previa.",
+    description: "Visita el perfil en LinkedIn para figurar en notificaciones del prospecto.",
     delayDaysBefore: 0,
   },
   {
@@ -36,7 +36,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 2,
     type: "like_comment",
     title: "Like + Comentario",
-    description: "Interactúa con la publicación más reciente del prospecto con una reacción de Like y un comentario de valor.",
+    description: "Interactúa con la publicación más reciente con un Like y Comentario de valor.",
     delayDaysBefore: 1,
     commentTemplate: "Gran perspectiva {{first_name}}, totalmente alineado con este enfoque.",
     useAiComment: true,
@@ -46,7 +46,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 3,
     type: "connect",
     title: "Seguir + Conectar",
-    description: "Sigue el perfil en LinkedIn y envía solicitud de conexión con nota contextual en una sola acción.",
+    description: "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota previa.",
     delayDaysBefore: 1,
     connectNote: "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.",
   },
@@ -55,7 +55,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 4,
     type: "message_icebreaker",
     title: "Mensaje DM 01 'Icebreakers'",
-    description: "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.",
+    description: "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.",
     delayDaysBefore: 1,
     isInheritedFromMonitor: true,
     messageTemplate: "Hola {{first_name}}, vi tu interacción en la publicación sobre {{topic}} de {{author_name}} y me pareció un punto clave. ¿Cómo lo están abordando en {{company}}?",
@@ -65,7 +65,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 5,
     type: "message_followup",
     title: "Mensaje DM 02 'Follow-up'",
-    description: "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.",
+    description: "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.",
     delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, te comparto este caso breve sobre cómo resolver {{topic}} sin quemar tu dominio ni depender de prospección invasiva. ¿Te hace sentido?",
   },
@@ -74,7 +74,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 6,
     type: "message_value_prop",
     title: "Mensaje DM 03 'Value Prop'",
-    description: "Propuesta de valor y llamado suave a la acción para agendar una sesión de diagnóstico de 15 minutos.",
+    description: "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.",
     delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, si estás evaluando optimizar este trimestre el pipeline de {{company}}, me encantaría compartirte una demo rápida de 15 min de nuestro sistema. ¿Cómo ves tu agenda este jueves?",
   },
@@ -86,7 +86,7 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     order: 1,
     type: "connect_message",
     title: "Seguir + Conectar",
-    description: "Sigue el perfil y envía solicitud de conexión indicando el motivo de entrega del material solicitado en el post.",
+    description: "Sigue el perfil y envía solicitud de conexión para entregar el lead magnet.",
     delayDaysBefore: 0,
     isInheritedFromMonitor: true,
     connectNote: "Hola {{first_name}}, vi que comentaste {{keyword}} en mi post. Te estoy solicitando conectar contigo para entregarte el recurso por mensaje privado.",
@@ -130,7 +130,7 @@ export const initialLinearCampaigns: LinearSequenceCampaign[] = [
     name: "01. Secuencia: Listas de Leads",
     code: "01_lists",
     triggerTitle: "Activador: Entrar en la lista",
-    triggerDescription: "Se dispara automáticamente cuando un prospecto entra en una lista inteligente de Signal Radar.",
+    triggerDescription: "Se dispara cuando un prospecto entra a una lista inteligente de Signal Radar.",
     status: "active",
     steps: defaultListsSequenceSteps,
     dailyLimits: {
@@ -148,7 +148,7 @@ export const initialLinearCampaigns: LinearSequenceCampaign[] = [
     name: "02. Secuencia: Lead Magnet",
     code: "02_lead_magnet",
     triggerTitle: "Activador: Entrar en la lista",
-    triggerDescription: "Se dispara cuando el prospecto comenta la palabra clave (ej: SISTEMA) en tu publicación Lead Magnet de Nivel 1.",
+    triggerDescription: "Se dispara cuando el prospecto comenta la palabra clave en tu post fijado.",
     status: "active",
     steps: defaultLeadMagnetSequenceSteps,
     dailyLimits: {
@@ -183,10 +183,34 @@ export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
   } else if (title === "Like + Comentar" || title === "Dar Like y Comentar") {
     title = "Like + Comentario";
   }
+
+  let description = sanitizeUnipileText(step.description);
+  // Normalización estricta a máximo 77 caracteres para descripciones (contando espacios)
+  if (description.includes("figurar en las notificaciones del prospecto y generar visibilidad previa") || (step.type === "visit" && description.length > 77)) {
+    description = "Visita el perfil en LinkedIn para figurar en notificaciones del prospecto.";
+  } else if (description.includes("publicación más reciente del prospecto con una reacción de Like") || (step.type === "like_comment" && description.length > 77)) {
+    description = "Interactúa con la publicación más reciente con un Like y Comentario de valor.";
+  } else if (
+    description.includes("solicitud de conexión con nota contextual para crear el primer puente") ||
+    description.includes("Sigue el perfil en LinkedIn y envía solicitud de conexión") ||
+    description.includes("indicando el motivo de entrega del material") ||
+    ((step.type === "connect" || step.type === "connect_message") && description.length > 77)
+  ) {
+    description = "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota previa.";
+  } else if (description.includes("Mensaje inicial contextualizado directamente desde el monitor") || (step.type === "message_icebreaker" && description.length > 77)) {
+    description = "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.";
+  } else if (description.includes("reto comercial o dolor detectado") || (step.type === "message_followup" && description.length > 77)) {
+    description = "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.";
+  } else if (description.includes("llamado suave a la acción para agendar una sesión") || (step.type === "message_value_prop" && description.length > 77)) {
+    description = "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.";
+  } else if (description.length > 77) {
+    description = description.slice(0, 77);
+  }
+
   return {
     ...step,
     title,
-    description: sanitizeUnipileText(step.description),
+    description,
     messageTemplate: step.messageTemplate ? sanitizeUnipileText(step.messageTemplate) : step.messageTemplate,
     commentTemplate: step.commentTemplate ? sanitizeUnipileText(step.commentTemplate) : step.commentTemplate,
     connectNote: step.connectNote ? sanitizeUnipileText(step.connectNote) : step.connectNote,
@@ -198,9 +222,17 @@ export function sanitizeLinearCampaign(campaign: LinearSequenceCampaign): Linear
     .replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")
     .trim();
 
-  const sanitizedTriggerDesc = sanitizeUnipileText(campaign.triggerDescription)
+  let sanitizedTriggerDesc = sanitizeUnipileText(campaign.triggerDescription)
     .replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")
     .trim();
+
+  if (sanitizedTriggerDesc.includes("Se dispara automáticamente cuando un prospecto entra en una lista inteligente")) {
+    sanitizedTriggerDesc = "Se dispara cuando un prospecto entra a una lista inteligente de Signal Radar.";
+  } else if (sanitizedTriggerDesc.includes("Se dispara cuando el prospecto comenta la palabra clave")) {
+    sanitizedTriggerDesc = "Se dispara cuando el prospecto comenta la palabra clave en tu post fijado.";
+  } else if (sanitizedTriggerDesc.length > 77) {
+    sanitizedTriggerDesc = sanitizedTriggerDesc.slice(0, 77);
+  }
 
   const steps = Array.isArray(campaign.steps)
     ? campaign.steps.map((s, idx) => {
@@ -247,7 +279,12 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       /Like \+ Comentar/i.test(raw) ||
       /Dar Like y Comentar/i.test(raw) ||
       raw.includes('"delayDaysBefore":2') ||
-      raw.includes('"delayDaysBefore":3')
+      raw.includes('"delayDaysBefore":3') ||
+      raw.includes("figurar en las notificaciones del prospecto y generar visibilidad previa") ||
+      raw.includes("reacción de Like y un comentario de valor") ||
+      raw.includes("primer puente de confianza profesional") ||
+      raw.includes("reto comercial o dolor detectado") ||
+      raw.includes("Se dispara automáticamente cuando un prospecto entra en una lista inteligente")
     ) {
       try {
         localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));

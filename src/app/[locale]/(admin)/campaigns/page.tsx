@@ -76,7 +76,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "visit",
     orderNumber: "01",
     title: "Visitar Perfil",
-    subtitle: "Visita previa para figurar en notificaciones y generar visibilidad.",
+    subtitle: "Visita el perfil en LinkedIn para figurar en notificaciones del prospecto.",
     iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
     icon: <Eye className="size-4" />,
   },
@@ -85,7 +85,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "like_comment",
     orderNumber: "02",
     title: "Like + Comentario",
-    subtitle: "Interactúa con la publicación más reciente con Like y Comentario contextual.",
+    subtitle: "Interactúa con la publicación más reciente con un Like y Comentario de valor.",
     iconBg: "bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200 dark:border-purple-800",
     icon: <ThumbsUp className="size-4" />,
   },
@@ -94,7 +94,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "connect",
     orderNumber: "03",
     title: "Seguir + Conectar",
-    subtitle: "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota.",
+    subtitle: "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota previa.",
     iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
     icon: <UserPlus className="size-4" />,
   },
@@ -103,7 +103,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "message_icebreaker",
     orderNumber: "04",
     title: "Mensaje DM 'Icebreakers'",
-    subtitle: "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.",
+    subtitle: "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.",
     iconBg: "bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400 border border-brand-200 dark:border-brand-800",
     icon: <Send className="size-4" />,
   },
@@ -112,7 +112,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "message_followup",
     orderNumber: "05",
     title: "Mensaje DM 'Follow-up'",
-    subtitle: "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.",
+    subtitle: "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.",
     iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
     icon: <MessageSquare className="size-4" />,
   },
@@ -121,7 +121,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "message_value_prop",
     orderNumber: "06",
     title: "Mensaje DM 'Value Prop'",
-    subtitle: "Propuesta de valor definitiva y llamado a agenda de llamada.",
+    subtitle: "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.",
     iconBg: "bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800",
     icon: <Zap className="size-4" />,
   },
@@ -525,26 +525,26 @@ export default function CampaignsPage() {
 
     if (type === "visit") {
       title = "Visitar Perfil";
-      description = "Visita el perfil en LinkedIn para figurar en las notificaciones del prospecto y generar visibilidad previa.";
+      description = "Visita el perfil en LinkedIn para figurar en notificaciones del prospecto.";
     } else if (type === "like_comment") {
       title = "Like + Comentario";
-      description = "Interactúa con la publicación más reciente del prospecto con una reacción de Like y un comentario de valor.";
+      description = "Interactúa con la publicación más reciente con un Like y Comentario de valor.";
       messageTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
     } else if (type === "connect") {
       title = "Seguir + Conectar";
-      description = "Envía solicitud de conexión con nota contextual para crear el primer puente de confianza profesional.";
+      description = "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota previa.";
       messageTemplate = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.";
     } else if (type === "message_icebreaker") {
       title = "Mensaje DM 01 'Icebreakers'";
-      description = "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.";
+      description = "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.";
       messageTemplate = "Hola {{first_name}}, vi tu aportación sobre {{topic}}. ¿Cómo lo resuelven en {{company}}?";
     } else if (type === "message_followup") {
       title = "Mensaje DM 02 'Follow-up'";
-      description = "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.";
+      description = "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.";
       messageTemplate = "Hola {{first_name}}, te comparto este caso práctico breve sobre {{topic}}.";
     } else if (type === "message_value_prop") {
       title = "Mensaje DM 03 'Value Prop'";
-      description = "Propuesta de valor y agenda de llamada de descubrimiento.";
+      description = "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.";
       messageTemplate = "Hola {{first_name}}, si deseas optimizar el pipeline de {{company}}, podemos conversar 15 min esta semana.";
     }
 
@@ -1747,16 +1747,22 @@ export default function CampaignsPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
-                  Descripción Operativa
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                    Descripción Operativa
+                  </label>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    {editingStep.step.description.length}/77 caracteres
+                  </span>
+                </div>
                 <input
                   type="text"
+                  maxLength={77}
                   value={editingStep.step.description}
                   onChange={(e) =>
                     setEditingStep({
                       ...editingStep,
-                      step: { ...editingStep.step, description: e.target.value },
+                      step: { ...editingStep.step, description: e.target.value.slice(0, 77) },
                     })
                   }
                   className="h-9 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
