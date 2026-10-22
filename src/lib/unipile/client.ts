@@ -465,11 +465,14 @@ export class UnipileClient {
       return { success: true, simulated: true };
     }
 
+    const rawId = (params.post_id || '').trim();
+    const formattedId = rawId.startsWith('urn:li:') ? rawId : `urn:li:ugcPost:${rawId}`;
+
     return this.request('/api/v1/posts/reaction', {
       method: 'POST',
       body: JSON.stringify({
         account_id: params.account_id,
-        post_id: params.post_id,
+        post_id: formattedId,
         reaction_type: params.reaction_type || 'like',
       }),
     });
@@ -484,10 +487,13 @@ export class UnipileClient {
       return { id, comment_id: id, simulated: true };
     }
 
+    const rawId = (params.post_id || '').trim();
+    const formattedId = rawId.startsWith('urn:li:') ? rawId : `urn:li:ugcPost:${rawId}`;
+
     const body = new FormData();
     body.append('account_id', params.account_id);
     body.append('text', params.text);
-    return this.request(`/api/v1/posts/${encodeURIComponent(params.post_id)}/comments`, {
+    return this.request(`/api/v1/posts/${encodeURIComponent(formattedId)}/comments`, {
       method: 'POST',
       body,
     });

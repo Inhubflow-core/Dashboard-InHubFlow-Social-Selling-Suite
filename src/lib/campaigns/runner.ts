@@ -1073,27 +1073,71 @@ export async function executeLinearSequenceStepForLead(params: {
             identifier: leadState.providerId || leadState.leadId,
             limit: 1,
           });
-          if (posts && posts.length > 0 && posts[0].id) {
-            targetPostId = posts[0].id;
+          if (posts && posts.length > 0) {
+            const firstPost = posts[0];
+            targetPostId = firstPost.social_id || firstPost.id;
+            if (targetPostId && !targetPostId.startsWith("urn:li:")) {
+              targetPostId = `urn:li:ugcPost:${targetPostId}`;
+            }
           }
         } catch (err) {
           console.warn("[Runner] Fallback en post de prospecto:", err);
         }
 
-        if (targetPostId) {
-          try {
-            await unipile.reactToPost({
-              account_id: accountId,
-              post_id: targetPostId,
-              reaction_type: "like",
-            });
-            await unipile.commentOnPost({
-              account_id: accountId,
-              post_id: targetPostId,
-              text: commentText,
-            });
-          } catch (err: any) {
-            const errorMsg = err?.message || String(err);
+        if (!targetPostId) {
+          const log: CampaignExecutionLog = {
+            id: generateLogId("log-seq"),
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "success",
+            message: `Paso ${stepIndex + 1} (${currentStep.title}): ${leadState.leadName} no tiene publicaciones recientes públicas accesibles. Se omite este paso y la secuencia avanza.`,
+            details: { noPostsFound: true, stepOrder: stepIndex + 1, dryRun: isDry },
+          };
+          recordExecutionLog(log);
+          const nextIndex = stepIndex + 1;
+          const isDone = nextIndex >= campaign.steps.length;
+          return {
+            success: true,
+            newState: {
+              ...leadState,
+              state: isDone ? "completed" : "in_progress",
+              history: [...leadState.history, currentStep.id],
+            },
+            log,
+            isSequenceCompleted: isDone,
+            nextStepIndex: nextIndex,
+          };
+        }
+
+        let didLike = false;
+        let didComment = false;
+        try {
+          await unipile.reactToPost({
+            account_id: accountId,
+            post_id: targetPostId,
+            reaction_type: "like",
+          });
+          didLike = true;
+        } catch (likeErr) {
+          console.warn("[Runner] Advertencia en like:", likeErr);
+        }
+
+        try {
+          await unipile.commentOnPost({
+            account_id: accountId,
+            post_id: targetPostId,
+            text: commentText,
+          });
+          didComment = true;
+        } catch (commentErr: any) {
+          console.warn("[Runner] Advertencia en comentario:", commentErr);
+          if (!didLike) {
+            const errorMsg = commentErr?.message || String(commentErr);
             const log: CampaignExecutionLog = {
               id: generateLogId("log-seq"),
               campaignId: campaign.id,
