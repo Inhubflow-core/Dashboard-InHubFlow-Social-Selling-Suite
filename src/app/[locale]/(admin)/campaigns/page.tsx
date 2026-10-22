@@ -57,6 +57,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
+import { CampaignLeadsTracker } from "@/components/campaigns/CampaignLeadsTracker";
 
 export default function CampaignsPage() {
   const { currentUser } = useAuth();
@@ -1439,6 +1440,33 @@ export default function CampaignsPage() {
             <span>Agregar Paso a la Secuencia</span>
           </button>
         </div>
+      </div>
+
+      {/* Sección General de Seguimiento de Prospectos por Estaciones de Secuencia */}
+      <div className="pt-6">
+        <CampaignLeadsTracker
+          activeCampaign={activeCampaign}
+          leadLists={leadLists}
+          allLeads={allLeads}
+          activeAccount={activeAccount}
+          onSelectLeadForTestBench={(lead) => {
+            setTestSourceMode("manual");
+            setTestLeadName(lead.fullName);
+            setTestLinkedinUrl(lead.linkedinUrl);
+            setTestCompany(lead.company);
+            setTestConnectionDegree(lead.connectionDegree);
+            setIsTestBenchExpanded(true);
+            setFeedbackMessage(`Lead seleccionado para banco de pruebas: ${lead.fullName}`);
+            setTimeout(() => setFeedbackMessage(null), 3500);
+            if (typeof window !== "undefined") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          onLogGenerated={(log) => {
+            setRunnerLogs((prev) => [log, ...prev]);
+            setLastTestResultLog(log);
+          }}
+        />
       </div>
 
       {/* Modal de Edición Completo: Mensajes, Imagen, Video, Notas de Voz y Archivos Adjuntos */}
