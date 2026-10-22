@@ -17,8 +17,8 @@ import type {
   MessageAttachmentType,
 } from "@/lib/campaigns/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
-import { getStoredLeadLists } from "@/lib/leads/store";
-import type { LeadListGroup } from "@/lib/leads/types";
+import { getStoredLeadLists, getStoredLeads } from "@/lib/leads/store";
+import type { LeadListGroup, Lead360Item } from "@/lib/leads/types";
 import {
   Pencil,
   X,
@@ -39,6 +39,10 @@ import {
   Zap,
   FileText,
   ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Info,
+  ExternalLink,
   Terminal,
   Image as ImageIcon,
   Video as VideoIcon,
@@ -77,6 +81,19 @@ export default function CampaignsPage() {
   const [runnerLogs, setRunnerLogs] = useState<CampaignExecutionLog[]>([]);
   const [runnerNotice, setRunnerNotice] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+
+  // Estados para Banco de Pruebas en Lead Individual (Testing)
+  const [allLeads, setAllLeads] = useState<Lead360Item[]>([]);
+  const [testLeadName, setTestLeadName] = useState<string>("Roberto OrSe");
+  const [testLinkedinUrl, setTestLinkedinUrl] = useState<string>("https://www.linkedin.com/in/roberto-orse");
+  const [testCompany, setTestCompany] = useState<string>("InHubFlow");
+  const [testConnectionDegree, setTestConnectionDegree] = useState<"1st" | "2nd">("1st");
+  const [testMode, setTestMode] = useState<"dry_run" | "live">("dry_run");
+  const [testSourceMode, setTestSourceMode] = useState<"manual" | "list">("manual");
+  const [testSelectedListId, setTestSelectedListId] = useState<string>("");
+  const [testSelectedLeadId, setTestSelectedLeadId] = useState<string>("");
+  const [isTestBenchExpanded, setIsTestBenchExpanded] = useState<boolean>(true);
+  const [lastTestResultLog, setLastTestResultLog] = useState<CampaignExecutionLog | null>(null);
 
   // Cuenta activa de LinkedIn
   const activeAccount = useMemo(() => {
@@ -207,12 +224,14 @@ export default function CampaignsPage() {
     }
   };
 
-  // Cargar campañas y listas
+  // Cargar campañas, listas y prospectos
   useEffect(() => {
     const stored = getStoredLinearCampaigns();
     setCampaigns(stored);
     const lists = getStoredLeadLists();
     setLeadLists(lists);
+    const leads = getStoredLeads();
+    setAllLeads(leads);
     setIsLoaded(true);
 
     // Revisar si viene listId por URL
@@ -221,12 +240,91 @@ export default function CampaignsPage() {
       const listIdParam = params.get("listId");
       if (listIdParam && stored.length > 0) {
         const found = lists.find((l) => l.id === listIdParam);
-        if (found) setLinkedList(found);
+        if (found) {
+          setLinkedList(found);
+          setTestSelectedListId(found.id);
+          setTestSourceMode("list");
+          const matching = leads.filter(
+            (ld) =>
+              ld.listId === found.id ||
+              (found.sourceMonitorId && (ld as any).monitorId === found.sourceMonitorId) ||
+              (found.competitorName && ld.company?.toLowerCase().includes(found.competitorName.toLowerCase()))
+          );
+          if (matching.length > 0) {
+            setTestSelectedLeadId(matching[0].id);
+            setTestLeadName(matching[0].fullName);
+            setTestLinkedinUrl(matching[0].linkedinUrl);
+            setTestCompany(matching[0].company || found.competitorName || "");
+            setTestConnectionDegree("2nd");
+          }
+        }
         const isMagnet = listIdParam.includes("n1") || listIdParam.includes("magnet");
         setSelectedCampaignId(isMagnet ? "seq-lead-magnet" : "seq-lead-lists");
       }
     }
   }, []);
+
+  const handleSelectTestList = (listId: string) => {
+    setTestSelectedListId(listId);
+    if (!listId) {
+      setTestSelectedLeadId("");
+      return;
+    }
+    const targetList = leadLists.find((l) => l.id === listId);
+    const matchingLeads = allLeads.filter(
+      (ld) =>
+        ld.listId === listId ||
+        (targetList?.sourceMonitorId && (ld as any).monitorId === targetList.sourceMonitorId) ||
+        (targetList?.competitorName && ld.company?.toLowerCase().includes(targetList.competitorName.toLowerCase()))
+    );
+    if (matchingLeads.length > 0) {
+      const first = matchingLeads[0];
+      setTestSelectedLeadId(first.id);
+      setTestLeadName(first.fullName);
+      setTestLinkedinUrl(first.linkedinUrl);
+      setTestCompany(first.company || targetList?.competitorName || "");
+      setTestConnectionDegree("2nd");
+    } else {
+      setTestSelectedLeadId("");
+    }
+  };
+
+  const handleSelectTestLead = (leadId: string) => {
+    setTestSelectedLeadId(leadId);
+    const found = allLeads.find((ld) => ld.id === leadId);
+    if (found) {
+      setTestLeadName(found.fullName);
+      setTestLinkedinUrl(found.linkedinUrl);
+      setTestCompany(found.company || "");
+      setTestConnectionDegree("2nd");
+    }
+  };
+
+  const handleApplyPreset = (preset: "connected_roberto" | "unconnected_agency" | "clean_manual") => {
+    if (preset === "connected_roberto") {
+      setTestSourceMode("manual");
+      setTestLeadName("Roberto OrSe");
+      setTestLinkedinUrl("https://www.linkedin.com/in/roberto-orse");
+      setTestCompany("InHubFlow");
+      setTestConnectionDegree("1st");
+      setFeedbackMessage("Preset cargado: Roberto OrSe (1er Grado - Ya conectados)");
+    } else if (preset === "unconnected_agency") {
+      setTestSourceMode("manual");
+      setTestLeadName("Roberto OrSe Agencia");
+      setTestLinkedinUrl("https://www.linkedin.com/in/robertoorse-agencia");
+      setTestCompany("Agencia OrSe");
+      setTestConnectionDegree("2nd");
+      setFeedbackMessage("Preset cargado: Roberto OrSe Agencia (2º Grado - No conectados)");
+    } else {
+      setTestSourceMode("manual");
+      setTestLeadName("");
+      setTestLinkedinUrl("https://www.linkedin.com/in/");
+      setTestCompany("");
+      setTestConnectionDegree("2nd");
+      setFeedbackMessage("Campos limpiados para ingreso manual");
+    }
+    setTimeout(() => setFeedbackMessage(null), 3000);
+  };
 
   // Cerrar popover al hacer clic fuera
   useEffect(() => {
@@ -372,30 +470,41 @@ export default function CampaignsPage() {
     setRunnerNotice(null);
     try {
       const stepToExecute = simulatedStepIndex < activeCampaign.steps.length ? simulatedStepIndex : 0;
+      const targetName = testLeadName.trim() || "Roberto OrSe";
+      const targetUrl = testLinkedinUrl.trim() || "https://www.linkedin.com/in/robertoorse-agencia";
+      const targetCompany = testCompany.trim() || "InHubFlow";
+      const isDry = testMode === "dry_run";
+
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           campaign: activeCampaign,
           stepIndex: stepToExecute,
-          leadName: "Roberto OrSe (Prospecto)",
-          linkedinUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-          connectionDegree: "2nd",
+          leadName: targetName,
+          linkedinUrl: targetUrl,
+          connectionDegree: testConnectionDegree,
+          company: targetCompany,
+          dryRun: isDry,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
       });
       const data = await res.json();
       if (data.ok) {
         const currentTitle = activeCampaign.steps[stepToExecute]?.title || "Paso";
+        const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
         if (data.result.isSequenceCompleted) {
-          setRunnerNotice(`Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados con éxito.`);
+          setRunnerNotice(`${modeLabel} Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados para ${targetName}.`);
           setSimulatedStepIndex(0);
         } else {
-          setRunnerNotice(`Simulación: Paso ${stepToExecute + 1} (${currentTitle}) ejecutado con éxito.`);
+          setRunnerNotice(`${modeLabel} Paso ${stepToExecute + 1} (${currentTitle}) ejecutado para ${targetName}.`);
           setSimulatedStepIndex(data.result.nextStepIndex ?? (stepToExecute + 1));
         }
-        setTimeout(() => setRunnerNotice(null), 4000);
+        setTimeout(() => setRunnerNotice(null), 5000);
         setRunnerLogs(data.logs || []);
+        if (data.result?.log) {
+          setLastTestResultLog(data.result.log);
+        }
       }
     } catch (err: any) {
       console.warn("Error en runner:", err);
@@ -408,24 +517,35 @@ export default function CampaignsPage() {
     setIsExecutingRunner(true);
     setRunnerNotice(null);
     try {
+      const targetName = testLeadName.trim() || "Roberto OrSe";
+      const targetUrl = testLinkedinUrl.trim() || "https://www.linkedin.com/in/robertoorse-agencia";
+      const targetCompany = testCompany.trim() || "InHubFlow";
+      const isDry = testMode === "dry_run";
+
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           campaign: activeCampaign,
           runAll: true,
-          leadName: "Roberto OrSe (Prospecto)",
-          linkedinUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-          connectionDegree: "2nd",
+          leadName: targetName,
+          linkedinUrl: targetUrl,
+          connectionDegree: testConnectionDegree,
+          company: targetCompany,
+          dryRun: isDry,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
       });
       const data = await res.json();
       if (data.ok) {
-        setRunnerNotice(`Secuencia completa simulada con éxito: ${activeCampaign.steps.length} pasos procesados.`);
-        setTimeout(() => setRunnerNotice(null), 4000);
+        const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
+        setRunnerNotice(`${modeLabel} Secuencia completa ejecutada con éxito para ${targetName} (${activeCampaign.steps.length} pasos).`);
+        setTimeout(() => setRunnerNotice(null), 5000);
         setRunnerLogs(data.logs || []);
         setSimulatedStepIndex(0);
+        if (data.result?.logs && data.result.logs.length > 0) {
+          setLastTestResultLog(data.result.logs[data.result.logs.length - 1]);
+        }
       }
     } catch (err: any) {
       console.warn("Error simulando todos los pasos:", err);
@@ -553,6 +673,388 @@ export default function CampaignsPage() {
             <span>Logs</span>
           </button>
         </div>
+      </div>
+
+      {/* PANEL TEMPORAL: BANCO DE PRUEBAS EN LEAD INDIVIDUAL */}
+      <div className="rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-4 sm:p-5 shadow-2xs">
+        {/* Cabecera del Panel de Pruebas */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+              <Sparkles className="size-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                  Banco de Pruebas: Secuencia en Lead Individual
+                </h4>
+                <span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  Prueba Controlada
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                Inicia y prueba la secuencia paso a paso o completa sobre un perfil específico sin enviar campañas a grupos masivos.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Toggle de Modo: Simulación Segura vs Unipile Live */}
+            <div className="inline-flex rounded-lg p-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs">
+              <button
+                type="button"
+                onClick={() => setTestMode("dry_run")}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  testMode === "dry_run"
+                    ? "bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-2xs"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                }`}
+                title="Valida copys, variables y lógica sin emitir llamadas reales a LinkedIn"
+              >
+                Simulación (Dry Run)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestMode("live")}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  testMode === "live"
+                    ? "bg-red-500 text-white shadow-2xs"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                }`}
+                title="Ejecuta la acción real en LinkedIn mediante Unipile sólo para este lead"
+              >
+                Ejecución Real (Live)
+              </button>
+            </div>
+
+            {/* Botón Colapsar / Expandir */}
+            <button
+              type="button"
+              onClick={() => setIsTestBenchExpanded(!isTestBenchExpanded)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              title={isTestBenchExpanded ? "Colapsar panel de pruebas" : "Expandir panel de pruebas"}
+            >
+              {isTestBenchExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            </button>
+          </div>
+        </div>
+
+        {isTestBenchExpanded && (
+          <div className="pt-4 space-y-4">
+            {/* Selector de Presets Rápidos */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+              <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                <Info className="size-3.5 text-brand-500" />
+                Cargar Prospecto de Prueba Rápido:
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset("connected_roberto")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border ${
+                    testLeadName === "Roberto OrSe" && testConnectionDegree === "1st"
+                      ? "bg-brand-500 text-white border-brand-500 shadow-2xs"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100"
+                  }`}
+                  title="Prueba con perfil ya conectado: Omite invitación y ejecuta DMs directos"
+                >
+                  Roberto OrSe (1er Grado - Ya Conectados)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset("unconnected_agency")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border ${
+                    testLeadName === "Roberto OrSe Agencia" && testConnectionDegree === "2nd"
+                      ? "bg-brand-500 text-white border-brand-500 shadow-2xs"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100"
+                  }`}
+                  title="Prueba con perfil no conectado: Ejecuta visita + conectar con nota"
+                >
+                  Roberto OrSe Agencia (2º Grado)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset("clean_manual")}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
+                  title="Limpiar campos para escribir cualquier perfil"
+                >
+                  Limpiar / Otro Lead
+                </button>
+              </div>
+            </div>
+
+            {/* Alternador de Modo de Origen: Manual vs Lista de Monitores */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 text-xs">
+              <div className="lg:col-span-4">
+                <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  value={testLeadName}
+                  onChange={(e) => setTestLeadName(e.target.value)}
+                  placeholder="Ej. Roberto OrSe"
+                  className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 text-xs dark:text-white focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              <div className="lg:col-span-5">
+                <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  URL de Perfil en LinkedIn
+                </label>
+                <input
+                  type="url"
+                  value={testLinkedinUrl}
+                  onChange={(e) => setTestLinkedinUrl(e.target.value)}
+                  placeholder="https://www.linkedin.com/in/perfil"
+                  className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 text-xs font-mono dark:text-white focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              <div className="lg:col-span-3">
+                <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Empresa (para variable company)
+                </label>
+                <input
+                  type="text"
+                  value={testCompany}
+                  onChange={(e) => setTestCompany(e.target.value)}
+                  placeholder="Ej. InHubFlow"
+                  className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 text-xs dark:text-white focus:outline-none focus:border-brand-500"
+                />
+              </div>
+            </div>
+
+            {/* Selector de Grado de Conexión + Selector de Listas / Monitores Guardados */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1 text-xs">
+              {/* Opción A: Grado de Conexión */}
+              <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/40 dark:bg-gray-800/40 space-y-1.5">
+                <span className="text-[11px] font-bold text-gray-800 dark:text-gray-200 block">
+                  Grado de Conexión en LinkedIn:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTestConnectionDegree("1st")}
+                    className={`p-2 rounded-lg border text-left transition ${
+                      testConnectionDegree === "1st"
+                        ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-800 dark:text-emerald-300 font-bold"
+                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <UserCheck className="size-3.5 text-emerald-600" />
+                      <span>1er Grado (Conectados)</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-normal mt-0.5">
+                      Salta invitaciones y prueba directamente DMs
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestConnectionDegree("2nd")}
+                    className={`p-2 rounded-lg border text-left transition ${
+                      testConnectionDegree === "2nd"
+                        ? "bg-blue-50 dark:bg-blue-950/60 border-blue-400 text-blue-800 dark:text-blue-300 font-bold"
+                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <UserPlus className="size-3.5 text-blue-600" />
+                      <span>2º / 3er Grado (No Conectados)</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-normal mt-0.5">
+                      Prueba visita previa, Like+Comentario y Conectar
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Opción B: O seleccionar desde Monitor / Lista */}
+              <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/40 dark:bg-gray-800/40 space-y-1.5">
+                <span className="text-[11px] font-bold text-gray-800 dark:text-gray-200 block">
+                  O importar lead desde un Monitor / Lista existente:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={testSelectedListId}
+                    onChange={(e) => handleSelectTestList(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 text-xs text-gray-800 dark:text-white"
+                  >
+                    <option value="">Seleccionar Lista / Monitor...</option>
+                    {leadLists.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name} ({l.leadsCount || 0} leads)
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={testSelectedLeadId}
+                    disabled={!testSelectedListId}
+                    onChange={(e) => handleSelectTestLead(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 text-xs text-gray-800 dark:text-white disabled:opacity-40"
+                  >
+                    <option value="">
+                      {!testSelectedListId ? "Elige una lista primero" : "Seleccionar Prospecto..."}
+                    </option>
+                    {allLeads
+                      .filter(
+                        (ld) =>
+                          ld.listId === testSelectedListId ||
+                          (leadLists.find((l) => l.id === testSelectedListId)?.sourceMonitorId &&
+                            (ld as any).monitorId === leadLists.find((l) => l.id === testSelectedListId)?.sourceMonitorId)
+                      )
+                      .map((ld) => (
+                        <option key={ld.id} value={ld.id}>
+                          {ld.fullName} {ld.company ? `(${ld.company})` : ""}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Barra de Lanzamiento de la Prueba */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Paso actual para <span className="font-bold text-gray-800 dark:text-gray-200">{testLeadName || "el prospecto"}</span>:</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 text-xs font-bold border border-brand-200 dark:border-brand-800">
+                  <span>Paso {Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)} de {activeCampaign.steps.length}:</span>
+                  <span>{activeCampaign.steps[simulatedStepIndex]?.title || "Completado"}</span>
+                </span>
+                {testConnectionDegree === "1st" && (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200">
+                    1er Grado (Omite Conectar)
+                  </span>
+                )}
+                {testMode === "live" && (
+                  <span className="text-[10px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">
+                    Modo Real en LinkedIn
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimulatedStepIndex(0);
+                    setFeedbackMessage("Paso reiniciado al inicio (Paso 1).");
+                    setTimeout(() => setFeedbackMessage(null), 3000);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100"
+                  title="Volver al Paso 1"
+                >
+                  <RotateCcw className="size-3" />
+                  <span>Reiniciar al Paso 1</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isExecutingRunner}
+                  onClick={handleExecuteRunnerSim}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition"
+                >
+                  {isExecutingRunner ? (
+                    <>
+                      <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                      <span>Ejecutando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="size-3.5" />
+                      <span>
+                        {testMode === "live" ? "Ejecutar Paso Real" : "Simular Paso"}{" "}
+                        {Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isExecutingRunner}
+                  onClick={handleExecuteAllStepsSim}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition"
+                  title="Ejecutar todos los pasos de la secuencia en serie para este lead"
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>{testMode === "live" ? "Ejecutar Toda la Secuencia (Live)" : "Simular Toda la Secuencia"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenLogs}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50"
+                >
+                  <Terminal className="size-3.5 text-gray-500" />
+                  <span>Ver Logs ({runnerLogs.length})</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Tarjeta de Último Resultado de Ejecución */}
+            {lastTestResultLog && (
+              <div className="p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-900 dark:text-white text-xs">
+                      Último Resultado: {lastTestResultLog.leadName}
+                    </span>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                        lastTestResultLog.status === "success"
+                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                          : lastTestResultLog.status === "paused"
+                          ? "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                          : "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
+                      }`}
+                    >
+                      {lastTestResultLog.status}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {lastTestResultLog.timestamp?.slice(11, 19)}
+                    </span>
+                  </div>
+
+                  {Boolean(lastTestResultLog.details?.dryRun) && (
+                    <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded">
+                      Simulación Segura (Dry Run)
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                  {lastTestResultLog.message}
+                </p>
+
+                {Boolean(lastTestResultLog.details?.message) && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                    <span className="text-[10px] font-bold text-gray-400 block mb-1">
+                      Cuerpo del Mensaje Generado con Variables Reemplazadas:
+                    </span>
+                    <p className="text-xs text-gray-800 dark:text-gray-200 italic">
+                      "{String(lastTestResultLog.details?.message)}"
+                    </p>
+                  </div>
+                )}
+
+                {Boolean(lastTestResultLog.details?.note) && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                    <span className="text-[10px] font-bold text-gray-400 block mb-1">
+                      Nota de Conexión Generada:
+                    </span>
+                    <p className="text-xs text-gray-800 dark:text-gray-200 italic">
+                      "{String(lastTestResultLog.details?.note)}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Selector de Pestañas de Secuencias Maestras */}

@@ -14,34 +14,42 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
 
+    const isFirstDegree = body.connectionDegree === "1st";
     const sampleLead: LeadCampaignState = {
       leadId: body.leadId || `lead-sim-${Date.now()}`,
       leadName: body.leadName || "Roberto OrSe (Prospecto)",
       linkedinUrl: body.linkedinUrl || "https://www.linkedin.com/in/robertoorse-agencia",
       connectionDegree: body.connectionDegree || "2nd",
-      hasAcceptedInvite: body.hasAcceptedInvite || false,
+      hasAcceptedInvite: body.hasAcceptedInvite ?? isFirstDegree,
       hasReplied: body.hasReplied || false,
       currentNodeId: body.currentNodeId || "node-tr-01",
       state: "in_progress",
       history: body.history || [],
       language: body.language || "es",
+      company: body.company,
+      topic: body.topic,
+      providerId: body.providerId,
+      chatId: body.chatId,
     };
 
     // Caso 1: Se envía la campaña lineal activa
     if (body.campaign) {
       const campaign = body.campaign as LinearSequenceCampaign;
       const stepIndex = typeof body.stepIndex === "number" ? body.stepIndex : 0;
+      const isDryRun = body.dryRun ?? false;
 
       if (body.runAll === true) {
         const result = await executeAllLinearSequenceStepsForLead({
           campaign,
           leadState: sampleLead,
           accountId: body.accountId,
+          dryRun: isDryRun,
         });
 
         return NextResponse.json({
           ok: true,
           mode: "linear_all",
+          dryRun: isDryRun,
           result,
           logs: getCampaignExecutionLogs(50),
           timestamp: new Date().toISOString(),
@@ -53,11 +61,13 @@ export async function POST(req: NextRequest) {
         stepIndex,
         leadState: sampleLead,
         accountId: body.accountId,
+        dryRun: isDryRun,
       });
 
       return NextResponse.json({
         ok: true,
         mode: "linear_step",
+        dryRun: isDryRun,
         result,
         logs: getCampaignExecutionLogs(50),
         timestamp: new Date().toISOString(),

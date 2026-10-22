@@ -24,6 +24,9 @@ export interface LeadCampaignState {
   leadName: string;
   linkedinUrl: string;
   providerId?: string;
+  chatId?: string;
+  company?: string;
+  topic?: string;
   connectionDegree: "1st" | "2nd" | "3rd";
   hasAcceptedInvite: boolean;
   hasReplied: boolean;
@@ -818,6 +821,7 @@ export async function executeLinearSequenceStepForLead(params: {
   stepIndex: number;
   leadState: LeadCampaignState;
   accountId?: string;
+  dryRun?: boolean;
 }): Promise<{
   success: boolean;
   newState: LeadCampaignState;
@@ -825,7 +829,8 @@ export async function executeLinearSequenceStepForLead(params: {
   isSequenceCompleted: boolean;
   nextStepIndex: number;
 }> {
-  const { campaign, stepIndex, leadState } = params;
+  const { campaign, stepIndex, leadState, dryRun } = params;
+  const isDry = dryRun === true;
   const accountId =
     params.accountId ||
     (typeof window !== "undefined" ? getActiveAccountId() : "") ||
@@ -881,38 +886,46 @@ export async function executeLinearSequenceStepForLead(params: {
     };
   }
 
+  const companyVal = leadState.company || "tu empresa";
+  const topicVal = leadState.topic || "prospección B2B";
+
   // 3. Ejecutar según el tipo de acción social
   switch (currentStep.type) {
     case "visit": {
-      const maxVisits = campaign.dailyLimits?.maxVisitsPerDay ?? 20;
-      if (pacing.profilesVisited >= maxVisits) {
-        const log: CampaignExecutionLog = {
-          id: `log-seq-${Date.now()}`,
-          campaignId: campaign.id,
-          leadId: leadState.leadId,
-          leadName: leadState.leadName,
-          nodeId: currentStep.id,
-          nodeLabel: currentStep.title,
-          nodeType: currentStep.type,
-          timestamp: new Date().toISOString(),
-          status: "rate_limited",
-          message: `Límite diario de visitas alcanzado (${pacing.profilesVisited}/${maxVisits}). Acción pospuesta para proteger la cuenta.`,
-        };
-        recordExecutionLog(log);
-        return {
-          success: false,
-          newState: { ...leadState, state: "waiting_delay" },
-          log,
-          isSequenceCompleted: false,
-          nextStepIndex: stepIndex,
-        };
-      }
+      if (!isDry) {
+        const maxVisits = campaign.dailyLimits?.maxVisitsPerDay ?? 20;
+        if (pacing.profilesVisited >= maxVisits) {
+          const log: CampaignExecutionLog = {
+            id: `log-seq-${Date.now()}`,
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "rate_limited",
+            message: `Límite diario de visitas alcanzado (${pacing.profilesVisited}/${maxVisits}). Acción pospuesta para proteger la cuenta.`,
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "waiting_delay" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
+        }
 
-      incrementAccountPacing(accountId, "visit");
-      try {
-        await unipile.resolveProfile(leadState.linkedinUrl, accountId);
-      } catch (err) {
-        console.warn("[Runner] Advertencia al visitar perfil:", err);
+        incrementAccountPacing(accountId, "visit");
+        try {
+          const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
+          if (profile?.provider_id && !leadState.providerId) {
+            leadState.providerId = profile.provider_id;
+          }
+        } catch (err) {
+          console.warn("[Runner] Advertencia al visitar perfil:", err);
+        }
       }
 
       const log: CampaignExecutionLog = {
@@ -925,8 +938,10 @@ export async function executeLinearSequenceStepForLead(params: {
         nodeType: currentStep.type,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} visitado con éxito. Registro generado en sus notificaciones de LinkedIn.`,
-        details: { stepOrder: stepIndex + 1, stepTitle: currentStep.title },
+        message: isDry
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} (${leadState.linkedinUrl}) analizado con éxito sin llamadas a Unipile.`
+          : `Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} visitado con éxito. Registro generado en sus notificaciones de LinkedIn.`,
+        details: { stepOrder: stepIndex + 1, stepTitle: currentStep.title, dryRun: isDry },
       };
       recordExecutionLog(log);
 
@@ -946,30 +961,6 @@ export async function executeLinearSequenceStepForLead(params: {
     }
 
     case "like_comment": {
-      let targetPostId = `post_target_${leadState.leadId}`;
-      try {
-        const posts = await unipile.getUserPosts({
-          account_id: accountId,
-          identifier: leadState.providerId || leadState.leadId,
-          limit: 1,
-        });
-        if (posts && posts.length > 0 && posts[0].id) {
-          targetPostId = posts[0].id;
-        }
-      } catch (err) {
-        console.warn("[Runner] Fallback en post de prospecto:", err);
-      }
-
-      try {
-        await unipile.reactToPost({
-          account_id: accountId,
-          post_id: targetPostId,
-          reaction_type: "like",
-        });
-      } catch (err) {
-        console.warn("[Runner] Advertencia en like:", err);
-      }
-
       let commentTemplate =
         currentStep.commentTemplate ||
         currentStep.messageTemplate ||
@@ -979,16 +970,46 @@ export async function executeLinearSequenceStepForLead(params: {
           commentTemplate = await translateOutreachMessage(commentTemplate, leadState.language);
         } catch {}
       }
-      const commentText = commentTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      const commentText = commentTemplate
+        .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
+        .replace(/{{company}}/gi, companyVal)
+        .replace(/{{topic}}/gi, topicVal)
+        .replace(/{{keyword}}/gi, "SISTEMA");
 
-      try {
-        await unipile.commentOnPost({
-          account_id: accountId,
-          post_id: targetPostId,
-          text: commentText,
-        });
-      } catch (err) {
-        console.warn("[Runner] Advertencia en comentario:", err);
+      if (!isDry) {
+        let targetPostId = `post_target_${leadState.leadId}`;
+        try {
+          const posts = await unipile.getUserPosts({
+            account_id: accountId,
+            identifier: leadState.providerId || leadState.leadId,
+            limit: 1,
+          });
+          if (posts && posts.length > 0 && posts[0].id) {
+            targetPostId = posts[0].id;
+          }
+        } catch (err) {
+          console.warn("[Runner] Fallback en post de prospecto:", err);
+        }
+
+        try {
+          await unipile.reactToPost({
+            account_id: accountId,
+            post_id: targetPostId,
+            reaction_type: "like",
+          });
+        } catch (err) {
+          console.warn("[Runner] Advertencia en like:", err);
+        }
+
+        try {
+          await unipile.commentOnPost({
+            account_id: accountId,
+            post_id: targetPostId,
+            text: commentText,
+          });
+        } catch (err) {
+          console.warn("[Runner] Advertencia en comentario:", err);
+        }
       }
 
       const log: CampaignExecutionLog = {
@@ -1001,8 +1022,10 @@ export async function executeLinearSequenceStepForLead(params: {
         nodeType: currentStep.type,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario ("${commentText.slice(0, 45)}...") publicados con éxito en el post más reciente de ${leadState.leadName}.`,
-        details: { comment: commentText, stepOrder: stepIndex + 1 },
+        message: isDry
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario simulados ("${commentText.slice(0, 45)}...") para ${leadState.leadName}.`
+          : `Paso ${stepIndex + 1} (${currentStep.title}): Like y comentario ("${commentText.slice(0, 45)}...") publicados con éxito en el post más reciente de ${leadState.leadName}.`,
+        details: { comment: commentText, stepOrder: stepIndex + 1, dryRun: isDry },
       };
       recordExecutionLog(log);
 
@@ -1023,6 +1046,7 @@ export async function executeLinearSequenceStepForLead(params: {
 
     case "connect":
     case "connect_message": {
+      // Si el contacto ya es de 1er grado (como Roberto OrSe y Roberto OrSe Agencia):
       if (leadState.connectionDegree === "1st") {
         const log: CampaignExecutionLog = {
           id: `log-seq-${Date.now()}`,
@@ -1034,7 +1058,8 @@ export async function executeLinearSequenceStepForLead(params: {
           nodeType: currentStep.type,
           timestamp: new Date().toISOString(),
           status: "success",
-          message: `Paso ${stepIndex + 1} (${currentStep.title}): ${leadState.leadName} ya es contacto de 1er grado en LinkedIn. Se omite la invitación y la secuencia avanza de inmediato.`,
+          message: `Paso ${stepIndex + 1} (${currentStep.title}): ${leadState.leadName} ya es contacto de 1er grado en LinkedIn. Se omite la invitación de conexión y la secuencia avanza directamente al siguiente paso.`,
+          details: { isAlreadyConnected: true, stepOrder: stepIndex + 1, dryRun: isDry },
         };
         recordExecutionLog(log);
         const nextIndex = stepIndex + 1;
@@ -1043,6 +1068,7 @@ export async function executeLinearSequenceStepForLead(params: {
           success: true,
           newState: {
             ...leadState,
+            hasAcceptedInvite: true,
             state: isDone ? "completed" : "in_progress",
             history: [...leadState.history, currentStep.id],
           },
@@ -1050,37 +1076,6 @@ export async function executeLinearSequenceStepForLead(params: {
           isSequenceCompleted: isDone,
           nextStepIndex: nextIndex,
         };
-      }
-
-      const maxConnections = campaign.dailyLimits?.maxConnectionsPerDay ?? 20;
-      if (pacing.invitationsSent >= maxConnections) {
-        const log: CampaignExecutionLog = {
-          id: `log-seq-${Date.now()}`,
-          campaignId: campaign.id,
-          leadId: leadState.leadId,
-          leadName: leadState.leadName,
-          nodeId: currentStep.id,
-          nodeLabel: currentStep.title,
-          nodeType: currentStep.type,
-          timestamp: new Date().toISOString(),
-          status: "rate_limited",
-          message: `Límite diario de invitaciones alcanzado (${pacing.invitationsSent}/${maxConnections}). Secuencia reprogramada para mañana para proteger la cuenta.`,
-        };
-        recordExecutionLog(log);
-        return {
-          success: false,
-          newState: { ...leadState, state: "waiting_delay" },
-          log,
-          isSequenceCompleted: false,
-          nextStepIndex: stepIndex,
-        };
-      }
-
-      const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
-      try {
-        await unipile.followUser({ account_id: accountId, provider_id: targetProviderId });
-      } catch (err) {
-        console.warn("[Runner] Advertencia follow:", err);
       }
 
       let noteText = currentStep.connectNote || currentStep.messageTemplate;
@@ -1091,23 +1086,56 @@ export async function executeLinearSequenceStepForLead(params: {
       }
       const note = noteText
         ? noteText
-            .replace("{{first_name}}", leadState.leadName.split(" ")[0])
-            .replace("{{topic}}", "prospección B2B")
-            .replace("{{company}}", "tu empresa")
-            .replace("{{keyword}}", "SISTEMA")
+            .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
+            .replace(/{{topic}}/gi, topicVal)
+            .replace(/{{company}}/gi, companyVal)
+            .replace(/{{keyword}}/gi, "SISTEMA")
         : undefined;
 
-      try {
-        await unipile.sendInvitation({
-          account_id: accountId,
-          provider_id: targetProviderId,
-          message: note,
-        });
-      } catch (err) {
-        console.warn("[Runner] Advertencia invitation:", err);
-      }
+      if (!isDry) {
+        const maxConnections = campaign.dailyLimits?.maxConnectionsPerDay ?? 20;
+        if (pacing.invitationsSent >= maxConnections) {
+          const log: CampaignExecutionLog = {
+            id: `log-seq-${Date.now()}`,
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "rate_limited",
+            message: `Límite diario de invitaciones alcanzado (${pacing.invitationsSent}/${maxConnections}). Secuencia reprogramada para mañana para proteger la cuenta.`,
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "waiting_delay" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
+        }
 
-      incrementAccountPacing(accountId, "invitation");
+        const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+        try {
+          await unipile.followUser({ account_id: accountId, provider_id: targetProviderId });
+        } catch (err) {
+          console.warn("[Runner] Advertencia follow:", err);
+        }
+
+        try {
+          await unipile.sendInvitation({
+            account_id: accountId,
+            provider_id: targetProviderId,
+            message: note,
+          });
+        } catch (err) {
+          console.warn("[Runner] Advertencia invitation:", err);
+        }
+
+        incrementAccountPacing(accountId, "invitation");
+      }
 
       const log: CampaignExecutionLog = {
         id: `log-seq-${Date.now()}`,
@@ -1119,8 +1147,10 @@ export async function executeLinearSequenceStepForLead(params: {
         nodeType: currentStep.type,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Paso ${stepIndex + 1} (${currentStep.title}): Invitación de conexión enviada a ${leadState.leadName} en LinkedIn${note ? ` con nota personalizada ("${note.slice(0, 40)}...")` : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${maxConnections}.`,
-        details: { note, stepOrder: stepIndex + 1 },
+        message: isDry
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Invitación preparada${note ? ` con nota: ("${note.slice(0, 40)}...")` : " sin nota"} para ${leadState.leadName}.`
+          : `Paso ${stepIndex + 1} (${currentStep.title}): Invitación de conexión enviada a ${leadState.leadName} en LinkedIn${note ? ` con nota personalizada ("${note.slice(0, 40)}...")` : ""}. Cuota hoy: ${pacing.invitationsSent + 1}/${campaign.dailyLimits?.maxConnectionsPerDay ?? 20}.`,
+        details: { note, stepOrder: stepIndex + 1, dryRun: isDry },
       };
       recordExecutionLog(log);
 
@@ -1144,30 +1174,6 @@ export async function executeLinearSequenceStepForLead(params: {
     case "message_followup":
     case "message_value_prop":
     default: {
-      const maxMessages = campaign.dailyLimits?.maxMessagesPerDay ?? 20;
-      if (pacing.dmsSent >= maxMessages) {
-        const log: CampaignExecutionLog = {
-          id: `log-seq-${Date.now()}`,
-          campaignId: campaign.id,
-          leadId: leadState.leadId,
-          leadName: leadState.leadName,
-          nodeId: currentStep.id,
-          nodeLabel: currentStep.title,
-          nodeType: currentStep.type,
-          timestamp: new Date().toISOString(),
-          status: "rate_limited",
-          message: `Límite diario de mensajes alcanzado (${pacing.dmsSent}/${maxMessages}). Mensaje pospuesto para mañana.`,
-        };
-        recordExecutionLog(log);
-        return {
-          success: false,
-          newState: { ...leadState, state: "waiting_delay" },
-          log,
-          isSequenceCompleted: false,
-          nextStepIndex: stepIndex,
-        };
-      }
-
       let messageTemplate = currentStep.messageTemplate || "Hola {{first_name}}";
       if (leadState.language && leadState.language !== "es") {
         try {
@@ -1177,23 +1183,61 @@ export async function executeLinearSequenceStepForLead(params: {
 
       const resourceName = currentStep.attachedResource || currentStep.attachmentName || "recurso";
       const messageBody = messageTemplate
-        .replace("{{first_name}}", leadState.leadName.split(" ")[0])
-        .replace("{{company}}", "tu empresa")
-        .replace("{{topic}}", "prospección comercial")
-        .replace("{{author_name}}", "Roberto")
-        .replace("{{keyword}}", "SISTEMA")
-        .replace("{{attached_resource}}", resourceName);
+        .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
+        .replace(/{{company}}/gi, companyVal)
+        .replace(/{{topic}}/gi, topicVal)
+        .replace(/{{author_name}}/gi, "Roberto")
+        .replace(/{{keyword}}/gi, "SISTEMA")
+        .replace(/{{attached_resource}}/gi, resourceName);
 
-      try {
-        await unipile.sendMessage({
-          chat_id: `chat-${leadState.leadId}`,
-          text: messageBody,
-        });
-      } catch (err) {
-        console.warn("[Runner] Advertencia DM:", err);
+      if (!isDry) {
+        const maxMessages = campaign.dailyLimits?.maxMessagesPerDay ?? 20;
+        if (pacing.dmsSent >= maxMessages) {
+          const log: CampaignExecutionLog = {
+            id: `log-seq-${Date.now()}`,
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "rate_limited",
+            message: `Límite diario de mensajes alcanzado (${pacing.dmsSent}/${maxMessages}). Mensaje pospuesto para proteger la cuenta.`,
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "waiting_delay" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
+        }
+
+        try {
+          if (leadState.chatId) {
+            await unipile.sendMessage({
+              chat_id: leadState.chatId,
+              text: messageBody,
+            });
+          } else {
+            const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+            const chatRes = await unipile.startChat({
+              account_id: accountId,
+              attendees_ids: [targetProviderId],
+              text: messageBody,
+            });
+            if (chatRes?.chat_id) {
+              leadState.chatId = chatRes.chat_id;
+            }
+          }
+        } catch (err) {
+          console.warn("[Runner] Advertencia DM:", err);
+        }
+
+        incrementAccountPacing(accountId, "dm");
       }
-
-      incrementAccountPacing(accountId, "dm");
 
       // Detalle de adjunto multimedia si existe
       let attachmentDetail = "";
@@ -1218,13 +1262,16 @@ export async function executeLinearSequenceStepForLead(params: {
         nodeType: currentStep.type,
         timestamp: new Date().toISOString(),
         status: "success",
-        message: `Paso ${stepIndex + 1} (${currentStep.title}): Mensaje enviado a ${leadState.leadName} en LinkedIn DM${attachmentDetail}.`,
+        message: isDry
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Mensaje preparado para ${leadState.leadName}: "${messageBody.slice(0, 50)}..."${attachmentDetail}.`
+          : `Paso ${stepIndex + 1} (${currentStep.title}): Mensaje enviado a ${leadState.leadName} en LinkedIn DM${attachmentDetail}.`,
         details: {
           message: messageBody,
           attachmentType: currentStep.attachmentType,
           attachmentName: currentStep.attachmentName || resourceName,
           attachmentSize: currentStep.attachmentSize,
           stepOrder: stepIndex + 1,
+          dryRun: isDry,
         },
       };
       recordExecutionLog(log);
@@ -1254,13 +1301,14 @@ export async function executeAllLinearSequenceStepsForLead(params: {
   campaign: LinearSequenceCampaign;
   leadState: LeadCampaignState;
   accountId?: string;
+  dryRun?: boolean;
 }): Promise<{
   success: boolean;
   totalExecuted: number;
   finalState: LeadCampaignState;
   logs: CampaignExecutionLog[];
 }> {
-  const { campaign, leadState, accountId } = params;
+  const { campaign, leadState, accountId, dryRun } = params;
   let currentState = { ...leadState };
   const logs: CampaignExecutionLog[] = [];
 
@@ -1270,6 +1318,7 @@ export async function executeAllLinearSequenceStepsForLead(params: {
       stepIndex: i,
       leadState: currentState,
       accountId,
+      dryRun,
     });
     logs.push(res.log);
     currentState = res.newState;
