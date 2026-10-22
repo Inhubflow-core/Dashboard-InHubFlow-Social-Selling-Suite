@@ -116,7 +116,11 @@ export async function executeCampaignStepForLead(params: {
   log: CampaignExecutionLog;
 }> {
   const { workflow, leadState } = params;
-  const accountId = params.accountId || (typeof window !== "undefined" ? getActiveAccountId() : "") || "6yecZUhYS1mvPOJJC7p-zQ";
+  let accountId = (
+    params.accountId ||
+    (typeof window !== "undefined" ? getActiveAccountId() : "") ||
+    "HfrdagEmSrONX8jqE9IYjQ"
+  ).replace(/^acc-li-/, "");
 
   let nodes: Node[] = [];
   let edges: Edge[] = [];
@@ -627,10 +631,23 @@ export async function executeCampaignStepForLead(params: {
       const messageBody = dmTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
 
       try {
-        await unipile.sendMessage({
-          chat_id: `chat-${leadState.leadId}`,
-          text: messageBody,
-        });
+        if (leadState.chatId) {
+          await unipile.sendMessage({
+            chat_id: leadState.chatId,
+            text: messageBody,
+          });
+        } else if (leadState.providerId) {
+          const chatRes = await unipile.startChat({
+            account_id: accountId,
+            attendees_ids: [leadState.providerId],
+            text: messageBody,
+          });
+          if (chatRes?.chat_id) {
+            leadState.chatId = chatRes.chat_id;
+          }
+        } else {
+          throw new Error("No se dispone de chatId ni provider_id de LinkedIn para enviar el mensaje");
+        }
       } catch (error) {
         const log: CampaignExecutionLog = {
           id: generateLogId("log-run"),
@@ -837,10 +854,11 @@ export async function executeLinearSequenceStepForLead(params: {
 }> {
   const { campaign, stepIndex, leadState, dryRun } = params;
   const isDry = dryRun === true;
-  const accountId =
+  const accountId = (
     params.accountId ||
     (typeof window !== "undefined" ? getActiveAccountId() : "") ||
-    "6yecZUhYS1mvPOJJC7p-zQ";
+    "HfrdagEmSrONX8jqE9IYjQ"
+  ).replace(/^acc-li-/, "");
   const pacing = getAccountDailyPacing(accountId);
 
   // 1. Validar regla 'Stop on Reply' (detención inmediata ante respuesta)
@@ -892,10 +910,49 @@ export async function executeLinearSequenceStepForLead(params: {
     };
   }
 
+  // 3. Resolución proactiva de perfil en LinkedIn si no es simulación (Live)
+  if (!isDry && !leadState.providerId && leadState.linkedinUrl) {
+    try {
+      const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
+      if (profile?.provider_id) {
+        leadState.providerId = profile.provider_id;
+        if (profile.network_distance === "FIRST_DEGREE" || profile.is_relationship) {
+          leadState.connectionDegree = "1st";
+          leadState.hasAcceptedInvite = true;
+        }
+      } else {
+        throw new Error("No se pudo obtener el identificador de LinkedIn (provider_id)");
+      }
+    } catch (err: any) {
+      const errorMsg = err?.message || String(err);
+      const log: CampaignExecutionLog = {
+        id: generateLogId("log-seq"),
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: currentStep.id,
+        nodeLabel: currentStep.title,
+        nodeType: currentStep.type,
+        timestamp: new Date().toISOString(),
+        status: "error",
+        message: `Error al localizar el perfil de LinkedIn (${leadState.linkedinUrl}): ${errorMsg}. Verifica que la URL del perfil sea correcta.`,
+        details: { error: errorMsg, dryRun: isDry },
+      };
+      recordExecutionLog(log);
+      return {
+        success: false,
+        newState: { ...leadState, state: "failed" },
+        log,
+        isSequenceCompleted: false,
+        nextStepIndex: stepIndex,
+      };
+    }
+  }
+
   const companyVal = leadState.company || "tu empresa";
   const topicVal = leadState.topic || "prospección B2B";
 
-  // 3. Ejecutar según el tipo de acción social
+  // 4. Ejecutar según el tipo de acción social
   switch (currentStep.type) {
     case "visit": {
       if (!isDry) {
@@ -923,15 +980,41 @@ export async function executeLinearSequenceStepForLead(params: {
           };
         }
 
-        incrementAccountPacing(accountId, "visit");
         try {
           const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
           if (profile?.provider_id && !leadState.providerId) {
             leadState.providerId = profile.provider_id;
           }
-        } catch (err) {
-          console.warn("[Runner] Advertencia al visitar perfil:", err);
+          if (profile?.network_distance === "FIRST_DEGREE" || profile?.is_relationship) {
+            leadState.connectionDegree = "1st";
+            leadState.hasAcceptedInvite = true;
+          }
+        } catch (err: any) {
+          const errorMsg = err?.message || String(err);
+          const log: CampaignExecutionLog = {
+            id: generateLogId("log-seq"),
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "error",
+            message: `Error al visitar el perfil de ${leadState.leadName}: ${errorMsg}`,
+            details: { error: errorMsg, dryRun: isDry },
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "failed" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
         }
+
+        incrementAccountPacing(accountId, "visit");
       }
 
       const log: CampaignExecutionLog = {
@@ -983,7 +1066,7 @@ export async function executeLinearSequenceStepForLead(params: {
         .replace(/{{keyword}}/gi, "SISTEMA");
 
       if (!isDry) {
-        let targetPostId = `post_target_${leadState.leadId}`;
+        let targetPostId = "";
         try {
           const posts = await unipile.getUserPosts({
             account_id: accountId,
@@ -997,24 +1080,42 @@ export async function executeLinearSequenceStepForLead(params: {
           console.warn("[Runner] Fallback en post de prospecto:", err);
         }
 
-        try {
-          await unipile.reactToPost({
-            account_id: accountId,
-            post_id: targetPostId,
-            reaction_type: "like",
-          });
-        } catch (err) {
-          console.warn("[Runner] Advertencia en like:", err);
-        }
-
-        try {
-          await unipile.commentOnPost({
-            account_id: accountId,
-            post_id: targetPostId,
-            text: commentText,
-          });
-        } catch (err) {
-          console.warn("[Runner] Advertencia en comentario:", err);
+        if (targetPostId) {
+          try {
+            await unipile.reactToPost({
+              account_id: accountId,
+              post_id: targetPostId,
+              reaction_type: "like",
+            });
+            await unipile.commentOnPost({
+              account_id: accountId,
+              post_id: targetPostId,
+              text: commentText,
+            });
+          } catch (err: any) {
+            const errorMsg = err?.message || String(err);
+            const log: CampaignExecutionLog = {
+              id: generateLogId("log-seq"),
+              campaignId: campaign.id,
+              leadId: leadState.leadId,
+              leadName: leadState.leadName,
+              nodeId: currentStep.id,
+              nodeLabel: currentStep.title,
+              nodeType: currentStep.type,
+              timestamp: new Date().toISOString(),
+              status: "error",
+              message: `Error al interactuar con el post de ${leadState.leadName}: ${errorMsg}`,
+              details: { error: errorMsg, dryRun: isDry },
+            };
+            recordExecutionLog(log);
+            return {
+              success: false,
+              newState: { ...leadState, state: "failed" },
+              log,
+              isSequenceCompleted: false,
+              nextStepIndex: stepIndex,
+            };
+          }
         }
       }
 
@@ -1053,7 +1154,7 @@ export async function executeLinearSequenceStepForLead(params: {
     case "connect":
     case "connect_message": {
       // Si el contacto ya es de 1er grado (como Roberto OrSe y Roberto OrSe Agencia):
-      if (leadState.connectionDegree === "1st") {
+      if (leadState.connectionDegree === "1st" || leadState.hasAcceptedInvite) {
         const log: CampaignExecutionLog = {
           id: generateLogId("log-seq"),
           campaignId: campaign.id,
@@ -1123,7 +1224,31 @@ export async function executeLinearSequenceStepForLead(params: {
           };
         }
 
-        const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+        const targetProviderId = leadState.providerId;
+        if (!targetProviderId) {
+          const log: CampaignExecutionLog = {
+            id: generateLogId("log-seq"),
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "error",
+            message: `No se pudo enviar la invitación a ${leadState.leadName}: Falta el provider_id de LinkedIn.`,
+            details: { dryRun: isDry },
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "failed" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
+        }
+
         try {
           await unipile.followUser({ account_id: accountId, provider_id: targetProviderId });
         } catch (err) {
@@ -1136,8 +1261,29 @@ export async function executeLinearSequenceStepForLead(params: {
             provider_id: targetProviderId,
             message: note,
           });
-        } catch (err) {
-          console.warn("[Runner] Advertencia invitation:", err);
+        } catch (err: any) {
+          const errorMsg = err?.message || String(err);
+          const log: CampaignExecutionLog = {
+            id: generateLogId("log-seq"),
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "error",
+            message: `Error al enviar invitación de conexión a ${leadState.leadName}: ${errorMsg}`,
+            details: { error: errorMsg, dryRun: isDry },
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "failed" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
         }
 
         incrementAccountPacing(accountId, "invitation");
@@ -1228,7 +1374,10 @@ export async function executeLinearSequenceStepForLead(params: {
               text: messageBody,
             });
           } else {
-            const targetProviderId = leadState.providerId || `urn:li:member:${leadState.leadId}`;
+            const targetProviderId = leadState.providerId;
+            if (!targetProviderId) {
+              throw new Error(`Falta el identificador de LinkedIn (provider_id) para iniciar chat con ${leadState.leadName}`);
+            }
             const chatRes = await unipile.startChat({
               account_id: accountId,
               attendees_ids: [targetProviderId],
@@ -1238,8 +1387,29 @@ export async function executeLinearSequenceStepForLead(params: {
               leadState.chatId = chatRes.chat_id;
             }
           }
-        } catch (err) {
-          console.warn("[Runner] Advertencia DM:", err);
+        } catch (err: any) {
+          const errorMsg = err?.message || String(err);
+          const log: CampaignExecutionLog = {
+            id: generateLogId("log-seq"),
+            campaignId: campaign.id,
+            leadId: leadState.leadId,
+            leadName: leadState.leadName,
+            nodeId: currentStep.id,
+            nodeLabel: currentStep.title,
+            nodeType: currentStep.type,
+            timestamp: new Date().toISOString(),
+            status: "error",
+            message: `Error al enviar mensaje directo a ${leadState.leadName}: ${errorMsg}`,
+            details: { error: errorMsg, dryRun: isDry },
+          };
+          recordExecutionLog(log);
+          return {
+            success: false,
+            newState: { ...leadState, state: "failed" },
+            log,
+            isSequenceCompleted: false,
+            nextStepIndex: stepIndex,
+          };
         }
 
         incrementAccountPacing(accountId, "dm");
@@ -1317,6 +1487,7 @@ export async function executeAllLinearSequenceStepsForLead(params: {
   const { campaign, leadState, accountId, dryRun } = params;
   let currentState = { ...leadState };
   const logs: CampaignExecutionLog[] = [];
+  let overallSuccess = true;
 
   for (let i = 0; i < campaign.steps.length; i++) {
     const res = await executeLinearSequenceStepForLead({
@@ -1328,13 +1499,17 @@ export async function executeAllLinearSequenceStepsForLead(params: {
     });
     logs.push(res.log);
     currentState = res.newState;
-    if (!res.success || res.isSequenceCompleted) {
+    if (!res.success) {
+      overallSuccess = false;
+      break;
+    }
+    if (res.isSequenceCompleted) {
       break;
     }
   }
 
   return {
-    success: true,
+    success: overallSuccess,
     totalExecuted: logs.length,
     finalState: currentState,
     logs,

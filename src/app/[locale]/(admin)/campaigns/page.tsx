@@ -85,7 +85,7 @@ export default function CampaignsPage() {
   // Estados para Banco de Pruebas en Lead Individual (Testing)
   const [allLeads, setAllLeads] = useState<Lead360Item[]>([]);
   const [testLeadName, setTestLeadName] = useState<string>("Roberto OrSe");
-  const [testLinkedinUrl, setTestLinkedinUrl] = useState<string>("https://www.linkedin.com/in/roberto-orse");
+  const [testLinkedinUrl, setTestLinkedinUrl] = useState<string>("https://www.linkedin.com/in/robertoorse");
   const [testCompany, setTestCompany] = useState<string>("InHubFlow");
   const [testConnectionDegree, setTestConnectionDegree] = useState<"1st" | "2nd">("1st");
   const [testMode, setTestMode] = useState<"dry_run" | "live">("dry_run");
@@ -304,7 +304,7 @@ export default function CampaignsPage() {
     if (preset === "connected_roberto") {
       setTestSourceMode("manual");
       setTestLeadName("Roberto OrSe");
-      setTestLinkedinUrl("https://www.linkedin.com/in/roberto-orse");
+      setTestLinkedinUrl("https://www.linkedin.com/in/robertoorse");
       setTestCompany("InHubFlow");
       setTestConnectionDegree("1st");
       setFeedbackMessage("Preset cargado: Roberto OrSe (1er Grado - Ya conectados)");
@@ -493,21 +493,28 @@ export default function CampaignsPage() {
       if (data.ok) {
         const currentTitle = activeCampaign.steps[stepToExecute]?.title || "Paso";
         const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
-        if (data.result.isSequenceCompleted) {
+        if (data.result?.success === false) {
+          setRunnerNotice(`${modeLabel} Falló Paso ${stepToExecute + 1} (${currentTitle}): ${data.result?.log?.message || "Error al procesar"}`);
+        } else if (data.result?.isSequenceCompleted) {
           setRunnerNotice(`${modeLabel} Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados para ${targetName}.`);
           setSimulatedStepIndex(0);
         } else {
           setRunnerNotice(`${modeLabel} Paso ${stepToExecute + 1} (${currentTitle}) ejecutado para ${targetName}.`);
           setSimulatedStepIndex(data.result.nextStepIndex ?? (stepToExecute + 1));
         }
-        setTimeout(() => setRunnerNotice(null), 5000);
+        setTimeout(() => setRunnerNotice(null), 6000);
         setRunnerLogs(data.logs || []);
         if (data.result?.log) {
           setLastTestResultLog(data.result.log);
         }
+      } else {
+        setRunnerNotice(`[Error] ${data.error || "No se pudo ejecutar el paso"}`);
+        setTimeout(() => setRunnerNotice(null), 6000);
       }
     } catch (err: any) {
       console.warn("Error en runner:", err);
+      setRunnerNotice(`[Error de red] ${err?.message || "No se pudo contactar al servidor"}`);
+      setTimeout(() => setRunnerNotice(null), 6000);
     } finally {
       setIsExecutingRunner(false);
     }
@@ -539,16 +546,26 @@ export default function CampaignsPage() {
       const data = await res.json();
       if (data.ok) {
         const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
-        setRunnerNotice(`${modeLabel} Secuencia completa ejecutada con éxito para ${targetName} (${activeCampaign.steps.length} pasos).`);
-        setTimeout(() => setRunnerNotice(null), 5000);
+        if (data.result?.success === false) {
+          const lastLog = data.result?.logs?.[data.result.logs.length - 1];
+          setRunnerNotice(`${modeLabel} Secuencia detenida por error: ${lastLog?.message || "Error al procesar"}`);
+        } else {
+          setRunnerNotice(`${modeLabel} Secuencia completa ejecutada con éxito para ${targetName} (${activeCampaign.steps.length} pasos).`);
+        }
+        setTimeout(() => setRunnerNotice(null), 6000);
         setRunnerLogs(data.logs || []);
         setSimulatedStepIndex(0);
         if (data.result?.logs && data.result.logs.length > 0) {
           setLastTestResultLog(data.result.logs[data.result.logs.length - 1]);
         }
+      } else {
+        setRunnerNotice(`[Error] ${data.error || "No se pudo ejecutar la secuencia"}`);
+        setTimeout(() => setRunnerNotice(null), 6000);
       }
     } catch (err: any) {
       console.warn("Error simulando todos los pasos:", err);
+      setRunnerNotice(`[Error de red] ${err?.message || "No se pudo contactar al servidor"}`);
+      setTimeout(() => setRunnerNotice(null), 6000);
     } finally {
       setIsExecutingRunner(false);
     }
