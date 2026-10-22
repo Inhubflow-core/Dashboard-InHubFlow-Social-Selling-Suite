@@ -18,7 +18,6 @@ import {
   AlertCircle,
   MessageSquare,
   Play,
-  Building2,
   Folder,
   Radio,
   ArrowRight,
@@ -538,7 +537,7 @@ export function CampaignLeadsTracker({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por contacto, empresa o monitor..."
+              placeholder="Buscar por contacto, cargo o monitor..."
               className="h-8.5 w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 pl-8 pr-3 text-xs dark:text-white focus:outline-none focus:border-brand-500"
             />
           </div>
@@ -697,6 +696,11 @@ export function CampaignLeadsTracker({
                         <span className="font-bold text-xs text-gray-900 dark:text-white truncate">
                           {lead.fullName}
                         </span>
+                        {lead.language && (
+                          <span className="uppercase font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 text-[9px]">
+                            {lead.language}
+                          </span>
+                        )}
                         <a
                           href={lead.linkedinUrl}
                           target="_blank"
@@ -708,21 +712,13 @@ export function CampaignLeadsTracker({
                         </a>
                       </div>
 
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                      {/* Cargo del Contacto (Headline) */}
+                      <p
+                        className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
+                        title={lead.headline}
+                      >
                         {lead.headline}
                       </p>
-
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
-                        <span className="flex items-center gap-1 font-medium text-gray-600 dark:text-gray-300 truncate">
-                          <Building2 className="size-3 text-gray-400 shrink-0" />
-                          <span className="truncate">{lead.company}</span>
-                        </span>
-                        {lead.language && (
-                          <span className="uppercase font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 text-[9px]">
-                            {lead.language}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
