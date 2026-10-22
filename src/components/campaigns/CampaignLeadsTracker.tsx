@@ -743,17 +743,14 @@ export function CampaignLeadsTracker({
                 {/* 3. BARRA DE PROGRESO CON ESTACIONES DE LA SECUENCIA */}
                 <div className="flex-1 min-w-[280px] max-w-xl py-1">
                   <div className="flex items-center justify-between text-[11px] mb-2 font-medium">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-gray-500 dark:text-gray-400">Estaciones de Secuencia:</span>
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        {isCompleted
-                          ? "Secuencia Finalizada"
-                          : `Paso ${Math.min(lead.currentStepIndex + 1, stepsCount)} de ${stepsCount}: ${
-                              activeCampaign.steps[lead.currentStepIndex]?.title || "En Proceso"
-                            }`}
-                      </span>
-                    </div>
-                    <span className="font-bold text-brand-600 dark:text-brand-400 text-xs">
+                    <span className="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">
+                      {isCompleted
+                        ? "Secuencia Finalizada"
+                        : `Paso ${Math.min(lead.currentStepIndex + 1, stepsCount)} de ${stepsCount}: ${
+                            activeCampaign.steps[lead.currentStepIndex]?.title || "En Proceso"
+                          }`}
+                    </span>
+                    <span className="font-bold text-brand-600 dark:text-brand-400 text-xs shrink-0">
                       {progressPercent}%
                     </span>
                   </div>
