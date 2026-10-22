@@ -1754,14 +1754,14 @@ export default function CampaignsPage() {
           />
 
           {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado */}
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6">
             <div
-              className={`w-screen max-w-xl xl:max-w-2xl bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full ${
+              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full ${
                 isDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
               }`}
             >
               {/* Cabecera del Panel Lateral */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
                     {getStepIcon(editingStep.step.type)}
@@ -1788,7 +1788,7 @@ export default function CampaignsPage() {
               </div>
 
               {/* Contenido Scrolleable del Drawer */}
-              <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+              <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
               {/* Bloque: Información General */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -2549,7 +2549,7 @@ export default function CampaignsPage() {
             </div>
 
               {/* Pie del Panel Lateral */}
-              <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
+              <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={handleCloseDrawer}
