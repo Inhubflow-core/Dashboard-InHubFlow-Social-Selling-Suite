@@ -1401,21 +1401,23 @@ export default function CampaignsPage() {
             }
             setDraggedStepType(null);
           }}
-          className={`lg:col-span-8 xl:col-span-8 2xl:col-span-9 rounded-2xl transition-all duration-200 p-3 sm:p-5 border space-y-0 ${
+          className={`lg:col-span-8 xl:col-span-8 2xl:col-span-9 transition-all duration-200 py-1 ${
             isDragOverWorkflow
-              ? "border-brand-500 bg-brand-50/30 dark:bg-brand-950/20 ring-2 ring-brand-500/30"
-              : "border-gray-200/70 dark:border-gray-800 bg-white/60 dark:bg-gray-900/40"
+              ? "rounded-2xl bg-brand-50/20 dark:bg-brand-950/10 ring-2 ring-dashed ring-brand-500/50"
+              : ""
           }`}
         >
           {/* Banner indicador cuando se está arrastrando sobre la zona de drop */}
           {isDragOverWorkflow && (
-            <div className="mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
+            <div className="max-w-lg xl:max-w-xl mx-auto mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
               <Plus className="size-4" />
               <span>Suelta aquí para añadir este paso al flujo de la secuencia</span>
             </div>
           )}
 
-          {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
+          {/* Contenedor Centrado de las Tarjetas de la Secuencia (-40% de ancho) */}
+          <div className="w-full max-w-lg xl:max-w-xl mx-auto space-y-0">
+            {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
         {linkedList && (
           <div className="mb-3 rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -1702,6 +1704,7 @@ export default function CampaignsPage() {
         </div>
       </div>
     </div>
+  </div>
 
       {/* Sección General de Seguimiento de Prospectos por Estaciones de Secuencia */}
       <div className="pt-6">
