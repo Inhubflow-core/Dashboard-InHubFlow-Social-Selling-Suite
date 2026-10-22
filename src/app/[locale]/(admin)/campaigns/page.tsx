@@ -52,12 +52,80 @@ import {
   Upload,
   Trash2,
   Square,
+  GripVertical,
+  Layers,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
 import { CampaignLeadsTracker } from "@/components/campaigns/CampaignLeadsTracker";
+
+const AVAILABLE_PALETTE_STEPS: Array<{
+  type: SocialStepType;
+  idKey: string;
+  orderNumber: string;
+  title: string;
+  subtitle: string;
+  iconBg: string;
+  icon: React.ReactNode;
+}> = [
+  {
+    type: "visit",
+    idKey: "visit",
+    orderNumber: "01",
+    title: "Visitar Perfil",
+    subtitle: "Visita previa para figurar en notificaciones y generar visibilidad.",
+    iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+    icon: <Eye className="size-4" />,
+  },
+  {
+    type: "like_comment",
+    idKey: "like_comment",
+    orderNumber: "02",
+    title: "Like + Comentario",
+    subtitle: "Interactúa con la publicación más reciente con Like y Comentario contextual.",
+    iconBg: "bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200 dark:border-purple-800",
+    icon: <ThumbsUp className="size-4" />,
+  },
+  {
+    type: "connect",
+    idKey: "connect",
+    orderNumber: "03",
+    title: "Seguir + Conectar",
+    subtitle: "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota.",
+    iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
+    icon: <UserPlus className="size-4" />,
+  },
+  {
+    type: "message_icebreaker",
+    idKey: "message_icebreaker",
+    orderNumber: "04",
+    title: "Mensaje DM 'Icebreakers'",
+    subtitle: "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.",
+    iconBg: "bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400 border border-brand-200 dark:border-brand-800",
+    icon: <Send className="size-4" />,
+  },
+  {
+    type: "message_followup",
+    idKey: "message_followup",
+    orderNumber: "05",
+    title: "Mensaje DM 'Follow-up'",
+    subtitle: "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.",
+    iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+    icon: <MessageSquare className="size-4" />,
+  },
+  {
+    type: "message_value_prop",
+    idKey: "message_value_prop",
+    orderNumber: "06",
+    title: "Mensaje DM 'Value Prop'",
+    subtitle: "Propuesta de valor definitiva y llamado a agenda de llamada.",
+    iconBg: "bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800",
+    icon: <Zap className="size-4" />,
+  },
+];
 
 export default function CampaignsPage() {
   const { currentUser } = useAuth();
@@ -95,6 +163,10 @@ export default function CampaignsPage() {
   const [testSelectedLeadId, setTestSelectedLeadId] = useState<string>("");
   const [isTestBenchExpanded, setIsTestBenchExpanded] = useState<boolean>(true);
   const [lastTestResultLog, setLastTestResultLog] = useState<CampaignExecutionLog | null>(null);
+
+  // Estados para Drag & Drop de la paleta izquierda
+  const [draggedStepType, setDraggedStepType] = useState<SocialStepType | null>(null);
+  const [isDragOverWorkflow, setIsDragOverWorkflow] = useState(false);
 
   // Cuenta activa de LinkedIn
   const activeAccount = useMemo(() => {
@@ -401,6 +473,28 @@ export default function CampaignsPage() {
     setTimeout(() => setFeedbackMessage(null), 3000);
   };
 
+  const isStepInSequence = (idKey: string, type: SocialStepType) => {
+    return activeCampaign.steps.some((s) => {
+      if (idKey === "visit") return s.type === "visit";
+      if (idKey === "like_comment") return s.type === "like_comment";
+      if (idKey === "connect") return s.type === "connect" || s.type === "connect_message";
+      if (idKey === "message_icebreaker") {
+        return s.type === "message_icebreaker" || s.title.toLowerCase().includes("icebreaker");
+      }
+      if (idKey === "message_followup") {
+        return (
+          s.type === "message_followup" ||
+          s.title.toLowerCase().includes("follow-up") ||
+          s.title.toLowerCase().includes("followup")
+        );
+      }
+      if (idKey === "message_value_prop") {
+        return s.type === "message_value_prop" || s.title.toLowerCase().includes("value prop");
+      }
+      return s.type === type;
+    });
+  };
+
   const handleAddStep = (type: SocialStepType) => {
     let title = "Nuevo Paso";
     let description = "Paso adicional en la secuencia.";
@@ -408,26 +502,26 @@ export default function CampaignsPage() {
 
     if (type === "visit") {
       title = "Visitar Perfil";
-      description = "Visita el perfil en LinkedIn para generar visibilidad previa en notificaciones.";
+      description = "Visita el perfil en LinkedIn para figurar en las notificaciones del prospecto y generar visibilidad previa.";
     } else if (type === "like_comment") {
       title = "Like + Comentario";
-      description = "Interactúa con la publicación más reciente del prospecto.";
+      description = "Interactúa con la publicación más reciente del prospecto con una reacción de Like y un comentario de valor.";
       messageTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
     } else if (type === "connect") {
       title = "Seguir + Conectar";
-      description = "Sigue el perfil en LinkedIn y envía solicitud de conexión con nota contextual en una sola acción.";
+      description = "Envía solicitud de conexión con nota contextual para crear el primer puente de confianza profesional.";
       messageTemplate = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.";
     } else if (type === "message_icebreaker") {
       title = "Mensaje DM 01 'Icebreakers'";
-      description = "Primer mensaje directo en LinkedIn tras conectar.";
+      description = "Mensaje inicial contextualizado directamente desde el monitor de Signal Radar.";
       messageTemplate = "Hola {{first_name}}, vi tu aportación sobre {{topic}}. ¿Cómo lo resuelven en {{company}}?";
     } else if (type === "message_followup") {
-      title = "Mensaje DM 'Follow-up'";
-      description = "Mensaje de seguimiento de valor.";
+      title = "Mensaje DM 02 'Follow-up'";
+      description = "Seguimiento consultivo y profundización en el reto comercial o dolor detectado.";
       messageTemplate = "Hola {{first_name}}, te comparto este caso práctico breve sobre {{topic}}.";
     } else if (type === "message_value_prop") {
-      title = "Mensaje DM 'Value Prop'";
-      description = "Propuesta de valor y llamada a la acción.";
+      title = "Mensaje DM 03 'Value Prop'";
+      description = "Propuesta de valor y agenda de llamada de descubrimiento.";
       messageTemplate = "Hola {{first_name}}, si deseas optimizar el pipeline de {{company}}, podemos conversar 15 min esta semana.";
     }
 
@@ -448,6 +542,8 @@ export default function CampaignsPage() {
     }));
 
     setShowAddStepModal(false);
+    setFeedbackMessage(`Paso "${title}" añadido a la secuencia.`);
+    setTimeout(() => setFeedbackMessage(null), 3000);
   };
 
   const handleResetSequence = () => {
@@ -1153,9 +1249,173 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* Contenedor Vertical de la Secuencia Lineal */}
-      <div className="max-w-3xl mx-auto space-y-0 py-2">
-        {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
+      {/* Layout de Secuencia: Paleta Izquierda de Pasos Arrastrables + Workflow de Secuencia */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start py-2">
+        {/* Columna Izquierda: Paleta de Pasos Arrastrables */}
+        <div className="lg:col-span-4 xl:col-span-4 2xl:col-span-3 space-y-3 lg:sticky lg:top-20">
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                  <Layers className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900 dark:text-white">
+                    Pasos Disponibles
+                  </h3>
+                  <p className="text-[10px] text-gray-400">
+                    Paleta para componer la secuencia
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} en uso
+              </span>
+            </div>
+
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+              Arrastra un paso hacia el flujo central o usa <span className="font-semibold text-brand-600 dark:text-brand-400">+</span> para añadirlo.
+            </p>
+
+            {/* Lista de Tarjetas de la Paleta */}
+            <div className="space-y-2 pt-1">
+              {AVAILABLE_PALETTE_STEPS.map((paletteStep) => {
+                const inSequence = isStepInSequence(paletteStep.idKey, paletteStep.type);
+
+                return (
+                  <div
+                    key={paletteStep.idKey}
+                    draggable={!inSequence}
+                    onDragStart={(e) => {
+                      if (inSequence) return;
+                      e.dataTransfer.setData("text/plain", paletteStep.type);
+                      setDraggedStepType(paletteStep.type);
+                    }}
+                    onDragEnd={() => setDraggedStepType(null)}
+                    className={`group relative rounded-xl border p-2.5 transition-all duration-200 select-none ${
+                      inSequence
+                        ? "opacity-45 bg-gray-50/70 dark:bg-gray-800/30 border-dashed border-gray-200 dark:border-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-900/90 border-gray-200 dark:border-gray-750 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {/* Manija de arrastre (Grip) */}
+                      <div
+                        className={`pt-1 shrink-0 ${
+                          inSequence
+                            ? "text-gray-300 dark:text-gray-700"
+                            : "text-gray-400 group-hover:text-brand-500"
+                        }`}
+                        title={inSequence ? "Ya agregado a la secuencia" : "Arrastrar a la secuencia"}
+                      >
+                        <GripVertical className="size-3.5" />
+                      </div>
+
+                      {/* Icono del Paso */}
+                      <div
+                        className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${paletteStep.iconBg}`}
+                      >
+                        {paletteStep.icon}
+                      </div>
+
+                      {/* Contenido Textual */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-mono font-bold text-gray-400">
+                            {paletteStep.orderNumber}
+                          </span>
+                          {inSequence ? (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-200/60 dark:border-emerald-900/60">
+                              <Check className="size-2.5" /> En secuencia
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold text-gray-400 group-hover:text-brand-600 transition">
+                              Arrastrar
+                            </span>
+                          )}
+                        </div>
+
+                        <h4
+                          className={`text-xs font-bold leading-tight truncate ${
+                            inSequence
+                              ? "text-gray-400 dark:text-gray-500"
+                              : "text-gray-900 dark:text-white"
+                          }`}
+                        >
+                          {paletteStep.title}
+                        </h4>
+
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-0.5">
+                          {paletteStep.subtitle}
+                        </p>
+                      </div>
+
+                      {/* Botón rápido '+' */}
+                      {!inSequence && (
+                        <button
+                          type="button"
+                          onClick={() => handleAddStep(paletteStep.type)}
+                          className="opacity-0 group-hover:opacity-100 transition size-6 rounded-md bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white dark:bg-brand-950/60 dark:hover:bg-brand-500 dark:text-brand-400 flex items-center justify-center shrink-0 self-center"
+                          title={`Añadir ${paletteStep.title}`}
+                        >
+                          <Plus className="size-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Tip al pie */}
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 flex items-center gap-1.5">
+              <span>💡</span>
+              <span>Al eliminar un paso del flujo, su tarjeta se reactiva automáticamente aquí.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Columna Central/Derecha: Workflow de Secuencia con Zona de Drop */}
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!isDragOverWorkflow) setIsDragOverWorkflow(true);
+          }}
+          onDragLeave={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            if (
+              e.clientX < rect.left ||
+              e.clientX >= rect.right ||
+              e.clientY < rect.top ||
+              e.clientY >= rect.bottom
+            ) {
+              setIsDragOverWorkflow(false);
+            }
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOverWorkflow(false);
+            const stepType = (e.dataTransfer.getData("text/plain") || draggedStepType) as SocialStepType;
+            if (stepType) {
+              handleAddStep(stepType);
+            }
+            setDraggedStepType(null);
+          }}
+          className={`lg:col-span-8 xl:col-span-8 2xl:col-span-9 rounded-2xl transition-all duration-200 p-3 sm:p-5 border space-y-0 ${
+            isDragOverWorkflow
+              ? "border-brand-500 bg-brand-50/30 dark:bg-brand-950/20 ring-2 ring-brand-500/30"
+              : "border-gray-200/70 dark:border-gray-800 bg-white/60 dark:bg-gray-900/40"
+          }`}
+        >
+          {/* Banner indicador cuando se está arrastrando sobre la zona de drop */}
+          {isDragOverWorkflow && (
+            <div className="mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
+              <Plus className="size-4" />
+              <span>Suelta aquí para añadir este paso al flujo de la secuencia</span>
+            </div>
+          )}
+
+          {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
         {linkedList && (
           <div className="mb-3 rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -1441,6 +1701,7 @@ export default function CampaignsPage() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Sección General de Seguimiento de Prospectos por Estaciones de Secuencia */}
       <div className="pt-6">
@@ -1469,36 +1730,47 @@ export default function CampaignsPage() {
         />
       </div>
 
-      {/* Modal de Edición Completo: Mensajes, Imagen, Video, Notas de Voz y Archivos Adjuntos */}
+      {/* Ventana Lateral Desplegable (Slide-over Drawer) para Configurar y Editar el Paso */}
       {editingStep && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden">
-            {/* Cabecera del Modal */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center">
-                  {getStepIcon(editingStep.step.type)}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                    Configurar Paso: {sanitizeUnipileText(editingStep.step.title)}
-                  </h3>
-                  <p className="text-[11px] text-gray-400">
-                    Edita el contenido del mensaje, notas, archivos y parámetros de ejecución.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingStep(null)}
-                className="h-7 w-7 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition"
-              >
-                ✕
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop con desenfoque suave para cerrar al hacer clic fuera */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setEditingStep(null)}
+          />
 
-            {/* Contenido Scrolleable del Modal */}
-            <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+          {/* Panel Lateral Desplegable en el lado derecho */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div className="w-screen max-w-xl xl:max-w-2xl bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col h-full transform transition-all duration-300 ease-in-out">
+              {/* Cabecera del Panel Lateral */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
+                    {getStepIcon(editingStep.step.type)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
+                        Paso {editingStep.index + 1} de {activeCampaign.steps.length}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base mt-0.5">
+                      Configurar Paso: {sanitizeUnipileText(editingStep.step.title)}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingStep(null)}
+                  className="h-8 w-8 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition"
+                  title="Cerrar panel de edición"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Contenido Scrolleable del Drawer */}
+              <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
               {/* Bloque: Información General */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -2258,22 +2530,24 @@ export default function CampaignsPage() {
               </div>
             </div>
 
-            {/* Pie del Modal */}
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 shrink-0">
-              <button
-                type="button"
-                onClick={() => setEditingStep(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSaveStepModal(editingStep.step)}
-                className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
-              >
-                Guardar Cambios
-              </button>
+              {/* Pie del Panel Lateral */}
+              <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEditingStep(null)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveStepModal(editingStep.step)}
+                  className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
+                >
+                  <Check className="size-3.5" />
+                  <span>Guardar Cambios</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
