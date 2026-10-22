@@ -74,7 +74,7 @@ export const defaultListsSequenceSteps: SequenceStepItem[] = [
     order: 6,
     type: "message_value_prop",
     title: "Mensaje DM 03 'Value Prop'",
-    description: "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.",
+    description: "Mensaje final con la Propuesta de valor y llamada a la acción.",
     delayDaysBefore: 1,
     messageTemplate: "Hola {{first_name}}, si estás evaluando optimizar este trimestre el pipeline de {{company}}, me encantaría compartirte una demo rápida de 15 min de nuestro sistema. ¿Cómo ves tu agenda este jueves?",
   },
@@ -201,8 +201,12 @@ export function sanitizeSequenceStep(step: SequenceStepItem): SequenceStepItem {
     description = "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.";
   } else if (description.includes("reto comercial o dolor detectado") || (step.type === "message_followup" && description.length > 77)) {
     description = "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.";
-  } else if (description.includes("llamado suave a la acción para agendar una sesión") || (step.type === "message_value_prop" && description.length > 77)) {
-    description = "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.";
+  } else if (
+    description.includes("llamado suave a la acción para agendar una sesión") ||
+    description.includes("Propuesta de valor definitiva") ||
+    (step.type === "message_value_prop" && description.length > 77)
+  ) {
+    description = "Mensaje final con la Propuesta de valor y llamada a la acción.";
   } else if (description.length > 77) {
     description = description.slice(0, 77);
   }
@@ -284,6 +288,7 @@ export function getStoredLinearCampaigns(): LinearSequenceCampaign[] {
       raw.includes("reacción de Like y un comentario de valor") ||
       raw.includes("primer puente de confianza profesional") ||
       raw.includes("reto comercial o dolor detectado") ||
+      raw.includes("Propuesta de valor definitiva") ||
       raw.includes("Se dispara automáticamente cuando un prospecto entra en una lista inteligente")
     ) {
       try {

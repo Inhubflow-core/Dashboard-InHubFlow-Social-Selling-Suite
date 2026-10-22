@@ -121,7 +121,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
     idKey: "message_value_prop",
     orderNumber: "06",
     title: "Mensaje DM 'Value Prop'",
-    subtitle: "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.",
+    subtitle: "Mensaje final con la Propuesta de valor y llamada a la acción.",
     iconBg: "bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800",
     icon: <Zap className="size-4" />,
   },
@@ -544,7 +544,7 @@ export default function CampaignsPage() {
       messageTemplate = "Hola {{first_name}}, te comparto este caso práctico breve sobre {{topic}}.";
     } else if (type === "message_value_prop") {
       title = "Mensaje DM 03 'Value Prop'";
-      description = "Propuesta de valor definitiva y llamado a la acción para agendar una llamada.";
+      description = "Mensaje final con la Propuesta de valor y llamada a la acción.";
       messageTemplate = "Hola {{first_name}}, si deseas optimizar el pipeline de {{company}}, podemos conversar 15 min esta semana.";
     }
 
