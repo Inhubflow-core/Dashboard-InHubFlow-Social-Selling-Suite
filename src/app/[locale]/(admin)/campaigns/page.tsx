@@ -1077,8 +1077,8 @@ export default function CampaignsPage() {
                         Comentario Publicado en LinkedIn:
                       </span>
                       {Boolean(lastTestResultLog.details?.isAiGeneratedComment) && (
-                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
-                          ✨ Generado por Gemini AI analizando el post real
+                        <span className="text-[9px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-1.5 py-0.5 rounded border border-brand-200 dark:border-brand-800">
+                          ✨ Like + Comentario contextualizado
                         </span>
                       )}
                     </div>

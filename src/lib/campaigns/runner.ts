@@ -1185,7 +1185,7 @@ export async function executeLinearSequenceStepForLead(params: {
         }
       }
 
-      const logAiTag = isAiGeneratedComment ? " [IA Gemini Contextual]" : "";
+      const logAiTag = "";
       const log: CampaignExecutionLog = {
         id: generateLogId("log-seq"),
         campaignId: campaign.id,

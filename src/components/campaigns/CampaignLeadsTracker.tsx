@@ -94,7 +94,7 @@ const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
     currentStepIndex: 2, // Paso 3: Conectar (ya visitado y comentado)
     completedStepIndices: [0, 1],
     status: "in_progress",
-    lastActionTitle: "Like + Comentario IA Gemini en post reciente",
+    lastActionTitle: "Like + Comentario",
     lastActionAt: "Completado en vivo",
     language: "pt",
   },
@@ -165,6 +165,17 @@ export function CampaignLeadsTracker({
         if (FAKE_MOCK_IDS.has(item.id)) return false;
         if (FAKE_NAMES.some((fn) => item.fullName?.toLowerCase().includes(fn.toLowerCase()))) return false;
         return true;
+      });
+
+      // Sanitizar títulos de acciones para no mostrar marcas de IA (ej. Gemini)
+      cleanList = cleanList.map((item) => {
+        if (item.lastActionTitle && /gemini/i.test(item.lastActionTitle)) {
+          return {
+            ...item,
+            lastActionTitle: "Like + Comentario",
+          };
+        }
+        return item;
       });
 
       // Si la lista quedó vacía y no hay leads reales aún, inicializar con Roberto OrSe (perfil real de pruebas)
