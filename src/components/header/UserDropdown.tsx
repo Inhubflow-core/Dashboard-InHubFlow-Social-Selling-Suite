@@ -17,7 +17,6 @@ import {
   Check,
   LogOut,
   Building,
-  UserCheck,
   ArrowLeftRight,
 } from "lucide-react";
 
@@ -32,13 +31,11 @@ export default function UserDropdown() {
 
   const {
     sessionUser,
-    currentUser,
     isImpersonating,
     isSuperAdmin,
     capacity,
     switchableUsers,
     switchUser,
-    resetToSessionUser,
     switchSessionUser,
   } = useAuth();
 
@@ -54,11 +51,6 @@ export default function UserDropdown() {
 
   const handleSwitchUser = (userId: string) => {
     switchUser(userId);
-    closeDropdown();
-  };
-
-  const handleResetToSession = () => {
-    resetToSessionUser();
     closeDropdown();
   };
 
@@ -132,7 +124,7 @@ export default function UserDropdown() {
           <span suppressHydrationWarning className="block text-theme-xs font-bold text-gray-900 dark:text-white">
             {sessionUser.name}
           </span>
-          <span suppressHydrationWarning className="block text-[10px] text-gray-500 dark:text-gray-400">
+          <span suppressHydrationWarning className="block text-xs text-gray-500 dark:text-gray-400">
             {isSuperAdmin && sessionUser.role === "super_admin" ? t("superAdmin") : plan.name}
           </span>
         </div>
@@ -159,7 +151,7 @@ export default function UserDropdown() {
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">
                 {sessionUser.name}
               </span>
-              <span className="block truncate text-[11px] text-gray-500 dark:text-gray-400">
+              <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
                 {sessionUser.email}
               </span>
             </div>
@@ -167,7 +159,7 @@ export default function UserDropdown() {
 
           {/* Badge del Rol y Capacidad de la cuenta titular */}
           <div className="mt-2.5 flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800/60">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
               {sessionUser.role === "super_admin" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-[#0099ff]" />
@@ -180,34 +172,12 @@ export default function UserDropdown() {
                 </>
               )}
             </div>
-            <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-[10px] font-bold text-[#0099ff]">
+            <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-xs font-bold text-[#0099ff]">
               {sessionUser.role === "super_admin"
                 ? t("unlimitedSlots")
                 : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}
             </span>
           </div>
-
-          {/* Banner de Impersonación: Cuando navega como otro usuario */}
-          {isImpersonating && (
-            <div className="mt-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 dark:bg-amber-500/15">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                    Estás conectado como:
-                  </span>
-                  <span className="block text-xs font-bold text-gray-900 dark:text-white truncate">
-                    {currentUser.name}
-                  </span>
-                </div>
-                <button
-                  onClick={handleResetToSession}
-                  className="shrink-0 rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs hover:bg-amber-600 transition"
-                >
-                  Volver a mi cuenta
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Enlaces Rápidos del SaaS */}
@@ -266,14 +236,14 @@ export default function UserDropdown() {
         {/* Conmutación de Usuarios (Navegar como) */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
           <div className="flex items-center justify-between px-2.5 mb-1.5">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               {sessionUser.role === "super_admin"
                 ? "Navegar como Suscriptor"
                 : sessionUser.role === "client_admin"
                 ? `Slots de mi Equipo (${capacity.usedSlots}/${capacity.totalSlots})`
                 : "Mi Slot Asignado"}
             </span>
-            <span className="text-[9px] font-semibold text-[#0099ff] bg-[#0099ff]/10 px-1.5 py-0.5 rounded">
+            <span className="text-xs font-semibold text-[#0099ff] bg-[#0099ff]/10 px-1.5 py-0.5 rounded">
               {sessionUser.role === "super_admin" ? "SaaS Multi-Tenant" : `${capacity.totalSlots} Slots`}
             </span>
           </div>
@@ -293,7 +263,7 @@ export default function UserDropdown() {
                       <ShieldCheck className="size-3.5 shrink-0 text-amber-500" />
                       <div className="truncate">
                         <span className="block truncate font-bold">{item.name}</span>
-                        <span className="block text-[10px] text-amber-600/80 dark:text-amber-400/80">
+                        <span className="block text-xs text-amber-600/80 dark:text-amber-400/80">
                           {item.subtitle}
                         </span>
                       </div>
@@ -314,7 +284,7 @@ export default function UserDropdown() {
                 >
                   <div className="truncate">
                     <span className="block truncate font-medium">{item.name}</span>
-                    <span className="block text-[10px] text-gray-400 dark:text-gray-500">
+                    <span className="block text-xs text-gray-400 dark:text-gray-500">
                       {item.badgeLabel} {item.subtitle ? `• ${item.subtitle}` : ""}
                     </span>
                   </div>
@@ -330,7 +300,7 @@ export default function UserDropdown() {
           {sessionUser.role === "super_admin" ? (
             <button
               onClick={() => handleSwitchSession("usr-client-roberto-agencia")}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-xs font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
               title="Cambiar sesión principal para operar directamente como Admin"
             >
               <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
@@ -339,7 +309,7 @@ export default function UserDropdown() {
           ) : (
             <button
               onClick={() => handleSwitchSession("usr-super-admin-01")}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-xs font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
               title="Volver a iniciar sesión titular como Super Admin"
             >
               <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
