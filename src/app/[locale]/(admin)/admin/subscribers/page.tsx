@@ -217,7 +217,7 @@ export default function AdminSubscribersPage() {
         {/* Total Clientes */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Clientes Suscritos
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
@@ -235,7 +235,7 @@ export default function AdminSubscribersPage() {
         {/* Suscripciones Activas */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Suscripciones Activas
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
@@ -253,7 +253,7 @@ export default function AdminSubscribersPage() {
         {/* Total Slots Asignados */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Slots Contratados
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
@@ -271,7 +271,7 @@ export default function AdminSubscribersPage() {
         {/* Cuentas Conectadas en Tiempo Real */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Perfiles Vinculados
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
@@ -378,7 +378,7 @@ export default function AdminSubscribersPage() {
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-gray-100 bg-gray-50/60 uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
+            <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
                 <th className="px-5 py-3.5">Cliente / Empresa</th>
                 <th className="px-5 py-3.5">Rol SaaS</th>

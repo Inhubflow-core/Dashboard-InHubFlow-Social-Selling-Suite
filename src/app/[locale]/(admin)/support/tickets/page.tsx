@@ -135,7 +135,7 @@ export default function SupportTicketsPage() {
       {/* SLAs de Respuesta según Plan */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-semibold text-gray-400 uppercase">SLA Starter</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Starter</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 24 Horas
           </div>
@@ -143,7 +143,7 @@ export default function SupportTicketsPage() {
         </div>
 
         <div className="rounded-2xl border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 shadow-theme-xs">
-          <span className="text-xs font-semibold text-[#0099ff] uppercase">SLA Growth</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Growth</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 8 Horas
           </div>
@@ -151,7 +151,7 @@ export default function SupportTicketsPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-semibold text-emerald-600 uppercase">SLA Business</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Business</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 2 Horas
           </div>
@@ -162,14 +162,14 @@ export default function SupportTicketsPage() {
       {/* Tabla de Tickets */}
       <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-gray-100 bg-gray-50/75 text-gray-400 uppercase dark:border-gray-800 dark:bg-gray-800/50">
+          <thead className="border-b border-gray-100 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
             <tr>
-              <th className="px-5 py-3 font-medium">Ticket ID</th>
-              <th className="px-5 py-3 font-medium">Asunto</th>
-              <th className="px-5 py-3 font-medium">Categoría</th>
-              <th className="px-5 py-3 font-medium">Prioridad</th>
-              <th className="px-5 py-3 font-medium">Estado</th>
-              <th className="px-5 py-3 font-medium">Última Respuesta</th>
+              <th className="px-5 py-3">Ticket ID</th>
+              <th className="px-5 py-3">Asunto</th>
+              <th className="px-5 py-3">Categoría</th>
+              <th className="px-5 py-3">Prioridad</th>
+              <th className="px-5 py-3">Estado</th>
+              <th className="px-5 py-3">Última Respuesta</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">

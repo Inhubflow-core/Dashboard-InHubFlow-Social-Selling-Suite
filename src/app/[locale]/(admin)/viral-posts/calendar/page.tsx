@@ -384,12 +384,10 @@ export default function EditorialCalendarPage() {
           <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs overflow-hidden">
             {/* Cabecera de Días de la Semana: LUN, MAR, MIÉ, JUE, VIE, SÁB, DOM */}
             <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50 divide-x divide-gray-200 dark:divide-gray-800">
-              {WEEKDAYS.map((wd, idx) => (
+              {WEEKDAYS.map((wd) => (
                 <div
                   key={wd}
-                  className={`py-3 text-center text-xs font-bold uppercase tracking-wider ${
-                    idx >= 5 ? "text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className="py-3 text-center text-xs leading-5 font-normal tracking-normal uppercase text-gray-400"
                 >
                   {wd}
                 </div>
@@ -571,7 +569,7 @@ export default function EditorialCalendarPage() {
                   <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           {day.name}
                         </p>
                         {day.isToday && (

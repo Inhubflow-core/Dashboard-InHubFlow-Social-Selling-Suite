@@ -414,7 +414,7 @@ export default function DynamicListDetailPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
                   <th className="pb-3 min-w-[190px]">Prospecto</th>
                   <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo</th>
@@ -599,7 +599,7 @@ export default function DynamicListDetailPage() {
 
             {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
             <div className="rounded-xl border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 block mb-1">
+              <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 block mb-1">
                 Cargo y Titular Completo en LinkedIn
               </span>
               <p className="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
@@ -610,19 +610,19 @@ export default function DynamicListDetailPage() {
             {/* Datos de Contacto y Estado Rápido */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-xl dark:bg-gray-800/50 text-xs">
               <div>
-                <span className="text-xs text-gray-400 uppercase font-semibold block">Email Corporativo</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Email Corporativo</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
                   {selectedLeadFor360.email || "No disponible"}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-gray-400 uppercase font-semibold block">Telefono</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Telefono</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
                   {selectedLeadFor360.phone || "No disponible"}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-gray-400 uppercase font-semibold block mb-1">Puntuación de Intención</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block mb-1">Puntuación de Intención</span>
                 <LeadScoreBadge score={selectedLeadFor360.intentScore} size="md" />
               </div>
             </div>
@@ -630,7 +630,7 @@ export default function DynamicListDetailPage() {
             {/* Configuración Rápida de Etapa y Secuencia */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-xl dark:border-gray-800">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Etapa en el Pipeline Comercial
                 </label>
                 <select
@@ -657,7 +657,7 @@ export default function DynamicListDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Estado de la Secuencia
                 </label>
                 <select
@@ -682,7 +682,7 @@ export default function DynamicListDetailPage() {
 
             {/* Historial Cronológico de Flujo (Timeline) */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3">
+              <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-3">
                 Historial Cronologico del Flujo (Timeline de Automatizacion)
               </h4>
               <div className="space-y-3 border-l-2 border-brand-500/50 pl-4 ml-2">

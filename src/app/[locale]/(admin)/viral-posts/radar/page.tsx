@@ -1401,7 +1401,7 @@ export default function ViralRadarPage() {
             {/* Estructura de Diapositivas (si es Carrusel) */}
             {selectedPostForModal.format === "carousel" && selectedPostForModal.carouselSlides && (
               <div className="mb-4 rounded-xl border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-2">
+                <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-2">
                   Estructura de Diapositivas ({selectedPostForModal.carouselSlides.length} diapositivas):
                 </h4>
                 <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
@@ -1420,7 +1420,7 @@ export default function ViralRadarPage() {
             {/* Prompt Visual para IA (si aplica) */}
             {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
               <div className="mb-4 rounded-xl border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-1">
+                <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Prompt Visual para IA:
                 </h4>
                 <p className="text-xs font-mono text-gray-700 dark:text-gray-300">

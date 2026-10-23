@@ -286,7 +286,7 @@ export default function PipelineCalendarPage() {
         {/* Columna Izquierda: Vista de Citas Agendadas (Cards) */}
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+            <h3 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Agenda de Videollamadas ({filteredMeetings.length})
             </h3>
             <span className="text-xs text-gray-400">
@@ -337,7 +337,7 @@ export default function PipelineCalendarPage() {
 
                   {meet.dealValue && (
                     <div className="text-right shrink-0">
-                      <span className="text-xs text-gray-400 uppercase font-semibold">
+                      <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Valor Deal
                       </span>
                       <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
@@ -397,7 +397,7 @@ export default function PipelineCalendarPage() {
         {/* Columna Derecha: Panel de Configuración y Enlace de Agendamiento Rápido */}
         <div className="space-y-4">
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">
+            <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Tu Enlace de Agendamiento
             </h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -427,7 +427,7 @@ export default function PipelineCalendarPage() {
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">
+            <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Protocolo de Asistencia (Show-Up)
             </h4>
             <ul className="space-y-2 text-xs text-gray-600 dark:text-gray-300">

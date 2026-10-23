@@ -646,7 +646,7 @@ export function CampaignLeadsTracker({
         ) : (
           <div className="overflow-x-auto px-5 pt-4 pb-2">
             <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
                   <th className="w-[22%] pb-3 pr-5">Prospecto</th>
                   <th className="w-[24%] pb-3 px-4">Cargo</th>

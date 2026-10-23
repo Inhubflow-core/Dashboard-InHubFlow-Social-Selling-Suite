@@ -129,7 +129,7 @@ export default function PlansPricingPage() {
 
               <div className="mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     {plan.name}
                   </span>
                   {plan.id === "starter" && <User className="size-4 text-gray-400" />}
@@ -172,7 +172,7 @@ export default function PlansPricingPage() {
 
               {/* Lista de Características */}
               <div className="mb-6 flex-1 space-y-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                   Incluye:
                 </div>
                 {plan.features.map((feat, idx) => (

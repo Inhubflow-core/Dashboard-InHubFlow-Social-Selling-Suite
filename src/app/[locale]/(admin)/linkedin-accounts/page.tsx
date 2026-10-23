@@ -350,7 +350,7 @@ export default function LinkedInAccountsPage() {
 
         {/* Resumen de Cuentas */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium uppercase tracking-wider text-gray-400">
+          <div className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
             Cuentas Conectadas
           </div>
           <div className="mt-2 flex items-baseline gap-2">

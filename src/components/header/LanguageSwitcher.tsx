@@ -47,7 +47,7 @@ export default function LanguageSwitcher() {
 
       {isOpen && (
         <div className="absolute end-0 top-full z-99999 mt-2 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark">
-          <p className="px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
+          <p className="px-2.5 py-1.5 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
             {t("language")}
           </p>
           <div className="space-y-0.5">

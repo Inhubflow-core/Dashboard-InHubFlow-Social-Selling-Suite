@@ -1168,7 +1168,7 @@ export default function CampaignsPage() {
               {/* Bloque: Información General */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                     Título del Paso
                   </label>
                   <input
@@ -1185,7 +1185,7 @@ export default function CampaignsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                     Retardo Previo (Días de Espera)
                   </label>
                   {editingStep.index === 0 ? (
@@ -1225,7 +1225,7 @@ export default function CampaignsPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     Descripción Operativa
                   </label>
                   <span className="text-xs text-gray-400 font-mono">
@@ -1257,7 +1257,7 @@ export default function CampaignsPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
                       Nota de Conexión en LinkedIn (Opcional)
                     </label>
@@ -1306,7 +1306,7 @@ export default function CampaignsPage() {
               {editingStep.step.type === "like_comment" && (
                 <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/20 dark:bg-purple-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <ThumbsUp className="h-3.5 w-3.5 text-purple-600" />
                       Plantilla de Comentario en Post
                     </label>
@@ -1345,7 +1345,7 @@ export default function CampaignsPage() {
                 editingStep.step.messageTemplate !== undefined) && (
                 <div className="rounded-xl border border-brand-200 dark:border-brand-900/50 bg-brand-50/20 dark:bg-brand-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-brand-800 dark:text-brand-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <Send className="h-3.5 w-3.5 text-brand-600" />
                       Plantilla de Mensaje Directo (DM)
                     </label>
@@ -1430,7 +1430,7 @@ export default function CampaignsPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <Paperclip className="h-3.5 w-3.5 text-brand-500" />
                       Adjuntos y Multimedia para LinkedIn
                     </label>

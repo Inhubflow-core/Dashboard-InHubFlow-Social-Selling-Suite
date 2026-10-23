@@ -482,7 +482,7 @@ export default function ConnectLinkedInModal({
 
                     {/* Sección Horario de Prospección */}
                     <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
-                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Horario de Prospección
                       </p>
 
@@ -739,7 +739,7 @@ export default function ConnectLinkedInModal({
 
                       {/* Opciones Avanzadas: Proxy y País */}
                       <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
-                        <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           Opciones Avanzadas (Proxy y País)
                         </p>
                         <div className="grid grid-cols-2 gap-3">

@@ -248,7 +248,7 @@ export default function ConfigureAccountLimitsModal({
 
             {/* Sección Horario de Prospección */}
             <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
-              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                 HORARIO DE PROSPECCIÓN
               </p>
 

@@ -96,7 +96,7 @@ export default function SystemStatusPage() {
       {/* Métricas Globales */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-semibold text-gray-400 uppercase">Uptime Últimos 90 Días</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Uptime Últimos 90 Días</span>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             99.98%
           </div>
@@ -104,7 +104,7 @@ export default function SystemStatusPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-semibold text-gray-400 uppercase">Latencia Media de Respuesta</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia Media de Respuesta</span>
           <div className="mt-2 text-2xl font-bold text-[#0099ff]">
             165 ms
           </div>
@@ -112,7 +112,7 @@ export default function SystemStatusPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-semibold text-gray-400 uppercase">Capacidad de Pacing</span>
+          <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Capacidad de Pacing</span>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             100% Protegido
           </div>
@@ -129,13 +129,13 @@ export default function SystemStatusPage() {
         </div>
 
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-gray-100 bg-gray-50/75 text-gray-400 uppercase dark:border-gray-800 dark:bg-gray-800/50">
+          <thead className="border-b border-gray-100 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
             <tr>
-              <th className="px-5 py-3 font-medium">Servicio</th>
-              <th className="px-5 py-3 font-medium">Área</th>
-              <th className="px-5 py-3 font-medium">Disponibilidad</th>
-              <th className="px-5 py-3 font-medium">Latencia</th>
-              <th className="px-5 py-3 font-medium">Estado</th>
+              <th className="px-5 py-3">Servicio</th>
+              <th className="px-5 py-3">Área</th>
+              <th className="px-5 py-3">Disponibilidad</th>
+              <th className="px-5 py-3">Latencia</th>
+              <th className="px-5 py-3">Estado</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">

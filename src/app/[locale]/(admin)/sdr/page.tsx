@@ -387,7 +387,7 @@ export default function SdrAgentPage() {
           {/* Selector de Modo */}
           {!isMember && (
             <div className="flex flex-col gap-1.5 sm:items-end">
-              <span className="text-xs font-medium text-gray-400 uppercase">
+              <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                 Modo Operativo
               </span>
               <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
@@ -416,7 +416,7 @@ export default function SdrAgentPage() {
       {/* Métricas Clave */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium text-gray-400 uppercase">Decisiones IA</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Decisiones IA</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.totalDecisions}
           </div>
@@ -427,7 +427,7 @@ export default function SdrAgentPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium text-gray-400 uppercase">Confianza Media</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza Media</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.averageConfidence}%
           </div>
@@ -435,7 +435,7 @@ export default function SdrAgentPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium text-gray-400 uppercase">Por Aprobar</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Por Aprobar</div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-[#0099ff]">
               {pendingActions.filter((a) => a.status === "pending").length}
@@ -446,7 +446,7 @@ export default function SdrAgentPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium text-gray-400 uppercase">Handoffs a Humano</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Handoffs a Humano</div>
           <div className="mt-2 text-2xl font-bold text-amber-600">
             {stats.handoffCount}
           </div>
@@ -454,7 +454,7 @@ export default function SdrAgentPage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs font-medium text-gray-400 uppercase">Envíos Autónomos</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Envíos Autónomos</div>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             {stats.autonomousRepliesSent}
           </div>
@@ -565,7 +565,7 @@ export default function SdrAgentPage() {
               <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-semibold uppercase text-gray-400">
+                    <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       Modo Operativo Vigente
                     </span>
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white">
@@ -724,7 +724,7 @@ export default function SdrAgentPage() {
 
                       {/* Mensaje Entrante del Lead */}
                       <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800/80 dark:bg-gray-800/40">
-                        <span className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
+                        <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           Mensaje del Prospecto (LinkedIn)
                         </span>
                         <p className="mt-1 text-xs text-gray-700 dark:text-gray-200">
@@ -1210,7 +1210,7 @@ export default function SdrAgentPage() {
 
             {/* Ejemplos Rápidos */}
             <div>
-              <span className="text-xs font-semibold text-gray-400 uppercase">
+              <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                 Probar Casos de Uso Frecuentes
               </span>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -1269,28 +1269,28 @@ export default function SdrAgentPage() {
                 {/* Badges de Decisión */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs text-gray-400 uppercase">Intención</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Intención</div>
                     <div className="mt-1 text-xs font-bold text-gray-900 dark:text-white">
                       {simResult.intent}
                     </div>
                   </div>
 
                   <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs text-gray-400 uppercase">Confianza</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza</div>
                     <div className="mt-1 text-xs font-bold text-[#0099ff]">
                       {Math.round(simResult.confidence * 100)}%
                     </div>
                   </div>
 
                   <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs text-gray-400 uppercase">Acción</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Acción</div>
                     <div className="mt-1 text-xs font-bold text-emerald-600">
                       {simResult.recommendedAction}
                     </div>
                   </div>
 
                   <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs text-gray-400 uppercase">Latencia</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia</div>
                     <div className="mt-1 text-xs font-bold text-gray-700 dark:text-gray-300">
                       {simResult.latencyMs} ms
                     </div>
@@ -1299,7 +1299,7 @@ export default function SdrAgentPage() {
 
                 {/* Razonamiento */}
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-                  <span className="text-xs font-semibold text-gray-400 uppercase">
+                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     Resumen de Razonamiento
                   </span>
                   <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
@@ -1309,7 +1309,7 @@ export default function SdrAgentPage() {
 
                 {/* Borrador Generado */}
                 <div>
-                  <span className="text-xs font-semibold text-[#0099ff] uppercase">
+                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     Borrador de Respuesta Sugerida
                   </span>
                   <div className="mt-1.5 rounded-xl border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
@@ -1413,16 +1413,16 @@ export default function SdrAgentPage() {
 
           <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-gray-100 bg-gray-50/75 text-gray-400 uppercase dark:border-gray-800 dark:bg-gray-800/50">
+              <thead className="border-b border-gray-100 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Fecha & Hora</th>
-                  <th className="px-4 py-3 font-medium">Prospecto</th>
-                  <th className="px-4 py-3 font-medium">Mensaje Entrante</th>
-                  <th className="px-4 py-3 font-medium">Intención</th>
-                  <th className="px-4 py-3 font-medium">Confianza</th>
-                  <th className="px-4 py-3 font-medium">Acción</th>
-                  <th className="px-4 py-3 font-medium">Latencia</th>
-                  <th className="px-4 py-3 font-medium">Estado</th>
+                  <th className="px-4 py-3">Fecha & Hora</th>
+                  <th className="px-4 py-3">Prospecto</th>
+                  <th className="px-4 py-3">Mensaje Entrante</th>
+                  <th className="px-4 py-3">Intención</th>
+                  <th className="px-4 py-3">Confianza</th>
+                  <th className="px-4 py-3">Acción</th>
+                  <th className="px-4 py-3">Latencia</th>
+                  <th className="px-4 py-3">Estado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">

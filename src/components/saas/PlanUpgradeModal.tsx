@@ -136,7 +136,7 @@ export default function PlanUpgradeModal({
                 {/* Encabezado del Plan */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                    <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                       {plan.name}
                     </span>
                     {plan.id === "starter" && <User className="size-4 text-gray-400" />}

@@ -242,7 +242,7 @@ export default function TeamManagementPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Slots Totales del Plan
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
@@ -265,7 +265,7 @@ export default function TeamManagementPage() {
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Miembros de Equipo (Team)
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
@@ -284,7 +284,7 @@ export default function TeamManagementPage() {
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Cupos de Equipo Disponibles
             </span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
@@ -309,20 +309,20 @@ export default function TeamManagementPage() {
         <div className="flex gap-6">
           <button
             onClick={() => setActiveTab("members")}
-            className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors ${
+            className={`pb-3 text-xs leading-5 font-normal tracking-normal uppercase transition-colors ${
               activeTab === "members"
                 ? "border-b-2 border-[#0099ff] text-[#0099ff]"
-                : "text-gray-500 hover:text-gray-800 dark:text-gray-400"
+                : "text-gray-400 hover:text-gray-700 dark:text-gray-400"
             }`}
           >
             Miembros del Equipo ({members.length + 1})
           </button>
           <button
             onClick={() => setActiveTab("invitations")}
-            className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors ${
+            className={`pb-3 text-xs leading-5 font-normal tracking-normal uppercase transition-colors ${
               activeTab === "invitations"
                 ? "border-b-2 border-[#0099ff] text-[#0099ff]"
-                : "text-gray-500 hover:text-gray-800 dark:text-gray-400"
+                : "text-gray-400 hover:text-gray-700 dark:text-gray-400"
             }`}
           >
             Invitaciones Pendientes ({invitations.length})
@@ -334,7 +334,7 @@ export default function TeamManagementPage() {
       {activeTab === "members" && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-gray-100 bg-gray-50/60 uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
+            <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
                 <th className="px-5 py-3.5">Colaborador</th>
                 <th className="px-5 py-3.5">Rol en Organizacion</th>
@@ -443,7 +443,7 @@ export default function TeamManagementPage() {
       {activeTab === "invitations" && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-gray-100 bg-gray-50/60 uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
+            <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
                 <th className="px-5 py-3.5">Correo Destinatario</th>
                 <th className="px-5 py-3.5">Rol Propuesto</th>

@@ -184,7 +184,7 @@ export default function SignalListsPage() {
           <form onSubmit={handleCreateList} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Nombre de la Lista
                 </label>
                 <input
@@ -198,7 +198,7 @@ export default function SignalListsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Campaña Asignada
                 </label>
                 <select
@@ -214,7 +214,7 @@ export default function SignalListsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Fuente de la Señal
                 </label>
                 <input
@@ -227,7 +227,7 @@ export default function SignalListsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Nivel de Intencion
                 </label>
                 <select
@@ -244,7 +244,7 @@ export default function SignalListsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+              <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                 Descripcion de la Lista
               </label>
               <textarea
@@ -406,7 +406,7 @@ export default function SignalListsPage() {
                       <span className="text-lg font-black text-brand-600 dark:text-brand-400 tracking-tight">
                         {count}
                       </span>
-                      <span className="block text-xs uppercase font-bold text-gray-400 -mt-0.5">
+                      <span className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 -mt-0.5">
                         Leads
                       </span>
                     </div>
