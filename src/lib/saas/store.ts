@@ -761,7 +761,7 @@ export function getSwitchableAccountsForUser(
     // Cuenta Master Super Admin
     list.push({
       id: superAdminUser.id,
-      name: isBrowsingAsAnother ? `Volver a ${superAdminUser.name} (Super Admin)` : superAdminUser.name,
+      name: superAdminUser.name,
       email: superAdminUser.email,
       role: superAdminUser.role,
       companyName: superAdminUser.companyName,
@@ -769,9 +769,9 @@ export function getSwitchableAccountsForUser(
       slotsLimit: superAdminUser.slotsLimit,
       avatarUrl: superAdminUser.avatarUrl,
       badgeLabel: "Super Admin",
-      subtitle: isBrowsingAsAnother ? "Salir de modo auditoría" : "Master • Acceso Total",
+      subtitle: "",
       isCurrent: currentUser.id === superAdminUser.id,
-      isMasterReturn: isBrowsingAsAnother,
+      isMasterReturn: false,
     });
 
     // Suscriptores que compraron planes (client_admin)
@@ -788,8 +788,8 @@ export function getSwitchableAccountsForUser(
           planTier: u.planTier,
           slotsLimit: u.slotsLimit,
           avatarUrl: u.avatarUrl,
-          badgeLabel: `${uPlan.name} (${u.slotsLimit} Slots)`,
-          subtitle: u.companyName || u.email,
+          badgeLabel: uPlan.name,
+          subtitle: "",
           isCurrent: currentUser.id === u.id,
         };
       });
@@ -803,20 +803,37 @@ export function getSwitchableAccountsForUser(
     const list: SwitchableAccountItem[] = [];
     const totalSlots = Math.max(1, sessionUser.slotsLimit || 1);
 
+    if (superAdminUser && superAdminUser.id !== sessionUser.id) {
+      list.push({
+        id: superAdminUser.id,
+        name: superAdminUser.name,
+        email: superAdminUser.email,
+        role: superAdminUser.role,
+        companyName: superAdminUser.companyName,
+        planTier: superAdminUser.planTier,
+        slotsLimit: superAdminUser.slotsLimit,
+        avatarUrl: superAdminUser.avatarUrl,
+        badgeLabel: "Super Admin",
+        subtitle: "",
+        isCurrent: currentUser.id === superAdminUser.id,
+        isMasterReturn: false,
+      });
+    }
+
     // Slot 1: Admin Principal
     list.push({
       id: sessionUser.id,
-      name: isBrowsingAsAnother ? `Volver a ${sessionUser.name}` : sessionUser.name,
+      name: sessionUser.name,
       email: sessionUser.email,
       role: sessionUser.role,
       companyName: sessionUser.companyName,
       planTier: sessionUser.planTier,
       slotsLimit: sessionUser.slotsLimit,
       avatarUrl: sessionUser.avatarUrl,
-      badgeLabel: `Admin Principal (Slot 1/${totalSlots})`,
-      subtitle: isBrowsingAsAnother ? "Salir de emulación de equipo" : sessionUser.companyName || "Workspace Admin",
+      badgeLabel: `Admin (Slot 1/${totalSlots})`,
+      subtitle: "",
       isCurrent: currentUser.id === sessionUser.id,
-      isMasterReturn: isBrowsingAsAnother,
+      isMasterReturn: false,
     });
 
     // Slots de colaboradores de su propio equipo

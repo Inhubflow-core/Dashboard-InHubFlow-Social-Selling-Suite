@@ -19,7 +19,6 @@ import {
   Check,
   LogOut,
   Building,
-  ArrowLeftRight,
 } from "lucide-react";
 
 export default function UserDropdown() {
@@ -35,12 +34,9 @@ export default function UserDropdown() {
   const {
     currentUser,
     sessionUser,
-    isImpersonating,
-    isSuperAdmin,
     capacity,
     switchableUsers,
     switchUser,
-    switchSessionUser,
   } = useAuth();
 
   useEffect(() => {
@@ -112,11 +108,6 @@ export default function UserDropdown() {
 
   const handleSwitchUser = (userId: string) => {
     switchUser(userId);
-    closeDropdown();
-  };
-
-  const handleSwitchSession = (newSessionId: string) => {
-    switchSessionUser(newSessionId);
     closeDropdown();
   };
 
@@ -310,89 +301,37 @@ export default function UserDropdown() {
           </li>
         </ul>
 
-        {/* Conmutación de Usuarios (Navegar como) */}
+        {/* Cambiar Cuenta */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
-          <div className="flex items-center justify-between px-2.5 mb-1.5">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-              {sessionUser.role === "super_admin"
-                ? "Navegar como Suscriptor"
-                : sessionUser.role === "client_admin"
-                ? `Slots de mi Equipo (${capacity.usedSlots}/${capacity.totalSlots})`
-                : "Mi Slot Asignado"}
-            </span>
-            <span className="text-xs font-semibold text-[#0099ff] bg-[#0099ff]/10 px-1.5 py-0.5 rounded">
-              {sessionUser.role === "super_admin" ? "SaaS Multi-Tenant" : `${capacity.totalSlots} Slots`}
-            </span>
-          </div>
+          <span className="block px-2.5 mb-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+            Cambiar Cuenta
+          </span>
 
           <div className="space-y-1 max-h-56 overflow-y-auto">
             {switchableUsers.map((item) => {
               const isSelected = item.isCurrent;
 
-              if (item.isMasterReturn && isImpersonating) {
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSwitchUser(item.id)}
-                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-start text-xs font-semibold bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 transition-colors border border-amber-500/30 mb-1"
-                  >
-                    <div className="truncate flex items-center gap-1.5">
-                      <ShieldCheck className="size-3.5 shrink-0 text-amber-500" />
-                      <div className="truncate">
-                        <span className="block truncate font-bold">{item.name}</span>
-                        <span className="block text-xs text-amber-600/80 dark:text-amber-400/80">
-                          {item.subtitle}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              }
-
               return (
                 <button
                   key={item.id}
                   onClick={() => handleSwitchUser(item.id)}
-                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-start text-xs transition-colors ${
+                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-start text-xs transition-colors ${
                     isSelected
                       ? "bg-[#0099ff]/10 text-[#0099ff] font-semibold"
-                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
+                      : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                   }`}
                 >
-                  <div className="truncate">
-                    <span className="block truncate font-medium">{item.name}</span>
+                  <div className="truncate pr-2">
+                    <span className="block truncate font-semibold">{item.name}</span>
                     <span className="block text-xs text-gray-400 dark:text-gray-500">
-                      {item.badgeLabel} {item.subtitle ? `• ${item.subtitle}` : ""}
+                      {item.badgeLabel}
                     </span>
                   </div>
-                  {isSelected && <Check className="size-3.5 shrink-0 text-[#0099ff]" />}
+                  {isSelected && <Check className="size-4 shrink-0 text-[#0099ff]" />}
                 </button>
               );
             })}
           </div>
-        </div>
-
-        {/* Alternar Cuenta Titular Logada (SuperAdmin <-> Roberto OrSe Agencia) */}
-        <div className="border-b border-gray-100 py-2 dark:border-gray-800">
-          {sessionUser.role === "super_admin" ? (
-            <button
-              onClick={() => handleSwitchSession("usr-client-roberto-agencia")}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-xs font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
-              title="Cambiar sesión principal para operar directamente como Admin"
-            >
-              <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
-              <span>Iniciar sesión titular como: Roberto OrSe Agencia (Admin)</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => handleSwitchSession("usr-super-admin-01")}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-xs font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
-              title="Volver a iniciar sesión titular como Super Admin"
-            >
-              <ArrowLeftRight className="size-3.5 text-[#0099ff]" />
-              <span>Iniciar sesión titular como: SuperAdmin</span>
-            </button>
-          )}
         </div>
 
         <Link
