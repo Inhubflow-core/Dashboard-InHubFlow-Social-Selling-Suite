@@ -315,7 +315,7 @@ export default function UserDropdown() {
 
         {/* Cambiar Cuenta (Mismo estilo de cabecera e ítems que AppSidebar) */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
-          <h2 className="mb-2 flex px-3 text-xs font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500">
+          <h2 className="mb-2 flex px-3 text-xs leading-5 text-gray-400 uppercase">
             Cambiar Cuenta
           </h2>
 
