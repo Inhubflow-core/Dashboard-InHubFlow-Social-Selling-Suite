@@ -13,13 +13,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Play,
-  Folder,
   Radio,
   ShieldCheck,
   X,
   RefreshCw,
   Users,
 } from "lucide-react";
+import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import type {
   LinearSequenceCampaign,
   SocialStepType,
@@ -28,11 +28,19 @@ import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
 
+function truncateText(text: string | undefined, maxLength = 44): string {
+  if (!text) return "No especificado";
+  const clean = text.trim();
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength).trimEnd()}...`;
+}
+
 export interface LeadCampaignTrackerItem {
   id: string;
   fullName: string;
   headline: string;
   company: string;
+  location?: string;
   linkedinUrl: string;
   avatarUrl?: string;
   listId: string;
@@ -74,6 +82,7 @@ const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
     fullName: "Roberto OrSe",
     headline: "Founder & CEO | Empreendedor | Social Selling B2B",
     company: "InHubFlow / Agencia OrSe",
+    location: "Brasil",
     linkedinUrl: "https://www.linkedin.com/in/robertoorse",
     avatarUrl:
       "https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-scale_400_400/B4DaBTR_lrK0Ak-/0/1788103621663?e=1794441600&v=beta&t=4f0dQmSolmfe38X3L_NTEOSFbLxxQliMvHX8RNECTUw",
@@ -171,19 +180,30 @@ export function CampaignLeadsTracker({
       );
       if (robertoIdx !== -1) {
         cleanList[robertoIdx].linkedinUrl = "https://www.linkedin.com/in/robertoorse";
+        if (!cleanList[robertoIdx].location) {
+          cleanList[robertoIdx].location = "Brasil";
+        }
       }
 
-      // Integrar leads reales de allLeads si no existen en el tracker
+      // Integrar leads reales de allLeads si no existen en el tracker (o enriquecer los existentes)
       for (const realLead of allLeads) {
-        const exists = cleanList.find(
+        const existingIdx = cleanList.findIndex(
           (t) => t.id === realLead.id || (realLead.linkedinUrl && t.linkedinUrl === realLead.linkedinUrl)
         );
-        if (!exists && realLead.fullName) {
+        if (existingIdx !== -1) {
+          cleanList[existingIdx] = {
+            ...cleanList[existingIdx],
+            avatarUrl: cleanList[existingIdx].avatarUrl || realLead.avatarUrl,
+            location: cleanList[existingIdx].location || realLead.location || "Remoto",
+            language: cleanList[existingIdx].language || realLead.language || "es",
+          };
+        } else if (realLead.fullName) {
           cleanList.push({
             id: realLead.id,
             fullName: realLead.fullName,
             headline: realLead.title || `${realLead.company || "Profesional B2B"}`,
             company: realLead.company || "Empresa B2B",
+            location: realLead.location || "Remoto",
             linkedinUrl: realLead.linkedinUrl,
             avatarUrl: realLead.avatarUrl,
             listId: realLead.listId || "list-general",
@@ -248,6 +268,7 @@ export function CampaignLeadsTracker({
           fullName: realLead.fullName,
           headline: realLead.title || `${realLead.company || "Profesional B2B"}`,
           company: realLead.company || "Empresa B2B",
+          location: realLead.location || "Remoto",
           linkedinUrl: realLead.linkedinUrl,
           avatarUrl: realLead.avatarUrl,
           listId: realLead.listId || "list-general",
@@ -514,7 +535,7 @@ export function CampaignLeadsTracker({
         </div>
 
         {/* Barra de Filtros y Búsqueda */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-xs">
           {/* Buscador de texto */}
           <div className="lg:col-span-4 relative">
             <Search className="size-3.5 text-gray-400 absolute left-3 top-2.5" />
@@ -523,7 +544,7 @@ export function CampaignLeadsTracker({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por contacto, cargo o monitor..."
-              className="h-8.5 w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 pl-8 pr-3 text-xs dark:text-white focus:outline-none focus:border-brand-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 pl-8 pr-3.5 py-2 text-xs text-gray-800 dark:text-white focus:outline-hidden focus:border-brand-500"
             />
           </div>
 
@@ -532,7 +553,7 @@ export function CampaignLeadsTracker({
             <select
               value={selectedListFilter}
               onChange={(e) => setSelectedListFilter(e.target.value)}
-              className="h-8.5 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs text-gray-700 dark:text-gray-300"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-xs text-gray-800 dark:text-white focus:border-brand-500 focus:outline-hidden"
             >
               <option value="all">Todas las Listas ({uniqueLists.length})</option>
               {uniqueLists.map((l) => (
@@ -548,7 +569,7 @@ export function CampaignLeadsTracker({
             <select
               value={selectedMonitorFilter}
               onChange={(e) => setSelectedMonitorFilter(e.target.value)}
-              className="h-8.5 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs text-gray-700 dark:text-gray-300"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-xs text-gray-800 dark:text-white focus:border-brand-500 focus:outline-hidden"
             >
               <option value="all">Todos los Monitores ({uniqueMonitors.length})</option>
               {uniqueMonitors.map((m) => (
@@ -564,7 +585,7 @@ export function CampaignLeadsTracker({
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="h-8.5 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs text-gray-700 dark:text-gray-300"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-xs text-gray-800 dark:text-white focus:border-brand-500 focus:outline-hidden"
             >
               <option value="all">Todos los Estados</option>
               <option value="in_progress">En Secuencia</option>
@@ -590,8 +611,8 @@ export function CampaignLeadsTracker({
         </div>
       )}
 
-      {/* Lista General de Prospectos con Estaciones de Secuencia */}
-      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+      {/* Tabla Unificada de Prospectos con Estaciones de Secuencia (Mismo estilo de Directorio de Leads) */}
+      <div>
         {leadsTracker.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center">
             <div className="h-12 w-12 rounded-2xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
@@ -630,216 +651,233 @@ export function CampaignLeadsTracker({
             No se encontraron prospectos que coincidan con los filtros seleccionados.
           </div>
         ) : (
-          filteredLeads.map((lead) => {
-            const stepsCount = activeCampaign.steps.length;
-            const progressPercent = Math.round(
-              (Math.min(lead.completedStepIndices.length, stepsCount) / stepsCount) * 100
-            );
-            const isCompleted = lead.status === "completed" || lead.currentStepIndex >= stepsCount;
-            const isExecuting = executingLeadId === lead.id;
+          <div className="overflow-x-auto px-5 pt-4 pb-2">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
+                <tr>
+                  <th className="pb-3 min-w-[200px]">Prospecto</th>
+                  <th className="pb-3 min-w-[200px] max-w-[260px]">Cargo</th>
+                  <th className="pb-3 min-w-[150px] whitespace-nowrap">Origen de Señal</th>
+                  <th className="pb-3 min-w-[290px]">Avance de Secuencia</th>
+                  <th className="pb-3 min-w-[100px] whitespace-nowrap text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
+                {filteredLeads.map((lead) => {
+                  const stepsCount = activeCampaign.steps.length;
+                  const progressPercent = Math.round(
+                    (Math.min(lead.completedStepIndices.length, stepsCount) / stepsCount) * 100
+                  );
+                  const isCompleted = lead.status === "completed" || lead.currentStepIndex >= stepsCount;
+                  const isExecuting = executingLeadId === lead.id;
 
-            return (
-              <div
-                key={lead.id}
-                className="p-4 sm:p-5 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition flex flex-col xl:flex-row xl:items-center justify-between gap-4"
-              >
-                {/* 1. Datos del Contacto y Empresa */}
-                <div className="w-full xl:w-72 shrink-0">
-                  <div className="flex items-start gap-3">
-                    {/* Avatar con foto o iniciales */}
-                    <div className="relative shrink-0">
-                      {lead.avatarUrl ? (
-                        <img
-                          src={lead.avatarUrl}
-                          alt={lead.fullName}
-                          className="h-10 w-10 rounded-xl object-cover border border-gray-200 dark:border-gray-700 shadow-2xs"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white font-bold text-sm flex items-center justify-center shadow-2xs">
-                          {lead.fullName.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-xs text-gray-900 dark:text-white truncate">
-                          {lead.fullName}
-                        </span>
-                        {lead.language && (
-                          <span className="uppercase font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs">
-                            {lead.language}
-                          </span>
-                        )}
-                        <a
-                          href={lead.linkedinUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-brand-600 transition"
-                          title="Abrir perfil de LinkedIn"
-                        >
-                          <ExternalLink className="size-3" />
-                        </a>
-                      </div>
-
-                      {/* Cargo del Contacto (Headline) */}
-                      <p
-                        className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5"
-                        title={lead.headline}
-                      >
-                        {lead.headline}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Lista y Monitor de Origen */}
-                <div className="w-full xl:w-56 shrink-0 space-y-1 text-xs">
-                  <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 font-semibold truncate">
-                    <Folder className="size-3 text-amber-500 shrink-0" />
-                    <span className="truncate" title={lead.listName}>
-                      {lead.listName}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 truncate">
-                    <Radio className="size-3 text-brand-500 shrink-0" />
-                    <span className="truncate" title={lead.monitorName}>
-                      {lead.monitorName}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. BARRA DE PROGRESO CON ESTACIONES DE LA SECUENCIA */}
-                <div className="flex-1 min-w-[280px] max-w-xl py-1">
-                  <div className="flex items-center justify-between text-xs mb-2 font-medium">
-                    <span className="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">
-                      {isCompleted
-                        ? "Secuencia Finalizada"
-                        : `Paso ${Math.min(lead.currentStepIndex + 1, stepsCount)} de ${stepsCount}: ${
-                            activeCampaign.steps[lead.currentStepIndex]?.title || "En Proceso"
-                          }`}
-                    </span>
-                    <span className="font-bold text-brand-600 dark:text-brand-400 text-xs shrink-0">
-                      {progressPercent}%
-                    </span>
-                  </div>
-
-                  {/* La Barra Visual con Estaciones / Stepper */}
-                  <div className="relative flex items-center w-full px-2">
-                    {/* Línea horizontal base conectora */}
-                    <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-gray-200 dark:bg-gray-700 z-0 rounded-full" />
-                    {/* Línea de progreso llena */}
-                    <div
-                      className="absolute left-3 top-1/2 -translate-y-1/2 h-1 bg-emerald-500 z-0 rounded-full transition-all duration-500"
-                      style={{
-                        width: `calc(${
-                          (Math.min(lead.completedStepIndices.length, stepsCount - 1) / (stepsCount - 1)) * 100
-                        }% - 12px)`,
-                      }}
-                    />
-
-                    {/* Cada una de las estaciones / pasos */}
-                    {activeCampaign.steps.map((step, sIdx) => {
-                      const isStepCompleted = lead.completedStepIndices.includes(sIdx);
-                      const isCurrentStep = lead.currentStepIndex === sIdx && !isCompleted;
-
-                      return (
-                        <div
-                          key={step.id || sIdx}
-                          className="relative z-10 flex flex-1 flex-col items-center group cursor-pointer"
-                          title={`Paso ${sIdx + 1}: ${step.title} (${step.description})`}
-                        >
-                          {/* Círculo de la Estación */}
-                          <div
-                            className={`flex items-center justify-center transition-all ${
-                              isStepCompleted
-                                ? "h-6 w-6 rounded-full bg-emerald-500 text-white font-bold shadow-xs border-2 border-white dark:border-gray-900"
-                                : isCurrentStep
-                                ? "h-7 w-7 rounded-full bg-brand-500 text-white font-bold shadow-md ring-4 ring-brand-200 dark:ring-brand-950/80 animate-pulse border-2 border-white dark:border-gray-900"
-                                : "h-5 w-5 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-400 font-semibold text-xs"
-                            }`}
-                          >
-                            {isStepCompleted ? (
-                              <Check className="size-3.5 stroke-[3]" />
-                            ) : isCurrentStep ? (
-                              getStepMiniIcon(step.type)
-                            ) : (
-                              <span>{sIdx + 1}</span>
-                            )}
-                          </div>
-
-                          {/* Etiqueta compacta debajo de la estación */}
-                          <span
-                            className={`text-xs mt-1 text-center whitespace-nowrap truncate max-w-[65px] ${
-                              isCurrentStep
-                                ? "font-bold text-brand-600 dark:text-brand-400 scale-105"
-                                : isStepCompleted
-                                ? "font-medium text-emerald-600 dark:text-emerald-400"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {step.title.split(" ")[0]}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4. Acciones Rápidas Unificadas */}
-                <div className="shrink-0 flex items-center justify-end gap-1.5">
-                  {/* Botón Ejecutar Siguiente Paso */}
-                  <button
-                    type="button"
-                    disabled={isCompleted || isExecuting}
-                    onClick={() => handleExecuteNextStepForLead(lead)}
-                    className={`h-[26px] w-[26px] rounded-md border inline-flex items-center justify-center transition ${
-                      isCompleted
-                        ? "opacity-35 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-gray-800 dark:bg-gray-900/40"
-                        : isExecuting
-                        ? "bg-brand-500 text-white border-brand-500 cursor-wait"
-                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-brand-400 dark:hover:border-brand-500 dark:hover:text-brand-400"
-                    }`}
-                    title={
-                      isCompleted
-                        ? "Secuencia finalizada para este lead"
-                        : `Ejecutar Paso ${lead.currentStepIndex + 1}: ${
-                            activeCampaign.steps[lead.currentStepIndex]?.title || "Siguiente Paso"
-                          }`
-                    }
-                  >
-                    {isExecuting ? (
-                      <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                    ) : (
-                      <Play className="size-3.5 text-brand-600 fill-brand-600 ml-0.5" />
-                    )}
-                  </button>
-
-                  {/* Botón Reiniciar Avance de este Lead */}
-                  {isCompleted && (
-                    <button
-                      type="button"
-                      onClick={() => handleResetLeadProgress(lead.id)}
-                      className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
-                      title="Reiniciar secuencia al Paso 1 para este lead"
+                  return (
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition"
                     >
-                      <RotateCcw className="size-3.5" />
-                    </button>
-                  )}
+                      {/* 1. Columna: Prospecto (Idéntico a Directorio de Leads) */}
+                      <td className="py-3.5 pr-3 min-w-[200px]">
+                        <div className="flex items-center gap-3">
+                          <ProspectAvatar
+                            imageUrl={lead.avatarUrl}
+                            name={lead.fullName}
+                            size="md"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                                {lead.fullName}
+                              </h4>
+                              {lead.language && (
+                                <span
+                                  className={`rounded px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
+                                    lead.language === "en"
+                                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                      : lead.language === "pt"
+                                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                                      : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                  }`}
+                                  title={`Idioma: ${lead.language.toUpperCase()}`}
+                                >
+                                  {lead.language.toUpperCase()}
+                                </span>
+                              )}
+                              <a
+                                href={lead.linkedinUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-400 hover:text-brand-600 transition shrink-0"
+                                title="Abrir perfil de LinkedIn"
+                              >
+                                <ExternalLink className="size-3" />
+                              </a>
+                            </div>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                              {lead.location && !/no especificado/i.test(lead.location)
+                                ? lead.location
+                                : "Remoto"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
 
-                  {/* Botón Quitar Lead del Seguimiento */}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteLeadFromTracker(lead.id)}
-                    className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
-                    title="Quitar este prospecto de la lista de seguimiento"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })
+                      {/* 2. Columna: Cargo */}
+                      <td className="py-3.5 pr-3 max-w-[260px]">
+                        <p
+                          className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate leading-snug cursor-help"
+                          title={lead.headline}
+                        >
+                          {truncateText(lead.headline, 44)}
+                        </p>
+                      </td>
+
+                      {/* 3. Columna: Origen de Señal */}
+                      <td className="py-3.5 pr-3 whitespace-nowrap">
+                        <span
+                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[180px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          title={`${lead.monitorName} (${lead.listName})`}
+                        >
+                          {truncateText(lead.monitorName, 26)}
+                        </span>
+                      </td>
+
+                      {/* 4. Columna: Avance de Secuencia */}
+                      <td className="py-3.5 pr-3 min-w-[290px] max-w-md">
+                        <div className="flex items-center justify-between text-xs mb-2 font-medium">
+                          <span className="font-semibold text-gray-800 dark:text-gray-200 truncate pr-2">
+                            {isCompleted
+                              ? "Secuencia Finalizada"
+                              : `Paso ${Math.min(lead.currentStepIndex + 1, stepsCount)} de ${stepsCount}: ${
+                                  activeCampaign.steps[lead.currentStepIndex]?.title || "En Proceso"
+                                }`}
+                          </span>
+                          <span className="font-bold text-brand-600 dark:text-brand-400 text-xs shrink-0">
+                            {progressPercent}%
+                          </span>
+                        </div>
+
+                        {/* La Barra Visual con Estaciones / Stepper */}
+                        <div className="relative flex items-center w-full px-2">
+                          {/* Línea horizontal base conectora */}
+                          <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-gray-200 dark:bg-gray-700 z-0 rounded-full" />
+                          {/* Línea de progreso llena */}
+                          <div
+                            className="absolute left-3 top-1/2 -translate-y-1/2 h-1 bg-emerald-500 z-0 rounded-full transition-all duration-500"
+                            style={{
+                              width: `calc(${
+                                (Math.min(lead.completedStepIndices.length, stepsCount - 1) / (stepsCount - 1)) * 100
+                              }% - 12px)`,
+                            }}
+                          />
+
+                          {/* Cada una de las estaciones / pasos */}
+                          {activeCampaign.steps.map((step, sIdx) => {
+                            const isStepCompleted = lead.completedStepIndices.includes(sIdx);
+                            const isCurrentStep = lead.currentStepIndex === sIdx && !isCompleted;
+
+                            return (
+                              <div
+                                key={step.id || sIdx}
+                                className="relative z-10 flex flex-1 flex-col items-center group cursor-pointer"
+                                title={`Paso ${sIdx + 1}: ${step.title} (${step.description})`}
+                              >
+                                {/* Círculo de la Estación */}
+                                <div
+                                  className={`flex items-center justify-center transition-all ${
+                                    isStepCompleted
+                                      ? "h-6 w-6 rounded-full bg-emerald-500 text-white font-bold shadow-xs border-2 border-white dark:border-gray-900"
+                                      : isCurrentStep
+                                      ? "h-7 w-7 rounded-full bg-brand-500 text-white font-bold shadow-md ring-4 ring-brand-200 dark:ring-brand-950/80 animate-pulse border-2 border-white dark:border-gray-900"
+                                      : "h-5 w-5 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-400 font-semibold text-xs"
+                                  }`}
+                                >
+                                  {isStepCompleted ? (
+                                    <Check className="size-3.5 stroke-[3]" />
+                                  ) : isCurrentStep ? (
+                                    getStepMiniIcon(step.type)
+                                  ) : (
+                                    <span>{sIdx + 1}</span>
+                                  )}
+                                </div>
+
+                                {/* Etiqueta compacta debajo de la estación */}
+                                <span
+                                  className={`text-xs mt-1 text-center whitespace-nowrap truncate max-w-[65px] ${
+                                    isCurrentStep
+                                      ? "font-bold text-brand-600 dark:text-brand-400 scale-105"
+                                      : isStepCompleted
+                                      ? "font-medium text-emerald-600 dark:text-emerald-400"
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  {step.title.split(" ")[0]}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+
+                      {/* 5. Columna: Acciones */}
+                      <td className="py-3.5 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          {/* Botón Ejecutar Siguiente Paso */}
+                          <button
+                            type="button"
+                            disabled={isCompleted || isExecuting}
+                            onClick={() => handleExecuteNextStepForLead(lead)}
+                            className={`h-[28px] w-[28px] rounded-lg border inline-flex items-center justify-center transition ${
+                              isCompleted
+                                ? "opacity-35 cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-gray-800 dark:bg-gray-900/40"
+                                : isExecuting
+                                ? "bg-brand-500 text-white border-brand-500 cursor-wait"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:border-brand-500"
+                            }`}
+                            title={
+                              isCompleted
+                                ? "Secuencia finalizada para este lead"
+                                : `Ejecutar Paso ${lead.currentStepIndex + 1}: ${
+                                    activeCampaign.steps[lead.currentStepIndex]?.title || "Siguiente Paso"
+                                  }`
+                            }
+                          >
+                            {isExecuting ? (
+                              <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                            ) : (
+                              <Play className="size-3.5 text-brand-600 fill-brand-600 ml-0.5" />
+                            )}
+                          </button>
+
+                          {/* Botón Reiniciar Avance de este Lead */}
+                          {isCompleted && (
+                            <button
+                              type="button"
+                              onClick={() => handleResetLeadProgress(lead.id)}
+                              className="h-[28px] w-[28px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
+                              title="Reiniciar secuencia al Paso 1 para este lead"
+                            >
+                              <RotateCcw className="size-3.5" />
+                            </button>
+                          )}
+
+                          {/* Botón Quitar Lead del Seguimiento */}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLeadFromTracker(lead.id)}
+                            className="h-[28px] w-[28px] rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
+                            title="Quitar este prospecto de la lista de seguimiento"
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
