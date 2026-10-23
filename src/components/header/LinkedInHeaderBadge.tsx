@@ -47,7 +47,7 @@ export default function LinkedInHeaderBadge() {
       title={`${t("activeAccount")}: ${activeAccount.name}`}
     >
       <div className="relative">
-        <div className="size-6 rounded-lg bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
+        <div className="size-6 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
           {activeAccount.name.charAt(0).toUpperCase()}
         </div>
         <span

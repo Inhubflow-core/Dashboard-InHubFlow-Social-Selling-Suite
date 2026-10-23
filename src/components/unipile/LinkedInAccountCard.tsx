@@ -58,7 +58,7 @@ export default function LinkedInAccountCard({
       }`}
     >
       {/* Avatar compacto (10x10) idéntico a B2B */}
-      <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-300 dark:border-gray-700">
+      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-300 dark:border-gray-700">
         {account.profilePictureUrl && account.profilePictureUrl !== "/images/user/owner.png" ? (
           <img
             src={account.profilePictureUrl}

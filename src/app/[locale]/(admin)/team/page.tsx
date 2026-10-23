@@ -348,7 +348,7 @@ export default function TeamManagementPage() {
               <tr className="bg-[#0099ff]/5">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#0099ff] font-bold text-white">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0099ff] font-bold text-white">
                       {currentUser.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -390,7 +390,7 @@ export default function TeamManagementPage() {
                 <tr key={m.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         {m.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>

@@ -586,7 +586,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                       <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
-                            <div className="h-8 w-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-xs mt-0.5">
+                            <div className="h-8 w-8 rounded-full bg-brand-500 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-xs mt-0.5">
                               <Users className="h-4 w-4" />
                             </div>
 

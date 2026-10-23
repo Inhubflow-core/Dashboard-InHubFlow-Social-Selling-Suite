@@ -414,7 +414,7 @@ export default function AdminSubscribersPage() {
                       {/* Cliente / Empresa */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                             {u.name.substring(0, 2).toUpperCase()}
                           </div>
                           <div>

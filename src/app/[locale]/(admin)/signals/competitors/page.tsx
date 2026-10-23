@@ -717,7 +717,7 @@ export default function CompetitorsSignalRadarPage() {
                                     src={item.logoUrl}
                                     alt={item.name}
                                     className={`h-9 w-9 object-contain bg-white border border-gray-300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 ${
-                                      isCompany ? "rounded-lg" : "rounded-full object-cover"
+                                      isCompany ? "rounded-full object-cover" : "rounded-full object-cover"
                                     }`}
                                     onError={(e) => {
                                       (e.target as HTMLElement).style.display = "none";
@@ -729,7 +729,7 @@ export default function CompetitorsSignalRadarPage() {
                                 <div
                                   style={{ display: item.logoUrl ? "none" : "flex" }}
                                   className={`h-9 w-9 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs ${
-                                    isCompany ? "rounded-lg bg-blue-600" : "rounded-full bg-purple-600"
+                                    isCompany ? "rounded-full bg-blue-600" : "rounded-full bg-purple-600"
                                   }`}
                                 >
                                   {item.name.charAt(0).toUpperCase()}
@@ -791,7 +791,7 @@ export default function CompetitorsSignalRadarPage() {
                         src={selectedCompetitorItem.logoUrl}
                         alt={selectedCompetitorItem.name}
                         className={`h-6 w-6 object-contain bg-white border border-emerald-200 p-0.5 shrink-0 ${
-                          selectedCompetitorItem.type === "person" ? "rounded-full object-cover" : "rounded-lg"
+                          selectedCompetitorItem.type === "person" ? "rounded-full object-cover" : "rounded-full object-cover"
                         }`}
                       />
                     )}
@@ -1091,7 +1091,7 @@ export default function CompetitorsSignalRadarPage() {
                                 src={comp.logoUrl}
                                 alt={comp.competitorName}
                                 className={`h-8 w-8 object-contain bg-white border border-gray-300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5 ${
-                                  isPerson ? "rounded-full object-cover" : "rounded-lg"
+                                  isPerson ? "rounded-full object-cover" : "rounded-full object-cover"
                                 }`}
                                 onError={(e) => {
                                   (e.target as HTMLElement).style.display = "none";
@@ -1103,7 +1103,7 @@ export default function CompetitorsSignalRadarPage() {
                             <div
                               style={{ display: comp.logoUrl ? "none" : "flex" }}
                               className={`h-8 w-8 text-white font-bold items-center justify-center shrink-0 text-xs shadow-xs mt-0.5 ${
-                                isPerson ? "rounded-full bg-purple-600" : "rounded-lg bg-blue-600"
+                                isPerson ? "rounded-full bg-purple-600" : "rounded-full bg-blue-600"
                               }`}
                             >
                               {comp.competitorName.charAt(0).toUpperCase()}
