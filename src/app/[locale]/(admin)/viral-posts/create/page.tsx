@@ -5,7 +5,6 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
-  setActiveAccountId,
   accountMatchesUser,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
@@ -394,38 +393,6 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
             desc="Personaliza la estructura y utiliza la IA para generar el copy perfecto antes de publicar en LinkedIn."
           >
             <div className="space-y-5">
-              {/* Selector de Cuenta de LinkedIn Conectada */}
-              {accounts.length > 0 && (
-                <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                        Cuenta de LinkedIn para Publicar:
-                      </span>
-                      <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
-                        {activeAccObj ? activeAccObj.name : "Seleccionar cuenta"}
-                      </p>
-                    </div>
-                    {accounts.length > 1 && (
-                      <select
-                        value={selectedAccountId}
-                        onChange={(e) => {
-                          setSelectedAccountId(e.target.value);
-                          setActiveAccountId(e.target.value);
-                        }}
-                        className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                      >
-                        {accounts.map((acc) => (
-                          <option key={acc.id} value={acc.id}>
-                            {acc.name} ({acc.status})
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Selector de 3 Formatos */}
               <div>
                 <label className="mb-2 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
