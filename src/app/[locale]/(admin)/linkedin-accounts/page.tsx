@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 
 export default function LinkedInAccountsPage() {
+  const t = useTranslations("accounts");
   const { currentUser, capacity, isSuperAdmin, canConnectAccount, refreshUserData } = useAuth();
   const [accounts, setAccounts] = useState<ConnectedLinkedInAccount[]>([]);
   const [activeId, setActiveId] = useState<string>("");

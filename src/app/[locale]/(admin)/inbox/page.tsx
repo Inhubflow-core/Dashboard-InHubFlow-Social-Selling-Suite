@@ -29,6 +29,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const STAGES = [
   { id: "lead_captured", name: "1. Lead Captado" },

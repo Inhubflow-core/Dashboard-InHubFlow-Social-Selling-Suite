@@ -2,13 +2,15 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, AlertTriangle, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 function CallbackContent() {
   const searchParams = useSearchParams();
   const statusParam = searchParams.get("status") || "success";
   const isSuccess = statusParam !== "error" && statusParam !== "failed";
   const [closing, setClosing] = useState(false);
+  const t = useTranslations("auth.callback");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -67,24 +69,24 @@ function CallbackContent() {
             </span>
 
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              ¡Conexión Exitosa!
+              {t("successTitle")}
             </h1>
 
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              Tu cuenta de LinkedIn ha sido autenticada y vinculada correctamente con InHubFlow.
+              {t("successDescription")}
             </p>
 
             <div className="mt-6 flex flex-col items-center gap-3">
               <div className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                {closing ? "Cerrando ventana de asistente..." : "Sincronizando con tu Dashboard..."}
+                {closing ? t("closing") : t("syncing")}
               </div>
 
               <button
                 onClick={handleClose}
                 className="mt-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline underline-offset-4"
               >
-                Cerrar ventana ahora
+                {t("closeNow")}
               </button>
             </div>
           </>
@@ -95,18 +97,18 @@ function CallbackContent() {
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              No se pudo conectar la cuenta
+              {t("errorTitle")}
             </h1>
 
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              La autorización con LinkedIn no se completó o fue cancelada por el usuario.
+              {t("errorDescription")}
             </p>
 
             <button
               onClick={handleClose}
               className="mt-6 inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
             >
-              Regresar al Dashboard
+              {t("backToDashboard")}
             </button>
           </>
         )}

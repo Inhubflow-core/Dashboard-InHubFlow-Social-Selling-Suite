@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -21,6 +22,7 @@ import type { PlanTier } from "@/lib/saas/types";
 import SlotsCapacityCard from "@/components/saas/SlotsCapacityCard";
 
 export default function PlansPricingPage() {
+  const t = useTranslations("plans");
   const { currentUser, updateUserPlan, capacity, isSuperAdmin } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
   const [notice, setNotice] = useState<string | null>(null);

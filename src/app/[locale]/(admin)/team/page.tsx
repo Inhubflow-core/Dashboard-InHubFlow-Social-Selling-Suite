@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState, useEffect } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -32,6 +33,7 @@ import SlotsCapacityCard from "@/components/saas/SlotsCapacityCard";
 import PlanUpgradeModal from "@/components/saas/PlanUpgradeModal";
 
 export default function TeamManagementPage() {
+  const t = useTranslations("team");
   const { currentUser, capacity, isSuperAdmin } = useAuth();
 
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -141,7 +143,7 @@ export default function TeamManagementPage() {
   if (currentUser.role === "member") {
     return (
       <div className="w-full space-y-6">
-        <PageBreadcrumb pageTitle="Equipo & Operadores" />
+        <PageBreadcrumb pageTitle={t("pageTitle")} />
         <div className="rounded-lg border border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
             <ShieldAlert className="size-7" />
@@ -232,7 +234,7 @@ export default function TeamManagementPage() {
                 ? "Habilitar Equipo (Growth)"
                 : isTeamCapacityReached
                 ? "Ampliar Cupos de Equipo"
-                : "Invitar Miembro"}
+                : t("inviteBtn")}
             </span>
           </button>
         </div>

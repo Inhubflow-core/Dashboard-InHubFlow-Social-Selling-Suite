@@ -30,7 +30,7 @@ export default function PlanHeaderBadge() {
       >
         <Layers className="size-3.5" />
         <span>
-          {plan.name} ({capacity.usedSlots}/{capacity.totalSlots} Slots)
+          {plan.name} ({capacity.usedSlots}/{capacity.totalSlots} {t("slots")})
         </span>
       </button>
 

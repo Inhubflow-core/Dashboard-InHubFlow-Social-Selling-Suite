@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export default function ApiDocsPage() {
+  const t = useTranslations("support");
   const [activeTab, setActiveTab] = useState<"simulator" | "api_docs">("simulator");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 

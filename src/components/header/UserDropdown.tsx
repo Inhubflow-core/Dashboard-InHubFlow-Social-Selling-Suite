@@ -85,9 +85,9 @@ export default function UserDropdown() {
     : "bg-gray-400 ring-gray-200 dark:ring-gray-700";
 
   const subtitleText = isHealthy
-    ? "LinkedIn Conectado"
+    ? t("linkedInConnected")
     : needsAttention
-    ? "Reconexión requerida"
+    ? t("reconnectRequired")
     : currentUser.role === "super_admin"
     ? t("superAdmin")
     : plan.name;
@@ -316,7 +316,7 @@ export default function UserDropdown() {
         {/* Cambiar Cuenta (Mismo estilo de cabecera e ítems que AppSidebar) */}
         <div className="border-b border-gray-300 py-2.5 dark:border-gray-800">
           <h2 className="mb-3 flex px-3 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase justify-start">
-            Cambiar Cuenta
+            {t("switchAccountTitle")}
           </h2>
 
           <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">

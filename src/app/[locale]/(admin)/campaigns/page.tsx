@@ -52,6 +52,7 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
 import { CampaignLeadsTracker } from "@/components/campaigns/CampaignLeadsTracker";
 
@@ -121,6 +122,7 @@ const AVAILABLE_PALETTE_STEPS: Array<{
 ];
 
 export default function CampaignsPage() {
+  const t = useTranslations("campaigns");
   const { currentUser } = useAuth();
   const [campaigns, setCampaigns] = useState<LinearSequenceCampaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("seq-lead-lists");

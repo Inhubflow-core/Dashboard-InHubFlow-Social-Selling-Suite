@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 
 export default function CompetitorsSignalRadarPage() {

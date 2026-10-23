@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -83,6 +84,7 @@ const FAQS = [
 ];
 
 export default function HelpCenterPage() {
+  const t = useTranslations("support");
   const [search, setSearch] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 

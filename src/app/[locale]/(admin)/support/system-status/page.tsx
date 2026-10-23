@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -68,6 +69,7 @@ const SERVICES: ServiceStatus[] = [
 ];
 
 export default function SystemStatusPage() {
+  const t = useTranslations("support");
   return (
     <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Estado del Sistema & Infraestructura" />

@@ -16,6 +16,7 @@ import type { CreatedPost } from "@/lib/viral-posts/types";
 import { Link } from "@/i18n/navigation";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 import { useLeadsStore } from "@/lib/leads/store";
 import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 

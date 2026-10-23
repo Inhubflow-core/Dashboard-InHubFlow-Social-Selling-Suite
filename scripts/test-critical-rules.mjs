@@ -1028,6 +1028,18 @@ const robertoBadge = computeBadgeColorAndText(robertoHealthyAccount);
 assert(robertoBadge.dotColor === "emerald", "El badge de RobertoOrse conectado muestra luz verde");
 assert(robertoBadge.subtitleText === "LinkedIn Conectado", "El badge de RobertoOrse conectado muestra 'LinkedIn Conectado'");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 17: Validación Automática de i18n (es, en, pt-BR)
+// -----------------------------------------------------------------------------
+console.log("\n--- 17. Prueba de Integridad y Paridad i18n (3 Idiomas) ---");
+try {
+  const { validateI18n } = await import("./validate-i18n.mjs");
+  const i18nOk = validateI18n();
+  assert(i18nOk === true, "Catálogos de idiomas (es, en, pt-BR) poseen 100% paridad de claves y variables");
+} catch (err) {
+  assert(false, `Error en validación i18n: ${err.message}`);
+}
+
 // Limpieza de base de datos de test
 
 db.close();

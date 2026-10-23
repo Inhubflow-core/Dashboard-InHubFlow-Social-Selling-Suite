@@ -7,6 +7,7 @@ import LeadScoreBadge from "@/components/leads/LeadScoreBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const truncateText = (text?: string, maxLength: number = 46): string => {
   if (!text) return "";

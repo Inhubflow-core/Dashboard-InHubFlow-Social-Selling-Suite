@@ -5,11 +5,13 @@ import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
-const WEEKDAYS = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
 
 export default function EditorialCalendarPage() {
+  const t = useTranslations("viralPosts.calendar");
+  const WEEKDAYS = [t("mon"), t("tue"), t("wed"), t("thu"), t("fri"), t("sat"), t("sun")];
   const { posts, updatePost } = useCreatedPosts();
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -223,7 +225,7 @@ export default function EditorialCalendarPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Calendario Editorial" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Alerta de confirmación al reprogramar */}
       {justRescheduledInfo && (
@@ -296,7 +298,7 @@ export default function EditorialCalendarPage() {
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 shadow-xs transition"
             >
               <Plus size={15} />
-              Programar Post
+              {t("scheduleBtn")}
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState, useEffect, useMemo } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -36,6 +37,7 @@ import { OFFICIAL_PLANS_LIST, getPlanConfig } from "@/lib/saas/plans";
 import type { SaaSUser, PlanTier, SubscriptionStatus } from "@/lib/saas/types";
 
 export default function AdminSubscribersPage() {
+  const t = useTranslations("adminSubscribers");
   const { currentUser, isSuperAdmin, switchUser, refreshUserData } = useAuth();
 
   const [users, setUsers] = useState<SaaSUser[]>([]);

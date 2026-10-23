@@ -24,7 +24,7 @@ import {
   saveStoredRadarState,
 } from "@/lib/viral-posts/store";
 import type { PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -143,6 +143,7 @@ export function detectUserMarket(): DetectedMarketInfo {
 }
 
 export default function ViralRadarPage() {
+  const t = useTranslations("viralPosts.radar");
   const router = useRouter();
   const locale = useLocale();
   const { currentUser } = useAuth();
@@ -563,13 +564,13 @@ export default function ViralRadarPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Post Finder (Top Posts de LinkedIn)" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
 
       {/* Panel de Control de Búsqueda y Parámetros */}
       <ComponentCard
-        title="Explorador de Publicaciones de Alto Impacto"
-        desc={`Indexación directa de publicaciones vía InHubFlow LinkedIn Cloud con la cuenta: ${currentDisplayName}.`}
+        title={t("cardTitle")}
+        desc={t("cardDesc", { name: currentDisplayName })}
       >
         <div className="space-y-4">
           <div className="space-y-3">
@@ -578,7 +579,7 @@ export default function ViralRadarPage() {
               <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-gray-50 border border-gray-300 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-600 dark:text-gray-400">
-                    Cuenta conectada para indexar:
+                    {t("connectedAccount")}
                   </span>
                   <span className="font-bold text-gray-900 dark:text-white">
                     {currentDisplayName}
@@ -589,7 +590,7 @@ export default function ViralRadarPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-xs">Cambiar cuenta:</span>
+                  <span className="text-gray-500 text-xs">{t("changeAccount")}</span>
                   <select
                     value={activeAccount?.id || ""}
                     onChange={(e) => {
@@ -620,7 +621,7 @@ export default function ViralRadarPage() {
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLiveSearch()}
-                  placeholder="Palabra clave, industria o dolor (ej. Social Selling, B2B SaaS, Agentes SDR)..."
+                  placeholder={t("searchPlaceholder")}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
@@ -633,17 +634,17 @@ export default function ViralRadarPage() {
                 {isSearchingLive ? (
                   <>
                     <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                    Escaneando LinkedIn...
+                    {t("scanning")}
                   </>
                 ) : (
-                  "Escanear Tendencias"
+                  t("searchBtn")
                 )}
               </button>
             </div>
 
             {/* Tags de búsqueda rápida */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-xs font-medium text-gray-400 mr-1">Sugerencias:</span>
+              <span className="text-xs font-medium text-gray-400 mr-1">{t("suggestions")}</span>
               {quickSearchTags.map((tag) => (
                 <button
                   key={tag}
@@ -666,13 +667,13 @@ export default function ViralRadarPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-300 dark:border-gray-800 text-xs">
               {/* Ventana Temporal */}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
+                <span className="font-semibold text-gray-500 dark:text-gray-400">{t("timeWindow")}</span>
                 <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
                   {[
-                    { id: "PAST_MONTH", label: "Último Mes (Recomendado)" },
-                    { id: "PAST_WEEK", label: "Última Semana" },
-                    { id: "PAST_24H", label: "24h" },
-                    { id: "ANY", label: "Todo" },
+                    { id: "PAST_MONTH", label: t("pastMonth") },
+                    { id: "PAST_WEEK", label: t("pastWeek") },
+                    { id: "PAST_24H", label: t("past24h") },
+                    { id: "ANY", label: t("allTime") },
                   ].map((opt) => (
                     <button
                       key={opt.id}
@@ -1130,7 +1131,7 @@ export default function ViralRadarPage() {
                     }}
                     className="flex-1 rounded-lg bg-brand-500 py-2 text-center text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
                   >
-                    Modelar con IA
+                    {t("modelWithAi")}
                   </button>
                 </div>
               </div>
@@ -1393,7 +1394,7 @@ export default function ViralRadarPage() {
                   rel="noopener noreferrer"
                   className="font-semibold text-brand-600 hover:underline dark:text-brand-400 flex items-center gap-1"
                 >
-                  Ver en LinkedIn &rarr;
+                  {t("viewOnLinkedIn")} &rarr;
                 </a>
               </div>
             )}

@@ -2,82 +2,86 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import LineChartOne from "@/components/charts/line/LineChartOne";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
   title: "Panel de Control | InHubFlow Social Selling",
   description: "Suite de Social Selling para LinkedIn: generacion de contenido viral, monitoreo de señales y secuencias de prospeccion.",
 };
 
-const metrics = [
-  {
-    title: "Leads Captados (Señales)",
-    value: "82",
-    change: "+28% vs semana anterior",
-    highlight: true,
-  },
-  {
-    title: "Publicaciones en Cola",
-    value: "5",
-    change: "3 programadas para esta semana",
-    highlight: false,
-  },
-  {
-    title: "Secuencias Activas (Workflow)",
-    value: "18",
-    change: "Pacing humano seguro (InHubFlow)",
-    highlight: false,
-  },
-  {
-    title: "Tasa de Respuesta Inbound",
-    value: "42.8%",
-    change: "+14 pts por Lead Magnets",
-    highlight: true,
-  },
-];
+export default async function SocialSellingDashboard() {
+  const t = await getTranslations("dashboard");
 
-const modules = [
-  {
-    name: "1. Viral Post Engine",
-    desc: "Crea y programa posts de texto, imagenes y carruseles PDF para 1 mes en 5 minutos.",
-    link: "/viral-posts/radar",
-    action: "Ir a Post Finder",
-  },
-  {
-    name: "2. Signal Radar",
-    desc: "Escanea en tiempo real interacciones en tus posts, en los de la competencia y en tendencias de la red.",
-    link: "/signals/my-posts",
-    action: "Ver Monitores",
-  },
-  {
-    name: "3. Campañas (Workflow)",
-    desc: "Constructor interactivo de secuencias en lienzo de nodos con React Flow, delays y condiciones.",
-    link: "/campaigns",
-    action: "Abrir Canvas",
-  },
-  {
-    name: "4. Leads & CRM",
-    desc: "Directorio 360 de contactos captados, listas dinamicas por señal y trazabilidad de interacciones.",
-    link: "/leads",
-    action: "Ver Directorio",
-  },
-  {
-    name: "5. Inbox Unificado",
-    desc: "Buzon comercial libre de ruido con SDR Co-Pilot asistido por IA para agendar reuniones.",
-    link: "/inbox",
-    action: "Abrir Inbox",
-  },
-  {
-    name: "6. Pipeline CRM",
-    desc: "Kanban comercial de 7 etapas y calendario de citas para monitorear el avance hacia el cierre.",
-    link: "/pipeline",
-    action: "Ver Kanban",
-  },
-];
+  const metrics = [
+    {
+      title: t("metrics.leadsCaptured"),
+      value: "82",
+      change: t("metrics.leadsCapturedChange"),
+      highlight: true,
+    },
+    {
+      title: t("metrics.queuedPosts"),
+      value: "5",
+      change: t("metrics.queuedPostsChange"),
+      highlight: false,
+    },
+    {
+      title: t("metrics.activeSequences"),
+      value: "18",
+      change: t("metrics.activeSequencesChange"),
+      highlight: false,
+    },
+    {
+      title: t("metrics.responseRate"),
+      value: "42.8%",
+      change: t("metrics.responseRateChange"),
+      highlight: true,
+    },
+  ];
 
-export default function SocialSellingDashboard() {
+  const modules = [
+    {
+      name: t("modules.viralPostsName"),
+      desc: t("modules.viralPostsDesc"),
+      link: "/viral-posts/radar",
+      action: t("modules.viralPostsAction"),
+    },
+    {
+      name: t("modules.signalsName"),
+      desc: t("modules.signalsDesc"),
+      link: "/signals/my-posts",
+      action: t("modules.signalsAction"),
+    },
+    {
+      name: t("modules.campaignsName"),
+      desc: t("modules.campaignsDesc"),
+      link: "/campaigns",
+      action: t("modules.campaignsAction"),
+    },
+    {
+      name: t("modules.leadsName"),
+      desc: t("modules.leadsDesc"),
+      link: "/leads",
+      action: t("modules.leadsAction"),
+    },
+    {
+      name: t("modules.inboxName"),
+      desc: t("modules.inboxDesc"),
+      link: "/inbox",
+      action: t("modules.inboxAction"),
+    },
+    {
+      name: t("modules.pipelineName"),
+      desc: t("modules.pipelineDesc"),
+      link: "/pipeline",
+      action: t("modules.pipelineAction"),
+    },
+  ];
+
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Panel de Control | InHubFlow Social Selling" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m, idx) => (
@@ -106,8 +110,8 @@ export default function SocialSellingDashboard() {
 
       {/* Grafico de Evolucion y Traccion (Line Chart 1) */}
       <ComponentCard
-        title="Line Chart 1"
-        desc="Evolucion temporal de interacciones y captacion de leads en LinkedIn."
+        title={t("chartTitle")}
+        desc={t("chartDesc")}
       >
         <LineChartOne />
       </ComponentCard>
@@ -115,10 +119,10 @@ export default function SocialSellingDashboard() {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Ecosistema de Modulos de Social Selling
+            {t("ecosystemTitle")}
           </h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Arquitectura de Conversion Inbound
+            {t("ecosystemSubtitle")}
           </span>
         </div>
 
@@ -137,18 +141,17 @@ export default function SocialSellingDashboard() {
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-gray-300 dark:border-gray-800">
-                <a
+                <Link
                   href={mod.link}
                   className="inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
                 >
                   {mod.action} &rarr;
-                </a>
+                </Link>
               </div>
             </div>
           ))}
         </div>
       </div>
-
     </div>
   );
 }

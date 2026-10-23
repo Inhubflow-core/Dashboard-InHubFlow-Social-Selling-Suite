@@ -8,6 +8,7 @@ import { useSignalRadar } from "@/lib/signals/store";
 import type { SignalLeadItem } from "@/lib/signals/types";
 import { useLeadsStore } from "@/lib/leads/store";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 import { getActiveAccountForUser } from "@/lib/unipile/store";
 import { Link } from "@/i18n/navigation";
 import { ExternalLink, Pencil, RefreshCw, X } from "lucide-react";
@@ -78,6 +79,7 @@ function getLinkedInPostUrl(post: CreatedPost, matchedMonitorUrl?: string): stri
 }
 
 export default function PostsListPage() {
+  const t = useTranslations("viralPosts.list");
   const { posts, isLoaded, updatePost, deletePost } = useCreatedPosts();
   const { l1Monitors, updateLevel1Monitor, recordDiscoveredLeads } = useSignalRadar();
   const { lists: allLeadLists, leads: crmLeads, importSignalLeads, getOrCreateLevel1List } = useLeadsStore();

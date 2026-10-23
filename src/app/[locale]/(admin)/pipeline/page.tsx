@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { PIPELINE_STAGES } from "@/lib/pipeline/mock-data";
@@ -24,6 +25,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 export default function PipelinePage() {
+  const t = useTranslations("pipeline");
   const [deals, setDeals] = useState<PipelineDeal[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [campaignFilter, setCampaignFilter] = useState("all");

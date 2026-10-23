@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -48,6 +49,7 @@ const INITIAL_TICKETS: SupportTicket[] = [
 ];
 
 export default function SupportTicketsPage() {
+  const t = useTranslations("support");
   const { currentUser, isSuperAdmin } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
   const [isModalOpen, setIsModalOpen] = useState(false);

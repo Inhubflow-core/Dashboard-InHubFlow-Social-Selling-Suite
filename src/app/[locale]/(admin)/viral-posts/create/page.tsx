@@ -19,8 +19,10 @@ import type { CarouselSlide, CreatedPost, PostFormat } from "@/lib/viral-posts/t
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 
 export default function CreateViralPostPage() {
+  const t = useTranslations("viralPosts.create");
   const router = useRouter();
   const { currentUser } = useAuth();
   const { addPost } = useCreatedPosts();
@@ -691,7 +693,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   onClick={() => handleSavePost("draft")}
                   className="rounded-lg border border-gray-300 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
                 >
-                  Guardar como Borrador
+                  {t("saveDraft")}
                 </button>
                 <div className="flex items-center gap-3">
                   <button
@@ -699,7 +701,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     onClick={() => handleSavePost("scheduled")}
                     className="rounded-lg border border-brand-500 px-4 py-2.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20"
                   >
-                    Programar Publicación
+                    {t("schedulePost")}
                   </button>
                   <button
                     type="button"
@@ -713,7 +715,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         Publicando en LinkedIn...
                       </>
                     ) : (
-                      "Publicar Ahora en LinkedIn"
+                      t("publishNow")
                     )}
                   </button>
                 </div>

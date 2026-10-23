@@ -22,6 +22,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
 import { viralPostsB2B, verifiedUsaOutreachScannedPosts } from "@/lib/signals/mock-data";
 import { Pencil, X, TrendingUp } from "lucide-react";
 
@@ -420,6 +421,7 @@ export const COUNTRY_OPTIONS: CountryOption[] = [
 ];
 
 export default function GlobalSignalsPage() {
+  const t = useTranslations("signals.global");
   const {
     l3Monitors,
     leads,

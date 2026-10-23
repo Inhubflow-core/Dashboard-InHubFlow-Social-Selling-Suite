@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -18,6 +19,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 
 export default function SecuritySettingsPage() {
+  const t = useTranslations("settings");
   const { currentUser, isSuperAdmin } = useAuth();
   const isMember = currentUser.role === "member";
 

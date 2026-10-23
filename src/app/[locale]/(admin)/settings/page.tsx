@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import React, { useState, useEffect } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -18,6 +19,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 
 export default function WorkspaceSettingsPage() {
+  const t = useTranslations("settings");
   const { currentUser, isSuperAdmin, isClientAdmin } = useAuth();
   const isMember = currentUser.role === "member";
 
@@ -54,7 +56,7 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Configuración del Workspace" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {notice && (
         <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">

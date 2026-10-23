@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { addCommercialMeeting, getMeetings } from "@/lib/pipeline/store";
@@ -23,6 +24,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 export default function PipelineCalendarPage() {
+  const t = useTranslations("pipeline");
   const [meetings, setMeetings] = useState<CommercialMeeting[]>([]);
   const [selectedTimeZone, setSelectedTimeZone] = useState("America/Buenos_Aires (GMT-3)");
   const [searchQuery, setSearchQuery] = useState("");
