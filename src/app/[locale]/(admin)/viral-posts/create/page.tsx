@@ -502,9 +502,6 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <span className="text-base font-medium text-gray-800 dark:text-white/90">
                       Modelador de Copy B2B con IA & RAG
                     </span>
-                    <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs font-bold dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      RAG Aprobado Activo
-                    </span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Modela el post integrando automáticamente la propuesta de valor y documentos aprobados del Asistente SDR IA.
