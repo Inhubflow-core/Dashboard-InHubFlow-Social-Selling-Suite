@@ -295,7 +295,7 @@ export async function executeCampaignStepForLead(params: {
           console.warn("[Runner] Fallback en traduccion de comentario:", e);
         }
       }
-      const commentBody = commentTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      const commentBody = commentTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
 
       try {
         await unipile.commentOnPost({
@@ -427,7 +427,7 @@ export async function executeCampaignStepForLead(params: {
             console.warn("[Runner] Fallback en traduccion de nota:", e);
           }
         }
-        note = noteTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+        note = noteTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
       }
 
       try {
@@ -518,7 +518,7 @@ export async function executeCampaignStepForLead(params: {
             console.warn("[Runner] Fallback en traduccion de invitacion:", e);
           }
         }
-        note = noteTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+        note = noteTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
       }
 
       try {
@@ -629,7 +629,7 @@ export async function executeCampaignStepForLead(params: {
           console.warn("[Runner] Fallback en traduccion de DM:", e);
         }
       }
-      const messageBody = dmTemplate.replace("{{first_name}}", leadState.leadName.split(" ")[0]);
+      const messageBody = dmTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
 
       try {
         if (leadState.chatId) {
@@ -1029,7 +1029,7 @@ export async function executeLinearSequenceStepForLead(params: {
         timestamp: new Date().toISOString(),
         status: "success",
         message: isDry
-          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} (${leadState.linkedinUrl}) analizado con éxito sin llamadas a Unipile.`
+          ? `[SIMULACIÓN] Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} (${leadState.linkedinUrl}) analizado con éxito sin llamadas reales a LinkedIn.`
           : `Paso ${stepIndex + 1} (${currentStep.title}): Perfil de ${leadState.leadName} visitado con éxito. Registro generado en sus notificaciones de LinkedIn.`,
         details: { stepOrder: stepIndex + 1, stepTitle: currentStep.title, dryRun: isDry },
       };
@@ -1085,7 +1085,7 @@ export async function executeLinearSequenceStepForLead(params: {
 
             // Lectura profunda con IA Gemini para generar comentario contextual de alto valor
             const rawPostText = firstPost.text || (firstPost as any).content || "";
-            if (rawPostText && rawPostText.trim().length > 30) {
+            if (currentStep.useAiComment !== false && rawPostText && rawPostText.trim().length > 30) {
               try {
                 const smartComment = await generateSmartPostComment({
                   postText: rawPostText,

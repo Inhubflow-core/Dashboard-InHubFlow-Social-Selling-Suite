@@ -397,7 +397,7 @@ export function CampaignLeadsTracker({
           stepIndex: stepIndexToRun,
           leadName: lead.fullName,
           linkedinUrl: lead.linkedinUrl,
-          company: lead.company,
+          company: lead.company, language: lead.language,
           dryRun: isDry,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
@@ -759,7 +759,7 @@ export function CampaignLeadsTracker({
                             className="absolute left-3 top-1/2 -translate-y-1/2 h-1 bg-emerald-500 z-0 rounded-full transition-all duration-500"
                             style={{
                               width: `calc(${
-                                (Math.min(lead.completedStepIndices.length, stepsCount - 1) / (stepsCount - 1)) * 100
+                                (Math.min(lead.completedStepIndices.length, stepsCount - 1) / Math.max(1, stepsCount - 1)) * 100
                               }% - 12px)`,
                             }}
                           />
