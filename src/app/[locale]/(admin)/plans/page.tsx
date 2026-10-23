@@ -231,43 +231,43 @@ export default function PlansPricingPage() {
 
       {/* Preguntas Frecuentes / Detalles de Slots */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="text-base font-bold text-gray-900 dark:text-white">
+        <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
           Preguntas Frecuentes sobre el Sistema de Slots
         </h3>
 
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Que es un Slot de Cuenta?
             </h4>
-            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Un slot representa una ranura activa que te permite conectar 1 perfil personal de LinkedIn a la plataforma. Si contratas el Plan Growth (5 slots), puedes conectar hasta 5 perfiles simultaneos y distribuirlos en tu equipo.
             </p>
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Puedo reasignar o cambiar una cuenta conectada?
             </h4>
-            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Si. Puedes desconectar una cuenta en cualquier momento para liberar el slot y vincular un perfil diferente sin costo adicional.
             </p>
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Que limites diarios de seguridad tiene cada cuenta?
             </h4>
-            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Cada perfil opera de forma independiente con pacing humano (pausas aleatorias de 3 a 12 minutos) y un tope seguro de 20-25 invitaciones de conexion y 30-40 mensajes directos diarios para garantizar cero restricciones.
             </p>
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Como funciona la administracion multi-operador y los 3 roles?
             </h4>
-            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               La plataforma maneja 3 roles: Super Admin (SuperAdmin), Admin (ej. Roberto OrSe Agencia, titular que suscribe el workspace con slots) y Team (operadores colaboradores invitados, ej. ADS CASHGROW). En el Plan Starter (1 slot) el uso es exclusivo para el Admin (0 cupos de equipo). En el Plan Growth (5 slots), el Admin puede invitar a hasta 4 operadores Team (1 Admin + 4 Team = 5 slots). En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores Team (1 Admin + 9 Team = 10 slots).
             </p>
           </div>

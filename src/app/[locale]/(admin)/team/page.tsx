@@ -173,10 +173,10 @@ export default function TeamManagementPage() {
                 <ShieldAlert className="size-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                   Plan Starter Monousuario (1 Cuenta de Administrador · 0 Cupos de Equipo)
                 </h4>
-                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Tu suscripción actual incluye 1 slot exclusivo para tu cuenta de Administrador. Para invitar a colaboradores de equipo (1 Admin + hasta 4 miembros Team) y asignarles perfiles de LinkedIn independientes, actualiza al Plan Growth.
                 </p>
               </div>
@@ -204,7 +204,7 @@ export default function TeamManagementPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
               Gestion de Equipo & Asignacion de Cuentas
             </h2>
           </div>

@@ -348,10 +348,10 @@ export default function PostsListPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Cola Editorial y Contenido Emitido
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
           </p>
         </div>
@@ -515,7 +515,7 @@ export default function PostsListPage() {
                         </span>
                       </div>
 
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm" title={post.title}>
+                      <h4 className="text-base font-medium text-gray-800 dark:text-white/90" title={post.title}>
                         {post.title}
                       </h4>
 

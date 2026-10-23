@@ -44,14 +44,14 @@ export default function SlotsCapacityCard({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                <span className="text-base font-medium text-gray-800 dark:text-white/90">
                   Super Administrador · SuperAdmin
                 </span>
                 <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
                   Slots Ilimitados
                 </span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400" suppressHydrationWarning>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400" suppressHydrationWarning>
                 Cuentas activas en el entorno: {capacity.usedSlots} perfiles vinculados
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function SlotsCapacityCard({
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                <span className="text-base font-medium text-gray-800 dark:text-white/90">
                   {currentUser.companyName || "Mi Organizacion"}
                 </span>
                 <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
@@ -98,7 +98,7 @@ export default function SlotsCapacityCard({
                   </span>
                 )}
               </div>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {plan.slots === 1
                   ? `${capacity.usedSlots} de 1 cuenta activa (1 Slot para Admin · Monousuario)`
                   : plan.slots === 5

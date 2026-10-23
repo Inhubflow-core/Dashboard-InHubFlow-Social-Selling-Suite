@@ -251,7 +251,7 @@ export default function LinkedInAccountsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
               {isSuperAdmin
                 ? "Cuentas de LinkedIn (Vista Global Super Admin)"
                 : isTeamMember
@@ -304,7 +304,7 @@ export default function LinkedInAccountsPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                     Estado del Motor Cloud LinkedIn
                   </h3>
                   {unipileStatus?.configured ? (
@@ -319,7 +319,7 @@ export default function LinkedInAccountsPage() {
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {unipileStatus?.configured
                     ? `Conectado a nodo seguro: ${unipileStatus.dsn && !unipileStatus.dsn.includes("unipile") ? unipileStatus.dsn : "https://cloud.inhubflow.com (Nodo Seguro)"}. Todas las peticiones van directamente a la infraestructura de enlace.`
                     : "No se detectaron las credenciales de enlace activo en las variables de entorno. Operando en modo de demostracion seguro para previsualizar flujos de trabajo sin interrupciones."}
@@ -374,14 +374,14 @@ export default function LinkedInAccountsPage() {
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               {isTeamMember
                 ? `Mi Perfil Vinculado (${displayedAccounts.length})`
                 : isSuperAdmin
                 ? `Todas las Cuentas del Ecosistema (${displayedAccounts.length})`
                 : `Cuentas del Workspace (${displayedAccounts.length})`}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {isTeamMember
                 ? "Cuenta asignada por el Administrador para prospeccion y envio de DMs."
                 : "El Administrador puede ver y supervisar la totalidad de las cuentas vinculadas por su equipo."}

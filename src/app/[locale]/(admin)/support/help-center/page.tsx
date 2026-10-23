@@ -127,7 +127,7 @@ export default function HelpCenterPage() {
       {/* Categorías Principales de Guías */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Guías Destacadas de la Plataforma
           </h3>
           <span className="text-xs text-gray-400">
@@ -145,10 +145,10 @@ export default function HelpCenterPage() {
                 <span className="rounded-md bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                   {guide.category}
                 </span>
-                <h4 className="mt-3 text-sm font-bold text-gray-900 dark:text-white">
+                <h4 className="mt-3 text-base font-medium text-gray-800 dark:text-white/90">
                   {guide.title}
                 </h4>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {guide.desc}
                 </p>
               </div>
@@ -165,7 +165,7 @@ export default function HelpCenterPage() {
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4 dark:border-gray-800">
           <HelpCircle className="size-5 text-[#0099ff]" />
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Preguntas Frecuentes (FAQs)
           </h3>
         </div>

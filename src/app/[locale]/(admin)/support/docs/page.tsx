@@ -89,10 +89,10 @@ export default function ApiDocsPage() {
                 <Code2 className="size-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                   InHubFlow Developer API v1
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Conecta de forma programática tus bases de leads, automatizaciones externas y eventos en tiempo real.
                 </p>
               </div>
@@ -134,12 +134,12 @@ export default function ApiDocsPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-3 dark:border-gray-800">
               <Webhook className="size-4 text-[#0099ff]" />
-              <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+              <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Estructura del Webhook Entrante de Mensajería de LinkedIn
               </h4>
             </div>
 
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Payload JSON recibido directamente desde los servidores de enlace cuando un prospecto envía un mensaje o acepta una invitación:
             </p>
 

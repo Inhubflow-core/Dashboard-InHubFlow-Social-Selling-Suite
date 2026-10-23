@@ -115,10 +115,10 @@ export default function SupportTicketsPage() {
       {/* Header y Acción */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
             Asistencia & Tickets de Soporte
           </h2>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Comunícate directamente con los ingenieros y especialistas de soporte de InHubFlow.
           </p>
         </div>

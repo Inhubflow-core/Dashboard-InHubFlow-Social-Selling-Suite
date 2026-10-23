@@ -483,11 +483,11 @@ export function CampaignLeadsTracker({
               </span>
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                     Prospectos en Campaña: Seguimiento y Avance de Secuencias
                   </h3>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Monitorea por qué estación va cada contacto en tiempo real, su lista de asignación y el monitor de origen de Signal Radar.
                 </p>
               </div>

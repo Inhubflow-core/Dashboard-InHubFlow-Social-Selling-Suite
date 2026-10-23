@@ -582,10 +582,10 @@ export default function MyPostsSignalRadarPage() {
       {/* Botón de Creación y Explicación del Mecanismo */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
-          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
+          <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Automatización de Lead Magnet en LinkedIn (Nivel 1)
           </h4>
-          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
             Al detectar la palabra clave en tu post: (1) Da Like al comentario, (2) Responde un mensaje público de confirmación, y (3) Valida conexión para enviar el PDF adjunto de forma instantánea por mensaje privado.
           </p>
         </div>

@@ -80,10 +80,10 @@ export default function MonthlyTarget() {
       <div className="shadow-default rounded-2xl bg-white px-5 pt-5 pb-5 sm:px-6 sm:pt-6 sm:pb-11 dark:bg-gray-900">
         <div className="flex justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               {t("title")}
             </h3>
-            <p className="mt-1 text-theme-sm font-normal text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {t("subtitle")}
             </p>
           </div>

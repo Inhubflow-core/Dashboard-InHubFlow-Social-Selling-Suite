@@ -773,7 +773,7 @@ export default function ViralRadarPage() {
       <div>
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               {`Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`}
             </h3>
             {livePosts.length > 0 && (

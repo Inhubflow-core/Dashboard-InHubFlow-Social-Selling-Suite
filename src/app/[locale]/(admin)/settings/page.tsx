@@ -71,10 +71,10 @@ export default function WorkspaceSettingsPage() {
               <Building2 className="size-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Datos de la Organización (Tenant)
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Información general de tu empresa visible en reportes, campañas y firmas del equipo.
               </p>
             </div>
@@ -118,10 +118,10 @@ export default function WorkspaceSettingsPage() {
               <Clock className="size-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Ventana de Actividad Comercial (Pacing)
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Define las horas y días en que las secuencias de LinkedIn pueden enviar mensajes para garantizar un comportamiento humano y seguro.
               </p>
             </div>
@@ -216,10 +216,10 @@ export default function WorkspaceSettingsPage() {
               <Webhook className="size-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Webhooks de Integración Saliente
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Envía eventos en tiempo real a Zapier, Make o tu CRM cuando ocurra una interacción relevante.
               </p>
             </div>

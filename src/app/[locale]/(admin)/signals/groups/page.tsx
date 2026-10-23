@@ -315,10 +315,10 @@ export default function LinkedInGroupsSignalRadarPage() {
       {/* Explicación de la Estrategia */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
-          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
+          <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecanica de Prospeccion en Grupos de LinkedIn (Nivel 3)
           </h4>
-          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
             Los miembros de una misma comunidad profesional comparten inquietudes y prioridades operativas. El monitor escanea debates calientes sobre tus tematicas objetivo y extrae a los autores de los comentarios para conectar con el pretexto natural de pertenecer al mismo grupo.
           </p>
         </div>

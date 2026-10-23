@@ -408,10 +408,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
                     }`}
                   >
-                    <p className="font-semibold text-xs text-gray-900 dark:text-white">
+                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
                       1. Solo Texto
                     </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Storytelling & Gancho Viral
                     </p>
                   </button>
@@ -425,10 +425,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
                     }`}
                   >
-                    <p className="font-semibold text-xs text-gray-900 dark:text-white">
+                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
                       2. Texto + Imagen
                     </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Copy + Prompt para IA
                     </p>
                   </button>
@@ -442,10 +442,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
                     }`}
                   >
-                    <p className="font-semibold text-xs text-gray-900 dark:text-white">
+                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
                       3. Carrusel PDF
                     </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Diapositivas Vectoriales
                     </p>
                   </button>
@@ -499,14 +499,14 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-900 dark:text-white">
+                    <span className="text-base font-medium text-gray-800 dark:text-white/90">
                       Modelador de Copy B2B con IA & RAG
                     </span>
                     <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs font-bold dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                       RAG Aprobado Activo
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Modela el post integrando automáticamente la propuesta de valor y documentos aprobados del Asistente SDR IA.
                   </p>
                 </div>

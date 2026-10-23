@@ -131,10 +131,10 @@ export default function LeadsPage() {
       {/* Barra de control y exportación */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Base Central de Prospectos Calificados
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Contactos captados por monitores de señales en LinkedIn con trazabilidad de interacciones y datos de contacto.
           </p>
         </div>

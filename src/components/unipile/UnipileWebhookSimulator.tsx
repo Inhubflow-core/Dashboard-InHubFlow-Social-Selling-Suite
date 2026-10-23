@@ -177,7 +177,7 @@ export default function UnipileWebhookSimulator() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                   Sandbox de Integración Cloud InHubFlow & Emulador de Webhooks
                 </h4>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -185,7 +185,7 @@ export default function UnipileWebhookSimulator() {
                   Pruebas Ilimitadas (0/7 dias consumidos)
                 </span>
               </div>
-              <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Todo el flujo de LinkedIn (Inbox, Signal Radar, SDR IA y Webhooks) está completamente listo y blindado para probar. La plataforma sincroniza de forma segura y automatizada en producción.
               </p>
             </div>
@@ -223,10 +223,10 @@ export default function UnipileWebhookSimulator() {
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
           <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Disparador de Eventos Webhook en Vivo
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Selecciona el tipo de evento de LinkedIn para simular la recepcion en tiempo real
             </p>
           </div>
@@ -450,7 +450,7 @@ export default function UnipileWebhookSimulator() {
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Terminal className="size-4 text-[#0099ff]" />
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Inspector de Webhooks Recibidos ({logs.length})
             </h3>
           </div>

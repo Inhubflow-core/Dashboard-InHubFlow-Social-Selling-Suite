@@ -365,7 +365,7 @@ export default function SdrAgentPage() {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
                   {config.name}
                 </h2>
                 <span
@@ -378,7 +378,7 @@ export default function SdrAgentPage() {
                   Modelo: {config.model}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Procesa respuestas de LinkedIn en tiempo real, clasifica intención con Gemini, responde con base en conocimiento aprobado y agenda llamadas en el calendario empresarial.
               </p>
             </div>
@@ -504,10 +504,10 @@ export default function SdrAgentPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Estado del Pipeline SDR */}
             <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Ciclo de Vida de Mensajes Entrantes
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Cada respuesta entrante en LinkedIn se analiza siguiendo el flujo determinista y seguro de InHubFlow:
               </p>
 
@@ -516,10 +516,10 @@ export default function SdrAgentPage() {
                   <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
                     <MessageSquare className="size-4" />
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-gray-900 dark:text-white">
+                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
                     1. Captura
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Sincronización segura con deduplicación por message_id.
                   </div>
                 </div>
@@ -528,10 +528,10 @@ export default function SdrAgentPage() {
                   <div className="flex size-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
                     <Brain className="size-4" />
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-gray-900 dark:text-white">
+                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
                     2. Clasificación
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Detección de 14 intenciones comerciales con Gemini 3.6 Flash.
                   </div>
                 </div>
@@ -540,10 +540,10 @@ export default function SdrAgentPage() {
                   <div className="flex size-7 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
                     <BookOpen className="size-4" />
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-gray-900 dark:text-white">
+                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
                     3. RAG Aprobado
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Cotejo con base de conocimiento oficial (precios, objeciones).
                   </div>
                 </div>
@@ -552,10 +552,10 @@ export default function SdrAgentPage() {
                   <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
                     <Send className="size-4" />
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-gray-900 dark:text-white">
+                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
                     4. Despacho / Handoff
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Cola de aprobación humana o envío seguro respetando límites.
                   </div>
                 </div>
@@ -568,7 +568,7 @@ export default function SdrAgentPage() {
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       Modo Operativo Vigente
                     </span>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                    <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                       {currentModeInfo.label}
                     </h4>
                   </div>
@@ -576,7 +576,7 @@ export default function SdrAgentPage() {
                     {config.mode.toUpperCase()}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {currentModeInfo.desc}
                 </p>
               </div>
@@ -584,7 +584,7 @@ export default function SdrAgentPage() {
 
             {/* Configuración Rápida / Resumen */}
             <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Parámetros de Seguridad
               </h3>
 
@@ -642,10 +642,10 @@ export default function SdrAgentPage() {
         <div className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Cola de Aprobaciones Human-in-the-Loop
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Revisa, ajusta o aprueba con un solo clic las respuestas sugeridas por el Asistente SDR antes de enviarlas al lead en LinkedIn.
               </p>
             </div>
@@ -828,10 +828,10 @@ export default function SdrAgentPage() {
         <div className="space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Base de Conocimiento Aprobada (RAG)
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 La IA únicamente responde dudas basándose en estos documentos oficiales, previniendo alucinaciones comerciales.
               </p>
             </div>
@@ -895,7 +895,7 @@ export default function SdrAgentPage() {
                       <span className="rounded-md bg-[#0099ff]/10 px-2 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                         {item.category.replace("_", " ")}
                       </span>
-                      <h4 className="mt-2 text-sm font-bold text-gray-900 dark:text-white">
+                      <h4 className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
                         {item.title}
                       </h4>
                     </div>
@@ -908,7 +908,7 @@ export default function SdrAgentPage() {
                       </button>
                     )}
                   </div>
-                  <p className="mt-3 text-xs text-gray-600 whitespace-pre-wrap dark:text-gray-300">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 whitespace-pre-wrap">
                     {item.content}
                   </p>
                 </div>
@@ -1006,10 +1006,10 @@ export default function SdrAgentPage() {
       {activeTab === "policies" && (
         <form onSubmit={handleSaveConfig} className="space-y-6">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Identidad y Parámetros del Asistente SDR
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Personaliza el comportamiento, tono de comunicación y umbrales de seguridad de la IA.
             </p>
 
@@ -1162,10 +1162,10 @@ export default function SdrAgentPage() {
           {/* Panel Izquierdo: Entrada de Prueba */}
           <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Simulador Interactivo de Decisión
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Escribe un mensaje de prueba como si fueras un prospecto en LinkedIn para verificar cómo clasifica y responde el SDR.
               </p>
             </div>
@@ -1253,7 +1253,7 @@ export default function SdrAgentPage() {
 
           {/* Panel Derecho: Resultado de la Simulación */}
           <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Análisis y Respuesta de la IA
             </h3>
 
@@ -1342,10 +1342,10 @@ export default function SdrAgentPage() {
       {activeTab === "gates" && (
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Puertas de Seguridad para Promoción a Modo Autónomo
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Estas reglas de validación garantizan que el Asistente SDR opere con máxima protección antes de permitir respuestas autónomas.
             </p>
           </div>
@@ -1371,10 +1371,10 @@ export default function SdrAgentPage() {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                    <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                       {gate.label}
                     </h4>
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {gate.description}
                     </p>
                     <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
@@ -1403,10 +1403,10 @@ export default function SdrAgentPage() {
       {activeTab === "logs" && (
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Registro de Auditoría de Decisiones (Audit Trail)
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Historial completo de mensajes procesados, intenciones clasificadas y consumo de tokens.
             </p>
           </div>

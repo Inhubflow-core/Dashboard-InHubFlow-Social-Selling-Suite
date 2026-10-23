@@ -625,10 +625,10 @@ export default function CampaignsPage() {
       {/* Cabecera Principal */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
         <div>
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Motor de Outreach Relacional en LinkedIn
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-2xl">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
             Secuencias lineales con retardo humano entre pasos, inspiradas en la arquitectura de Outreach B2B. Los prospectos captados en Signal Radar se ejecutan respetando los límites de seguridad y la detención automática ante respuesta.
           </p>
         </div>
@@ -849,10 +849,10 @@ export default function CampaignsPage() {
               <Zap className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+              <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                 {sanitizeUnipileText(activeCampaign.triggerTitle)}
               </h4>
-              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {sanitizeUnipileText(activeCampaign.triggerDescription).replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")}
               </p>
             </div>
@@ -1037,12 +1037,12 @@ export default function CampaignsPage() {
                         <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
                           {String(idx + 1).padStart(2, "0")}.
                         </span>
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                        <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                           {sanitizeUnipileText(step.title)}
                         </h4>
                       </div>
 
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {sanitizeUnipileText(step.description)}
                       </p>
                     </div>
@@ -2062,16 +2062,16 @@ export default function CampaignsPage() {
                             </div>
 
                             <h4
-                              className={`text-xs font-bold leading-tight ${
+                              className={`text-base font-medium leading-tight ${
                                 inSequence
                                   ? "text-gray-400 dark:text-gray-500"
-                                  : "text-gray-900 dark:text-white"
+                                  : "text-gray-800 dark:text-white/90"
                               }`}
                             >
                               {paletteStep.title}
                             </h4>
 
-                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-1">
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                               {paletteStep.subtitle}
                             </p>
                           </div>

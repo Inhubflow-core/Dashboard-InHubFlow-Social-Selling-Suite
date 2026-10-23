@@ -59,10 +59,10 @@ export default function SecuritySettingsPage() {
             <Key className="size-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Claves de API de InHubFlow (REST API)
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Utiliza esta clave para autenticar peticiones programáticas a la API de InHubFlow desde tu backend o herramientas de automatización.
             </p>
           </div>
@@ -120,10 +120,10 @@ export default function SecuritySettingsPage() {
             <ShieldCheck className="size-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Cifrado & Aislamiento de Cuentas de LinkedIn
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Estándares de seguridad aplicados a las credenciales y tokens de sesión.
             </p>
           </div>
@@ -131,28 +131,28 @@ export default function SecuritySettingsPage() {
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3 text-xs">
           <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Cifrado AES-256
             </span>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Todas las cookies y tokens de sesión de LinkedIn se cifran en reposo con claves derivadas de alta entropía.
             </p>
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Rotación Residencial de IPs
             </span>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Cada cuenta de LinkedIn opera a través de proxies residenciales dedicados con User-Agents fijos.
             </p>
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Aislamiento de Sesión
             </span>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               El frontend nunca recibe las credenciales crudas de LinkedIn; solo consulta estados booleanos validados.
             </p>
           </div>
@@ -161,10 +161,10 @@ export default function SecuritySettingsPage() {
 
       {/* Sesiones Activas */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="text-base font-bold text-gray-900 dark:text-white">
+        <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
           Sesiones Activas en el Workspace
         </h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Dispositivos que han iniciado sesión recientemente en tu cuenta.
         </p>
 

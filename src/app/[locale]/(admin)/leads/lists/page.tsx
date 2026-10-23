@@ -150,10 +150,10 @@ export default function SignalListsPage() {
       {/* Cabecera */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Segmentos Alimentados por Señales
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Cada monitor de señales canaliza automaticamente los perfiles captados hacia su lista correspondiente para iniciar campañas personalizadas.
           </p>
         </div>
@@ -335,7 +335,7 @@ export default function SignalListsPage() {
                         </span>
                       )}
 
-                      <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                      <h4 className="text-base font-medium text-gray-800 dark:text-white/90 truncate">
                         {list.competitorName?.trim() ||
                           list.groupName?.trim() ||
                           list.name.replace(/^\[signal\s*n[1-4]\]\s*/i, "").split(" • ")[0].trim()}
@@ -343,7 +343,7 @@ export default function SignalListsPage() {
                     </div>
 
                     {list.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
                         {list.description}
                       </p>
                     )}

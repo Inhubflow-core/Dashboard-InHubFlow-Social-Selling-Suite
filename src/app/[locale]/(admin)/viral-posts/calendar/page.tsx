@@ -251,14 +251,14 @@ export default function EditorialCalendarPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Calendario
               </h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-200/60 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-800/80">
                 {totalActiveCount} {totalActiveCount === 1 ? "publicación" : "publicaciones"}
               </span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Planificación editorial, carruseles de valor y mejores franjas horarias en LinkedIn.
             </p>
           </div>

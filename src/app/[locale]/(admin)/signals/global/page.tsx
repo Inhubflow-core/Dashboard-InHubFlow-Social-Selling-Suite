@@ -803,10 +803,10 @@ export default function GlobalSignalsPage() {
       {/* Explicación de la Estrategia (Nivel 4) */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
-          <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
+          <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Prospección por Tendencias y Debate Viral (Nivel 4)
           </h4>
-          <p className="text-xs text-brand-700 dark:text-brand-300 mt-1 max-w-2xl">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
             Rastrea las publicaciones con mayor tracción, debate y volumen de comentarios de todo LinkedIn sobre los problemas que tu solución resuelve. Filtra solo publicaciones con alto debate para prospectar decisores calientes que participan activamente en tu mercado.
           </p>
         </div>

@@ -79,10 +79,10 @@ export default function SystemStatusPage() {
             <CheckCircle2 className="size-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
               Todos los Sistemas Operando con Normalidad
             </h2>
-            <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-300">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               La infraestructura de InHubFlow y los conectores de LinkedIn operan al 100% de disponibilidad.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function SystemStatusPage() {
       {/* Listado de Servicios */}
       <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="border-b border-gray-100 p-5 dark:border-gray-800">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Componentes del Ecosistema InHubFlow
           </h3>
         </div>

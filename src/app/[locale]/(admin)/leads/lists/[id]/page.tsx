@@ -294,10 +294,10 @@ export default function DynamicListDetailPage() {
               </span>
             </div>
 
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
               {cleanListName}
             </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {currentList.description || "Segmento alimentado por monitores de señales en LinkedIn."}
             </p>
 

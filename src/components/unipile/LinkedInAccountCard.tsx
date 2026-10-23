@@ -80,7 +80,7 @@ export default function LinkedInAccountCard({
       {/* Información central en 2 líneas compactas idéntica a B2B */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          <p className="text-base font-medium text-gray-800 dark:text-white/90 truncate">
             {account.name}
           </p>
           {isActive && (
@@ -95,7 +95,7 @@ export default function LinkedInAccountCard({
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">
           {account.email ? `${account.email} · ` : ""}
           {connectionLimit} conn/day · {messageLimit} msg/day · {visitLimit} inmail/day
           {" · "}
