@@ -830,7 +830,7 @@ export default function GlobalSignalsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Campo 1: Temática o Dolor a Rastrear */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Temática o Dolor de Negocio a Rastrear
                 </label>
                 <input
@@ -848,7 +848,7 @@ export default function GlobalSignalsPage() {
 
               {/* Campo 2: País / Mercado Objetivo */}
               <div className="relative" ref={countryDropdownRef}>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Mercado / País Objetivo
                 </label>
                 <button
@@ -913,7 +913,7 @@ export default function GlobalSignalsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Filtro de Tracción Mínima */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Filtro de Tracción Mínima (Volumen de Comentarios)
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -955,7 +955,7 @@ export default function GlobalSignalsPage() {
 
               {/* Lote de Cosecha por Publicación (Mismo diseño exacto) */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Lote de Cosecha por Publicación (Protección LinkedIn)
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -1018,7 +1018,7 @@ export default function GlobalSignalsPage() {
 
             {/* Plantilla Relacional Contextual */}
             <div>
-              <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+              <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                 Plantilla de Secuencia Relacional Contextual
               </label>
               <textarea
@@ -1102,7 +1102,7 @@ export default function GlobalSignalsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Temática / Problema en LinkedIn</th>
                   <th className="px-4 py-3 min-w-[140px]">Filtro de Debate & Región</th>

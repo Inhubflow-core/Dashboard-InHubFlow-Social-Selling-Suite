@@ -585,7 +585,7 @@ export default function CompetitorsSignalRadarPage() {
               {/* Buscador inteligente en tiempo real de LinkedIn */}
               <div className="relative">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase text-gray-500">
+                  <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Nombre de la Cuenta o Competidor
                   </label>
                   {isSearching && (
@@ -643,7 +643,7 @@ export default function CompetitorsSignalRadarPage() {
                     {/* Header con tabs de categoría y botón cerrar */}
                     <div className="p-2.5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                           Sugerencias de LinkedIn ({searchResults.length} resultados)
                         </span>
                         <button
@@ -819,7 +819,7 @@ export default function CompetitorsSignalRadarPage() {
 
               {/* Columna 2: Palabras Clave en Contenido del Post */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Palabras Clave en Contenido del Post (Opcional)
                 </label>
                 <input
@@ -839,7 +839,7 @@ export default function CompetitorsSignalRadarPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Filtro de Tracción Mínima (Volumen de Comentarios) */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Filtro de Tracción Mínima (Volumen de Comentarios)
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -881,7 +881,7 @@ export default function CompetitorsSignalRadarPage() {
 
               {/* Lote de Absorción por Auditoría */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Lote de Absorción por Auditoría (Protección LinkedIn)
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -974,7 +974,7 @@ export default function CompetitorsSignalRadarPage() {
 
             {/* Fila 4: Plantilla Relacional Contextual */}
             <div>
-              <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+              <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                 Plantilla de Secuencia Relacional Contextual
               </label>
               <textarea
@@ -1064,7 +1064,7 @@ export default function CompetitorsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta Objetivo</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabras Clave</th>

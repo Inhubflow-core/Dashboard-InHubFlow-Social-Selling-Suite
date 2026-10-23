@@ -341,7 +341,7 @@ export default function LinkedInGroupsSignalRadarPage() {
             {/* Fila 1: Nombre del Grupo y URL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Nombre de la Comunidad o Grupo de LinkedIn
                 </label>
                 <input
@@ -355,7 +355,7 @@ export default function LinkedInGroupsSignalRadarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   URL del Grupo en LinkedIn
                 </label>
                 <input
@@ -371,7 +371,7 @@ export default function LinkedInGroupsSignalRadarPage() {
             {/* Fila 2: Temáticas y Selector de Lote */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Tematicas o Dolores a Monitorear (separadas por coma)
                 </label>
                 <input
@@ -384,7 +384,7 @@ export default function LinkedInGroupsSignalRadarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Limite Seguro de Prospectos por Auditoria
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -475,7 +475,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
             {/* Fila 4: Plantilla de Mensaje Relacional */}
             <div>
-              <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+              <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                 Plantilla de Secuencia Relacional Contextual para el Grupo
               </label>
               <textarea
@@ -565,7 +565,7 @@ export default function LinkedInGroupsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Comunidad / Grupo</th>
                   <th className="px-4 py-3 min-w-[160px]">Tematicas / Dolores</th>
