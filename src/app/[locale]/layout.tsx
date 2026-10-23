@@ -5,7 +5,7 @@ import { isRtl } from "@/i18n/languages";
 import { type Locale, routing } from "@/i18n/routing";
 import "flatpickr/dist/flatpickr.css";
 import { NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { Outfit } from "next/font/google";
 import { notFound } from "next/navigation";
 import "simplebar-react/dist/simplebar.min.css";
@@ -52,11 +52,12 @@ export default async function RootLayout({
   }
 
   setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
       <body className={`${outfit.className} bg-[#E9F0F7] dark:bg-gray-900`}>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <AuthProvider>
               <SidebarProvider>{children}</SidebarProvider>

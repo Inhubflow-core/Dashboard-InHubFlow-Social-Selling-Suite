@@ -42,7 +42,7 @@ export default function WorkspaceSettingsPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setNotice("Configuración del espacio de trabajo guardada exitosamente.");
+    setNotice(t("noticeSaved"));
     setTimeout(() => setNotice(null), 3500);
   };
 
@@ -74,10 +74,10 @@ export default function WorkspaceSettingsPage() {
             </div>
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Datos de la Organización (Tenant)
+                {t("orgData")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Información general de tu empresa visible en reportes, campañas y firmas del equipo.
+                {t("orgDataDesc")}
               </p>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function WorkspaceSettingsPage() {
           <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Nombre de la Empresa / Agencia
+                {t("companyName")}
               </label>
               <input
                 type="text"
@@ -99,7 +99,7 @@ export default function WorkspaceSettingsPage() {
 
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Correo Electrónico de Notificaciones & Facturación
+                {t("billingEmail")}
               </label>
               <input
                 type="email"
@@ -121,10 +121,10 @@ export default function WorkspaceSettingsPage() {
             </div>
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Ventana de Actividad Comercial (Pacing)
+                {t("pacingWindow")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Define las horas y días en que las secuencias de LinkedIn pueden enviar mensajes para garantizar un comportamiento humano y seguro.
+                {t("pacingWindowDesc")}
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function WorkspaceSettingsPage() {
           <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3">
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Zona Horaria del Equipo
+                {t("teamTimezone")}
               </label>
               <select
                 disabled={isMember}
@@ -151,7 +151,7 @@ export default function WorkspaceSettingsPage() {
 
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Hora de Inicio de Envíos
+                {t("sendStart")}
               </label>
               <input
                 type="time"
@@ -164,7 +164,7 @@ export default function WorkspaceSettingsPage() {
 
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Hora de Cierre de Envíos
+                {t("sendEnd")}
               </label>
               <input
                 type="time"
@@ -178,7 +178,7 @@ export default function WorkspaceSettingsPage() {
 
           <div className="mt-5">
             <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-              Días de Prospección Habilitados
+              {t("enabledDays")}
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
               {[
@@ -219,10 +219,10 @@ export default function WorkspaceSettingsPage() {
             </div>
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Webhooks de Integración Saliente
+                {t("webhooks")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Envía eventos en tiempo real a Zapier, Make o tu CRM cuando ocurra una interacción relevante.
+                {t("webhooksDesc")}
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function WorkspaceSettingsPage() {
           <div className="mt-5 space-y-4">
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                URL del Webhook (POST JSON)
+                {t("webhookUrl")}
               </label>
               <input
                 type="url"
@@ -252,7 +252,7 @@ export default function WorkspaceSettingsPage() {
                   className="size-4 rounded-lg accent-[#0099ff]"
                 />
                 <span className="text-xs text-gray-700 dark:text-gray-300">
-                  Disparar webhook cuando un lead responda un mensaje
+                  {t("notifyOnReply")}
                 </span>
               </label>
 
@@ -265,7 +265,7 @@ export default function WorkspaceSettingsPage() {
                   className="size-4 rounded-lg accent-[#0099ff]"
                 />
                 <span className="text-xs text-gray-700 dark:text-gray-300">
-                  Disparar webhook cuando se agende una reunión en el calendario
+                  {t("notifyOnMeeting")}
                 </span>
               </label>
             </div>
@@ -279,7 +279,7 @@ export default function WorkspaceSettingsPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
             >
               <Save className="size-4" />
-              <span>Guardar Configuración del Workspace</span>
+              <span>{t("saveWorkspaceSettings")}</span>
             </button>
           </div>
         )}

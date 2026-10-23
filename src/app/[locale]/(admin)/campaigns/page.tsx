@@ -49,7 +49,8 @@ import {
   Layers,
   Check,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
@@ -123,6 +124,19 @@ const AVAILABLE_PALETTE_STEPS: Array<{
 
 export default function CampaignsPage() {
   const t = useTranslations("campaigns");
+  const locale = useLocale();
+
+  const getPaletteText = (idKey: string) => {
+    switch (idKey) {
+      case "visit": return { title: t("palette.visitTitle"), subtitle: t("palette.visitSub") };
+      case "like_comment": return { title: t("palette.likeCommentTitle"), subtitle: t("palette.likeCommentSub") };
+      case "connect": return { title: t("palette.connectTitle"), subtitle: t("palette.connectSub") };
+      case "message_icebreaker": return { title: t("palette.icebreakerTitle"), subtitle: t("palette.icebreakerSub") };
+      case "message_followup": return { title: t("palette.followupTitle"), subtitle: t("palette.followupSub") };
+      case "message_value_prop": return { title: t("palette.valuePropTitle"), subtitle: t("palette.valuePropSub") };
+      default: return { title: "", subtitle: "" };
+    }
+  };
   const { currentUser } = useAuth();
   const [campaigns, setCampaigns] = useState<LinearSequenceCampaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("seq-lead-lists");
@@ -622,7 +636,7 @@ export default function CampaignsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Campañas de Social Selling (Secuencias Lineales)" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Cabecera Principal */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
@@ -631,7 +645,7 @@ export default function CampaignsPage() {
             Motor de Outreach Relacional en LinkedIn
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            Secuencias lineales con retardo humano entre pasos, inspiradas en la arquitectura de Outreach B2B. Los prospectos captados en Signal Radar se ejecutan respetando los límites de seguridad y la detención automática ante respuesta.
+            {t("cardDesc")}
           </p>
         </div>
 
@@ -656,7 +670,7 @@ export default function CampaignsPage() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
           >
             <Shield className="size-3.5 text-emerald-600" />
-            <span>Límites de Seguridad ({activeCampaign.dailyLimits.maxConnectionsPerDay}/día)</span>
+            <span>{t("safetyLimits", { count: activeCampaign.dailyLimits.maxConnectionsPerDay })}</span>
           </button>
 
           <div className="inline-flex rounded-lg shadow-xs">
@@ -665,12 +679,12 @@ export default function CampaignsPage() {
               disabled={isExecutingRunner}
               onClick={handleExecuteRunnerSim}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-l-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition disabled:opacity-50"
-              title={`Simular paso ${Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)} de ${activeCampaign.steps.length}`}
+              title={t("simulateStepTitle", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
             >
               {isExecutingRunner ? (
                 <>
                   <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                  <span>Ejecutando...</span>
+                  <span>{t("executing")}</span>
                 </>
               ) : (
                 <>
@@ -686,7 +700,7 @@ export default function CampaignsPage() {
               disabled={isExecutingRunner}
               onClick={handleExecuteAllStepsSim}
               className="px-2.5 py-2 rounded-r-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold border-l border-brand-400/40 transition disabled:opacity-50"
-              title="Simular toda la secuencia completa en serie"
+              title={t("simulateAllTitle")}
             >
               <Sparkles className="size-3.5" />
             </button>
@@ -698,7 +712,7 @@ export default function CampaignsPage() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
           >
             <Terminal className="size-3.5 text-gray-500" />
-            <span>Logs</span>
+            <span>{t("logs")}</span>
           </button>
         </div>
       </div>
@@ -729,7 +743,7 @@ export default function CampaignsPage() {
                     isSelected ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
                   }`}
                 >
-                  {camp.steps.length} pasos
+                  {t("stepsCount", { count: camp.steps.length })}
                 </span>
               </button>
             );
@@ -751,7 +765,7 @@ export default function CampaignsPage() {
                 : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
             }`}
           >
-            {activeCampaign.status === "active" ? "Estado: Secuencia Activa" : "Estado: Pausada"}
+            {activeCampaign.status === "active" ? t("statusActive") : t("statusPaused")}
           </button>
 
           <button
@@ -759,7 +773,7 @@ export default function CampaignsPage() {
             onClick={handleResetSequence}
             className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-medium px-2 py-1"
           >
-            Restablecer Plantilla
+            {t("resetTemplate")}
           </button>
         </div>
       </div>
@@ -801,7 +815,7 @@ export default function CampaignsPage() {
           {isDragOverWorkflow && (
             <div className="w-full mb-4 p-3 rounded-lg border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
               <Plus className="size-4" />
-              <span>Suelta aquí para añadir este paso al flujo de la secuencia</span>
+              <span>{t("dropHere")}</span>
             </div>
           )}
             {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
@@ -814,14 +828,14 @@ export default function CampaignsPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                    Lista Vinculada: {linkedList.name}
+                    {t("linkedList", { name: linkedList.name })}
                   </span>
                   <span className="text-xs bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
-                    {linkedList.leadsCount} prospectos
+                    {t("prospectsCount", { count: linkedList.leadsCount })}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {linkedList.description || "Prospectos captados en Signal Radar"}
+                  {linkedList.description || t("defaultListDesc")}
                 </p>
               </div>
             </div>
@@ -836,7 +850,7 @@ export default function CampaignsPage() {
                 type="button"
                 onClick={() => setLinkedList(null)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1"
-                title="Desvincular vista"
+                title={t("unlinkView")}
               >
                 ✕
               </button>
@@ -877,7 +891,7 @@ export default function CampaignsPage() {
                     <div className="w-px h-3 bg-gray-300 dark:bg-gray-700" />
                   </div>
 
-                  {/* Píldora fija por defecto: Inmediato (0 días) no editable */}
+                  {/* Píldora fija por defecto: {t("immediate")} no editable */}
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
                     <Clock className="h-3 w-3 text-brand-500 shrink-0" />
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
@@ -912,7 +926,7 @@ export default function CampaignsPage() {
                         }}
                         disabled={step.delayDaysBefore <= 0}
                         className="w-4 h-4 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-20 transition"
-                        title="Restar 1 día"
+                        title={t("subtractDay")}
                       >
                         <Minus className="h-2.5 w-2.5" />
                       </button>
@@ -925,7 +939,7 @@ export default function CampaignsPage() {
                           setOpenDelayPopoverIndex(openDelayPopoverIndex === idx ? null : idx);
                         }}
                         className="text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition flex items-center gap-1 px-1 py-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                        title="Seleccionar tiempo de espera"
+                        title={t("selectWaitTime")}
                       >
                         <span>
                           {step.delayDaysBefore > 0
@@ -943,7 +957,7 @@ export default function CampaignsPage() {
                           handleUpdateStepDelay(idx, step.delayDaysBefore + 1);
                         }}
                         className="w-4 h-4 rounded-full flex items-center justify-center bg-brand-50 text-brand-600 hover:bg-brand-500 hover:text-white dark:bg-brand-950 dark:text-brand-300 dark:hover:bg-brand-600 transition font-bold"
-                        title="Sumar 1 día"
+                        title={t("addDay")}
                       >
                         <Plus className="h-2.5 w-2.5" />
                       </button>
@@ -958,7 +972,7 @@ export default function CampaignsPage() {
                         <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700/60 pb-1.5">
                           <span className="text-xs font-bold text-gray-800 dark:text-white flex items-center gap-1.5">
                             <Clock className="h-3.5 w-3.5 text-brand-500" />
-                            Tiempo de Espera
+                            {t("waitTime")}
                           </span>
                           <button
                             type="button"
@@ -1002,7 +1016,7 @@ export default function CampaignsPage() {
 
                         {/* Input numérico */}
                         <div className="pt-1.5 border-t border-gray-300 dark:border-gray-700/60 flex items-center justify-between">
-                          <span className="text-xs text-gray-400">Personalizado:</span>
+                          <span className="text-xs text-gray-400">{t("custom")}</span>
                           <div className="flex items-center gap-1.5">
                             <input
                               type="number"
@@ -1015,7 +1029,7 @@ export default function CampaignsPage() {
                               }}
                               className="w-14 px-2 py-0.5 text-xs text-center border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-500"
                             />
-                            <span className="text-xs text-gray-500">días</span>
+                            <span className="text-xs text-gray-500">{t("days")}</span>
                           </div>
                         </div>
                       </div>
@@ -1057,7 +1071,7 @@ export default function CampaignsPage() {
                       type="button"
                       onClick={() => setEditingStep({ step: sanitizeSequenceStep(step), index: idx })}
                       className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
-                      title="Editar paso de la secuencia"
+                      title={t("editStepTitle")}
                     >
                       <Pencil className="size-3.5" />
                     </button>
@@ -1067,7 +1081,7 @@ export default function CampaignsPage() {
                       type="button"
                       onClick={() => handleDeleteStep(idx)}
                       className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
-                      title="Eliminar paso"
+                      title={t("deleteStepTitle")}
                     >
                       <X className="size-3.5" />
                     </button>
@@ -1084,10 +1098,10 @@ export default function CampaignsPage() {
             <div className="w-px h-6 border-l-2 border-dashed border-gray-300 dark:border-gray-700 mb-2" />
             <div className="p-4 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 text-xs text-gray-500 dark:text-gray-400 max-w-sm">
               <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">
-                La secuencia no tiene pasos activos
+                {t("noActiveSteps")}
               </p>
               <p className="text-xs text-gray-400">
-                Haz clic en el botón inferior o arrastra pasos para comenzar a interactuar tras el activador.
+                {t("noActiveStepsDesc")}
               </p>
             </div>
           </div>
@@ -1101,7 +1115,7 @@ export default function CampaignsPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-dashed border-brand-300 dark:border-brand-700 hover:border-brand-500 bg-white dark:bg-gray-800 text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-950/40 transition shadow-2xs cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            <span>Agregar Paso a la Secuencia</span>
+            <span>{t("addStepToSequence")}</span>
           </button>
         </div>
       </div>
@@ -1147,11 +1161,11 @@ export default function CampaignsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
-                        Paso {editingStep.index + 1} de {activeCampaign.steps.length}
+                        {t("stepNumber", { current: editingStep.index + 1, total: activeCampaign.steps.length })}
                       </span>
                     </div>
                     <h3 className="font-bold text-gray-900 dark:text-white text-base mt-0.5">
-                      Configurar Paso: {sanitizeUnipileText(editingStep.step.title)}
+                      {t("configureStep", { title: sanitizeUnipileText(editingStep.step.title) })}
                     </h3>
                   </div>
                 </div>
@@ -1159,7 +1173,7 @@ export default function CampaignsPage() {
                   type="button"
                   onClick={handleCloseDrawer}
                   className="h-8 w-8 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-sm font-bold transition"
-                  title="Cerrar panel de edición"
+                  title={t("closeDrawer")}
                 >
                   ✕
                 </button>
@@ -1171,7 +1185,7 @@ export default function CampaignsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                    Título del Paso
+                    {t("stepTitleLabel")}
                   </label>
                   <input
                     type="text"
@@ -1188,7 +1202,7 @@ export default function CampaignsPage() {
 
                 <div>
                   <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                    Retardo Previo (Días de Espera)
+                    {t("delayLabel")}
                   </label>
                   {editingStep.index === 0 ? (
                     <div className="flex items-center gap-2">
@@ -1196,7 +1210,7 @@ export default function CampaignsPage() {
                         Inmediato (0 días)
                       </div>
                       <span className="text-xs text-gray-400">
-                        Disparo automático tras el activador
+                        {t("autoTrigger")}
                       </span>
                     </div>
                   ) : (
@@ -1218,7 +1232,7 @@ export default function CampaignsPage() {
                         className="h-9 w-24 rounded-lg border border-gray-300 px-3 text-xs text-center dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-brand-500"
                       />
                       <span className="text-xs text-gray-500">
-                        {editingStep.step.delayDaysBefore === 1 ? "día tras el paso anterior" : "días tras el paso anterior"}
+                        {t("daysAfterPrev", { count: editingStep.step.delayDaysBefore, unit: editingStep.step.delayDaysBefore === 1 ? (locale === "en" ? "day" : locale === "pt-BR" ? "dia" : "día") : (locale === "en" ? "days" : locale === "pt-BR" ? "dias" : "días") })}
                       </span>
                     </div>
                   )}
@@ -1228,7 +1242,7 @@ export default function CampaignsPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    Descripción Operativa
+                    {t("operativeDesc")}
                   </label>
                   <span className="text-xs text-gray-400 font-mono">
                     {editingStep.step.description.length}/77 caracteres
@@ -1254,14 +1268,14 @@ export default function CampaignsPage() {
                 editingStep.step.connectNote !== undefined) && (
                 <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2.5">
                   <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-2">
-                    <span className="font-bold shrink-0">Acción 2-en-1:</span>
-                    <span>Al enviar la invitación de conexión, LinkedIn activa automáticamente el seguimiento del perfil para maximizar la visibilidad mutua en el feed.</span>
+                    <span className="font-bold shrink-0">{t("action2in1")}</span>
+                    <span>{t("connectionNote")}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
-                      Nota de Conexión en LinkedIn (Opcional)
+                      {t("connectNoteLabel")}
                     </label>
                     <span className="text-xs text-gray-400">
                       {(editingStep.step.connectNote || "").length}/300 caracteres
@@ -1277,11 +1291,11 @@ export default function CampaignsPage() {
                         step: { ...editingStep.step, connectNote: e.target.value },
                       })
                     }
-                    placeholder="Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante..."
+                    placeholder={t("connectNotePlaceholder")}
                     className="w-full rounded-lg border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-emerald-500"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs text-gray-400">Variables rápidas:</span>
+                    <span className="text-xs text-gray-400">{t("quickVars")}</span>
                     {["{{first_name}}", "{{company}}", "{{topic}}", "{{keyword}}"].map((tag) => (
                       <button
                         key={tag}
@@ -1310,7 +1324,7 @@ export default function CampaignsPage() {
                   <div className="flex items-center justify-between">
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <ThumbsUp className="h-3.5 w-3.5 text-purple-600" />
-                      Plantilla de Comentario en Post
+                      {t("commentTemplateLabel")}
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-purple-700 dark:text-purple-300">
                       <input
@@ -1324,7 +1338,7 @@ export default function CampaignsPage() {
                         }
                         className="rounded-lg text-purple-600 focus:ring-0"
                       />
-                      <span>Generar comentario contextualizado con IA</span>
+                      <span>{t("generateAIComment")}</span>
                     </label>
                   </div>
                   <textarea
@@ -1336,7 +1350,7 @@ export default function CampaignsPage() {
                         step: { ...editingStep.step, commentTemplate: e.target.value },
                       })
                     }
-                    placeholder="Gran perspectiva {{first_name}}, totalmente de acuerdo con tu punto..."
+                    placeholder={t("commentPlaceholder")}
                     className="w-full rounded-lg border border-purple-200 dark:border-purple-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-purple-500"
                   />
                 </div>
@@ -1349,7 +1363,7 @@ export default function CampaignsPage() {
                   <div className="flex items-center justify-between">
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <Send className="h-3.5 w-3.5 text-brand-600" />
-                      Plantilla de Mensaje Directo (DM)
+                      {t("dmTemplateLabel")}
                     </label>
                     <span className="text-xs text-gray-400">
                       {(editingStep.step.messageTemplate || "").length} caracteres
@@ -1364,11 +1378,11 @@ export default function CampaignsPage() {
                         step: { ...editingStep.step, messageTemplate: e.target.value },
                       })
                     }
-                    placeholder="Hola {{first_name}}, vi tu aportación..."
+                    placeholder={t("dmPlaceholder")}
                     className="w-full rounded-lg border border-brand-200 dark:border-brand-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-brand-500"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs text-gray-400">Variables dinámicas:</span>
+                    <span className="text-xs text-gray-400">{t("dynamicVars")}</span>
                     {[
                       "{{first_name}}",
                       "{{company}}",
@@ -1434,10 +1448,10 @@ export default function CampaignsPage() {
                   <div>
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <Paperclip className="h-3.5 w-3.5 text-brand-500" />
-                      Adjuntos y Multimedia para LinkedIn
+                      {t("attachmentsTitle")}
                     </label>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Selecciona si deseas enviar una imagen, video, nota de voz humana o archivo PDF junto al paso.
+                      {t("attachmentsDesc")}
                     </p>
                   </div>
                   {editingStep.step.attachmentType && editingStep.step.attachmentType !== "none" && (
@@ -1448,7 +1462,7 @@ export default function CampaignsPage() {
                       title="Quitar archivo adjunto del paso"
                     >
                       <Trash2 className="h-3 w-3" />
-                      Quitar adjunto
+                      {t("removeAttachment")}
                     </button>
                   )}
                 </div>
@@ -1456,10 +1470,10 @@ export default function CampaignsPage() {
                 {/* Tabs de tipo de adjunto (4 opciones, sin "Solo Texto") */}
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { type: "image" as MessageAttachmentType, label: "Imagen", icon: ImageIcon },
-                    { type: "video" as MessageAttachmentType, label: "Video", icon: VideoIcon },
-                    { type: "voice_note" as MessageAttachmentType, label: "Nota de Voz", icon: Mic },
-                    { type: "document" as MessageAttachmentType, label: "Archivo / PDF", icon: FileText },
+                    { type: "image" as MessageAttachmentType, label: t("tabImage"), icon: ImageIcon },
+                    { type: "video" as MessageAttachmentType, label: t("tabVideo"), icon: VideoIcon },
+                    { type: "voice_note" as MessageAttachmentType, label: t("tabVoiceNote"), icon: Mic },
+                    { type: "document" as MessageAttachmentType, label: t("tabDocument"), icon: FileText },
                   ].map(({ type, label, icon: Icon }) => {
                     const currentType = editingStep.step.attachmentType || (editingStep.step.attachedResource ? "document" : "none");
                     const active = currentType === type;
@@ -1512,7 +1526,7 @@ export default function CampaignsPage() {
                   <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        Cargar Imagen o Enlace
+                        {t("uploadImageTitle")}
                       </label>
                       <button
                         type="button"
@@ -1531,7 +1545,7 @@ export default function CampaignsPage() {
                       className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
-                      Haz clic para subir una imagen (PNG, JPG, WEBP)
+                      {t("clickUploadImage")}
                     </button>
 
                     <input
@@ -1547,12 +1561,12 @@ export default function CampaignsPage() {
                           },
                         })
                       }
-                      placeholder="O pega una URL: https://ejemplo.com/infografia.png"
+                      placeholder={t("orPasteUrl")}
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs text-gray-400">Presets sugeridos:</span>
+                      <span className="text-xs text-gray-400">{t("suggestedPresets")}</span>
                       {["infografia-prospeccion.png", "grafico-resultados-3x.jpg", "framework-visual.png"].map((img) => (
                         <button
                           key={img}
@@ -1612,7 +1626,7 @@ export default function CampaignsPage() {
                           type="button"
                           onClick={handleRemoveAttachment}
                           className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
-                          title="Eliminar imagen"
+                          title={t("deleteImage")}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -1626,7 +1640,7 @@ export default function CampaignsPage() {
                   <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        Cargar Video o Enlace (Loom / MP4)
+                        {t("uploadVideoTitle")}
                       </label>
                       <button
                         type="button"
@@ -1644,7 +1658,7 @@ export default function CampaignsPage() {
                       className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
-                      Haz clic para subir un video MP4, WebM o MOV
+                      {t("clickUploadVideo")}
                     </button>
 
                     <input
@@ -1660,7 +1674,7 @@ export default function CampaignsPage() {
                           },
                         })
                       }
-                      placeholder="O pega un enlace: https://loom.com/share/... o https://youtube.com/..."
+                      placeholder={t("orPasteVideoUrl")}
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
 
@@ -1694,7 +1708,7 @@ export default function CampaignsPage() {
                           type="button"
                           onClick={handleRemoveAttachment}
                           className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
-                          title="Eliminar video"
+                          title={t("deleteVideo")}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -1708,7 +1722,7 @@ export default function CampaignsPage() {
                   <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        Grabación o Archivo de Audio
+                        {t("audioRecordTitle")}
                       </label>
                       <button
                         type="button"
@@ -1716,7 +1730,7 @@ export default function CampaignsPage() {
                         className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <Upload className="h-3 w-3" />
-                        Subir archivo .mp3/.m4a
+                        {t("uploadAudioFile")}
                       </button>
                     </div>
 
@@ -1729,7 +1743,7 @@ export default function CampaignsPage() {
                           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition animate-pulse"
                         >
                           <Square className="h-3.5 w-3.5 fill-white" />
-                          Detener Grabación (00:{String(recordingSeconds).padStart(2, "0")})
+                          {t("stopRecording", { seconds: String(recordingSeconds).padStart(2, "0") })}
                         </button>
                       ) : (
                         <button
@@ -1738,7 +1752,7 @@ export default function CampaignsPage() {
                           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-xs transition"
                         >
                           <Mic className="h-4 w-4" />
-                          Grabar Nota de Voz con Micrófono
+                          {t("recordVoiceNote")}
                         </button>
                       )}
                       <button
@@ -1753,7 +1767,7 @@ export default function CampaignsPage() {
 
                     {/* Presets de duración estimada */}
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-xs text-gray-400">Duración estimada:</span>
+                      <span className="text-xs text-gray-400">{t("estimatedDuration")}</span>
                       <div className="flex items-center gap-1">
                         {[15, 30, 45, 60].map((sec) => (
                           <button
@@ -1806,7 +1820,7 @@ export default function CampaignsPage() {
                         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>0:00 / 0:{editingStep.step.voiceNoteDurationSec || 45}</span>
                           <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[150px]">
-                            {editingStep.step.attachmentName || "Nota de Voz Humana"}
+                            {editingStep.step.attachmentName || t("humanVoiceNote")}
                           </span>
                         </div>
                       </div>
@@ -1815,7 +1829,7 @@ export default function CampaignsPage() {
                         type="button"
                         onClick={handleRemoveAttachment}
                         className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
-                        title="Eliminar nota de voz"
+                        title={t("deleteVoiceNote")}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -1828,7 +1842,7 @@ export default function CampaignsPage() {
                   <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        Cargar Documento o PDF (Lead Magnet)
+                        {t("uploadDocTitle")}
                       </label>
                       <button
                         type="button"
@@ -1846,7 +1860,7 @@ export default function CampaignsPage() {
                       className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
-                      Haz clic para subir un PDF o recurso descargable
+                      {t("clickUploadDoc")}
                     </button>
 
                     <input
@@ -1862,12 +1876,12 @@ export default function CampaignsPage() {
                           },
                         })
                       }
-                      placeholder="O escribe el nombre: Framework-Prospeccion-B2B-InHubFlow.pdf"
+                      placeholder={t("orDocName")}
                       className="h-8 w-full rounded-lg border border-gray-300 px-3 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs text-gray-400">Presets de Lead Magnet:</span>
+                      <span className="text-xs text-gray-400">{t("leadMagnetPresets")}</span>
                       {[
                         "Framework-Prospeccion-B2B-InHubFlow.pdf",
                         "Playbook-Secuencias-LinkedIn-2026.pdf",
@@ -1921,7 +1935,7 @@ export default function CampaignsPage() {
                           type="button"
                           onClick={handleRemoveAttachment}
                           className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
-                          title="Eliminar archivo"
+                          title={t("deleteFile")}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -1947,7 +1961,7 @@ export default function CampaignsPage() {
                   className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
                 >
                   <Check className="size-3.5" />
-                  <span>Guardar Cambios</span>
+                  <span>{t("saveChanges")}</span>
                 </button>
               </div>
             </div>
@@ -1981,7 +1995,7 @@ export default function CampaignsPage() {
                   </div>
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
-                      Paleta de Pasos
+                      {t("paletteTitle")}
                     </span>
                     <h3 className="font-bold text-gray-900 dark:text-white text-base mt-0.5">
                       Agregar Paso a la Secuencia
@@ -2054,11 +2068,11 @@ export default function CampaignsPage() {
                               </span>
                               {inSequence ? (
                                 <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60">
-                                  <Check className="size-3" /> En secuencia
+                                  <Check className="size-3" /> {t("inSequence")}
                                 </span>
                               ) : (
                                 <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-0.5">
-                                  <Plus className="size-3" /> Clic o Arrastrar
+                                  <Plus className="size-3" /> {t("clickOrDrag")}
                                 </span>
                               )}
                             </div>
@@ -2070,11 +2084,11 @@ export default function CampaignsPage() {
                                   : "text-gray-800 dark:text-white/90"
                               }`}
                             >
-                              {paletteStep.title}
+                              {getPaletteText(paletteStep.idKey).title || paletteStep.title}
                             </h4>
 
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                              {paletteStep.subtitle}
+                              {getPaletteText(paletteStep.idKey).subtitle || paletteStep.subtitle}
                             </p>
                           </div>
 
@@ -2102,7 +2116,7 @@ export default function CampaignsPage() {
               {/* Pie del Panel Lateral */}
               <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-300 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} pasos en secuencia
+                  {t("paletteSummary", { count: activeCampaign.steps.length, total: AVAILABLE_PALETTE_STEPS.length })}
                 </span>
                 <button
                   type="button"
@@ -2125,7 +2139,7 @@ export default function CampaignsPage() {
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-emerald-600" />
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                  Límites de Seguridad (Pacing LinkedIn)
+                  {t("pacingModalTitle")}
                 </h3>
               </div>
               <button
@@ -2141,9 +2155,9 @@ export default function CampaignsPage() {
               <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
-                    Visitas de Perfil / Día
+                    {t("pacingVisits")}
                   </span>
-                  <span className="text-xs text-gray-400">Recomendado: 20 perfiles</span>
+                  <span className="text-xs text-gray-400">{t("pacingVisitsHint")}</span>
                 </div>
                 <input
                   type="number"
@@ -2164,9 +2178,9 @@ export default function CampaignsPage() {
               <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
-                    Invitaciones de Conexión / Día
+                    {t("pacingConnections")}
                   </span>
-                  <span className="text-xs text-gray-400">Tope seguro: 20 a 25 máximo</span>
+                  <span className="text-xs text-gray-400">{t("pacingConnectionsHint")}</span>
                 </div>
                 <input
                   type="number"
@@ -2187,9 +2201,9 @@ export default function CampaignsPage() {
               <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
-                    Mensajes Directos (DM) / Día
+                    {t("pacingMessages")}
                   </span>
-                  <span className="text-xs text-gray-400">Tope seguro: 20 a 30 máximo</span>
+                  <span className="text-xs text-gray-400">{t("pacingMessagesHint")}</span>
                 </div>
                 <input
                   type="number"
@@ -2212,10 +2226,10 @@ export default function CampaignsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-bold text-emerald-800 dark:text-emerald-300 block">
-                      Regla Stop on Reply
+                      {t("stopOnReplyTitle")}
                     </span>
                     <span className="text-xs text-emerald-700 dark:text-emerald-400 block mt-0.5">
-                      Detiene la secuencia de inmediato en cuanto el prospecto responde a cualquier mensaje o comentario.
+                      {t("stopOnReplyDesc")}
                     </span>
                   </div>
                   <input
@@ -2239,7 +2253,7 @@ export default function CampaignsPage() {
                 onClick={() => setShowPacingModal(false)}
                 className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
               >
-                Entendido y Guardar
+                {t("understoodAndSave")}
               </button>
             </div>
           </div>
@@ -2254,7 +2268,7 @@ export default function CampaignsPage() {
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-gray-500" />
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                  Historial de Ejecución en Vivo de Secuencias
+                  {t("logsModalTitle")}
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -2282,7 +2296,7 @@ export default function CampaignsPage() {
             <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
               {runnerLogs.length === 0 ? (
                 <p className="text-xs text-gray-400 py-6 text-center">
-                  Sin registros recientes. Ejecuta una simulación o activa la campaña para ver los logs.
+                  {t("noRecentLogs")}
                 </p>
               ) : (
                 runnerLogs.map((log, idx) => (
@@ -2330,7 +2344,7 @@ export default function CampaignsPage() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-950/40 dark:text-brand-300 text-xs font-semibold border border-brand-200 dark:border-brand-800 transition disabled:opacity-50"
               >
                 <Sparkles className="size-3.5 text-brand-500" />
-                <span>Simular Secuencia Completa</span>
+                <span>{t("simulateAll")}</span>
               </button>
 
               <button

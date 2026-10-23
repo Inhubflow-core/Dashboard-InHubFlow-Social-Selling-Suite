@@ -17,6 +17,7 @@ const truncateText = (text?: string, maxLength: number = 46): string => {
 };
 
 export default function LeadsPage() {
+  const t = useTranslations("leads");
   const {
     leads,
     lists,
@@ -127,17 +128,17 @@ export default function LeadsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Directorio de Leads (Ficha del Contacto)" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Barra de control, exportación y filtros en el formato estándar de Card */}
       <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Base Central de Prospectos Calificados
+              {t("cardTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Contactos captados por monitores de señales en LinkedIn con trazabilidad de interacciones y datos de contacto.
+              {t("cardDesc")}
             </p>
           </div>
 
@@ -146,14 +147,14 @@ export default function LeadsPage() {
               href="/leads/lists"
               className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
             >
-              Ver Listas por Señal ({lists.length})
+              {t("viewSignalLists", { count: lists.length })}
             </a>
             <button
               type="button"
               onClick={() => exportLeadsToCsv(filteredLeads)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              Exportar a CSV ({filteredLeads.length})
+              {t("exportToCsv", { count: filteredLeads.length })}
             </button>
           </div>
         </div>
@@ -165,7 +166,7 @@ export default function LeadsPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nombre, cargo o ubicación..."
+            placeholder={t("searchLeadsPlaceholder")}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
@@ -176,7 +177,7 @@ export default function LeadsPage() {
             onChange={(e) => setSelectedListFilter(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
-            <option value="all">Todas las Listas de Señales</option>
+            <option value="all">{t("allSignalLists")}</option>
             {lists.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
@@ -191,7 +192,7 @@ export default function LeadsPage() {
             onChange={(e) => setSelectedStageFilter(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
-            <option value="all">Todas las Etapas del Embudo</option>
+            <option value="all">{t("allFunnelStages")}</option>
             <option value="lead_captured">Lead Captado</option>
             <option value="in_sequence">En Secuencia</option>
             <option value="connected_material_sent">Material Entregado</option>
@@ -206,27 +207,27 @@ export default function LeadsPage() {
 
       {/* Tabla de Directorio 360 */}
       <ComponentCard
-        title={`Prospectos Registrados (${filteredLeads.length})`}
-        desc="Listado general de leads enriquecidos con origen de señal, etapa comercial y estado de secuencia activa."
+        title={t("prospectsRegistered", { count: filteredLeads.length })}
+        desc={t("prospectsRegisteredDesc")}
       >
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando prospectos...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingProspects")}</p>
         ) : filteredLeads.length === 0 ? (
           <p className="text-xs text-gray-400 py-8 text-center">
-            No se encontraron contactos que coincidan con la busqueda.
+            {t("noProspectsFound")}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
-                  <th className="pb-3 min-w-[190px]">Prospecto</th>
-                  <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo</th>
-                  <th className="pb-3 min-w-[140px] whitespace-nowrap">Origen de Señal</th>
-                  <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">Puntuación</th>
-                  <th className="pb-3 min-w-[130px] whitespace-nowrap">Etapa CRM</th>
-                  <th className="pb-3 min-w-[110px] whitespace-nowrap">Estado Secuencia</th>
-                  <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">Acciones</th>
+                  <th className="pb-3 min-w-[190px]">{t("colProspect")}</th>
+                  <th className="pb-3 min-w-[210px] max-w-[270px]">{t("colJob")}</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap">{t("colSignalSource")}</th>
+                  <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">{t("colScore")}</th>
+                  <th className="pb-3 min-w-[130px] whitespace-nowrap">{t("colCrmStage")}</th>
+                  <th className="pb-3 min-w-[110px] whitespace-nowrap">{t("colSequenceStatus")}</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
@@ -404,7 +405,7 @@ export default function LeadsPage() {
             {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
             <div className="rounded-lg border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
               <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 block mb-1">
-                Cargo y Titular Completo en LinkedIn
+                {t("fullTitleLinkedIn")}
               </span>
               <p className="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
                 {selectedLeadFor360.title}
@@ -414,19 +415,19 @@ export default function LeadsPage() {
             {/* Datos de Contacto y Estado Rápido */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg dark:bg-gray-800/50 text-xs">
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Email Corporativo</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">{t("corporateEmail")}</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {selectedLeadFor360.email || "No disponible"}
+                  {selectedLeadFor360.email || t("notAvailable")}
                 </span>
               </div>
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Telefono</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">{t("phone")}</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
                   {selectedLeadFor360.phone || "No disponible"}
                 </span>
               </div>
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block mb-1">Puntuación de Intención</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block mb-1">{t("intentScore")}</span>
                 <LeadScoreBadge score={selectedLeadFor360.intentScore} size="md" />
               </div>
             </div>
@@ -435,7 +436,7 @@ export default function LeadsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-300 rounded-lg dark:border-gray-800">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Etapa en el Pipeline Comercial
+                  {t("pipelineStage")}
                 </label>
                 <select
                   value={selectedLeadFor360.stage}
@@ -462,7 +463,7 @@ export default function LeadsPage() {
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Estado de la Secuencia
+                  {t("sequenceStatus")}
                 </label>
                 <select
                   value={selectedLeadFor360.sequenceStatus}
@@ -487,7 +488,7 @@ export default function LeadsPage() {
             {/* Historial Cronológico de Flujo (Timeline) */}
             <div>
               <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-3">
-                Historial Cronologico del Flujo (Timeline de Automatizacion)
+                {t("flowTimeline")}
               </h4>
               <div className="space-y-3 border-l-2 border-brand-500/50 pl-4 ml-2">
                 {selectedLeadFor360.timeline.map((event) => (

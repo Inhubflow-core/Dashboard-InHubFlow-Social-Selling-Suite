@@ -42,6 +42,7 @@ const STAGES = [
 ];
 
 export default function InboxPage() {
+  const t = useTranslations("inbox");
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>("conv-1");
   const [filterCampaign, setFilterCampaign] = useState<string>("all");
@@ -178,7 +179,7 @@ export default function InboxPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Inbox Unificado (Enfocado en Ventas)" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Toast Notificacion */}
       {notificationMsg && (
@@ -196,13 +197,13 @@ export default function InboxPage() {
               Bandeja de Entrada Comercial & SDR Co-Pilot
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Buzón depurado exclusivamente para prospectos de campañas activas con asistencia de SDR Co-Pilot.
+              {t("cardDesc")}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Sincronización Cloud Activa (LinkedIn)
+              {t("cloudSync")}
             </div>
           </div>
         </div>
@@ -220,7 +221,7 @@ export default function InboxPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar prospecto, empresa o mensaje..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 pl-8 pr-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
@@ -229,10 +230,10 @@ export default function InboxPage() {
               <select
                 value={filterCampaign}
                 onChange={(e) => setFilterCampaign(e.target.value)}
-                aria-label="Filtrar por campana"
+                aria-label={t("filterCampaignAria")}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
               >
-                <option value="all">Todas las Campanas</option>
+                <option value="all">{t("allCampaigns")}</option>
                 {uniqueCampaigns.map((camp) => (
                   <option key={camp} value={camp}>
                     {camp}
@@ -294,7 +295,7 @@ export default function InboxPage() {
           <div className="flex-1 overflow-y-auto divide-y divide-gray-300 dark:divide-gray-800">
             {filteredConversations.length === 0 ? (
               <div className="p-8 text-center text-xs text-gray-400">
-                No se encontraron conversaciones con los filtros aplicados.
+                {t("noConversations")}
               </div>
             ) : (
               filteredConversations.map((conv) => {
@@ -388,7 +389,7 @@ export default function InboxPage() {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
                   <label htmlFor="crm-stage-select" className="text-xs text-gray-400 font-medium hidden sm:inline">
-                    Etapa CRM:
+                    {t("crmStageLabel")}
                   </label>
                   <select
                     id="crm-stage-select"
@@ -418,7 +419,7 @@ export default function InboxPage() {
                   className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1"
                 >
                   <Calendar className="size-3.5" />
-                  <span>Enviar Calendario</span>
+                  <span>{t("sendCalendar")}</span>
                 </button>
               </div>
             </div>
@@ -426,11 +427,11 @@ export default function InboxPage() {
             {/* Barra de Contexto de Campaña */}
             <div className="px-4 py-1.5 bg-gray-100/70 border-b border-gray-300 flex items-center justify-between text-xs text-gray-500 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Origen:</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">{t("source")}</span>
                 <span>{activeConversation.campaignSource}</span>
                 {activeConversation.leadMagnetUsed && (
                   <span className="rounded-lg bg-brand-100/50 text-brand-700 px-1.5 py-0.5 text-xs dark:bg-brand-950/50 dark:text-brand-300 font-mono">
-                    Recurso: {activeConversation.leadMagnetUsed}
+                    {t("resource")} {activeConversation.leadMagnetUsed}
                   </span>
                 )}
               </div>
@@ -438,7 +439,7 @@ export default function InboxPage() {
                 href={`/leads`}
                 className="text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
               >
-                <span>Ver Ficha</span>
+                <span>{t("viewProfile")}</span>
                 <ChevronRight className="size-3" />
               </a>
             </div>
@@ -583,11 +584,11 @@ export default function InboxPage() {
                 <div className="flex items-center gap-1.5">
                   <Bot className="size-4 text-brand-600 dark:text-brand-400" />
                   <span className="text-xs font-bold text-brand-700 dark:text-brand-300">
-                    SDR Co-Pilot (Respuestas Sugeridas con IA):
+                    {t("copilotHeader")}
                   </span>
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Haz clic para insertar o enviar directo
+                  {t("copilotHint")}
                 </span>
               </div>
 
@@ -628,7 +629,7 @@ export default function InboxPage() {
                 <button
                   type="button"
                   onClick={handleSendPdfAttachment}
-                  title="Adjuntar Playbook / Lead Magnet PDF"
+                  title={t("attachPdfTitle")}
                   className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   <Paperclip className="size-4" />
@@ -636,7 +637,7 @@ export default function InboxPage() {
                 <button
                   type="button"
                   onClick={handleSendVoiceNote}
-                  title="Enviar Nota de Voz de LinkedIn"
+                  title={t("voiceNoteTitle")}
                   className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   <Mic className="size-4" />
@@ -644,7 +645,7 @@ export default function InboxPage() {
                 <button
                   type="button"
                   onClick={handleSendMeetingLink}
-                  title="Insertar enlace de reunion Cal.com"
+                  title={t("calLinkTitle")}
                   className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition flex items-center gap-1.5 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   <Calendar className="size-3.5" />
@@ -660,7 +661,7 @@ export default function InboxPage() {
                       handleSendMessage();
                     }
                   }}
-                  placeholder="Escribe una respuesta o selecciona una sugerencia del SDR Co-Pilot..."
+                  placeholder={t("typeReplyPlaceholder")}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
 
@@ -677,7 +678,7 @@ export default function InboxPage() {
           </div>
         ) : (
           <div className="col-span-12 md:col-span-8 flex items-center justify-center p-8 text-gray-400 text-xs">
-            Selecciona una conversacion para comenzar.
+            {t("selectConversationToStart")}
           </div>
         )}
       </div>

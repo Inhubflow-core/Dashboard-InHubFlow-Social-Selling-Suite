@@ -6,10 +6,12 @@ import { useLeadsStore } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { LeadListGroup } from "@/lib/leads/types";
 import { X } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function SignalListsPage() {
+  const t = useTranslations("leads");
   const { lists, leads, isLoaded, createList, deleteList } = useLeadsStore();
   const { l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors } = useSignalRadar();
 
@@ -145,17 +147,17 @@ export default function SignalListsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Listas Dinamicas por Señal" />
+      <PageBreadcrumb pageTitle={t("listsPageTitle")} />
 
       {/* Cabecera en formato estándar de Card */}
       <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Segmentos Alimentados por Señales
+              {t("listsCardTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Cada monitor de señales canaliza automaticamente los perfiles captados hacia su lista correspondiente para iniciar campañas personalizadas.
+              {t("listsCardDesc")}
             </p>
           </div>
 
@@ -171,7 +173,7 @@ export default function SignalListsPage() {
               onClick={() => setIsCreatingList(!isCreatingList)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              {isCreatingList ? "Cerrar Formulario" : "+ Crear Nueva Lista"}
+              {isCreatingList ? t("closeForm") : t("createListBtn")}
             </button>
           </div>
         </div>
@@ -180,28 +182,28 @@ export default function SignalListsPage() {
       {/* Formulario de Creación de Lista */}
       {isCreatingList && (
         <ComponentCard
-          title="Crear Nueva Lista Dinamica"
-          desc="Define la fuente de señal y la campaña de prospeccion que alimentara esta lista."
+          title={t("createListTitle")}
+          desc={t("createListDesc")}
         >
           <form onSubmit={handleCreateList} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Nombre de la Lista
+                  {t("listNameLabel")}
                 </label>
                 <input
                   type="text"
                   required
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="Ej. Leads Nivel 1 - Post AUDITORIA"
+                  placeholder={t("listNamePlaceholder")}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Campaña Asignada
+                  {t("assignedCampaignLabel")}
                 </label>
                 <select
                   value={newAssignedCampaign}
@@ -217,7 +219,7 @@ export default function SignalListsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Fuente de la Señal
+                  {t("signalSourceLabel")}
                 </label>
                 <input
                   type="text"
@@ -230,7 +232,7 @@ export default function SignalListsPage() {
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Nivel de Intencion
+                  {t("signalLevelLabel")}
                 </label>
                 <select
                   value={newSignalLevel}
@@ -247,7 +249,7 @@ export default function SignalListsPage() {
 
             <div>
               <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                Descripcion de la Lista
+                {t("listDescLabel")}
               </label>
               <textarea
                 rows={2}
@@ -280,10 +282,10 @@ export default function SignalListsPage() {
       {/* Lista de Tarjetas a lo Largo (Una debajo de otra) */}
       <div className="space-y-3">
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando listas...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingLists")}</p>
         ) : lists.length === 0 ? (
           <div className="py-12 text-center text-xs text-gray-400">
-            No hay listas dinámicas registradas.
+            {t("noLists")}
           </div>
         ) : (
           lists.map((list) => {
@@ -333,7 +335,7 @@ export default function SignalListsPage() {
 
                       {isHighlighted && (
                         <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
-                          Lista Seleccionada
+                          {t("selectedList")}
                         </span>
                       )}
 
@@ -353,7 +355,7 @@ export default function SignalListsPage() {
                     {/* Metadatos horizontales inline */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-gray-400 text-xs">Origen:</span>
+                        <span className="text-gray-400 text-xs">{t("origin")}</span>
                         <span className="font-semibold text-gray-700 dark:text-gray-300">
                           {list.signalSource}
                         </span>
@@ -361,7 +363,7 @@ export default function SignalListsPage() {
 
                       {list.competitorName && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-xs">Competidor:</span>
+                          <span className="text-gray-400 text-xs">{t("competitor")}</span>
                           <span className="font-bold text-purple-700 dark:text-purple-300">
                             {list.competitorName}
                           </span>
@@ -370,7 +372,7 @@ export default function SignalListsPage() {
 
                       {list.groupName && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-xs">Grupo:</span>
+                          <span className="text-gray-400 text-xs">{t("group")}</span>
                           <span className="font-bold text-emerald-700 dark:text-emerald-300">
                             {list.groupName}
                           </span>
@@ -379,7 +381,7 @@ export default function SignalListsPage() {
 
                       {list.keywords && list.keywords.length > 0 && (
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-gray-400 text-xs">Filtros:</span>
+                          <span className="text-gray-400 text-xs">{t("filters")}</span>
                           {list.keywords.map((kw, i) => (
                             <span
                               key={i}
@@ -393,7 +395,7 @@ export default function SignalListsPage() {
 
                       {list.assignedCampaign && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-xs">Campaña:</span>
+                          <span className="text-gray-400 text-xs">{t("campaign")}</span>
                           <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[240px]">
                             {list.assignedCampaign}
                           </span>
@@ -431,7 +433,7 @@ export default function SignalListsPage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteList(list)}
-                        title="Eliminar lista y todos sus prospectos"
+                        title={t("deleteListAction")}
                         className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                       >
                         <X className="size-3.5" />

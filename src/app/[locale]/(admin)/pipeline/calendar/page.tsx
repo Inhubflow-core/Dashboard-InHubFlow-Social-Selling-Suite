@@ -20,7 +20,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export default function PipelineCalendarPage() {
@@ -109,7 +109,7 @@ export default function PipelineCalendarPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Calendario de Citas Comerciales" />
+      <PageBreadcrumb pageTitle={t("calendarPageTitle")} />
 
       {/* Toast Notification */}
       {toastMsg && (
@@ -124,10 +124,10 @@ export default function PipelineCalendarPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 py-5">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Agenda Comercial y Videollamadas
+              {t("calendarCardTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Gestión y sincronización bidireccional de videollamadas cerradas desde LinkedIn con Google Calendar, Outlook y Cal.com.
+              {t("calendarCardDesc")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function PipelineCalendarPage() {
               className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
             >
               <Plus className="size-3.5" />
-              <span>Agendar Cita Manual</span>
+              <span>{t("scheduleManual")}</span>
             </button>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function PipelineCalendarPage() {
           {/* Proveedores Conectados */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-bold text-gray-800 dark:text-white">
-              Sincronizacion Activa:
+              {t("activeSync")}
             </span>
 
             <div className="flex items-center gap-1.5 rounded-lg border border-blue-500/20 bg-blue-50/60 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
@@ -177,7 +177,7 @@ export default function PipelineCalendarPage() {
           <div className="flex items-center gap-2">
             <Globe className="size-4 text-brand-500 shrink-0" />
             <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-              Zona Horaria:
+              {t("timezone")}
             </span>
             <select
               value={selectedTimeZone}
@@ -200,53 +200,53 @@ export default function PipelineCalendarPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Reuniones esta Semana</span>
+            <span>{t("meetingsThisWeek")}</span>
             <CalendarIcon className="size-4 text-brand-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-            {meetings.length} <span className="text-xs font-normal text-gray-400">citas</span>
+            {meetings.length} <span className="text-xs font-normal text-gray-400">{t("meetingsCount")}</span>
           </p>
           <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
-            100% asistencias confirmadas
+            {t("confirmedAttendance")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Show Rate (Asistencia)</span>
+            <span>{t("showRate")}</span>
             <CheckCircle2 className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             91.4%
           </p>
           <span className="text-xs text-gray-400 mt-0.5 block">
-            Recordatorios automaticos por DM
+            {t("dmReminders")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Duracion Promedio</span>
+            <span>{t("avgDuration")}</span>
             <Clock className="size-4 text-purple-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             38 min
           </p>
           <span className="text-xs text-gray-400 mt-0.5 block">
-            Sesiones de demo comercial
+            {t("demoSessions")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Pipeline Agendado</span>
+            <span>{t("scheduledPipeline")}</span>
             <Sparkles className="size-4 text-amber-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             $7,200 <span className="text-xs font-normal text-gray-400">MRR</span>
           </p>
           <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5 block">
-            3 oportunidades calificadas
+            {t("qualifiedOpportunities")}
           </span>
         </div>
       </div>
@@ -259,7 +259,7 @@ export default function PipelineCalendarPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por prospecto, empresa o titulo..."
+            placeholder={t("searchCalendarPlaceholder")}
             className="w-full text-xs text-gray-800 bg-transparent focus:outline-hidden dark:text-white"
           />
         </div>
@@ -295,16 +295,16 @@ export default function PipelineCalendarPage() {
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Agenda de Videollamadas ({filteredMeetings.length})
+              {t("videoAgenda", { count: filteredMeetings.length })}
             </h3>
             <span className="text-xs text-gray-400">
-              Sincronizado hace 2 minutos
+              {t("syncedJustNow")}
             </span>
           </div>
 
           {filteredMeetings.length === 0 ? (
             <div className="rounded-lg border border-gray-300 bg-white p-8 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900">
-              No hay citas que coincidan con la busqueda.
+              {t("noAppointmentsMatch")}
             </div>
           ) : (
             filteredMeetings.map((meet) => (
@@ -346,7 +346,7 @@ export default function PipelineCalendarPage() {
                   {meet.dealValue && (
                     <div className="text-right shrink-0">
                       <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                        Valor Deal
+                        {t("dealValue")}
                       </span>
                       <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                         {meet.dealValue}
@@ -357,7 +357,7 @@ export default function PipelineCalendarPage() {
 
                 {meet.notes && (
                   <p className="mt-2.5 rounded-lg bg-gray-50 p-2 text-xs text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
-                    <span className="font-semibold text-gray-700 dark:text-gray-200">Objetivo: </span>
+                    <span className="font-semibold text-gray-700 dark:text-gray-200">{t("target")} </span>
                     {meet.notes}
                   </p>
                 )}
@@ -371,7 +371,7 @@ export default function PipelineCalendarPage() {
                       className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
                     >
                       <Video className="size-3.5" />
-                      <span>Unirse a Reunion</span>
+                      <span>{t("joinMeeting")}</span>
                     </a>
 
                     <button
@@ -383,7 +383,7 @@ export default function PipelineCalendarPage() {
                       className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition flex items-center gap-1"
                     >
                       <LinkIcon className="size-3" />
-                      <span>Copiar Enlace</span>
+                      <span>{t("copyLink")}</span>
                     </button>
                   </div>
 
@@ -393,7 +393,7 @@ export default function PipelineCalendarPage() {
                       className="text-xs font-medium text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
                     >
                       <MessageSquare className="size-3.5" />
-                      <span>Abrir Chat en Inbox</span>
+                      <span>{t("openChatInbox")}</span>
                     </Link>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function PipelineCalendarPage() {
         <div className="space-y-4">
           <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
-              Tu Enlace de Agendamiento
+              {t("yourBookingLink")}
             </h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               Comparte este enlace directamente en LinkedIn o insertalo en los flujos automatizados para que los leads elijan su horario.
@@ -430,13 +430,13 @@ export default function PipelineCalendarPage() {
               className="w-full rounded-lg bg-brand-500 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5 shadow-xs"
             >
               <LinkIcon className="size-3.5" />
-              <span>Copiar Enlace de Agenda</span>
+              <span>{t("copyBookingLink")}</span>
             </button>
           </div>
 
           <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
-              Protocolo de Asistencia (Show-Up)
+              {t("showUpProtocol")}
             </h4>
             <ul className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
               <li className="flex items-start gap-2">
@@ -476,7 +476,7 @@ export default function PipelineCalendarPage() {
             <form onSubmit={handleCreateMeeting} className="space-y-3.5 pt-3">
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Nombre del Prospecto:
+                  {t("leadNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -490,7 +490,7 @@ export default function PipelineCalendarPage() {
 
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Empresa:
+                  {t("companyLabel")}
                 </label>
                 <input
                   type="text"

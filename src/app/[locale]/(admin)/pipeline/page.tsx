@@ -21,7 +21,7 @@ import {
   UserCheck,
   X,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export default function PipelinePage() {
@@ -157,7 +157,7 @@ export default function PipelinePage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Pipeline CRM Comercial (Kanban)" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Toast Notification */}
       {toastMsg && (
@@ -172,10 +172,10 @@ export default function PipelinePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Tablero Comercial de Oportunidades
+              {t("cardTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Flujo de conversión visual de 7 etapas para prospección inbound y cierre de ventas en LinkedIn.
+              {t("cardDesc")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -184,7 +184,7 @@ export default function PipelinePage() {
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
             >
               <Calendar className="size-3.5 text-brand-500" />
-              <span>Calendario de Citas</span>
+              <span>{t("calendarBtn")}</span>
             </Link>
             <button
               type="button"
@@ -192,7 +192,7 @@ export default function PipelinePage() {
               className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
             >
               <Plus className="size-3.5" />
-              <span>Nueva Oportunidad</span>
+              <span>{t("newOpportunity")}</span>
             </button>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function PipelinePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Valor Total Pipeline</span>
+            <span>{t("totalPipelineValue")}</span>
             <DollarSign className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
@@ -215,40 +215,40 @@ export default function PipelinePage() {
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Oportunidades Activas</span>
+            <span>{t("activeOpportunities")}</span>
             <TrendingUp className="size-4 text-brand-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-            {deals.length} <span className="text-xs font-normal text-gray-400">leads en embudo</span>
+            {deals.length} <span className="text-xs font-normal text-gray-400">{t("leadsInFunnel")}</span>
           </p>
           <span className="text-xs text-gray-400 mt-0.5 block">
-            Captados por senales LinkedIn
+            {t("capturedBySignals")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Reuniones Agendadas</span>
+            <span>{t("scheduledMeetings")}</span>
             <Calendar className="size-4 text-purple-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-            {activeMeetingsCount} <span className="text-xs font-normal text-gray-400">agendadas</span>
+            {activeMeetingsCount} <span className="text-xs font-normal text-gray-400">{t("scheduled")}</span>
           </p>
           <span className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-0.5 block">
-            Sincronizadas con Google/Cal
+            {t("syncedWithCal")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Deals Ganados</span>
+            <span>{t("wonDeals")}</span>
             <UserCheck className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-            {wonDealsCount} <span className="text-xs font-normal text-gray-400">cerrados</span>
+            {wonDealsCount} <span className="text-xs font-normal text-gray-400">{t("closed")}</span>
           </p>
           <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
-            Tasa conversion: 28.5%
+            {t("conversionRate")}
           </span>
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function PipelinePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filtrar por prospecto, empresa o cargo..."
+            placeholder={t("filterPlaceholder")}
             className="w-full text-xs text-gray-800 bg-transparent focus:outline-hidden dark:text-white"
           />
         </div>
@@ -322,7 +322,7 @@ export default function PipelinePage() {
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Volumen:</span>
+                    <span>{t("volume")}</span>
                     <span className="font-semibold text-gray-800 dark:text-gray-200">
                       ${stageMRR.toLocaleString()}
                     </span>
@@ -389,7 +389,7 @@ export default function PipelinePage() {
 
                       {/* Actividad / Siguiente Paso */}
                       <div className="mt-2 rounded-lg bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
-                        <span className="font-semibold text-gray-700 dark:text-gray-300">Paso: </span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{t("step")} </span>
                         {deal.nextAction}
                       </div>
 
@@ -399,7 +399,7 @@ export default function PipelinePage() {
                           <button
                             type="button"
                             onClick={() => handleMoveStep(deal, "prev")}
-                            title="Mover a etapa anterior"
+                            title={t("moveToPrev")}
                             className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           >
                             <ArrowLeft className="size-3" />
@@ -407,7 +407,7 @@ export default function PipelinePage() {
                           <button
                             type="button"
                             onClick={() => handleMoveStep(deal, "next")}
-                            title="Mover a siguiente etapa"
+                            title={t("moveToNext")}
                             className="p-1 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40 transition"
                           >
                             <ArrowRight className="size-3" />
@@ -427,7 +427,7 @@ export default function PipelinePage() {
 
                   {stageDeals.length === 0 && (
                     <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-400 p-3 text-center dark:border-gray-800">
-                      <span>Arrastra oportunidades aqui</span>
+                      <span>{t("dragHere")}</span>
                     </div>
                   )}
                 </div>
@@ -457,7 +457,7 @@ export default function PipelinePage() {
             <form onSubmit={handleCreateDeal} className="space-y-3.5 pt-3">
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Nombre del Prospecto:
+                  {t("prospectNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -471,7 +471,7 @@ export default function PipelinePage() {
 
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Empresa:
+                  {t("companyLabel")}
                 </label>
                 <input
                   type="text"
@@ -486,7 +486,7 @@ export default function PipelinePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Cargo:
+                    {t("titleLabel")}
                   </label>
                   <input
                     type="text"
@@ -498,7 +498,7 @@ export default function PipelinePage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Valor Estimado:
+                    {t("estimatedValueLabel")}
                   </label>
                   <input
                     type="text"
@@ -513,7 +513,7 @@ export default function PipelinePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Etapa Inicial:
+                    {t("initialStageLabel")}
                   </label>
                   <select
                     value={newDealStage}
@@ -529,7 +529,7 @@ export default function PipelinePage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Prioridad:
+                    {t("priorityLabel")}
                   </label>
                   <select
                     value={newDealPriority}
@@ -545,7 +545,7 @@ export default function PipelinePage() {
 
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Campana de Origen:
+                  {t("originCampaignLabel")}
                 </label>
                 <select
                   value={newDealCampaign}
