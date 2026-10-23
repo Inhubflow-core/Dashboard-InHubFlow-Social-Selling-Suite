@@ -47,7 +47,7 @@ export default function SlotsCapacityCard({
                 <span className="text-sm font-bold text-gray-900 dark:text-white">
                   Super Administrador · SuperAdmin
                 </span>
-                <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#0099ff]">
+                <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
                   Slots Ilimitados
                 </span>
               </div>
@@ -88,11 +88,11 @@ export default function SlotsCapacityCard({
                 <span className="text-sm font-bold text-gray-900 dark:text-white">
                   {currentUser.companyName || "Mi Organizacion"}
                 </span>
-                <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#0099ff]">
+                <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
                   {plan.name} ({plan.slots} {plan.slots === 1 ? "Slot" : "Slots"})
                 </span>
                 {capacity.isAtCapacity && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-500">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
                     <ShieldAlert className="size-3" />
                     Cupo Completo
                   </span>
@@ -113,7 +113,7 @@ export default function SlotsCapacityCard({
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center md:min-w-[320px]">
             {/* Barra de Progreso */}
             <div className="w-full flex-1">
-              <div className="mb-1 flex justify-between text-[11px] text-gray-500 dark:text-gray-400">
+              <div className="mb-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>Capacidad de Cuentas</span>
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
                   {capacity.usagePercentage}%

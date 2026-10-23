@@ -22,7 +22,9 @@ export const metadata: Metadata = {
   description:
     "Construye tu marca personal y escala tu facturacion B2B con prospeccion inbound en LinkedIn.",
   icons: {
-    icon: "/images/logo/inhubflow-icon-dark.png",
+    icon: [
+      { url: "/images/logo/inhubflow-icon-dark.png", type: "image/png" },
+    ],
     shortcut: "/images/logo/inhubflow-icon-dark.png",
     apple: "/images/logo/inhubflow-icon-dark.png",
   },

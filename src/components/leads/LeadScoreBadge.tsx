@@ -58,7 +58,7 @@ export function LeadScoreBadge({
   return (
     <span
       className={`inline-flex items-center gap-1 font-semibold border rounded-md cursor-help transition select-none ${badgeConfig.badgeClass} ${
-        isSmall ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"
+        isSmall ? "px-1.5 py-0.5 text-xs" : "px-2 py-0.5 text-xs"
       } ${className}`}
       title={badgeConfig.title}
     >
@@ -67,7 +67,7 @@ export function LeadScoreBadge({
       {showDetail && (
         <>
           <span className="opacity-40">•</span>
-          <span className="font-medium text-[10px] tracking-tight">{badgeConfig.label}</span>
+          <span className="font-medium text-xs tracking-tight">{badgeConfig.label}</span>
         </>
       )}
     </span>

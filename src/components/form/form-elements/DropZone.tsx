@@ -213,7 +213,7 @@ export default function DropzoneComponent() {
                     <p className="truncate text-theme-xs font-medium text-gray-800 dark:text-white/90" title={file.name}>
                       {file.name}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                       {formatFileSize(file.size)}
                     </p>
                   </div>

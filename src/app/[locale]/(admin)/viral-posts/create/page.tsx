@@ -349,7 +349,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
       {referenceAuthor && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
+            <span className="text-xs uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
               Modelando desde Post Finder:
             </span>
             <p className="text-xs font-semibold text-gray-800 dark:text-white">
@@ -399,7 +399,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="block text-[11px] font-semibold text-gray-500 uppercase">
+                      <span className="block text-xs font-semibold text-gray-500 uppercase">
                         Cuenta de LinkedIn para Publicar:
                       </span>
                       <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
@@ -444,7 +444,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <p className="font-semibold text-xs text-gray-900 dark:text-white">
                       1. Solo Texto
                     </p>
-                    <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Storytelling & Gancho Viral
                     </p>
                   </button>
@@ -461,7 +461,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <p className="font-semibold text-xs text-gray-900 dark:text-white">
                       2. Texto + Imagen
                     </p>
-                    <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Copy + Prompt para IA
                     </p>
                   </button>
@@ -478,7 +478,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <p className="font-semibold text-xs text-gray-900 dark:text-white">
                       3. Carrusel PDF
                     </p>
-                    <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Diapositivas Vectoriales
                     </p>
                   </button>
@@ -535,11 +535,11 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <span className="text-xs font-bold text-gray-900 dark:text-white">
                       Modelador de Copy B2B con IA & RAG
                     </span>
-                    <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-[10px] font-bold dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs font-bold dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                       RAG Aprobado Activo
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     Modela el post integrando automáticamente la propuesta de valor y documentos aprobados del Asistente SDR IA.
                   </p>
                 </div>
@@ -570,7 +570,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <button
                       type="button"
                       onClick={handleCopyPrompt}
-                      className="rounded-md bg-white border border-gray-300 px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+                      className="rounded-md bg-white border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
                     >
                       {copiedPrompt ? "Copiado al Portapapeles" : "Copiar Prompt"}
                     </button>
@@ -582,7 +582,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                   <div className="pt-2">
-                    <label className="block text-[11px] font-semibold uppercase text-gray-500 mb-1">
+                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
                       Subir Imagen Generada (Opcional)
                     </label>
                     <input
@@ -610,7 +610,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                       <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
                         Editor de Diapositiva ({currentSlideIndex + 1} de {slides.length})
                       </span>
-                      <p className="text-[11px] text-gray-500">
+                      <p className="text-xs text-gray-500">
                         {currentSlide.isCover
                           ? "Portada del Carrusel"
                           : currentSlide.isCta
@@ -650,7 +650,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                   <div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
                         Titular de Diapositiva
                       </label>
                       <input
@@ -667,7 +667,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                     {currentSlide.subtitle !== undefined && (
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
                           Subtítulo
                         </label>
                         <input
@@ -684,7 +684,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     )}
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
                         Puntos de Contenido (1 por línea)
                       </label>
                       <textarea
@@ -708,7 +708,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Cuerpo del Post (Copy de LinkedIn)
                   </label>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {content.length} caracteres (Recomendado: 500 - 1,200)
                   </span>
                 </div>
@@ -779,10 +779,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                     {activeAccObj ? activeAccObj.name : currentUser.name}
                   </h4>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {activeAccObj ? "Perfil de LinkedIn Conectado • 1er" : "B2B Growth & Lead Gen Specialist • 1er"}
                   </p>
-                  <p className="text-[10px] text-gray-400">Ahora • Público</p>
+                  <p className="text-xs text-gray-400">Ahora • Público</p>
                 </div>
               </div>
 
@@ -806,7 +806,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Espacio de Imagen Adjunta
                       </p>
-                      <p className="text-[11px] mt-1 max-w-xs font-mono">
+                      <p className="text-xs mt-1 max-w-xs font-mono">
                         Prompt configurado para Midjourney
                       </p>
                     </div>
@@ -831,7 +831,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <span
-                          className="text-[11px] font-bold uppercase tracking-wider"
+                          className="text-xs font-bold uppercase tracking-wider"
                           style={{
                             color: currentSlide.isCover
                               ? "rgba(255,255,255,0.8)"
@@ -845,7 +845,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                             : `Slide ${currentSlide.slideNumber}`}
                         </span>
                         <span
-                          className="text-[11px]"
+                          className="text-xs"
                           style={{
                             color: currentSlide.isCover ? "rgba(255,255,255,0.7)" : "#94a3b8",
                           }}
@@ -905,7 +905,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     </div>
 
                     <div
-                      className="pt-3 border-t flex justify-between text-[10px]"
+                      className="pt-3 border-t flex justify-between text-xs"
                       style={{
                         borderColor: currentSlide.isCover
                           ? "rgba(255,255,255,0.2)"
@@ -920,7 +920,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                   {/* Barra de navegación de carrusel */}
                   <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-100 text-xs dark:bg-gray-800 dark:border-gray-700">
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       Documento PDF de LinkedIn
                     </span>
                     <div className="flex gap-1.5">

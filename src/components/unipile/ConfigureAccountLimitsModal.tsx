@@ -242,7 +242,7 @@ export default function ConfigureAccountLimitsModal({
               </div>
             </div>
 
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
               🔒 Límite de seguridad recomendado: Máximo 20 acciones/día para proteger tu perfil de LinkedIn.
             </p>
 

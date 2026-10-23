@@ -97,7 +97,7 @@ export default function PlanUpgradeModal({
               }`}
             >
               <span>Facturacion Anual</span>
-              <span className="rounded bg-white/20 px-1 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
                 -20%
               </span>
             </button>
@@ -128,7 +128,7 @@ export default function PlanUpgradeModal({
               >
                 {/* Badge Popular */}
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0099ff] px-3 py-0.5 text-[11px] font-bold text-white uppercase tracking-wider">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0099ff] px-3 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                     Recomendado
                   </div>
                 )}
@@ -149,7 +149,7 @@ export default function PlanUpgradeModal({
                     <div className="text-2xl font-extrabold text-[#0099ff]">
                       {plan.slots} {plan.slots === 1 ? "Cuenta" : "Cuentas"}
                     </div>
-                    <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
                       {plan.slots === 1 ? "1 Slot simultaneo" : `${plan.slots} Slots simultaneos`}
                     </div>
                   </div>

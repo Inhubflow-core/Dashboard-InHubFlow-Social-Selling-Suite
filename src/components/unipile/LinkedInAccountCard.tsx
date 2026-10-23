@@ -84,12 +84,12 @@ export default function LinkedInAccountCard({
             {account.name}
           </p>
           {isActive && (
-            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-950/40 dark:text-brand-300 shrink-0">
+            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-950/40 dark:text-brand-300 shrink-0">
               Activa
             </span>
           )}
           {account.assignedUserName && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#0099ff]/10 px-2 py-0.5 text-[10px] font-bold text-[#0099ff] shrink-0">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#0099ff]/10 px-2 py-0.5 text-xs font-bold text-[#0099ff] shrink-0">
               <UserCheck className="size-2.5" />
               <span>{account.assignedUserName}</span>
             </span>
@@ -136,14 +136,14 @@ export default function LinkedInAccountCard({
           </span>
         ) : isCheckpoint || isCredentials ? (
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
             title="Inicia sesión o resuelve el código 2FA para renovar la conexión"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Reconexión requerida
           </span>
         ) : (
           <span
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
             title="Conecta esta cuenta para sincronizar con LinkedIn"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Sin conectar

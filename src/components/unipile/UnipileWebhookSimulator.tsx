@@ -180,7 +180,7 @@ export default function UnipileWebhookSimulator() {
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                   Sandbox de Integración Cloud InHubFlow & Emulador de Webhooks
                 </h4>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   <span className="size-1.5 rounded-full bg-emerald-500"></span>
                   Pruebas Ilimitadas (0/7 dias consumidos)
                 </span>
@@ -481,21 +481,21 @@ export default function UnipileWebhookSimulator() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                    <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600">
                       HTTP 200 OK
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {log.event}
                     </span>
                   </div>
-                  <span className="text-[11px] text-gray-400">{log.timestamp}</span>
+                  <span className="text-xs text-gray-400">{log.timestamp}</span>
                 </div>
 
                 <p className="mt-2 font-sans text-xs text-gray-700 dark:text-gray-300">
                   {log.summary}
                 </p>
 
-                <div className="mt-3 rounded-lg bg-gray-900 p-3 text-[11px] text-gray-200 overflow-x-auto">
+                <div className="mt-3 rounded-lg bg-gray-900 p-3 text-xs text-gray-200 overflow-x-auto">
                   <pre>{JSON.stringify(log.payload, null, 2)}</pre>
                 </div>
               </div>

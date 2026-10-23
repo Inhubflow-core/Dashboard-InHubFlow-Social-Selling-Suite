@@ -12,14 +12,14 @@ export function TriggerCustomNode({ data, selected }: NodeProps) {
       }`}
     >
       <div className="flex items-center justify-between pb-1.5 border-b border-white/20">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+        <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
           TRIGGER
         </span>
-        <span className="text-[10px] text-white/80">Disparador</span>
+        <span className="text-xs text-white/80">Disparador</span>
       </div>
       <div className="pt-2">
         <h4 className="text-xs font-bold leading-snug">{nodeData.label}</h4>
-        <p className="text-[11px] text-white/90 mt-1 line-clamp-2">
+        <p className="text-xs text-white/90 mt-1 line-clamp-2">
           {nodeData.description}
         </p>
       </div>
@@ -46,16 +46,16 @@ export function ActionCustomNode({ data, selected }: NodeProps) {
         className="h-3 w-3 rounded-full !bg-brand-500"
       />
       <div className="flex items-center justify-between pb-1.5 border-b border-gray-100 dark:border-gray-800">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full dark:bg-blue-950 dark:text-blue-300">
+        <span className="text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full dark:bg-blue-950 dark:text-blue-300">
           ACCION
         </span>
-        <span className="text-[10px] text-gray-400">LinkedIn API</span>
+        <span className="text-xs text-gray-400">LinkedIn API</span>
       </div>
       <div className="pt-2">
         <h4 className="text-xs font-bold text-gray-900 dark:text-white leading-snug">
           {nodeData.label}
         </h4>
-        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
           {nodeData.description}
         </p>
       </div>
@@ -82,10 +82,10 @@ export function ConditionCustomNode({ data, selected }: NodeProps) {
         className="h-3 w-3 rounded-full !bg-brand-500"
       />
       <div className="flex items-center justify-between pb-1.5 border-b border-gray-100 dark:border-gray-800">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full dark:bg-purple-950 dark:text-purple-300">
+        <span className="text-xs font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full dark:bg-purple-950 dark:text-purple-300">
           CONDICION
         </span>
-        <span className="text-[10px] text-brand-600 font-semibold dark:text-brand-400">
+        <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
           Bifurcacion Logica
         </span>
       </div>
@@ -93,12 +93,12 @@ export function ConditionCustomNode({ data, selected }: NodeProps) {
         <h4 className="text-xs font-bold text-gray-900 dark:text-white leading-snug">
           {nodeData.label}
         </h4>
-        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
           {nodeData.description}
         </p>
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-800 text-[10px] font-bold">
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-800 text-xs font-bold">
         <span className="text-green-600 dark:text-green-400">Rama: SI (Derecha)</span>
         <span className="text-red-500 dark:text-red-400">Rama: NO (Izquierda)</span>
       </div>
@@ -136,10 +136,10 @@ export function DelayCustomNode({ data, selected }: NodeProps) {
         className="h-3 w-3 rounded-full !bg-amber-500"
       />
       <div className="flex items-center justify-between pb-1 border-b border-amber-200/50 dark:border-amber-900">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full dark:bg-amber-900 dark:text-amber-200">
+        <span className="text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full dark:bg-amber-900 dark:text-amber-200">
           DELAY HUMANO
         </span>
-        <span className="text-[10px] text-amber-700 dark:text-amber-300 font-medium">
+        <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
           Pacing Seguro
         </span>
       </div>
@@ -147,7 +147,7 @@ export function DelayCustomNode({ data, selected }: NodeProps) {
         <h4 className="text-xs font-bold text-gray-900 dark:text-white">
           {nodeData.label}
         </h4>
-        <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-0.5">
+        <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
           {nodeData.description}
         </p>
       </div>
@@ -174,10 +174,10 @@ export function CrmCustomNode({ data, selected }: NodeProps) {
         className="h-3 w-3 rounded-full !bg-emerald-500"
       />
       <div className="flex items-center justify-between pb-1.5 border-b border-emerald-200 dark:border-emerald-900">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-200">
+        <span className="text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-200">
           CRM PIPELINE
         </span>
-        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
+        <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
           Actualizar Etapa
         </span>
       </div>
@@ -185,7 +185,7 @@ export function CrmCustomNode({ data, selected }: NodeProps) {
         <h4 className="text-xs font-bold text-gray-900 dark:text-white leading-snug">
           {nodeData.label}
         </h4>
-        <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1">
+        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
           {nodeData.description}
         </p>
       </div>
@@ -212,13 +212,13 @@ export function ControlCustomNode({ data, selected }: NodeProps) {
         className="h-3 w-3 rounded-full !bg-gray-500"
       />
       <div className="text-center">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-200 text-gray-700 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+        <span className="text-xs font-bold uppercase tracking-wider bg-gray-200 text-gray-700 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
           CONTROL
         </span>
         <h4 className="text-xs font-bold text-gray-800 dark:text-white mt-1.5">
           {nodeData.label}
         </h4>
-        <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
           {nodeData.description}
         </p>
       </div>

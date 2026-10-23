@@ -419,10 +419,10 @@ export default function AdminSubscribersPage() {
                             <div className="font-semibold text-gray-900 dark:text-white">
                               {u.name}
                             </div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
                               {u.email}
                             </div>
-                            <div className="text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                            <div className="text-xs font-medium text-gray-600 dark:text-gray-300">
                               {u.companyName}
                             </div>
                           </div>
@@ -432,12 +432,12 @@ export default function AdminSubscribersPage() {
                       {/* Rol */}
                       <td className="px-5 py-4">
                         {isSuper ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-purple-600 dark:text-purple-400">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-semibold text-purple-600 dark:text-purple-400">
                             <ShieldCheck className="size-3" />
                             Super Admin
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
                             <UserCheck className="size-3" />
                             Admin Cliente
                           </span>
@@ -447,7 +447,7 @@ export default function AdminSubscribersPage() {
                       {/* Plan */}
                       <td className="px-5 py-4">
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
                             u.planTier === "starter"
                               ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               : u.planTier === "growth"
@@ -466,7 +466,7 @@ export default function AdminSubscribersPage() {
                         <div className="font-bold text-gray-900 dark:text-white">
                           {isSuper ? "999 (Ilimitado)" : `${u.slotsLimit} ${u.slotsLimit === 1 ? "Slot" : "Slots"}`}
                         </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {capacity.usedSlots} cuentas en uso
                         </div>
                       </td>
@@ -474,7 +474,7 @@ export default function AdminSubscribersPage() {
                       {/* Estado */}
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                             u.subscriptionStatus === "active"
                               ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                               : u.subscriptionStatus === "trial"

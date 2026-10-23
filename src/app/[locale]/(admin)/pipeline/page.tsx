@@ -200,7 +200,7 @@ export default function PipelinePage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             ${totalPipelineMRR.toLocaleString()} <span className="text-xs font-normal text-gray-400">MRR</span>
           </p>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
             +18.4% vs mes anterior
           </span>
         </div>
@@ -213,7 +213,7 @@ export default function PipelinePage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             {deals.length} <span className="text-xs font-normal text-gray-400">leads en embudo</span>
           </p>
-          <span className="text-[10px] text-gray-400 mt-0.5 block">
+          <span className="text-xs text-gray-400 mt-0.5 block">
             Captados por senales LinkedIn
           </span>
         </div>
@@ -226,7 +226,7 @@ export default function PipelinePage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             {activeMeetingsCount} <span className="text-xs font-normal text-gray-400">agendadas</span>
           </p>
-          <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium mt-0.5 block">
+          <span className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-0.5 block">
             Sincronizadas con Google/Cal
           </span>
         </div>
@@ -239,7 +239,7 @@ export default function PipelinePage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             {wonDealsCount} <span className="text-xs font-normal text-gray-400">cerrados</span>
           </p>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
             Tasa conversion: 28.5%
           </span>
         </div>
@@ -309,11 +309,11 @@ export default function PipelinePage() {
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
                       {stage.name}
                     </h4>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
                       {stageDeals.length}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400">
+                  <div className="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <span>Volumen:</span>
                     <span className="font-semibold text-gray-800 dark:text-gray-200">
                       ${stageMRR.toLocaleString()}
@@ -332,11 +332,11 @@ export default function PipelinePage() {
                     >
                       {/* Top bar de la tarjeta */}
                       <div className="flex items-center justify-between gap-1 mb-1.5">
-                        <span className="text-[9px] font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded truncate max-w-[130px] dark:bg-brand-950/60 dark:text-brand-300">
+                        <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded truncate max-w-[130px] dark:bg-brand-950/60 dark:text-brand-300">
                           {deal.sourceCampaign.replace("Nivel ", "N")}
                         </span>
                         <span
-                          className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                             deal.priority === "Alta"
                               ? "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300"
                               : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -348,26 +348,26 @@ export default function PipelinePage() {
 
                       {/* Lead Info */}
                       <div className="flex items-center gap-2 mb-1.5">
-                        <div className="size-6 rounded-full bg-brand-500 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                        <div className="size-6 rounded-full bg-brand-500 text-white font-bold text-xs flex items-center justify-center shrink-0">
                           {deal.avatarInitials}
                         </div>
                         <div className="min-w-0">
                           <h5 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                             {deal.leadName}
                           </h5>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {deal.leadTitle}
                           </p>
                         </div>
                       </div>
 
-                      <div className="text-[11px] font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1 mb-2">
+                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1 mb-2">
                         <Building className="size-3 text-gray-400" />
                         <span className="truncate">{deal.company}</span>
                       </div>
 
                       {/* Deal Value */}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] dark:border-gray-700/60">
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs dark:border-gray-700/60">
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {deal.dealValue}
                         </span>
@@ -380,7 +380,7 @@ export default function PipelinePage() {
                       </div>
 
                       {/* Actividad / Siguiente Paso */}
-                      <div className="mt-2 rounded bg-gray-50 p-1.5 text-[9px] text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
+                      <div className="mt-2 rounded bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
                         <span className="font-semibold text-gray-700 dark:text-gray-300">Paso: </span>
                         {deal.nextAction}
                       </div>
@@ -408,7 +408,7 @@ export default function PipelinePage() {
 
                         <Link
                           href="/inbox"
-                          className="text-[10px] font-semibold text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
+                          className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
                         >
                           <MessageSquare className="size-3" />
                           <span>Inbox</span>
@@ -418,7 +418,7 @@ export default function PipelinePage() {
                   ))}
 
                   {stageDeals.length === 0 && (
-                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl text-[10px] text-gray-400 p-3 text-center dark:border-gray-800">
+                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl text-xs text-gray-400 p-3 text-center dark:border-gray-800">
                       <span>Arrastra oportunidades aqui</span>
                     </div>
                   )}

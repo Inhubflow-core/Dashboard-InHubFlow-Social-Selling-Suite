@@ -476,7 +476,7 @@ export default function ConnectLinkedInModal({
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
                       🔒 Límite de seguridad recomendado: Máximo 20 acciones/día para proteger tu perfil de LinkedIn.
                     </p>
 
@@ -716,7 +716,7 @@ export default function ConnectLinkedInModal({
                               disabled={authLoading}
                               required
                             />
-                            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               Copia el valor de la cookie <code>li_at</code> desde la consola o inspector de cookies de tu navegador.
                             </p>
                           </div>
@@ -783,7 +783,7 @@ export default function ConnectLinkedInModal({
                             />
                           </div>
                         </div>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
                           Si no defines un proxy propio, se asignará automáticamente un proxy de alta reputación según el país seleccionado.
                         </p>
                       </div>

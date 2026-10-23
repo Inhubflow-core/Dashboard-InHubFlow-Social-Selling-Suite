@@ -495,18 +495,18 @@ export default function PostsListPage() {
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="space-y-1.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${formatBadge.color}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${formatBadge.color}`}>
                           {formatBadge.label}
                         </span>
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusBadge.color}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge.color}`}>
                           {statusBadge.label}
                         </span>
                         {post.leadMagnetKeyword && (
-                          <span className="rounded bg-brand-50 px-2 py-0.5 text-[11px] font-mono font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                          <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-mono font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
                             Keyword: {post.leadMagnetKeyword}
                           </span>
                         )}
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-xs text-gray-400">
                           {post.scheduledAt
                             ? `Programado: ${new Date(post.scheduledAt).toLocaleDateString()} ${new Date(post.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                             : post.publishedAt
@@ -560,14 +560,14 @@ export default function PostsListPage() {
                                 href={linkedInUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] text-gray-500 hover:text-brand-600 font-mono transition"
+                                className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand-600 font-mono transition"
                                 title="Ver publicación original en LinkedIn"
                               >
                                 <span>ID: {post.linkedinPostId.replace(/^urn:li:activity:/, "")}</span>
                                 <ExternalLink className="size-3" />
                               </a>
                             ) : (
-                              <span className="text-[10px] text-gray-400 font-mono">
+                              <span className="text-xs text-gray-400 font-mono">
                                 ID: {post.linkedinPostId}
                               </span>
                             )

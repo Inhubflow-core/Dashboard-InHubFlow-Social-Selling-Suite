@@ -135,27 +135,27 @@ export default function SupportTicketsPage() {
       {/* SLAs de Respuesta según Plan */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase">SLA Starter</span>
+          <span className="text-xs font-semibold text-gray-400 uppercase">SLA Starter</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 24 Horas
           </div>
-          <p className="mt-0.5 text-[11px] text-gray-500">Soporte por ticket y correo.</p>
+          <p className="mt-0.5 text-xs text-gray-500">Soporte por ticket y correo.</p>
         </div>
 
         <div className="rounded-2xl border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 shadow-theme-xs">
-          <span className="text-[11px] font-semibold text-[#0099ff] uppercase">SLA Growth</span>
+          <span className="text-xs font-semibold text-[#0099ff] uppercase">SLA Growth</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 8 Horas
           </div>
-          <p className="mt-0.5 text-[11px] text-gray-500">Soporte preferente multi-cuenta.</p>
+          <p className="mt-0.5 text-xs text-gray-500">Soporte preferente multi-cuenta.</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-[11px] font-semibold text-emerald-600 uppercase">SLA Business</span>
+          <span className="text-xs font-semibold text-emerald-600 uppercase">SLA Business</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 2 Horas
           </div>
-          <p className="mt-0.5 text-[11px] text-gray-500">Canal prioritario 24/7 y asistencia remota.</p>
+          <p className="mt-0.5 text-xs text-gray-500">Canal prioritario 24/7 y asistencia remota.</p>
         </div>
       </div>
 
@@ -191,7 +191,7 @@ export default function SupportTicketsPage() {
                     {priority.label}
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${status.bg}`}>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.bg}`}>
                       {status.label}
                     </span>
                   </td>

@@ -801,7 +801,7 @@ export default function GlobalSignalsPage() {
       </div>
 
       {/* Explicación de la Estrategia (Nivel 4) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
             Mecánica de Prospección por Tendencias y Debate Viral (Nivel 4)
@@ -841,7 +841,7 @@ export default function GlobalSignalsPage() {
                   placeholder="Ej. Prospección B2B, Inteligencia Artificial para Ventas, Cold Outreach..."
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   El radar buscará publicaciones en LinkedIn que aborden esta problemática.
                 </span>
               </div>
@@ -903,7 +903,7 @@ export default function GlobalSignalsPage() {
                     </div>
                   </div>
                 )}
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Prioriza publicaciones y comentaristas ubicados en esta región.
                 </span>
               </div>
@@ -937,18 +937,18 @@ export default function GlobalSignalsPage() {
                           {thresh.label}
                         </span>
                         {thresh.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                         {thresh.tag}
                       </span>
                     </button>
                   ))}
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
                 </span>
               </div>
@@ -979,18 +979,18 @@ export default function GlobalSignalsPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                         {opt.tag}
                       </span>
                     </button>
                   ))}
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
                 </span>
               </div>
@@ -1009,7 +1009,7 @@ export default function GlobalSignalsPage() {
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
                     Descartar engagement de colaboradores del autor
                   </span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                     Filtra comentarios y reacciones de empleados de la misma empresa para extraer únicamente clientes potenciales externos.
                   </span>
                 </div>
@@ -1047,30 +1047,6 @@ export default function GlobalSignalsPage() {
           </form>
         </ComponentCard>
       )}
-
-      {/* Barra de Cuenta Conectada & Estado de Escucha */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo:
-          </span>
-          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
-            {currentDisplayName}
-          </span>
-          <span
-            suppressHydrationWarning
-            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-              activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-            }`}
-          >
-            {activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-              ? "CONECTADA EN LINKEDIN"
-              : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
-          </span>
-        </div>
-      </div>
 
       {/* Banner de Feedback de Escaneo */}
       {scanFeedback && (
@@ -1126,7 +1102,7 @@ export default function GlobalSignalsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Temática / Problema en LinkedIn</th>
                   <th className="px-4 py-3 min-w-[140px]">Filtro de Debate & Región</th>
@@ -1162,12 +1138,12 @@ export default function GlobalSignalsPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white">
                                   {rule.searchQuery}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                                   Feed Viral
                                 </span>
                               </div>
 
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate block max-w-xs mt-0.5">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate block max-w-xs mt-0.5">
                                 Escaneo de publicaciones virales con debate activo en {countryName}
                               </p>
 
@@ -1181,7 +1157,7 @@ export default function GlobalSignalsPage() {
                                       [rule.id]: !isExpanded,
                                     }))
                                   }
-                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                  className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
                                   title={isExpanded ? "Ocultar las publicaciones" : "Ver todas las publicaciones escaneadas"}
                                 >
                                   <span>
@@ -1189,10 +1165,10 @@ export default function GlobalSignalsPage() {
                                       ? "Ocultar Publicaciones"
                                       : `Ver Publicaciones Virales (${scannedPosts.length})`}
                                   </span>
-                                  <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
+                                  <span className="text-xs">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
                               ) : (
-                                <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
                                   Sin posts escaneados. Pulsa &quot;Escanear&quot; para escanear publicaciones en vivo.
                                 </span>
                               )}
@@ -1203,10 +1179,10 @@ export default function GlobalSignalsPage() {
                         {/* 2. Filtro de Debate & Región */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex flex-wrap gap-1 max-w-[150px]">
-                            <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                            <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                               Mín. {rule.minPostReactions || 15} comentarios
                             </span>
-                            <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                               {countryFlag} {countryName}
                             </span>
                           </div>
@@ -1220,7 +1196,7 @@ export default function GlobalSignalsPage() {
                               className="hover:underline flex items-center gap-1"
                             >
                               <span>{leadsCount} leads</span>
-                              <span className="text-[10px] font-normal text-gray-400">↗</span>
+                              <span className="text-xs font-normal text-gray-400">↗</span>
                             </Link>
                           ) : (
                             <span>0 leads</span>
@@ -1237,7 +1213,7 @@ export default function GlobalSignalsPage() {
                           <button
                             type="button"
                             onClick={() => toggleLevel3Status(rule.id)}
-                            className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                            className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
                               rule.status === "active"
                                 ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1252,7 +1228,7 @@ export default function GlobalSignalsPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold shrink-0"
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold shrink-0"
                               title="Seleccionar tamaño de lote para la cosecha"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1296,7 +1272,7 @@ export default function GlobalSignalsPage() {
                               ) : (
                                 <>
                                   <span>Escanear</span>
-                                  <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                  <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                     {activeBatch}
                                   </span>
                                 </>
@@ -1368,7 +1344,7 @@ export default function GlobalSignalsPage() {
                                   <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
                                   <span>Publicación(es) de LinkedIn Monitoreada(s): Post Globales ({scannedPosts.length})</span>
                                 </span>
-                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                                   Tracción real en {countryName} • {rule.searchQuery}
                                 </span>
                               </div>
@@ -1386,7 +1362,7 @@ export default function GlobalSignalsPage() {
                                         </span>
                                         &ldquo;{post.text}&rdquo;
                                       </p>
-                                      <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                                         <span>
                                           {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                                         </span>
@@ -1453,7 +1429,7 @@ export default function GlobalSignalsPage() {
                     <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
                     <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
                   </span>
-                  <span className="text-[10px] text-blue-700 dark:text-blue-400">
+                  <span className="text-xs text-blue-700 dark:text-blue-400">
                     Tracción en {selectedRuleForLeads.targetCountryName || "la región"}
                   </span>
                 </div>
@@ -1470,7 +1446,7 @@ export default function GlobalSignalsPage() {
                           </span>
                           &quot;{post.text}&quot;
                         </p>
-                        <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                           <span>
                             {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                           </span>
@@ -1517,12 +1493,12 @@ export default function GlobalSignalsPage() {
                             score={calculateSignalScore(lead)}
                           />
                         </div>
-                        <p className="text-[11px] text-gray-500 truncate">{lead.headline}</p>
-                        <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                        <p className="text-xs text-gray-500 truncate">{lead.headline}</p>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
                           {lead.company} {lead.location ? `• ${lead.location}` : ""}
                         </p>
                         {lead.signalSnippet && (
-                          <p className="text-[11px] text-brand-600 dark:text-brand-400 italic mt-0.5 truncate">
+                          <p className="text-xs text-brand-600 dark:text-brand-400 italic mt-0.5 truncate">
                             &quot;{lead.signalSnippet}&quot;
                           </p>
                         )}

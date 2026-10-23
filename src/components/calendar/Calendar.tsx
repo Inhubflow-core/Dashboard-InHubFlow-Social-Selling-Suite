@@ -274,7 +274,7 @@ const Calendar: React.FC = () => {
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
                 data.inPopover
                   ? "text-sm! font-semibold! text-gray-800! dark:text-white/90!"
-                  : "py-1 text-[11px] sm:text-xs font-medium text-gray-400 uppercase",
+                  : "py-1 text-xs sm:text-xs font-medium text-gray-400 uppercase",
               dayCellClass: (data: DayCellInfo) => {
                 if (data.inPopover) return "bg-transparent! p-3!";
                 let cls = "relative! p-0.5 sm:p-1!";
@@ -345,7 +345,7 @@ const Calendar: React.FC = () => {
                   );
                 }
                 return (
-                  <span className="fc-more-link-badge inline-flex items-center rounded-sm bg-brand-50 px-1 py-0.5 text-[10px] font-medium text-brand-600 transition-colors hover:bg-brand-100 sm:px-1.5 sm:text-xs dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                  <span className="fc-more-link-badge inline-flex items-center rounded-sm bg-brand-50 px-1 py-0.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-100 sm:px-1.5 sm:text-xs dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
                     +{args.num} more
                   </span>
                 );
@@ -385,7 +385,7 @@ const Calendar: React.FC = () => {
                   data.isToday ? "bg-gray-100/70! dark:bg-gray-800/60!" : ""
                 }`,
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
-                `px-1.5! sm:px-3! py-2.5! sm:py-3.5! text-center! text-[11px]! sm:text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
+                `px-1.5! sm:px-3! py-2.5! sm:py-3.5! text-center! text-xs! sm:text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
                   data.isToday
                     ? "font-semibold! text-brand-500! dark:text-brand-400!"
                     : ""
@@ -393,7 +393,7 @@ const Calendar: React.FC = () => {
               slotHeaderDividerClass:
                 "border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!",
               slotHeaderClass:
-                "px-1.5! sm:px-3! py-1.5! sm:py-2! text-start! text-[11px]! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
+                "px-1.5! sm:px-3! py-1.5! sm:py-2! text-start! text-xs! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
               slotLaneClass: "border-gray-100! dark:border-gray-800/60!",
               dayLaneClass: (data: DayLaneInfo) =>
                 `border-gray-200! dark:border-gray-800! ${
@@ -404,7 +404,7 @@ const Calendar: React.FC = () => {
               allDayDividerClass:
                 "border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!",
               allDayHeaderClass:
-                "border-0! bg-gray-50! text-[11px]! sm:text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
+                "border-0! bg-gray-50! text-xs! sm:text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
             },
             timeGridDay: {
               slotDuration: "00:30:00",
@@ -448,7 +448,7 @@ const Calendar: React.FC = () => {
               slotHeaderDividerClass:
                 "border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!",
               slotHeaderClass:
-                "px-2! sm:px-3! py-1.5! sm:py-2! text-start! text-[11px]! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
+                "px-2! sm:px-3! py-1.5! sm:py-2! text-start! text-xs! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
               slotLaneClass: "border-gray-100! dark:border-gray-800/60!",
               dayLaneClass: (data: DayLaneInfo) =>
                 `border-gray-200! dark:border-gray-800! ${

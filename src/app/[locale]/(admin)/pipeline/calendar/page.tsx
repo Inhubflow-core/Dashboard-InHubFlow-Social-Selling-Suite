@@ -150,17 +150,17 @@ export default function PipelineCalendarPage() {
               Sincronizacion Activa:
             </span>
 
-            <div className="flex items-center gap-1.5 rounded-lg border border-blue-500/20 bg-blue-50/60 px-2.5 py-1 text-[11px] font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+            <div className="flex items-center gap-1.5 rounded-lg border border-blue-500/20 bg-blue-50/60 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
               <CheckCircle2 className="size-3 text-blue-500" />
               <span>Google Calendar</span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-lg border border-cyan-500/20 bg-cyan-50/60 px-2.5 py-1 text-[11px] font-medium text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300">
+            <div className="flex items-center gap-1.5 rounded-lg border border-cyan-500/20 bg-cyan-50/60 px-2.5 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300">
               <CheckCircle2 className="size-3 text-cyan-500" />
               <span>Cal.com Webhook</span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+            <div className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
               <CheckCircle2 className="size-3 text-emerald-500" />
               <span>Outlook 365</span>
             </div>
@@ -198,7 +198,7 @@ export default function PipelineCalendarPage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             {meetings.length} <span className="text-xs font-normal text-gray-400">citas</span>
           </p>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
             100% asistencias confirmadas
           </span>
         </div>
@@ -211,7 +211,7 @@ export default function PipelineCalendarPage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             91.4%
           </p>
-          <span className="text-[10px] text-gray-400 mt-0.5 block">
+          <span className="text-xs text-gray-400 mt-0.5 block">
             Recordatorios automaticos por DM
           </span>
         </div>
@@ -224,7 +224,7 @@ export default function PipelineCalendarPage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             38 min
           </p>
-          <span className="text-[10px] text-gray-400 mt-0.5 block">
+          <span className="text-xs text-gray-400 mt-0.5 block">
             Sesiones de demo comercial
           </span>
         </div>
@@ -237,7 +237,7 @@ export default function PipelineCalendarPage() {
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             $7,200 <span className="text-xs font-normal text-gray-400">MRR</span>
           </p>
-          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5 block">
+          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5 block">
             3 oportunidades calificadas
           </span>
         </div>
@@ -289,7 +289,7 @@ export default function PipelineCalendarPage() {
             <h3 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
               Agenda de Videollamadas ({filteredMeetings.length})
             </h3>
-            <span className="text-[11px] text-gray-400">
+            <span className="text-xs text-gray-400">
               Sincronizado hace 2 minutos
             </span>
           </div>
@@ -313,10 +313,10 @@ export default function PipelineCalendarPage() {
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {meet.date}
                       </span>
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                         {meet.status}
                       </span>
-                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                         {meet.provider}
                       </span>
                     </div>
@@ -337,7 +337,7 @@ export default function PipelineCalendarPage() {
 
                   {meet.dealValue && (
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] text-gray-400 uppercase font-semibold">
+                      <span className="text-xs text-gray-400 uppercase font-semibold">
                         Valor Deal
                       </span>
                       <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
@@ -405,7 +405,7 @@ export default function PipelineCalendarPage() {
             </p>
 
             <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-2.5 dark:border-brand-900 dark:bg-brand-950/20 mb-3">
-              <span className="text-[10px] font-semibold text-brand-700 dark:text-brand-300 block mb-0.5">
+              <span className="text-xs font-semibold text-brand-700 dark:text-brand-300 block mb-0.5">
                 Cal.com / InHubFlow SDR
               </span>
               <p className="font-mono text-xs text-gray-800 dark:text-gray-200 truncate">

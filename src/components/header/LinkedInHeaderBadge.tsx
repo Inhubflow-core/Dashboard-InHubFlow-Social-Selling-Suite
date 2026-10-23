@@ -60,7 +60,7 @@ export default function LinkedInHeaderBadge() {
         <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 max-w-[120px] truncate">
           {activeAccount.name}
         </span>
-        <span className="text-[10px] text-gray-400">{t("connected")}</span>
+        <span className="text-xs text-gray-400">{t("connected")}</span>
       </div>
     </Link>
   );

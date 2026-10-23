@@ -194,7 +194,7 @@ export default function InboxPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Sincronización Cloud Activa (LinkedIn)
           </div>
@@ -223,7 +223,7 @@ export default function InboxPage() {
                 value={filterCampaign}
                 onChange={(e) => setFilterCampaign(e.target.value)}
                 aria-label="Filtrar por campana"
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-[11px] text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
               >
                 <option value="all">Todas las Campanas</option>
                 {uniqueCampaigns.map((camp) => (
@@ -239,7 +239,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("all")}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition ${
+                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
                   tabFilter === "all"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -250,7 +250,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("unread")}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition ${
+                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
                   tabFilter === "unread"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -261,7 +261,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("interested")}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition ${
+                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
                   tabFilter === "interested"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -272,7 +272,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("meeting")}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition ${
+                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
                   tabFilter === "meeting"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -316,12 +316,12 @@ export default function InboxPage() {
                               <span className="size-2 rounded-full bg-brand-500" />
                             )}
                           </div>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[170px]">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[170px]">
                             {conv.leadTitle} - {conv.company}
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
                         {conv.lastMessageTime}
                       </span>
                     </div>
@@ -331,11 +331,11 @@ export default function InboxPage() {
                     </p>
 
                     <div className="mt-2.5 flex items-center justify-between">
-                      <span className="text-[9px] font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
                         {conv.campaignSource.replace("Nivel ", "N")}
                       </span>
                       <span
-                        className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
+                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                           conv.crmStageId === "meeting_scheduled"
                             ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
                             : conv.crmStageId === "interested"
@@ -367,7 +367,7 @@ export default function InboxPage() {
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                       {activeConversation.leadName}
                     </h3>
-                    <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.2 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300">
+                    <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.2 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300">
                       LinkedIn 1st
                     </span>
                   </div>
@@ -380,7 +380,7 @@ export default function InboxPage() {
               {/* Acciones Rápidas de Pipeline */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
-                  <label htmlFor="crm-stage-select" className="text-[11px] text-gray-400 font-medium hidden sm:inline">
+                  <label htmlFor="crm-stage-select" className="text-xs text-gray-400 font-medium hidden sm:inline">
                     Etapa CRM:
                   </label>
                   <select
@@ -417,12 +417,12 @@ export default function InboxPage() {
             </div>
 
             {/* Barra de Contexto de Campaña */}
-            <div className="px-4 py-1.5 bg-gray-100/70 border-b border-gray-100 flex items-center justify-between text-[11px] text-gray-500 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
+            <div className="px-4 py-1.5 bg-gray-100/70 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-700 dark:text-gray-300">Origen:</span>
                 <span>{activeConversation.campaignSource}</span>
                 {activeConversation.leadMagnetUsed && (
-                  <span className="rounded bg-brand-100/50 text-brand-700 px-1.5 py-0.5 text-[10px] dark:bg-brand-950/50 dark:text-brand-300 font-mono">
+                  <span className="rounded bg-brand-100/50 text-brand-700 px-1.5 py-0.5 text-xs dark:bg-brand-950/50 dark:text-brand-300 font-mono">
                     Recurso: {activeConversation.leadMagnetUsed}
                   </span>
                 )}
@@ -452,14 +452,14 @@ export default function InboxPage() {
                   >
                     <div className="flex items-center justify-between gap-4 mb-1">
                       <span
-                        className={`text-[10px] font-bold ${
+                        className={`text-xs font-bold ${
                           msg.isSender ? "text-white/80" : "text-brand-600 dark:text-brand-400"
                         }`}
                       >
                         {msg.senderName}
                       </span>
                       <span
-                        className={`text-[9px] ${
+                        className={`text-xs ${
                           msg.isSender ? "text-white/70" : "text-gray-400"
                         }`}
                       >
@@ -481,12 +481,12 @@ export default function InboxPage() {
                         <div className="flex items-center gap-2">
                           <FileText className="size-5 text-red-400" />
                           <div>
-                            <p className="text-[11px] font-semibold truncate max-w-[200px]">
+                            <p className="text-xs font-semibold truncate max-w-[200px]">
                               {msg.attachment.name}
                             </p>
                             {msg.attachment.size && (
                               <p
-                                className={`text-[9px] ${
+                                className={`text-xs ${
                                   msg.isSender ? "text-white/70" : "text-gray-400"
                                 }`}
                               >
@@ -498,7 +498,7 @@ export default function InboxPage() {
                         <button
                           type="button"
                           onClick={() => showNotice(`Descargando ${msg.attachment?.name}...`)}
-                          className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
+                          className={`rounded-md px-2 py-1 text-xs font-semibold transition ${
                             msg.isSender
                               ? "bg-white text-brand-600 hover:bg-white/90"
                               : "bg-brand-500 text-white hover:bg-brand-600"
@@ -539,9 +539,9 @@ export default function InboxPage() {
                           </button>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-semibold">Nota de Voz LinkedIn</span>
+                              <span className="text-xs font-semibold">Nota de Voz LinkedIn</span>
                               <span
-                                className={`text-[9px] ${
+                                className={`text-xs ${
                                   msg.isSender ? "text-white/80" : "text-gray-400"
                                 }`}
                               >
@@ -579,7 +579,7 @@ export default function InboxPage() {
                     SDR Co-Pilot (Respuestas Sugeridas con IA):
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   Haz clic para insertar o enviar directo
                 </span>
               </div>
@@ -590,21 +590,21 @@ export default function InboxPage() {
                     key={idx}
                     className="group relative rounded-xl border border-brand-200 bg-white p-2.5 shadow-2xs hover:border-brand-500 hover:shadow-xs transition dark:border-gray-700 dark:bg-gray-800"
                   >
-                    <p className="text-[11px] text-gray-700 dark:text-gray-300 line-clamp-3">
+                    <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">
                       "{suggestion}"
                     </p>
                     <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between dark:border-gray-700/60">
                       <button
                         type="button"
                         onClick={() => handleSelectAiSuggestion(suggestion)}
-                        className="text-[10px] font-semibold text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-300"
+                        className="text-xs font-semibold text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-300"
                       >
                         Cargar en texto
                       </button>
                       <button
                         type="button"
                         onClick={() => handleSendAiSuggestionDirectly(suggestion)}
-                        className="text-[10px] font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center gap-1"
+                        className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center gap-1"
                       >
                         <span>Enviar</span>
                         <ArrowRight className="size-2.5" />

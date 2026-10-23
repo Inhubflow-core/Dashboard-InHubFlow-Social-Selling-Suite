@@ -107,7 +107,7 @@ export default function SecuritySettingsPage() {
               </button>
             )}
           </div>
-          <span className="text-[11px] text-gray-400">
+          <span className="text-xs text-gray-400">
             Mantén esta clave confidencial. Otorga acceso total a los prospectos y campañas de tu espacio de trabajo.
           </span>
         </div>
@@ -179,7 +179,7 @@ export default function SecuritySettingsPage() {
                 <div className="text-gray-400">Santiago, Chile • IP: 190.161.42.10</div>
               </div>
             </div>
-            <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+            <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
               ACTIVA AHORA
             </span>
           </div>

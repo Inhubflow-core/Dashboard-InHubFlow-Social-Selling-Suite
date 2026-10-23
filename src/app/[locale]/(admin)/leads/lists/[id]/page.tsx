@@ -259,7 +259,7 @@ export default function DynamicListDetailPage() {
           <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                   currentList.signalLevel === "level_1"
                     ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                     : currentList.signalLevel === "level_2"
@@ -279,12 +279,12 @@ export default function DynamicListDetailPage() {
               </span>
 
               {isMonitorDeleted ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-[10px] font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
                   <span className="size-1.5 rounded-full bg-red-500"></span>
                   Monitor de Señales eliminado
                 </span>
               ) : (
-                <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
                   Segmento Activo
                 </span>
               )}
@@ -322,7 +322,7 @@ export default function DynamicListDetailPage() {
                   {currentList.keywords.map((kw, i) => (
                     <span
                       key={i}
-                      className="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.2 text-[10px] font-medium text-gray-700 dark:text-gray-300"
+                      className="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.2 text-xs font-medium text-gray-700 dark:text-gray-300"
                     >
                       {kw}
                     </span>
@@ -407,7 +407,7 @@ export default function DynamicListDetailPage() {
             <p className="font-semibold text-gray-600 dark:text-gray-300">
               No se encontraron prospectos en esta lista con los filtros seleccionados.
             </p>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-xs text-gray-400">
               Cuando el radar audite o capture nuevas interacciones, aparecerán automáticamente en esta vista.
             </p>
           </div>
@@ -447,7 +447,7 @@ export default function DynamicListDetailPage() {
                               </h4>
                               {lead.language && (
                                 <span
-                                  className={`rounded px-1.5 py-0.2 text-[9px] font-bold border shrink-0 ${
+                                  className={`rounded px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
                                     lead.language === "en"
                                       ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       : lead.language === "pt"
@@ -460,7 +460,7 @@ export default function DynamicListDetailPage() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
                               {lead.location && !/no especificado/i.test(lead.location)
                                 ? lead.location
                                 : "Remoto"}
@@ -482,7 +482,7 @@ export default function DynamicListDetailPage() {
                       {/* Columna: Origen de Señal */}
                       <td className="py-3.5 pr-2 whitespace-nowrap">
                         <span
-                          className="rounded-md bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={lead.signalSource}
                         >
                           {truncateText(lead.signalSource, 26)}
@@ -496,14 +496,14 @@ export default function DynamicListDetailPage() {
 
                       {/* Columna: Etapa CRM */}
                       <td className="py-3.5 pr-2 whitespace-nowrap">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold inline-block ${stageBadge.color}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold inline-block ${stageBadge.color}`}>
                           {stageBadge.label}
                         </span>
                       </td>
 
                       {/* Columna: Estado Secuencia */}
                       <td className="py-3.5 pr-2 whitespace-nowrap">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold inline-block ${sequenceBadge.color}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold inline-block ${sequenceBadge.color}`}>
                           {sequenceBadge.label}
                         </span>
                       </td>
@@ -554,7 +554,7 @@ export default function DynamicListDetailPage() {
                     </h3>
                     {selectedLeadFor360.language && (
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold border shrink-0 ${
+                        className={`rounded px-1.5 py-0.5 text-xs font-bold border shrink-0 ${
                           selectedLeadFor360.language === "en"
                             ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                             : selectedLeadFor360.language === "pt"
@@ -580,7 +580,7 @@ export default function DynamicListDetailPage() {
                       href={selectedLeadFor360.linkedinUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 font-semibold inline-flex items-center gap-1 mt-0.5"
+                      className="text-xs text-brand-600 hover:underline dark:text-brand-400 font-semibold inline-flex items-center gap-1 mt-0.5"
                     >
                       Ver Perfil en LinkedIn &rarr;
                     </a>
@@ -599,7 +599,7 @@ export default function DynamicListDetailPage() {
 
             {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
             <div className="rounded-xl border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 block mb-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 block mb-1">
                 Cargo y Titular Completo en LinkedIn
               </span>
               <p className="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
@@ -610,19 +610,19 @@ export default function DynamicListDetailPage() {
             {/* Datos de Contacto y Estado Rápido */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-xl dark:bg-gray-800/50 text-xs">
               <div>
-                <span className="text-[10px] text-gray-400 uppercase font-semibold block">Email Corporativo</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold block">Email Corporativo</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
                   {selectedLeadFor360.email || "No disponible"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-gray-400 uppercase font-semibold block">Telefono</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold block">Telefono</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
                   {selectedLeadFor360.phone || "No disponible"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">Puntuación de Intención</span>
+                <span className="text-xs text-gray-400 uppercase font-semibold block mb-1">Puntuación de Intención</span>
                 <LeadScoreBadge score={selectedLeadFor360.intentScore} size="md" />
               </div>
             </div>
@@ -693,7 +693,7 @@ export default function DynamicListDetailPage() {
                       <h5 className="text-xs font-bold text-gray-900 dark:text-white">
                         {event.title}
                       </h5>
-                      <span className="text-[10px] text-gray-400">{event.timestamp}</span>
+                      <span className="text-xs text-gray-400">{event.timestamp}</span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
                       {event.detail}

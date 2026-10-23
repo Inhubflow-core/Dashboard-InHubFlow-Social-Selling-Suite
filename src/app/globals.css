@@ -334,7 +334,7 @@
   @apply p-0!;
 }
 .apexcharts-tooltip-title {
-  @apply mb-0! border-b-0! bg-transparent! p-0! text-[10px]! leading-4! text-gray-800! dark:text-white/90!;
+  @apply mb-0! border-b-0! bg-transparent! p-0! text-xs! leading-4! text-gray-800! dark:text-white/90!;
 }
 .apexcharts-tooltip-text {
   @apply text-theme-xs! text-gray-700! dark:text-white/90!;

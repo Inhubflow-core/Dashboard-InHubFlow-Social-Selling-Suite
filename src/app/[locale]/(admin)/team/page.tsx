@@ -355,14 +355,14 @@ export default function TeamManagementPage() {
                       <div className="font-semibold text-gray-900 dark:text-white">
                         {currentUser.name}
                       </div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         {currentUser.email}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     isSuperAdmin
                       ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                       : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
@@ -376,12 +376,12 @@ export default function TeamManagementPage() {
                   </span>
                 </td>
                 <td className="px-5 py-4">
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
                     Activo
                   </span>
                 </td>
                 <td className="px-5 py-4 text-right text-gray-400">
-                  <span className="text-[11px]">Cuenta Principal</span>
+                  <span className="text-xs">Cuenta Principal</span>
                 </td>
               </tr>
 
@@ -397,14 +397,14 @@ export default function TeamManagementPage() {
                         <div className="font-semibold text-gray-900 dark:text-white">
                           {m.name}
                         </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {m.email}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                    <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
                       Team · {m.role === "admin" ? "Co-Admin" : "Operador SDR"}
                     </span>
                   </td>
@@ -419,7 +419,7 @@ export default function TeamManagementPage() {
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
                       Activo
                     </span>
                   </td>
@@ -466,7 +466,7 @@ export default function TeamManagementPage() {
                       {inv.email}
                     </td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600">
+                      <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
                         Team · {inv.role === "admin" ? "Co-Admin" : "Operador"}
                       </span>
                     </td>
@@ -477,7 +477,7 @@ export default function TeamManagementPage() {
                         </code>
                         <button
                           onClick={() => handleCopyLink(inv.inviteUrl, inv.id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-[11px] hover:bg-gray-50 dark:border-gray-700"
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700"
                         >
                           <Copy className="size-3" />
                           <span>{copiedId === inv.id ? "Copiado!" : "Copiar Enlace"}</span>
@@ -488,7 +488,7 @@ export default function TeamManagementPage() {
                       {new Date(inv.expiresAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-500">
+                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
                         Pendiente
                       </span>
                     </td>

@@ -99,7 +99,7 @@ export default function PlansPricingPage() {
             }`}
           >
             <span>Facturacion Anual</span>
-            <span className="rounded bg-white/20 px-1 py-0.5 text-[10px] font-bold text-white">
+            <span className="rounded bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
               Ahorra 20%
             </span>
           </button>
@@ -122,7 +122,7 @@ export default function PlansPricingPage() {
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0099ff] px-3.5 py-0.5 text-[11px] font-bold text-white uppercase tracking-wider">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0099ff] px-3.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                   Recomendado
                 </div>
               )}
@@ -164,7 +164,7 @@ export default function PlansPricingPage() {
                   </span>
                 </div>
                 {billingCycle === "annual" && (
-                  <div className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+                  <div className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
                     Facturado anualmente (${price * 12}/ano)
                   </div>
                 )}

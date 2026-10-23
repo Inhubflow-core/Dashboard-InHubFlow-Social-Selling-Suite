@@ -415,7 +415,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-2 flex text-[11px] font-medium tracking-wider text-gray-400 dark:text-gray-500 uppercase ${
+                className={`mb-2 flex text-xs font-medium tracking-wider text-gray-400 dark:text-gray-500 uppercase ${
                   !isExpanded && !isHovered
                     ? "xl:justify-center"
                     : "justify-start"
@@ -454,7 +454,7 @@ const AppSidebar: React.FC = () => {
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
                       <span className="truncate font-semibold">SuperAdmin</span>
-                      <span className="ms-auto text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
                         MASTER
                       </span>
                     </>
@@ -488,7 +488,7 @@ const AppSidebar: React.FC = () => {
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
                       <span className="truncate font-semibold">Admin</span>
-                      <span className="ms-auto text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                         TEAM
                       </span>
                     </>

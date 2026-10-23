@@ -47,7 +47,7 @@ export default function LanguageSwitcher() {
 
       {isOpen && (
         <div className="absolute end-0 top-full z-99999 mt-2 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark">
-          <p className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          <p className="px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
             {t("language")}
           </p>
           <div className="space-y-0.5">
@@ -68,7 +68,7 @@ export default function LanguageSwitcher() {
                 >
                   <div className="flex items-center gap-2.5">
                     <span
-                      className={`inline-flex min-w-[2.25rem] items-center justify-center rounded px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase ${
+                      className={`inline-flex min-w-[2.25rem] items-center justify-center rounded px-1.5 py-0.5 font-mono text-xs font-bold uppercase ${
                         isSelected
                           ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                           : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"

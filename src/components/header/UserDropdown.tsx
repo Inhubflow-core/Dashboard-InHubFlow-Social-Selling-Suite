@@ -8,6 +8,8 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
 import { getPlanConfig } from "@/lib/saas/plans";
+import { getActiveAccountForUser, addStoredAccount } from "@/lib/unipile/store";
+import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import { useTranslations } from "next-intl";
 import {
   ShieldCheck,
@@ -23,6 +25,7 @@ import {
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [activeLinkedInAccount, setActiveLinkedInAccount] = useState<ConnectedLinkedInAccount | null>(null);
   const t = useTranslations("userDropdown");
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export default function UserDropdown() {
   }, []);
 
   const {
+    currentUser,
     sessionUser,
     isImpersonating,
     isSuperAdmin,
@@ -39,7 +43,64 @@ export default function UserDropdown() {
     switchSessionUser,
   } = useAuth();
 
-  const plan = getPlanConfig(sessionUser.planTier);
+  useEffect(() => {
+    const updateAccount = () => {
+      const found = getActiveAccountForUser(currentUser);
+      setActiveLinkedInAccount(found);
+    };
+
+    updateAccount();
+
+    fetch("/api/unipile/accounts")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+          data.accounts.forEach((remoteAcc: ConnectedLinkedInAccount) => {
+            addStoredAccount(remoteAcc);
+          });
+          updateAccount();
+        }
+      })
+      .catch(() => {});
+
+    window.addEventListener("storage", updateAccount);
+    window.addEventListener("inhubflow-account-update", updateAccount);
+    return () => {
+      window.removeEventListener("storage", updateAccount);
+      window.removeEventListener("inhubflow-account-update", updateAccount);
+    };
+  }, [currentUser]);
+
+  const plan = getPlanConfig(currentUser.planTier);
+
+  const isHealthy = Boolean(activeLinkedInAccount && activeLinkedInAccount.status === "OK");
+  const needsAttention = Boolean(
+    activeLinkedInAccount &&
+      (activeLinkedInAccount.status === "CREDENTIALS" ||
+        activeLinkedInAccount.status === "CHECKPOINT" ||
+        activeLinkedInAccount.status === "STOPPED" ||
+        activeLinkedInAccount.status === "ERROR")
+  );
+
+  const dotColorClass = isHealthy
+    ? "bg-emerald-500 ring-emerald-200 dark:ring-emerald-900"
+    : needsAttention
+    ? "bg-amber-500 ring-amber-300 dark:ring-amber-900 animate-pulse"
+    : "bg-gray-400 ring-gray-200 dark:ring-gray-700";
+
+  const subtitleText = isHealthy
+    ? "LinkedIn Conectado"
+    : needsAttention
+    ? "Reconexión requerida"
+    : currentUser.role === "super_admin"
+    ? t("superAdmin")
+    : plan.name;
+
+  const subtitleColorClass = isHealthy
+    ? "text-emerald-600 dark:text-emerald-400 font-medium"
+    : needsAttention
+    ? "text-amber-600 dark:text-amber-400 font-semibold"
+    : "text-gray-500 dark:text-gray-400";
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -59,12 +120,18 @@ export default function UserDropdown() {
     closeDropdown();
   };
 
-  const renderAvatar = (user: typeof sessionUser, size = 40) => {
-    const isSuperAdmin = user.role === "super_admin" || user.email.toLowerCase() === "inhubflow@gmail.com";
+  const renderAvatar = (user: typeof currentUser, size = 40) => {
+    const isSuperAdminUser = user.role === "super_admin" || user.email.toLowerCase() === "inhubflow@gmail.com";
     const isRoberto = (user.name || "").toLowerCase().includes("roberto");
+    const linkedInPhoto = activeLinkedInAccount?.profilePictureUrl;
     let photo = user.avatarUrl;
-    if (isRoberto && (!photo || photo.includes("owner.png"))) {
-      photo = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+
+    if (!isSuperAdminUser) {
+      if (linkedInPhoto && !linkedInPhoto.includes("owner.png")) {
+        photo = linkedInPhoto;
+      } else if (isRoberto && (!photo || photo.includes("owner.png"))) {
+        photo = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+      }
     }
 
     if (photo && photo.startsWith("http")) {
@@ -80,7 +147,7 @@ export default function UserDropdown() {
         />
       );
     }
-    if (photo && isSuperAdmin) {
+    if (photo && isSuperAdminUser) {
       return (
         <Image
           width={size}
@@ -114,18 +181,23 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         suppressHydrationWarning
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
-        title={`Cuenta Titular Logada: ${sessionUser.name}`}
+        title={`${currentUser.name} (${subtitleText})`}
       >
-        <span className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
-          {renderAvatar(sessionUser, 40)}
-        </span>
+        <div className="relative me-2.5 shrink-0">
+          <span className="h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
+            {renderAvatar(currentUser, 40)}
+          </span>
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-white dark:ring-gray-900 ${dotColorClass}`}
+          />
+        </div>
 
         <div className="hidden text-left xl:block me-2">
           <span suppressHydrationWarning className="block text-theme-xs font-bold text-gray-900 dark:text-white">
-            {sessionUser.name}
+            {currentUser.name}
           </span>
-          <span suppressHydrationWarning className="block text-xs text-gray-500 dark:text-gray-400">
-            {isSuperAdmin && sessionUser.role === "super_admin" ? t("superAdmin") : plan.name}
+          <span suppressHydrationWarning className={`block text-xs ${subtitleColorClass}`}>
+            {subtitleText}
           </span>
         </div>
 
@@ -141,26 +213,31 @@ export default function UserDropdown() {
         onClose={closeDropdown}
         className="absolute mt-4.25 flex w-80 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
       >
-        {/* Cabecera de la cuenta titular logada */}
+        {/* Cabecera del usuario activo */}
         <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
-              {renderAvatar(sessionUser, 40)}
+            <div className="relative shrink-0">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
+                {renderAvatar(currentUser, 40)}
+              </div>
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-white dark:ring-gray-900 ${dotColorClass}`}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">
-                {sessionUser.name}
+                {currentUser.name}
               </span>
               <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
-                {sessionUser.email}
+                {currentUser.email}
               </span>
             </div>
           </div>
 
-          {/* Badge del Rol y Capacidad de la cuenta titular */}
+          {/* Badge del Rol y Capacidad del usuario activo */}
           <div className="mt-2.5 flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800/60">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-              {sessionUser.role === "super_admin" ? (
+              {currentUser.role === "super_admin" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-[#0099ff]" />
                   <span>{t("superAdmin")}</span>
@@ -168,12 +245,12 @@ export default function UserDropdown() {
               ) : (
                 <>
                   <Building className="size-3.5 text-[#0099ff]" />
-                  <span className="truncate max-w-[130px]">{sessionUser.companyName}</span>
+                  <span className="truncate max-w-[130px]">{currentUser.companyName || plan.name}</span>
                 </>
               )}
             </div>
             <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-xs font-bold text-[#0099ff]">
-              {sessionUser.role === "super_admin"
+              {currentUser.role === "super_admin"
                 ? t("unlimitedSlots")
                 : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}
             </span>

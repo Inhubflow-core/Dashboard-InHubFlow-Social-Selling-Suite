@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useLeadsStore } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { LeadListGroup } from "@/lib/leads/types";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -302,7 +303,7 @@ export default function SignalListsPage() {
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                           list.signalLevel === "level_1"
                             ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                             : list.signalLevel === "level_2"
@@ -322,14 +323,14 @@ export default function SignalListsPage() {
                       </span>
 
                       {isMonDeleted && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-[10px] font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
                           Monitor de Señales eliminado
                         </span>
                       )}
 
                       {isHighlighted && (
-                        <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                        <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
                           Lista Seleccionada
                         </span>
                       )}
@@ -350,7 +351,7 @@ export default function SignalListsPage() {
                     {/* Metadatos horizontales inline */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-gray-400 text-[11px]">Origen:</span>
+                        <span className="text-gray-400 text-xs">Origen:</span>
                         <span className="font-semibold text-gray-700 dark:text-gray-300">
                           {list.signalSource}
                         </span>
@@ -358,7 +359,7 @@ export default function SignalListsPage() {
 
                       {list.competitorName && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-[11px]">Competidor:</span>
+                          <span className="text-gray-400 text-xs">Competidor:</span>
                           <span className="font-bold text-purple-700 dark:text-purple-300">
                             {list.competitorName}
                           </span>
@@ -367,7 +368,7 @@ export default function SignalListsPage() {
 
                       {list.groupName && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-[11px]">Grupo:</span>
+                          <span className="text-gray-400 text-xs">Grupo:</span>
                           <span className="font-bold text-emerald-700 dark:text-emerald-300">
                             {list.groupName}
                           </span>
@@ -376,11 +377,11 @@ export default function SignalListsPage() {
 
                       {list.keywords && list.keywords.length > 0 && (
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-gray-400 text-[11px]">Filtros:</span>
+                          <span className="text-gray-400 text-xs">Filtros:</span>
                           {list.keywords.map((kw, i) => (
                             <span
                               key={i}
-                              className="rounded bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:text-gray-300"
+                              className="rounded bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300"
                             >
                               {kw}
                             </span>
@@ -390,7 +391,7 @@ export default function SignalListsPage() {
 
                       {list.assignedCampaign && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 text-[11px]">Campaña:</span>
+                          <span className="text-gray-400 text-xs">Campaña:</span>
                           <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[240px]">
                             {list.assignedCampaign}
                           </span>
@@ -405,7 +406,7 @@ export default function SignalListsPage() {
                       <span className="text-lg font-black text-brand-600 dark:text-brand-400 tracking-tight">
                         {count}
                       </span>
-                      <span className="block text-[10px] uppercase font-bold text-gray-400 -mt-0.5">
+                      <span className="block text-xs uppercase font-bold text-gray-400 -mt-0.5">
                         Leads
                       </span>
                     </div>
@@ -429,11 +430,9 @@ export default function SignalListsPage() {
                         type="button"
                         onClick={() => handleDeleteList(list)}
                         title="Eliminar lista y todos sus prospectos"
-                        className="rounded-lg p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 transition"
+                        className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        <X className="size-3.5" />
                       </button>
                     </div>
                   </div>

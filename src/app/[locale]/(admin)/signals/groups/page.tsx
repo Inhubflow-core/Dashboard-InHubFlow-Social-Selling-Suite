@@ -313,7 +313,7 @@ export default function LinkedInGroupsSignalRadarPage() {
       </div>
 
       {/* Explicación de la Estrategia */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
             Mecanica de Prospeccion en Grupos de LinkedIn (Nivel 3)
@@ -408,12 +408,12 @@ export default function LinkedInGroupsSignalRadarPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Optimo
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                         {opt.tag}
                       </span>
                     </button>
@@ -484,7 +484,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                 onChange={(e) => setOutreachTemplate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
-              <span className="text-[10px] text-gray-400 mt-1 block">
+              <span className="text-xs text-gray-400 mt-1 block">
                 Variables disponibles: &#123;&#123;first_name&#125;&#125;, &#123;&#123;group_name&#125;&#125;, &#123;&#123;topic&#125;&#125;.
               </span>
             </div>
@@ -508,30 +508,6 @@ export default function LinkedInGroupsSignalRadarPage() {
           </form>
         </ComponentCard>
       )}
-
-      {/* Barra de Cuenta Conectada */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo:
-          </span>
-          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
-            {currentDisplayName}
-          </span>
-          <span
-            suppressHydrationWarning
-            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-              activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-            }`}
-          >
-            {activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-              ? "CONECTADA EN LINKEDIN"
-              : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
-          </span>
-        </div>
-      </div>
 
       {/* Banner de Feedback */}
       {scanFeedback && (
@@ -589,7 +565,7 @@ export default function LinkedInGroupsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Comunidad / Grupo</th>
                   <th className="px-4 py-3 min-w-[160px]">Tematicas / Dolores</th>
@@ -619,7 +595,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white">
                                   {group.groupName}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                   Grupo
                                 </span>
                               </div>
@@ -627,7 +603,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                 href={group.groupUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
+                                className="text-xs text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
                               >
                                 {group.groupUrl}
                               </a>
@@ -642,7 +618,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                       [group.id]: !isExpanded,
                                     }))
                                   }
-                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                  className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
                                 >
                                   <MessageSquare className="h-3 w-3" />
                                   <span>
@@ -657,7 +633,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   )}
                                 </button>
                               ) : (
-                                <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
                                   Sin debates analizados. Pulsa &quot;Escanear&quot; para auditar el grupo.
                                 </span>
                               )}
@@ -670,13 +646,13 @@ export default function LinkedInGroupsSignalRadarPage() {
                             {group.topicsFilter.map((topic, i) => (
                               <span
                                 key={i}
-                                className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               >
                                 {topic}
                               </span>
                             ))}
                             {group.minCommentThreshold && (
-                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-[10px] font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                                 &gt;={group.minCommentThreshold} coms
                               </span>
                             )}
@@ -687,21 +663,21 @@ export default function LinkedInGroupsSignalRadarPage() {
                           <span className="font-bold text-gray-900 dark:text-white">
                             {leadCount}
                           </span>
-                          <span className="text-[11px] text-gray-400 block">decisores</span>
+                          <span className="text-xs text-gray-400 block">decisores</span>
                         </td>
 
                         <td className="px-4 py-3.5 align-top whitespace-nowrap">
                           <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {group.lastScanAt || "Pendiente"}
                           </span>
-                          <span className="text-[10px] text-gray-400 block">Frecuencia Diaria</span>
+                          <span className="text-xs text-gray-400 block">Frecuencia Diaria</span>
                         </td>
 
                         <td className="px-4 py-3.5 align-top whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => toggleLevel3GroupStatus(group.id)}
-                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition ${
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
                               group.status === "active"
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
@@ -715,7 +691,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamano de lote para la proxima auditoria"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -763,7 +739,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   ) : (
                                     <>
                                       <span>Escanear</span>
-                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                         {activeBatch}
                                       </span>
                                     </>
@@ -836,7 +812,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
                                   <span>Debates de la Comunidad Analizados ({scannedPosts.length})</span>
                                 </span>
-                                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                                   Actividad en {group.groupName}
                                 </span>
                               </div>
@@ -852,14 +828,14 @@ export default function LinkedInGroupsSignalRadarPage() {
                                         <span className="font-semibold text-gray-900 dark:text-white text-xs">
                                           {post.authorName || group.groupName}
                                         </span>
-                                        <span className="text-[10px] text-gray-400">
+                                        <span className="text-xs text-gray-400">
                                           {post.scannedAt || "Reciente"}
                                         </span>
                                       </div>
                                       <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
                                         {post.text}
                                       </p>
-                                      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500 font-medium">
+                                      <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 font-medium">
                                         <span>{post.commentsCount || 0} comentarios</span>
                                         <span>{post.reactionsCount || 0} reacciones</span>
                                       </div>
@@ -870,7 +846,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                         href={post.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="shrink-0 text-[11px] font-semibold text-brand-600 hover:underline dark:text-brand-400 flex items-center gap-1 mt-1"
+                                        className="shrink-0 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400 flex items-center gap-1 mt-1"
                                       >
                                         <span>Ver en LinkedIn</span>
                                         <ExternalLink className="h-3 w-3" />

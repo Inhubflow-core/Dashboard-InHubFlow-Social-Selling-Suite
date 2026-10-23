@@ -555,7 +555,7 @@ export default function CompetitorsSignalRadarPage() {
       </div>
 
       {/* Explicación de la Estrategia */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
             Mecánica de Prospección a Competidores (Nivel 2)
@@ -589,7 +589,7 @@ export default function CompetitorsSignalRadarPage() {
                     Nombre de la Cuenta o Competidor
                   </label>
                   {isSearching && (
-                    <span className="flex items-center gap-1 text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                    <span className="flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400 font-medium">
                       <span className="h-2.5 w-2.5 rounded-full border-2 border-brand-500 border-t-transparent animate-spin"></span>
                       Buscando en LinkedIn...
                     </span>
@@ -643,7 +643,7 @@ export default function CompetitorsSignalRadarPage() {
                     {/* Header con tabs de categoría y botón cerrar */}
                     <div className="p-2.5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                           Sugerencias de LinkedIn ({searchResults.length} resultados)
                         </span>
                         <button
@@ -661,7 +661,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("all")}
-                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition ${
+                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition ${
                             searchCategoryFilter === "all"
                               ? "bg-white text-gray-900 shadow-xs dark:bg-gray-700 dark:text-white"
                               : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -672,7 +672,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("companies")}
-                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1 ${
                             searchCategoryFilter === "companies"
                               ? "bg-white text-blue-700 shadow-xs dark:bg-gray-700 dark:text-blue-300"
                               : "text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300"
@@ -683,7 +683,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("people")}
-                          className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1 ${
                             searchCategoryFilter === "people"
                               ? "bg-white text-purple-700 shadow-xs dark:bg-gray-700 dark:text-purple-300"
                               : "text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-300"
@@ -739,10 +739,10 @@ export default function CompetitorsSignalRadarPage() {
                                   <p className="font-semibold text-gray-900 dark:text-white truncate">
                                     {item.name}
                                   </p>
-                                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     {item.headline || item.industry}
                                   </p>
-                                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400">
+                                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400">
                                     <span>{item.location || "Global"}</span>
                                     {item.followers && (
                                       <>
@@ -758,15 +758,15 @@ export default function CompetitorsSignalRadarPage() {
 
                               <div className="shrink-0 flex flex-col items-end gap-1">
                                 {isCompany ? (
-                                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/60 dark:border-blue-900 dark:text-blue-300">
+                                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-bold text-blue-700 dark:bg-blue-950/60 dark:border-blue-900 dark:text-blue-300">
                                     Empresa
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/60 dark:border-purple-900 dark:text-purple-300">
+                                  <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/60 dark:border-purple-900 dark:text-purple-300">
                                     Perfil
                                   </span>
                                 )}
-                                <span className="text-[9px] text-gray-400 font-mono">LinkedIn</span>
+                                <span className="text-xs text-gray-400 font-mono">LinkedIn</span>
                               </div>
                             </div>
                           );
@@ -775,7 +775,7 @@ export default function CompetitorsSignalRadarPage() {
                     </div>
 
                     {/* Footer informativo de scroll */}
-                    <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
+                    <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
                       <span>Desplaza con el cursor para explorar más opciones</span>
                       <span className="font-semibold text-brand-600 dark:text-brand-400">
                         {filteredSearchResults.length} opciones
@@ -800,18 +800,18 @@ export default function CompetitorsSignalRadarPage() {
                         {selectedCompetitorItem.type === "person" ? "Perfil referente vinculado: " : "Cuenta oficial de empresa vinculada: "}
                       </span>
                       <span className="font-semibold underline">{selectedCompetitorItem.name}</span>
-                      <span className="ml-1.5 inline-block text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
+                      <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
                         {selectedCompetitorItem.type === "person" ? "Perfil" : "Empresa"}
                       </span>
                       {selectedCompetitorItem.followers && (
-                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 ml-1.5">
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400 ml-1.5">
                           • {selectedCompetitorItem.followers}
                         </span>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <span className="text-[10px] text-gray-400 mt-1 block">
+                  <span className="text-xs text-gray-400 mt-1 block">
                     Busca una empresa o referente del sector para autocompletar su información.
                   </span>
                 )}
@@ -829,7 +829,7 @@ export default function CompetitorsSignalRadarPage() {
                   placeholder="Ej. Agentes IA, Prospección B2B, Outreach..."
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Separa por comas. Si se define, solo se auditarán posts que contengan estos temas.
                 </span>
               </div>
@@ -863,18 +863,18 @@ export default function CompetitorsSignalRadarPage() {
                           {thresh.label}
                         </span>
                         {thresh.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                         {thresh.tag}
                       </span>
                     </button>
                   ))}
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
                 </span>
               </div>
@@ -905,18 +905,18 @@ export default function CompetitorsSignalRadarPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-[9px] font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
                             Óptimo
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                         {opt.tag}
                       </span>
                     </button>
                   ))}
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
                 </span>
               </div>
@@ -964,7 +964,7 @@ export default function CompetitorsSignalRadarPage() {
                     <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
                       Descartar engagement de colaboradores del autor
                     </span>
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                       Descarta interacciones de empleados del competidor para extraer clientes potenciales reales.
                     </span>
                   </div>
@@ -983,7 +983,7 @@ export default function CompetitorsSignalRadarPage() {
                 onChange={(e) => setOutreachTemplate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
-              <span className="text-[10px] text-gray-400 mt-1 block">
+              <span className="text-xs text-gray-400 mt-1 block">
                 Mensaje base para la secuencia de contacto relacional hacia quienes interactúen con el contenido del competidor.
               </span>
             </div>
@@ -1007,30 +1007,6 @@ export default function CompetitorsSignalRadarPage() {
           </form>
         </ComponentCard>
       )}
-
-      {/* Barra de Cuenta Conectada & Estado de Escucha */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo:
-          </span>
-          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
-            {currentDisplayName}
-          </span>
-          <span
-            suppressHydrationWarning
-            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-              activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-            }`}
-          >
-            {activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-              ? "CONECTADA EN LINKEDIN"
-              : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
-          </span>
-        </div>
-      </div>
 
       {/* Banner de Feedback de Auditoría */}
       {scanFeedback && (
@@ -1088,7 +1064,7 @@ export default function CompetitorsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta Objetivo</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabras Clave</th>
@@ -1139,7 +1115,7 @@ export default function CompetitorsSignalRadarPage() {
                                   {comp.competitorName}
                                 </p>
                                 <span
-                                  className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
+                                  className={`rounded-full px-1.5 py-0.2 text-xs font-bold ${
                                     isPerson
                                       ? "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                                       : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
@@ -1152,7 +1128,7 @@ export default function CompetitorsSignalRadarPage() {
                                 href={comp.competitorUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
+                                className="text-xs text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
                               >
                                 {comp.competitorUrl}
                               </a>
@@ -1167,7 +1143,7 @@ export default function CompetitorsSignalRadarPage() {
                                       [comp.id]: !isExpanded,
                                     }))
                                   }
-                                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                  className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
                                   title={isExpanded ? "Ocultar las publicaciones analizadas" : "Ver todas las publicaciones analizadas"}
                                 >
                                   <span>🔗</span>
@@ -1176,10 +1152,10 @@ export default function CompetitorsSignalRadarPage() {
                                       ? "Ocultar Publicaciones"
                                       : `Ver todas las Publicaciones (${scannedPosts.length})`}
                                   </span>
-                                  <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
+                                  <span className="text-xs">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
                               ) : (
-                                <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
                                   Sin posts escaneados. Pulsa &quot;Escanear&quot; para extraer posts reales.
                                 </span>
                               )}
@@ -1192,13 +1168,13 @@ export default function CompetitorsSignalRadarPage() {
                             {comp.keywordsFilter.map((kw, i) => (
                               <span
                                 key={i}
-                                className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               >
                                 {kw}
                               </span>
                             ))}
                             {comp.minCommentThreshold && (
-                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-[10px] font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                                 +{comp.minCommentThreshold} com.
                               </span>
                             )}
@@ -1217,7 +1193,7 @@ export default function CompetitorsSignalRadarPage() {
                           <button
                             type="button"
                             onClick={() => toggleLevel2Status(comp.id)}
-                            className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                            className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
                               comp.status === "active"
                                 ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1231,7 +1207,7 @@ export default function CompetitorsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la próxima auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1279,7 +1255,7 @@ export default function CompetitorsSignalRadarPage() {
                                   ) : (
                                     <>
                                       <span>Escanear</span>
-                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                         {activeBatch}
                                       </span>
                                     </>
@@ -1352,7 +1328,7 @@ export default function CompetitorsSignalRadarPage() {
                                   <span>🔗</span>
                                   <span>Publicación(es) de LinkedIn Monitoreada(s): Post de la Competencia ({scannedPosts.length})</span>
                                 </span>
-                                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                                   Tracción en {comp.competitorName}
                                 </span>
                               </div>
@@ -1370,7 +1346,7 @@ export default function CompetitorsSignalRadarPage() {
                                         </span>
                                         &ldquo;{post.text}&rdquo;
                                       </p>
-                                      <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                                         <span>
                                           {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
                                         </span>
@@ -1471,7 +1447,7 @@ export default function CompetitorsSignalRadarPage() {
                   placeholder="Ej: Agentes IA, Prospección, Automatización"
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-xs text-gray-500">
                   Deja vacío para auditar todos los posts del competidor sin filtro de temáticas.
                 </p>
               </div>
@@ -1577,7 +1553,7 @@ export default function CompetitorsSignalRadarPage() {
                   }
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-xs text-gray-500">
                   Variables disponibles: {"{{first_name}}"}, {"{{competitor_name}}"}, {"{{topic}}"}
                 </p>
               </div>
@@ -1598,7 +1574,7 @@ export default function CompetitorsSignalRadarPage() {
                   <option value="daily">Diaria (Cada 24 horas - Estándar Plataforma)</option>
                   <option value="manual">Solo Manual (Al pulsar &quot;Escanear&quot;)</option>
                 </select>
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-xs text-gray-500">
                   En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.
                 </p>
               </div>
@@ -1625,7 +1601,7 @@ export default function CompetitorsSignalRadarPage() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-xs text-gray-500">
                   Limita la cantidad de perfiles extraídos por escaneo para prevenir restricciones de LinkedIn.
                 </p>
               </div>

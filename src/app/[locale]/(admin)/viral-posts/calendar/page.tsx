@@ -453,7 +453,7 @@ export default function EditorialCalendarPage() {
                           ></span>
                         )}
                         {dayPosts.length > 0 && (
-                          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">
+                          <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
                             {dayPosts.length} {dayPosts.length === 1 ? "post" : "posts"}
                           </span>
                         )}
@@ -478,7 +478,7 @@ export default function EditorialCalendarPage() {
                             e.stopPropagation();
                             setSelectedPostDetails(post);
                           }}
-                          className={`px-2 py-1.5 rounded-lg text-[11px] font-medium border truncate transition-all cursor-grab active:cursor-grabbing hover:scale-[1.02] shadow-2xs flex items-center justify-between gap-1.5 select-none ${
+                          className={`px-2 py-1.5 rounded-lg text-xs font-medium border truncate transition-all cursor-grab active:cursor-grabbing hover:scale-[1.02] shadow-2xs flex items-center justify-between gap-1.5 select-none ${
                             draggedPostId === post.id
                               ? "opacity-30 scale-95 border-dashed border-brand-500"
                               : ""
@@ -499,7 +499,7 @@ export default function EditorialCalendarPage() {
                                 post.status === "published" ? "bg-emerald-500" : "bg-brand-500"
                               }`}
                             ></span>
-                            <span className="font-bold text-[10px] opacity-75 shrink-0">
+                            <span className="font-bold text-xs opacity-75 shrink-0">
                               {post.scheduledAt
                                 ? new Date(post.scheduledAt).toLocaleTimeString([], {
                                     hour: "2-digit",
@@ -513,16 +513,16 @@ export default function EditorialCalendarPage() {
                       ))}
 
                       {isDropTarget && dayPosts.length === 0 && (
-                        <div className="h-full min-h-[40px] flex items-center justify-center border-2 border-dashed border-brand-400 rounded-lg text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                        <div className="h-full min-h-[40px] flex items-center justify-center border-2 border-dashed border-brand-400 rounded-lg text-xs text-brand-600 dark:text-brand-400 font-medium">
                           Soltar aquí
                         </div>
                       )}
                     </div>
 
                     {/* Footer de la celda */}
-                    <div className="flex items-center justify-between text-[9px] text-gray-400 pt-0.5">
+                    <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5">
                       {cell.isPeak && dayPosts.length === 0 && (
-                        <span className="text-brand-500 font-medium text-[8px]">Pico B2B</span>
+                        <span className="text-brand-500 font-medium text-xs">Pico B2B</span>
                       )}
                     </div>
                   </div>
@@ -571,11 +571,11 @@ export default function EditorialCalendarPage() {
                   <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                           {day.name}
                         </p>
                         {day.isToday && (
-                          <span className="rounded bg-brand-500 px-1 py-0.2 text-[8px] font-bold text-white uppercase">
+                          <span className="rounded bg-brand-500 px-1 py-0.2 text-xs font-bold text-white uppercase">
                             Hoy
                           </span>
                         )}
@@ -585,14 +585,14 @@ export default function EditorialCalendarPage() {
                       </h4>
                     </div>
                     {day.isPeak && (
-                      <span className="rounded bg-brand-500 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                      <span className="rounded bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                         Pico B2B
                       </span>
                     )}
                   </div>
 
                   {day.isPeak && (
-                    <div className="my-2 rounded-lg bg-white/90 p-1.5 text-center text-[10px] text-brand-700 font-semibold border border-brand-100 dark:bg-gray-800/80 dark:text-brand-300 dark:border-brand-900/60">
+                    <div className="my-2 rounded-lg bg-white/90 p-1.5 text-center text-xs text-brand-700 font-semibold border border-brand-100 dark:bg-gray-800/80 dark:text-brand-300 dark:border-brand-900/60">
                       Horario: {day.peakTime}
                     </div>
                   )}
@@ -620,7 +620,7 @@ export default function EditorialCalendarPage() {
                       >
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span
-                            className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                            className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase ${
                               post.format === "carousel"
                                 ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                                 : post.format === "image"
@@ -641,7 +641,7 @@ export default function EditorialCalendarPage() {
                           {post.title}
                         </p>
 
-                        <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-1.5">
+                        <div className="mt-2 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-1.5">
                           <span>
                             {post.scheduledAt
                               ? new Date(post.scheduledAt).toLocaleTimeString([], {
@@ -661,7 +661,7 @@ export default function EditorialCalendarPage() {
 
                     {dayPosts.length === 0 && (
                       <div
-                        className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-3 text-center text-[11px] transition ${
+                        className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-3 text-center text-xs transition ${
                           isDropTarget
                             ? "border-brand-500 bg-brand-100/50 text-brand-700 font-bold dark:bg-brand-950/60 dark:text-brand-300"
                             : "border-gray-200 text-gray-400 dark:border-gray-800"
@@ -684,7 +684,7 @@ export default function EditorialCalendarPage() {
           <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             <div className="flex items-start justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div>
-                <span className="text-[10px] uppercase font-bold text-brand-600">
+                <span className="text-xs uppercase font-bold text-brand-600">
                   {selectedPostDetails.format} • {selectedPostDetails.status}
                 </span>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mt-0.5">

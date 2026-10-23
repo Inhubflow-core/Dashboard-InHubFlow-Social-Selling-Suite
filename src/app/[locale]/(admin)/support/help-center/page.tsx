@@ -142,7 +142,7 @@ export default function HelpCenterPage() {
               className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs transition hover:border-[#0099ff] dark:border-gray-800 dark:bg-gray-900"
             >
               <div>
-                <span className="rounded-md bg-[#0099ff]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#0099ff] uppercase">
+                <span className="rounded-md bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                   {guide.category}
                 </span>
                 <h4 className="mt-3 text-sm font-bold text-gray-900 dark:text-white">
@@ -152,7 +152,7 @@ export default function HelpCenterPage() {
                   {guide.desc}
                 </p>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-[11px] text-gray-400 dark:border-gray-800">
+              <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-400 dark:border-gray-800">
                 <span>{guide.readTime}</span>
                 <span className="font-semibold text-[#0099ff]">Leer guía &rarr;</span>
               </div>

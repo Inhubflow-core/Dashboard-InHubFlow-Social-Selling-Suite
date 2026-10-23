@@ -63,7 +63,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
           />
           <div
             className={cn(
-              "truncate text-[11px] font-semibold leading-tight sm:text-xs",
+              "truncate text-xs font-semibold leading-tight sm:text-xs",
               colors.title,
             )}
           >
@@ -73,7 +73,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
         {eventInfo.timeText && (
           <div
             className={cn(
-              "mt-0.5 truncate ps-2.5 text-[10px] font-medium leading-tight sm:ps-3.5 sm:text-[11px]",
+              "mt-0.5 truncate ps-2.5 text-xs font-medium leading-tight sm:ps-3.5 sm:text-xs",
               colors.time,
             )}
           >
@@ -99,11 +99,11 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
         )}
       />
       {eventInfo.timeText && (
-        <div className="fc-event-time me-1 p-0 text-[10px] font-normal text-gray-500 sm:me-1.5 sm:text-xs dark:text-gray-400">
+        <div className="fc-event-time me-1 p-0 text-xs font-normal text-gray-500 sm:me-1.5 sm:text-xs dark:text-gray-400">
           {eventInfo.timeText}
         </div>
       )}
-      <div className="fc-event-title truncate p-0 text-[11px] font-medium text-gray-700 sm:text-xs dark:text-white">
+      <div className="fc-event-title truncate p-0 text-xs font-medium text-gray-700 sm:text-xs dark:text-white">
         {eventInfo.event.title || ""}
       </div>
     </div>

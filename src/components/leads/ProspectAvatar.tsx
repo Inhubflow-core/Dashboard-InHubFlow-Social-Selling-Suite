@@ -53,7 +53,7 @@ export default function ProspectAvatar({
   const showImage = Boolean(cleanUrl && !hasError);
 
   const sizeClasses = {
-    xs: "w-6 h-6 text-[10px]",
+    xs: "w-6 h-6 text-xs",
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-xs",
     lg: "w-11 h-11 text-sm",

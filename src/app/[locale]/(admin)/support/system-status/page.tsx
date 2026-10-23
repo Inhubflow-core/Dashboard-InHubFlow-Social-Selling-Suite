@@ -154,7 +154,7 @@ export default function SystemStatusPage() {
                   {srv.latency}
                 </td>
                 <td className="px-5 py-4">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
                     <span className="size-1.5 rounded-full bg-emerald-500" />
                     OPERATIVO
                   </span>
