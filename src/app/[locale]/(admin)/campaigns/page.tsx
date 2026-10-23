@@ -29,9 +29,7 @@ import {
   ThumbsUp,
   MessageSquare,
   UserPlus,
-  UserCheck,
   Send,
-  MessageCircle,
   Sparkles,
   Shield,
   Play,
@@ -39,16 +37,11 @@ import {
   Zap,
   FileText,
   ChevronDown,
-  ChevronUp,
-  RotateCcw,
-  Info,
-  ExternalLink,
   Terminal,
   Image as ImageIcon,
   Video as VideoIcon,
   Mic,
   Paperclip,
-  Volume2,
   Upload,
   Trash2,
   Square,
@@ -133,7 +126,7 @@ export default function CampaignsPage() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("seq-lead-lists");
   const [leadLists, setLeadLists] = useState<LeadListGroup[]>([]);
   const [linkedList, setLinkedList] = useState<LeadListGroup | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [allLeads, setAllLeads] = useState<Lead360Item[]>([]);
 
   // Modales
   const [editingStep, setEditingStep] = useState<{ step: SequenceStepItem; index: number } | null>(null);
@@ -173,18 +166,6 @@ export default function CampaignsPage() {
   const [runnerLogs, setRunnerLogs] = useState<CampaignExecutionLog[]>([]);
   const [runnerNotice, setRunnerNotice] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-
-  // Estados para Banco de Pruebas en Lead Individual (Testing)
-  const [allLeads, setAllLeads] = useState<Lead360Item[]>([]);
-  const [testLeadName, setTestLeadName] = useState<string>("Roberto OrSe");
-  const [testLinkedinUrl, setTestLinkedinUrl] = useState<string>("https://www.linkedin.com/in/robertoorse");
-  const [testCompany, setTestCompany] = useState<string>("InHubFlow");
-  const [testConnectionDegree, setTestConnectionDegree] = useState<"1st" | "2nd">("1st");
-  const [testMode, setTestMode] = useState<"dry_run" | "live">("dry_run");
-  const [testSourceMode, setTestSourceMode] = useState<"manual" | "list">("manual");
-  const [testSelectedListId, setTestSelectedListId] = useState<string>("");
-  const [testSelectedLeadId, setTestSelectedLeadId] = useState<string>("");
-  const [lastTestResultLog, setLastTestResultLog] = useState<CampaignExecutionLog | null>(null);
 
   // Estados para Drag & Drop de la paleta izquierda
   const [draggedStepType, setDraggedStepType] = useState<SocialStepType | null>(null);
@@ -327,7 +308,6 @@ export default function CampaignsPage() {
     setLeadLists(lists);
     const leads = getStoredLeads();
     setAllLeads(leads);
-    setIsLoaded(true);
 
     // Revisar si viene listId por URL
     if (typeof window !== "undefined") {
@@ -337,89 +317,12 @@ export default function CampaignsPage() {
         const found = lists.find((l) => l.id === listIdParam);
         if (found) {
           setLinkedList(found);
-          setTestSelectedListId(found.id);
-          setTestSourceMode("list");
-          const matching = leads.filter(
-            (ld) =>
-              ld.listId === found.id ||
-              (found.sourceMonitorId && (ld as any).monitorId === found.sourceMonitorId) ||
-              (found.competitorName && ld.company?.toLowerCase().includes(found.competitorName.toLowerCase()))
-          );
-          if (matching.length > 0) {
-            setTestSelectedLeadId(matching[0].id);
-            setTestLeadName(matching[0].fullName);
-            setTestLinkedinUrl(matching[0].linkedinUrl);
-            setTestCompany(matching[0].company || found.competitorName || "");
-            setTestConnectionDegree("2nd");
-          }
         }
         const isMagnet = listIdParam.includes("n1") || listIdParam.includes("magnet");
         setSelectedCampaignId(isMagnet ? "seq-lead-magnet" : "seq-lead-lists");
       }
     }
   }, []);
-
-  const handleSelectTestList = (listId: string) => {
-    setTestSelectedListId(listId);
-    if (!listId) {
-      setTestSelectedLeadId("");
-      return;
-    }
-    const targetList = leadLists.find((l) => l.id === listId);
-    const matchingLeads = allLeads.filter(
-      (ld) =>
-        ld.listId === listId ||
-        (targetList?.sourceMonitorId && (ld as any).monitorId === targetList.sourceMonitorId) ||
-        (targetList?.competitorName && ld.company?.toLowerCase().includes(targetList.competitorName.toLowerCase()))
-    );
-    if (matchingLeads.length > 0) {
-      const first = matchingLeads[0];
-      setTestSelectedLeadId(first.id);
-      setTestLeadName(first.fullName);
-      setTestLinkedinUrl(first.linkedinUrl);
-      setTestCompany(first.company || targetList?.competitorName || "");
-      setTestConnectionDegree("2nd");
-    } else {
-      setTestSelectedLeadId("");
-    }
-  };
-
-  const handleSelectTestLead = (leadId: string) => {
-    setTestSelectedLeadId(leadId);
-    const found = allLeads.find((ld) => ld.id === leadId);
-    if (found) {
-      setTestLeadName(found.fullName);
-      setTestLinkedinUrl(found.linkedinUrl);
-      setTestCompany(found.company || "");
-      setTestConnectionDegree("2nd");
-    }
-  };
-
-  const handleApplyPreset = (preset: "connected_roberto" | "unconnected_agency" | "clean_manual") => {
-    if (preset === "connected_roberto") {
-      setTestSourceMode("manual");
-      setTestLeadName("Roberto OrSe");
-      setTestLinkedinUrl("https://www.linkedin.com/in/robertoorse");
-      setTestCompany("InHubFlow");
-      setTestConnectionDegree("1st");
-      setFeedbackMessage("Preset cargado: Roberto OrSe (1er Grado - Ya conectados)");
-    } else if (preset === "unconnected_agency") {
-      setTestSourceMode("manual");
-      setTestLeadName("Roberto OrSe Agencia");
-      setTestLinkedinUrl("https://www.linkedin.com/in/robertoorse-agencia");
-      setTestCompany("Agencia OrSe");
-      setTestConnectionDegree("2nd");
-      setFeedbackMessage("Preset cargado: Roberto OrSe Agencia (2º Grado - No conectados)");
-    } else {
-      setTestSourceMode("manual");
-      setTestLeadName("");
-      setTestLinkedinUrl("https://www.linkedin.com/in/");
-      setTestCompany("");
-      setTestConnectionDegree("2nd");
-      setFeedbackMessage("Campos limpiados para ingreso manual");
-    }
-    setTimeout(() => setFeedbackMessage(null), 3000);
-  };
 
   // Cerrar popover al hacer clic fuera
   useEffect(() => {
@@ -588,10 +491,9 @@ export default function CampaignsPage() {
     setRunnerNotice(null);
     try {
       const stepToExecute = simulatedStepIndex < activeCampaign.steps.length ? simulatedStepIndex : 0;
-      const targetName = testLeadName.trim() || "Roberto OrSe";
-      const targetUrl = testLinkedinUrl.trim() || "https://www.linkedin.com/in/robertoorse-agencia";
-      const targetCompany = testCompany.trim() || "InHubFlow";
-      const isDry = testMode === "dry_run";
+      const targetName = "Roberto OrSe";
+      const targetUrl = "https://www.linkedin.com/in/robertoorse";
+      const targetCompany = "InHubFlow";
 
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
@@ -601,30 +503,25 @@ export default function CampaignsPage() {
           stepIndex: stepToExecute,
           leadName: targetName,
           linkedinUrl: targetUrl,
-          connectionDegree: testConnectionDegree,
           company: targetCompany,
-          dryRun: isDry,
+          dryRun: true,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
       });
       const data = await res.json();
       if (data.ok) {
         const currentTitle = activeCampaign.steps[stepToExecute]?.title || "Paso";
-        const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
         if (data.result?.success === false) {
-          setRunnerNotice(`${modeLabel} Falló Paso ${stepToExecute + 1} (${currentTitle}): ${data.result?.log?.message || "Error al procesar"}`);
+          setRunnerNotice(`[Simulación] Falló Paso ${stepToExecute + 1} (${currentTitle}): ${data.result?.log?.message || "Error al procesar"}`);
         } else if (data.result?.isSequenceCompleted) {
-          setRunnerNotice(`${modeLabel} Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados para ${targetName}.`);
+          setRunnerNotice(`[Simulación] Secuencia completada: Todos los pasos (${activeCampaign.steps.length}) ejecutados para ${targetName}.`);
           setSimulatedStepIndex(0);
         } else {
-          setRunnerNotice(`${modeLabel} Paso ${stepToExecute + 1} (${currentTitle}) ejecutado para ${targetName}.`);
+          setRunnerNotice(`[Simulación] Paso ${stepToExecute + 1} (${currentTitle}) ejecutado para ${targetName}.`);
           setSimulatedStepIndex(data.result.nextStepIndex ?? (stepToExecute + 1));
         }
         setTimeout(() => setRunnerNotice(null), 6000);
         setRunnerLogs(data.logs || []);
-        if (data.result?.log) {
-          setLastTestResultLog(data.result.log);
-        }
       } else {
         setRunnerNotice(`[Error] ${data.error || "No se pudo ejecutar el paso"}`);
         setTimeout(() => setRunnerNotice(null), 6000);
@@ -642,10 +539,9 @@ export default function CampaignsPage() {
     setIsExecutingRunner(true);
     setRunnerNotice(null);
     try {
-      const targetName = testLeadName.trim() || "Roberto OrSe";
-      const targetUrl = testLinkedinUrl.trim() || "https://www.linkedin.com/in/robertoorse-agencia";
-      const targetCompany = testCompany.trim() || "InHubFlow";
-      const isDry = testMode === "dry_run";
+      const targetName = "Roberto OrSe";
+      const targetUrl = "https://www.linkedin.com/in/robertoorse";
+      const targetCompany = "InHubFlow";
 
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
@@ -655,27 +551,22 @@ export default function CampaignsPage() {
           runAll: true,
           leadName: targetName,
           linkedinUrl: targetUrl,
-          connectionDegree: testConnectionDegree,
           company: targetCompany,
-          dryRun: isDry,
+          dryRun: true,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
       });
       const data = await res.json();
       if (data.ok) {
-        const modeLabel = isDry ? "[Simulación]" : "[En Vivo]";
         if (data.result?.success === false) {
           const lastLog = data.result?.logs?.[data.result.logs.length - 1];
-          setRunnerNotice(`${modeLabel} Secuencia detenida por error: ${lastLog?.message || "Error al procesar"}`);
+          setRunnerNotice(`[Simulación] Secuencia detenida por error: ${lastLog?.message || "Error al procesar"}`);
         } else {
-          setRunnerNotice(`${modeLabel} Secuencia completa ejecutada con éxito para ${targetName} (${activeCampaign.steps.length} pasos).`);
+          setRunnerNotice(`[Simulación] Secuencia completa ejecutada con éxito para ${targetName} (${activeCampaign.steps.length} pasos).`);
         }
         setTimeout(() => setRunnerNotice(null), 6000);
         setRunnerLogs(data.logs || []);
         setSimulatedStepIndex(0);
-        if (data.result?.logs && data.result.logs.length > 0) {
-          setLastTestResultLog(data.result.logs[data.result.logs.length - 1]);
-        }
       } else {
         setRunnerNotice(`[Error] ${data.error || "No se pudo ejecutar la secuencia"}`);
         setTimeout(() => setRunnerNotice(null), 6000);
@@ -832,7 +723,7 @@ export default function CampaignsPage() {
               >
                 <span>{camp.name.replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  className={`text-xs px-1.5 py-0.2 rounded-full font-bold ${
                     isSelected ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
                   }`}
                 >
@@ -923,11 +814,11 @@ export default function CampaignsPage() {
                   <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
                     Lista Vinculada: {linkedList.name}
                   </span>
-                  <span className="text-[10px] bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
                     {linkedList.leadsCount} prospectos
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {linkedList.description || "Prospectos captados en Signal Radar"}
                 </p>
               </div>
@@ -987,7 +878,7 @@ export default function CampaignsPage() {
                   {/* Píldora fija por defecto: Inmediato (0 días) no editable */}
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
                     <Clock className="h-3 w-3 text-brand-500 shrink-0" />
-                    <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
                       Inmediato (0 días)
                     </span>
                   </div>
@@ -1031,7 +922,7 @@ export default function CampaignsPage() {
                           e.stopPropagation();
                           setOpenDelayPopoverIndex(openDelayPopoverIndex === idx ? null : idx);
                         }}
-                        className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition flex items-center gap-1 px-1 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition flex items-center gap-1 px-1 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                         title="Seleccionar tiempo de espera"
                       >
                         <span>
@@ -1109,7 +1000,7 @@ export default function CampaignsPage() {
 
                         {/* Input numérico */}
                         <div className="pt-1.5 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
-                          <span className="text-[11px] text-gray-400">Personalizado:</span>
+                          <span className="text-xs text-gray-400">Personalizado:</span>
                           <div className="flex items-center gap-1.5">
                             <input
                               type="number"
@@ -1193,7 +1084,7 @@ export default function CampaignsPage() {
               <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">
                 La secuencia no tiene pasos activos
               </p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-xs text-gray-400">
                 Haz clic en el botón inferior o arrastra pasos para comenzar a interactuar tras el activador.
               </p>
             </div>
@@ -1223,7 +1114,6 @@ export default function CampaignsPage() {
           activeAccount={activeAccount}
           onLogGenerated={(log) => {
             setRunnerLogs((prev) => [log, ...prev]);
-            setLastTestResultLog(log);
           }}
         />
       </div>
@@ -1254,7 +1144,7 @@ export default function CampaignsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
                         Paso {editingStep.index + 1} de {activeCampaign.steps.length}
                       </span>
                     </div>
@@ -1278,7 +1168,7 @@ export default function CampaignsPage() {
               {/* Bloque: Información General */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
                     Título del Paso
                   </label>
                   <input
@@ -1295,7 +1185,7 @@ export default function CampaignsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1">
                     Retardo Previo (Días de Espera)
                   </label>
                   {editingStep.index === 0 ? (
@@ -1303,7 +1193,7 @@ export default function CampaignsPage() {
                       <div className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800/60 text-gray-500 flex items-center justify-center text-xs font-semibold select-none cursor-not-allowed">
                         Inmediato (0 días)
                       </div>
-                      <span className="text-[11px] text-gray-400">
+                      <span className="text-xs text-gray-400">
                         Disparo automático tras el activador
                       </span>
                     </div>
@@ -1335,10 +1225,10 @@ export default function CampaignsPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Descripción Operativa
                   </label>
-                  <span className="text-[10px] text-gray-400 font-mono">
+                  <span className="text-xs text-gray-400 font-mono">
                     {editingStep.step.description.length}/77 caracteres
                   </span>
                 </div>
@@ -1361,17 +1251,17 @@ export default function CampaignsPage() {
                 editingStep.step.type === "connect_message" ||
                 editingStep.step.connectNote !== undefined) && (
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2.5">
-                  <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] flex items-start gap-2">
+                  <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-2">
                     <span className="font-bold shrink-0">Acción 2-en-1:</span>
                     <span>Al enviar la invitación de conexión, LinkedIn activa automáticamente el seguimiento del perfil para maximizar la visibilidad mutua en el feed.</span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
                       Nota de Conexión en LinkedIn (Opcional)
                     </label>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-xs text-gray-400">
                       {(editingStep.step.connectNote || "").length}/300 caracteres
                     </span>
                   </div>
@@ -1389,7 +1279,7 @@ export default function CampaignsPage() {
                     className="w-full rounded-lg border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-emerald-500"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-gray-400">Variables rápidas:</span>
+                    <span className="text-xs text-gray-400">Variables rápidas:</span>
                     {["{{first_name}}", "{{company}}", "{{topic}}", "{{keyword}}"].map((tag) => (
                       <button
                         key={tag}
@@ -1403,7 +1293,7 @@ export default function CampaignsPage() {
                             },
                           })
                         }
-                        className="text-[10px] bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono hover:bg-emerald-50 transition"
+                        className="text-xs bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono hover:bg-emerald-50 transition"
                       >
                         {tag}
                       </button>
@@ -1416,11 +1306,11 @@ export default function CampaignsPage() {
               {editingStep.step.type === "like_comment" && (
                 <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/20 dark:bg-purple-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
                       <ThumbsUp className="h-3.5 w-3.5 text-purple-600" />
                       Plantilla de Comentario en Post
                     </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[10px] font-semibold text-purple-700 dark:text-purple-300">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-purple-700 dark:text-purple-300">
                       <input
                         type="checkbox"
                         checked={editingStep.step.useAiComment ?? true}
@@ -1455,11 +1345,11 @@ export default function CampaignsPage() {
                 editingStep.step.messageTemplate !== undefined) && (
                 <div className="rounded-xl border border-brand-200 dark:border-brand-900/50 bg-brand-50/20 dark:bg-brand-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-brand-800 dark:text-brand-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-brand-800 dark:text-brand-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Send className="h-3.5 w-3.5 text-brand-600" />
                       Plantilla de Mensaje Directo (DM)
                     </label>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-xs text-gray-400">
                       {(editingStep.step.messageTemplate || "").length} caracteres
                     </span>
                   </div>
@@ -1476,7 +1366,7 @@ export default function CampaignsPage() {
                     className="w-full rounded-lg border border-brand-200 dark:border-brand-800/80 bg-white dark:bg-gray-800 p-2.5 text-xs font-mono dark:text-white focus:outline-none focus:border-brand-500"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-gray-400">Variables dinámicas:</span>
+                    <span className="text-xs text-gray-400">Variables dinámicas:</span>
                     {[
                       "{{first_name}}",
                       "{{company}}",
@@ -1497,7 +1387,7 @@ export default function CampaignsPage() {
                             },
                           })
                         }
-                        className="text-[10px] bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded font-mono hover:bg-brand-50 transition"
+                        className="text-xs bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded font-mono hover:bg-brand-50 transition"
                       >
                         {tag}
                       </button>
@@ -1540,11 +1430,11 @@ export default function CampaignsPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-[11px] font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                       <Paperclip className="h-3.5 w-3.5 text-brand-500" />
                       Adjuntos y Multimedia para LinkedIn
                     </label>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Selecciona si deseas enviar una imagen, video, nota de voz humana o archivo PDF junto al paso.
                     </p>
                   </div>
@@ -1552,7 +1442,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={handleRemoveAttachment}
-                      className="text-[11px] text-red-500 hover:text-red-700 dark:text-red-400 font-semibold flex items-center gap-1 transition"
+                      className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 font-semibold flex items-center gap-1 transition"
                       title="Quitar archivo adjunto del paso"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -1619,13 +1509,13 @@ export default function CampaignsPage() {
                 {editingStep.step.attachmentType === "image" && (
                   <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Imagen o Enlace
                       </label>
                       <button
                         type="button"
                         onClick={() => imageInputRef.current?.click()}
-                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <Upload className="h-3 w-3" />
                         Explorar archivo
@@ -1660,7 +1550,7 @@ export default function CampaignsPage() {
                     />
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] text-gray-400">Presets sugeridos:</span>
+                      <span className="text-xs text-gray-400">Presets sugeridos:</span>
                       {["infografia-prospeccion.png", "grafico-resultados-3x.jpg", "framework-visual.png"].map((img) => (
                         <button
                           key={img}
@@ -1676,7 +1566,7 @@ export default function CampaignsPage() {
                               },
                             })
                           }
-                          className="text-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
                         >
                           {img}
                         </button>
@@ -1703,7 +1593,7 @@ export default function CampaignsPage() {
                           <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                             {editingStep.step.attachmentName || "infografia-prospeccion.png"}
                           </div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {editingStep.step.attachmentSize || "Imagen PNG / JPG"} para entrega en LinkedIn DM.
                           </div>
                         </div>
@@ -1712,7 +1602,7 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => imageInputRef.current?.click()}
-                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
@@ -1733,13 +1623,13 @@ export default function CampaignsPage() {
                 {editingStep.step.attachmentType === "video" && (
                   <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Video o Enlace (Loom / MP4)
                       </label>
                       <button
                         type="button"
                         onClick={() => videoInputRef.current?.click()}
-                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <Upload className="h-3 w-3" />
                         Explorar archivo
@@ -1777,7 +1667,7 @@ export default function CampaignsPage() {
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
                           <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
-                          <span className="absolute bottom-1 right-1 text-[8px] bg-black/80 px-1 rounded text-white font-mono">
+                          <span className="absolute bottom-1 right-1 text-xs bg-black/80 px-1 rounded text-white font-mono">
                             01:30
                           </span>
                         </div>
@@ -1785,7 +1675,7 @@ export default function CampaignsPage() {
                           <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                             {editingStep.step.attachmentName || "demo-sistema-b2b.mp4"}
                           </div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {editingStep.step.attachmentSize || "Video MP4"} interactivo para LinkedIn.
                           </div>
                         </div>
@@ -1794,7 +1684,7 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => videoInputRef.current?.click()}
-                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
@@ -1815,13 +1705,13 @@ export default function CampaignsPage() {
                 {editingStep.step.attachmentType === "voice_note" && (
                   <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Grabación o Archivo de Audio
                       </label>
                       <button
                         type="button"
                         onClick={() => audioInputRef.current?.click()}
-                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <Upload className="h-3 w-3" />
                         Subir archivo .mp3/.m4a
@@ -1861,7 +1751,7 @@ export default function CampaignsPage() {
 
                     {/* Presets de duración estimada */}
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] text-gray-400">Duración estimada:</span>
+                      <span className="text-xs text-gray-400">Duración estimada:</span>
                       <div className="flex items-center gap-1">
                         {[15, 30, 45, 60].map((sec) => (
                           <button
@@ -1877,7 +1767,7 @@ export default function CampaignsPage() {
                                 },
                               })
                             }
-                            className={`text-[10px] px-2 py-0.5 rounded font-semibold transition ${
+                            className={`text-xs px-2 py-0.5 rounded font-semibold transition ${
                               (editingStep.step.voiceNoteDurationSec || 45) === sec
                                 ? "bg-brand-500 text-white"
                                 : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
@@ -1911,7 +1801,7 @@ export default function CampaignsPage() {
                             )
                           )}
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>0:00 / 0:{editingStep.step.voiceNoteDurationSec || 45}</span>
                           <span className="font-semibold text-brand-600 dark:text-brand-400 truncate max-w-[150px]">
                             {editingStep.step.attachmentName || "Nota de Voz Humana"}
@@ -1935,13 +1825,13 @@ export default function CampaignsPage() {
                 {editingStep.step.attachmentType === "document" && (
                   <div className="space-y-2.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Documento o PDF (Lead Magnet)
                       </label>
                       <button
                         type="button"
                         onClick={() => documentInputRef.current?.click()}
-                        className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <Upload className="h-3 w-3" />
                         Explorar archivo
@@ -1975,7 +1865,7 @@ export default function CampaignsPage() {
                     />
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] text-gray-400">Presets de Lead Magnet:</span>
+                      <span className="text-xs text-gray-400">Presets de Lead Magnet:</span>
                       {[
                         "Framework-Prospeccion-B2B-InHubFlow.pdf",
                         "Playbook-Secuencias-LinkedIn-2026.pdf",
@@ -1995,7 +1885,7 @@ export default function CampaignsPage() {
                               },
                             })
                           }
-                          className="text-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
                         >
                           {doc}
                         </button>
@@ -2012,7 +1902,7 @@ export default function CampaignsPage() {
                           <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                             {editingStep.step.attachedResource || editingStep.step.attachmentName || "Framework-Prospeccion-B2B-InHubFlow.pdf"}
                           </div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {editingStep.step.attachmentSize || "Documento PDF"} listo para entrega automática al prospecto.
                           </div>
                         </div>
@@ -2021,7 +1911,7 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => documentInputRef.current?.click()}
-                          className="px-2 py-1 text-[11px] rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
@@ -2088,7 +1978,7 @@ export default function CampaignsPage() {
                     <Layers className="size-4.5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full">
                       Paleta de Pasos
                     </span>
                     <h3 className="font-bold text-gray-900 dark:text-white text-base mt-0.5">
@@ -2157,15 +2047,15 @@ export default function CampaignsPage() {
                           {/* Información del paso */}
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-1 mb-0.5">
-                              <span className="text-[10px] font-mono font-bold text-gray-400">
+                              <span className="text-xs font-mono font-bold text-gray-400">
                                 {paletteStep.orderNumber}
                               </span>
                               {inSequence ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60">
                                   <Check className="size-3" /> En secuencia
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-0.5">
+                                <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-0.5">
                                   <Plus className="size-3" /> Clic o Arrastrar
                                 </span>
                               )}
@@ -2181,7 +2071,7 @@ export default function CampaignsPage() {
                               {paletteStep.title}
                             </h4>
 
-                            <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-1">
                               {paletteStep.subtitle}
                             </p>
                           </div>
@@ -2209,7 +2099,7 @@ export default function CampaignsPage() {
 
               {/* Pie del Panel Lateral */}
               <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
-                <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} pasos en secuencia
                 </span>
                 <button
@@ -2251,7 +2141,7 @@ export default function CampaignsPage() {
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Visitas de Perfil / Día
                   </span>
-                  <span className="text-[10px] text-gray-400">Recomendado: 20 perfiles</span>
+                  <span className="text-xs text-gray-400">Recomendado: 20 perfiles</span>
                 </div>
                 <input
                   type="number"
@@ -2274,7 +2164,7 @@ export default function CampaignsPage() {
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Invitaciones de Conexión / Día
                   </span>
-                  <span className="text-[10px] text-gray-400">Tope seguro: 20 a 25 máximo</span>
+                  <span className="text-xs text-gray-400">Tope seguro: 20 a 25 máximo</span>
                 </div>
                 <input
                   type="number"
@@ -2297,7 +2187,7 @@ export default function CampaignsPage() {
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Mensajes Directos (DM) / Día
                   </span>
-                  <span className="text-[10px] text-gray-400">Tope seguro: 20 a 30 máximo</span>
+                  <span className="text-xs text-gray-400">Tope seguro: 20 a 30 máximo</span>
                 </div>
                 <input
                   type="number"
@@ -2322,7 +2212,7 @@ export default function CampaignsPage() {
                     <span className="font-bold text-emerald-800 dark:text-emerald-300 block">
                       Regla Stop on Reply
                     </span>
-                    <span className="text-[11px] text-emerald-700 dark:text-emerald-400 block mt-0.5">
+                    <span className="text-xs text-emerald-700 dark:text-emerald-400 block mt-0.5">
                       Detiene la secuencia de inmediato en cuanto el prospecto responde a cualquier mensaje o comentario.
                     </span>
                   </div>
@@ -2403,9 +2293,9 @@ export default function CampaignsPage() {
                         <span className="font-bold text-gray-900 dark:text-white">
                           {log.leadName}
                         </span>
-                        <span className="text-[10px] text-gray-400">{log.timestamp?.slice(11, 19)}</span>
+                        <span className="text-xs text-gray-400">{log.timestamp?.slice(11, 19)}</span>
                         <span
-                          className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${
+                          className={`rounded px-1.5 py-0.2 text-xs font-bold ${
                             log.status === "success"
                               ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                               : log.status === "paused"
@@ -2416,14 +2306,14 @@ export default function CampaignsPage() {
                           {log.status.toUpperCase()}
                         </span>
                         {Boolean(log.details?.attachmentName) && (
-                          <span className="inline-flex items-center gap-1 rounded bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 text-[9px] font-semibold border border-brand-200 dark:border-brand-900">
+                          <span className="inline-flex items-center gap-1 rounded bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 text-xs font-semibold border border-brand-200 dark:border-brand-900">
                             <Paperclip className="h-2.5 w-2.5" />
                             {String(log.details?.attachmentName ?? "")}
                             {log.details?.attachmentSize ? ` (${String(log.details.attachmentSize)})` : ""}
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-[11px] leading-relaxed">{log.message}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed">{log.message}</p>
                     </div>
                   </div>
                 ))

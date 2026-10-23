@@ -3,30 +3,25 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
-  Filter,
   Eye,
   ThumbsUp,
   UserPlus,
   Send,
   Check,
   ExternalLink,
-  ChevronRight,
   RotateCcw,
   CheckCircle2,
   AlertCircle,
   Play,
   Folder,
   Radio,
-  ArrowRight,
   ShieldCheck,
-  UserCheck,
-  Trash2,
+  X,
   RefreshCw,
   Users,
 } from "lucide-react";
 import type {
   LinearSequenceCampaign,
-  SequenceStepItem,
   SocialStepType,
 } from "@/lib/campaigns/types";
 import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
@@ -44,7 +39,6 @@ export interface LeadCampaignTrackerItem {
   listName: string;
   monitorName: string;
   monitorType: "lead_magnet" | "competitor" | "group" | "global" | "custom";
-  connectionDegree: "1st" | "2nd" | "3rd";
   currentStepIndex: number; // 0..N
   completedStepIndices: number[];
   status: "in_progress" | "waiting_delay" | "completed" | "replied" | "failed";
@@ -87,7 +81,6 @@ const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
     listName: "Leads Captados por Signal Radar",
     monitorName: "Signal Radar N1: Lead Magnet SISTEMA",
     monitorType: "lead_magnet",
-    connectionDegree: "2nd",
     currentStepIndex: 2, // Paso 3: Conectar (ya visitado y comentado)
     completedStepIndices: [0, 1],
     status: "in_progress",
@@ -113,7 +106,6 @@ export function CampaignLeadsTracker({
   onLogGenerated,
 }: CampaignLeadsTrackerProps) {
   const [leadsTracker, setLeadsTracker] = useState<LeadCampaignTrackerItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
@@ -198,7 +190,6 @@ export function CampaignLeadsTracker({
             listName: realLead.listName || "Leads Importados de Signal Radar",
             monitorName: realLead.signalSource || "Signal Radar B2B",
             monitorType: "custom",
-            connectionDegree: (realLead as any).connectionDegree || "2nd",
             currentStepIndex: realLead.sequenceStatus === "completed" ? activeCampaign.steps.length : 0,
             completedStepIndices: realLead.sequenceStatus === "completed" ? activeCampaign.steps.map((_, i) => i) : [],
             status:
@@ -218,10 +209,8 @@ export function CampaignLeadsTracker({
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanList));
       } catch {}
-      setIsLoaded(true);
     } catch {
       setLeadsTracker(INITIAL_TRACKER_LEADS);
-      setIsLoaded(true);
     }
   }, [allLeads, activeCampaign.steps.length]);
 
@@ -265,7 +254,6 @@ export function CampaignLeadsTracker({
           listName: realLead.listName || "Leads Importados de Signal Radar",
           monitorName: realLead.signalSource || "Signal Radar B2B",
           monitorType: "custom",
-          connectionDegree: (realLead as any).connectionDegree || "2nd",
           currentStepIndex: realLead.sequenceStatus === "completed" ? activeCampaign.steps.length : 0,
           completedStepIndices: realLead.sequenceStatus === "completed" ? activeCampaign.steps.map((_, i) => i) : [],
           status:
@@ -395,7 +383,6 @@ export function CampaignLeadsTracker({
           stepIndex: stepIndexToRun,
           leadName: lead.fullName,
           linkedinUrl: lead.linkedinUrl,
-          connectionDegree: lead.connectionDegree,
           company: lead.company,
           dryRun: isDry,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
@@ -485,9 +472,6 @@ export function CampaignLeadsTracker({
                   <h3 className="text-base font-bold text-gray-900 dark:text-white">
                     Prospectos en Campaña: Seguimiento y Avance de Secuencias
                   </h3>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                    Live Pipeline
-                  </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Monitorea por qué estación va cada contacto en tiempo real, su lista de asignación y el monitor de origen de Signal Radar.
@@ -553,7 +537,7 @@ export function CampaignLeadsTracker({
               <option value="all">Todas las Listas ({uniqueLists.length})</option>
               {uniqueLists.map((l) => (
                 <option key={l.id} value={l.id}>
-                  📁 {l.name}
+                  {l.name}
                 </option>
               ))}
             </select>
@@ -569,7 +553,7 @@ export function CampaignLeadsTracker({
               <option value="all">Todos los Monitores ({uniqueMonitors.length})</option>
               {uniqueMonitors.map((m) => (
                 <option key={m} value={m}>
-                  🎯 {m}
+                  {m}
                 </option>
               ))}
             </select>
@@ -675,21 +659,6 @@ export function CampaignLeadsTracker({
                           {lead.fullName.charAt(0)}
                         </div>
                       )}
-                      {lead.connectionDegree === "1st" ? (
-                        <span
-                          className="absolute -bottom-1 -right-1 h-4 px-1 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white dark:border-gray-900"
-                          title="Contacto de 1er Grado"
-                        >
-                          1º
-                        </span>
-                      ) : (
-                        <span
-                          className="absolute -bottom-1 -right-1 h-4 px-1 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white dark:border-gray-900"
-                          title="Contacto de 2º Grado"
-                        >
-                          2º
-                        </span>
-                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -698,7 +667,7 @@ export function CampaignLeadsTracker({
                           {lead.fullName}
                         </span>
                         {lead.language && (
-                          <span className="uppercase font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 text-[9px]">
+                          <span className="uppercase font-bold px-1.5 py-0.2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs">
                             {lead.language}
                           </span>
                         )}
@@ -715,7 +684,7 @@ export function CampaignLeadsTracker({
 
                       {/* Cargo del Contacto (Headline) */}
                       <p
-                        className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5"
+                        className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5"
                         title={lead.headline}
                       >
                         {lead.headline}
@@ -726,13 +695,13 @@ export function CampaignLeadsTracker({
 
                 {/* 2. Lista y Monitor de Origen */}
                 <div className="w-full xl:w-56 shrink-0 space-y-1 text-xs">
-                  <div className="flex items-center gap-1 text-[11px] text-gray-700 dark:text-gray-300 font-semibold truncate">
+                  <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 font-semibold truncate">
                     <Folder className="size-3 text-amber-500 shrink-0" />
                     <span className="truncate" title={lead.listName}>
                       {lead.listName}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 truncate">
                     <Radio className="size-3 text-brand-500 shrink-0" />
                     <span className="truncate" title={lead.monitorName}>
                       {lead.monitorName}
@@ -742,7 +711,7 @@ export function CampaignLeadsTracker({
 
                 {/* 3. BARRA DE PROGRESO CON ESTACIONES DE LA SECUENCIA */}
                 <div className="flex-1 min-w-[280px] max-w-xl py-1">
-                  <div className="flex items-center justify-between text-[11px] mb-2 font-medium">
+                  <div className="flex items-center justify-between text-xs mb-2 font-medium">
                     <span className="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">
                       {isCompleted
                         ? "Secuencia Finalizada"
@@ -756,7 +725,7 @@ export function CampaignLeadsTracker({
                   </div>
 
                   {/* La Barra Visual con Estaciones / Stepper */}
-                  <div className="relative flex items-center justify-between w-full px-2">
+                  <div className="relative flex items-center w-full px-2">
                     {/* Línea horizontal base conectora */}
                     <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-gray-200 dark:bg-gray-700 z-0 rounded-full" />
                     {/* Línea de progreso llena */}
@@ -773,12 +742,11 @@ export function CampaignLeadsTracker({
                     {activeCampaign.steps.map((step, sIdx) => {
                       const isStepCompleted = lead.completedStepIndices.includes(sIdx);
                       const isCurrentStep = lead.currentStepIndex === sIdx && !isCompleted;
-                      const isPending = !isStepCompleted && !isCurrentStep;
 
                       return (
                         <div
                           key={step.id || sIdx}
-                          className="relative z-10 flex flex-col items-center group cursor-pointer"
+                          className="relative z-10 flex flex-1 flex-col items-center group cursor-pointer"
                           title={`Paso ${sIdx + 1}: ${step.title} (${step.description})`}
                         >
                           {/* Círculo de la Estación */}
@@ -788,7 +756,7 @@ export function CampaignLeadsTracker({
                                 ? "h-6 w-6 rounded-full bg-emerald-500 text-white font-bold shadow-xs border-2 border-white dark:border-gray-900"
                                 : isCurrentStep
                                 ? "h-7 w-7 rounded-full bg-brand-500 text-white font-bold shadow-md ring-4 ring-brand-200 dark:ring-brand-950/80 animate-pulse border-2 border-white dark:border-gray-900"
-                                : "h-5 w-5 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-400 font-semibold text-[10px]"
+                                : "h-5 w-5 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-400 font-semibold text-xs"
                             }`}
                           >
                             {isStepCompleted ? (
@@ -802,7 +770,7 @@ export function CampaignLeadsTracker({
 
                           {/* Etiqueta compacta debajo de la estación */}
                           <span
-                            className={`text-[9px] mt-1 text-center whitespace-nowrap truncate max-w-[65px] ${
+                            className={`text-xs mt-1 text-center whitespace-nowrap truncate max-w-[65px] ${
                               isCurrentStep
                                 ? "font-bold text-brand-600 dark:text-brand-400 scale-105"
                                 : isStepCompleted
@@ -866,7 +834,7 @@ export function CampaignLeadsTracker({
                     className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
                     title="Quitar este prospecto de la lista de seguimiento"
                   >
-                    <Trash2 className="size-3.5" />
+                    <X className="size-3.5" />
                   </button>
                 </div>
               </div>
@@ -881,7 +849,7 @@ export function CampaignLeadsTracker({
           Mostrando <strong>{filteredLeads.length}</strong> de <strong>{leadsTracker.length}</strong> prospectos en seguimiento activo.
         </span>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
             <ShieldCheck className="size-3.5" />
             Límites diarios de seguridad activos en motor
           </span>

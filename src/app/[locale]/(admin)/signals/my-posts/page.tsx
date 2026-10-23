@@ -580,7 +580,7 @@ export default function MyPostsSignalRadarPage() {
       </div>
 
       {/* Botón de Creación y Explicación del Mecanismo */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-brand-25/40 dark:border-brand-900 dark:bg-brand-950/20">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-sm font-bold text-brand-900 dark:text-brand-200">
             Mecánica de Automatización de Lead Magnet en LinkedIn (Nivel 1)
@@ -617,7 +617,7 @@ export default function MyPostsSignalRadarPage() {
                     Título Descriptivo del Post
                   </label>
                   {createdPosts.length > 0 && (
-                    <span className="text-[10px] text-brand-600 dark:text-brand-400 font-medium">
+                    <span className="text-xs text-brand-600 dark:text-brand-400 font-medium">
                       {createdPosts.length} posts disponibles
                     </span>
                   )}
@@ -662,13 +662,13 @@ export default function MyPostsSignalRadarPage() {
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                         Publicaciones en tu Base de Datos (/viral-posts/list)
                       </span>
                       <button
                         type="button"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="text-[10px] text-gray-400 hover:text-gray-600 font-bold"
+                        className="text-xs text-gray-400 hover:text-gray-600 font-bold"
                       >
                         ✕
                       </button>
@@ -690,7 +690,7 @@ export default function MyPostsSignalRadarPage() {
                               <p className="font-semibold text-gray-900 dark:text-white truncate">
                                 {post.title}
                               </p>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400">
+                              <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                                 <span className="capitalize">{post.format}</span>
                                 {post.leadMagnetKeyword && (
                                   <>
@@ -710,7 +710,7 @@ export default function MyPostsSignalRadarPage() {
                             </div>
 
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0 ${
+                              className={`rounded-full px-2 py-0.5 text-xs font-bold shrink-0 ${
                                 post.status === "published"
                                   ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
                                   : post.status === "scheduled"
@@ -742,12 +742,12 @@ export default function MyPostsSignalRadarPage() {
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
                     <span className="font-bold">✓ Publicación vinculada:</span>
                     <span className="font-semibold underline truncate max-w-[200px]">{selectedCreatedPost.title}</span>
-                    <span className="ml-1.5 inline-block text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
+                    <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
                       {selectedCreatedPost.status === "published" ? "Publicada" : selectedCreatedPost.status === "scheduled" ? "Programada" : "Borrador"}
                     </span>
                   </div>
                 ) : (
-                  <span className="text-[10px] text-gray-400 mt-1 block">
+                  <span className="text-xs text-gray-400 mt-1 block">
                     Selecciona una publicación creada o escribe un título personalizado.
                   </span>
                 )}
@@ -765,16 +765,16 @@ export default function MyPostsSignalRadarPage() {
                       <div className="flex items-center gap-1.5 truncate">
                         <span className="font-bold">Post {selectedCreatedPost?.status === "scheduled" ? "Programado" : "en Borrador"}</span>
                         {selectedCreatedPost?.scheduledAt && (
-                          <span className="text-[11px] text-amber-700 dark:text-amber-300 truncate">
+                          <span className="text-xs text-amber-700 dark:text-amber-300 truncate">
                             • {new Date(selectedCreatedPost.scheduledAt).toLocaleDateString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                           </span>
                         )}
                       </div>
-                      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                      <span className="shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
                         Pre-Configurado
                       </span>
                     </div>
-                    <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 block">
+                    <span className="text-xs text-amber-600 dark:text-amber-400 mt-1 block">
                       Se activará automáticamente en LinkedIn cuando la publicación sea lanzada.
                     </span>
                   </>
@@ -787,7 +787,7 @@ export default function MyPostsSignalRadarPage() {
                       placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
                       className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     />
-                    <span className="text-[10px] text-gray-400 mt-1 block">
+                    <span className="text-xs text-gray-400 mt-1 block">
                       Enlace directo a la publicación para escuchar comentarios en vivo.
                     </span>
                   </>
@@ -809,7 +809,7 @@ export default function MyPostsSignalRadarPage() {
                   placeholder="SISTEMA, GUIA, PLANTILLA..."
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs font-mono font-bold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Palabra que el usuario debe comentar en el post para activar la automatización.
                 </span>
               </div>
@@ -825,7 +825,7 @@ export default function MyPostsSignalRadarPage() {
                   placeholder="Ej. /downloads/guia-prospeccion.pdf o enlace externo..."
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Enlace descargable o recurso de valor que se entregará al lead.
                 </span>
               </div>
@@ -844,7 +844,7 @@ export default function MyPostsSignalRadarPage() {
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
                     Dar Like automático al comentario del lead
                   </span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400 block mt-0.5">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
                     Aumenta el algoritmo orgánico de tu post y confirma al usuario que su comentario ha sido recibido.
                   </span>
                 </div>
@@ -864,7 +864,7 @@ export default function MyPostsSignalRadarPage() {
                   placeholder="¡Hola {name}, te lo acabo de enviar por mensaje privado! Revisa tu bandeja"
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Respuesta automática visible en el hilo del comentario en LinkedIn.
                 </span>
               </div>
@@ -880,7 +880,7 @@ export default function MyPostsSignalRadarPage() {
                   placeholder="Hola {name}, aquí tienes el acceso a {pdf_url} que comentaste en mi publicación..."
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <span className="text-[10px] text-gray-400 mt-1 block">
+                <span className="text-xs text-gray-400 mt-1 block">
                   Mensaje directo entregando el recurso prometido junto al enlace.
                 </span>
               </div>
@@ -916,30 +916,6 @@ export default function MyPostsSignalRadarPage() {
           </form>
         </ComponentCard>
       )}
-
-      {/* Barra de Cuenta Conectada & Estado de Escucha */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 text-xs" suppressHydrationWarning>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-600 dark:text-gray-400">
-            Cuenta de LinkedIn activa para escaneo:
-          </span>
-          <span className="font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
-            {currentDisplayName}
-          </span>
-          <span
-            suppressHydrationWarning
-            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-              activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-            }`}
-          >
-            {activeAccount?.status === "OK" || activeAccount?.status === "CONNECTED"
-              ? "CONECTADA EN LINKEDIN"
-              : `ESTADO: ${activeAccount?.status || "DESCONECTADA"}`}
-          </span>
-        </div>
-      </div>
 
       {/* Banner de Feedback de Escaneo o Acciones */}
       {scanFeedback && (
@@ -997,7 +973,7 @@ export default function MyPostsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta / Publicación</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabra Clave</th>
@@ -1044,14 +1020,14 @@ export default function MyPostsSignalRadarPage() {
                                 <p className="font-semibold text-gray-900 dark:text-white">
                                   {currentDisplayName}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                   Mi Cuenta
                                 </span>
-                                <span className="rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                                   Lead Magnet
                                 </span>
                                 {mon.status === "pending_publish" && (
-                                  <span className="rounded-full px-1.5 py-0.2 text-[9px] font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300">
+                                  <span className="rounded-full px-1.5 py-0.2 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300">
                                     En Espera de Publicar
                                   </span>
                                 )}
@@ -1061,7 +1037,7 @@ export default function MyPostsSignalRadarPage() {
                                 href={currentUserProfileUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[11px] text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
+                                className="text-xs text-brand-600 hover:underline dark:text-brand-400 truncate block max-w-xs mt-0.5"
                               >
                                 {currentUserProfileUrl}
                               </a>
@@ -1075,14 +1051,14 @@ export default function MyPostsSignalRadarPage() {
                                     [mon.id]: !isExpanded,
                                   }))
                                 }
-                                className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
+                                className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
                                 title={isExpanded ? "Ocultar la publicación monitoreada" : "Ver detalles de la publicación"}
                               >
                                 <span>🔗</span>
                                 <span>
                                   {isExpanded ? "Ocultar Publicación" : "Ver Publicación Monitoreada (1)"}
                                 </span>
-                                <span className="text-[10px]">{isExpanded ? "▴" : "▾"}</span>
+                                <span className="text-xs">{isExpanded ? "▴" : "▾"}</span>
                               </button>
                             </div>
                           </div>
@@ -1110,14 +1086,14 @@ export default function MyPostsSignalRadarPage() {
                         {/* 5. Estado */}
                         <td className="px-4 py-3.5 whitespace-nowrap align-top">
                           {mon.status === "pending_publish" ? (
-                            <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-[11px] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                            <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                               ⏳ En Espera
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={() => toggleLevel1Status(mon.id)}
-                              className={`rounded-full px-2.5 py-0.5 font-semibold text-[11px] transition ${
+                              className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
                                 mon.status === "active"
                                   ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1133,7 +1109,7 @@ export default function MyPostsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-[10px] font-semibold"
+                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1190,7 +1166,7 @@ export default function MyPostsSignalRadarPage() {
                                 ) : (
                                   <>
                                     <span>Escanear</span>
-                                    <span className="rounded bg-brand-600/80 px-1 py-0.2 text-[10px] font-bold">
+                                    <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                       {activeBatch}
                                     </span>
                                   </>
@@ -1262,7 +1238,7 @@ export default function MyPostsSignalRadarPage() {
                                   <Link2 className="size-3.5 text-brand-600 dark:text-brand-400" />
                                   <span>Publicación(es) de LinkedIn Monitoreada(s): Mis propios Posts (1)</span>
                                 </span>
-                                <span className="text-[11px] font-semibold text-brand-600 dark:text-brand-400">
+                                <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
                                   Publicado por {currentDisplayName}
                                 </span>
                               </div>
@@ -1275,7 +1251,7 @@ export default function MyPostsSignalRadarPage() {
                                     </span>
                                     &ldquo;{mon.postTitle}&rdquo;
                                   </p>
-                                  <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex-wrap">
+                                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1 flex-wrap">
                                     <span className="font-bold text-brand-600">
                                       Palabra clave: &quot;{mon.keyword}&quot;
                                     </span>
@@ -1382,14 +1358,11 @@ export default function MyPostsSignalRadarPage() {
                         <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                           {lead.fullName}
                         </h4>
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                          Grado {lead.connectionDegree}
-                        </span>
-                        <span className="rounded bg-green-50 px-1.5 py-0.5 text-[10px] font-bold text-green-700 dark:bg-green-950 dark:text-green-400">
+                        <span className="rounded bg-green-50 px-1.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-400">
                           Intencion Muy Alta
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {lead.headline} • {lead.location}
                       </p>
                       <p className="text-xs text-brand-700 italic dark:text-brand-300 font-medium">
@@ -1398,7 +1371,7 @@ export default function MyPostsSignalRadarPage() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                         {lead.status === "dm_sent"
                           ? "DM Entregado con PDF"
                           : lead.status === "connected"
@@ -1486,7 +1459,7 @@ export default function MyPostsSignalRadarPage() {
                   placeholder="https://www.linkedin.com/feed/update/urn:li:activity:7251892837461928371/"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 text-xs text-gray-400">
                   Al vincular la URL, el monitor pasará inmediatamente al estado Activo y comenzará a escanear los comentarios con la palabra clave &quot;{linkingUrlModalMonitor.keyword}&quot;.
                 </p>
               </div>
