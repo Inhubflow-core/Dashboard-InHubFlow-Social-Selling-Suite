@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
       language: body.language || "es",
       company: body.company,
       topic: body.topic,
+      keyword: body.keyword,
       providerId: body.providerId,
       chatId: body.chatId,
     };

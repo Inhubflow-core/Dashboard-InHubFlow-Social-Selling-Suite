@@ -28,6 +28,7 @@ export interface LeadCampaignState {
   chatId?: string;
   company?: string;
   topic?: string;
+  keyword?: string;
   connectionDegree: "1st" | "2nd" | "3rd";
   hasAcceptedInvite: boolean;
   hasReplied: boolean;
@@ -951,7 +952,13 @@ export async function executeLinearSequenceStepForLead(params: {
   }
 
   const companyVal = leadState.company || "tu empresa";
-  const topicVal = leadState.topic || "prospección B2B";
+  const DEFAULT_TOPICS: Record<string, string> = {
+    es: "prospección B2B",
+    pt: "prospecção B2B",
+    en: "B2B prospecting",
+  };
+  const topicVal = leadState.topic || DEFAULT_TOPICS[leadState.language || "es"] || DEFAULT_TOPICS.es;
+  const keywordVal = leadState.keyword || "SISTEMA";
 
   // 4. Ejecutar según el tipo de acción social
   switch (currentStep.type) {
@@ -1064,7 +1071,7 @@ export async function executeLinearSequenceStepForLead(params: {
         .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
         .replace(/{{company}}/gi, companyVal)
         .replace(/{{topic}}/gi, topicVal)
-        .replace(/{{keyword}}/gi, "SISTEMA");
+        .replace(/{{keyword}}/gi, keywordVal);
 
       let isAiGeneratedComment = false;
 
@@ -1268,7 +1275,7 @@ export async function executeLinearSequenceStepForLead(params: {
             .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
             .replace(/{{topic}}/gi, topicVal)
             .replace(/{{company}}/gi, companyVal)
-            .replace(/{{keyword}}/gi, "SISTEMA")
+            .replace(/{{keyword}}/gi, keywordVal)
         : undefined;
 
       if (!isDry) {
@@ -1411,7 +1418,7 @@ export async function executeLinearSequenceStepForLead(params: {
         .replace(/{{company}}/gi, companyVal)
         .replace(/{{topic}}/gi, topicVal)
         .replace(/{{author_name}}/gi, "Roberto")
-        .replace(/{{keyword}}/gi, "SISTEMA")
+        .replace(/{{keyword}}/gi, keywordVal)
         .replace(/{{attached_resource}}/gi, resourceName);
 
       if (!isDry) {

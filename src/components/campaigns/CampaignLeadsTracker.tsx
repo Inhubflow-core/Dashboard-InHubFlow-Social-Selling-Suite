@@ -45,6 +45,7 @@ export interface LeadCampaignTrackerItem {
   status: "in_progress" | "waiting_delay" | "completed" | "replied" | "failed";
   lastActionTitle: string;
   lastActionAt: string;
+  nextStepAtIso?: string;
   language?: "es" | "pt" | "en";
 }
 
@@ -388,6 +389,25 @@ export function CampaignLeadsTracker({
     const stepDef = activeCampaign.steps[stepIndexToRun];
     const isDry = false; // Ejecución real con Unipile
 
+    // Respetar el retardo configurado entre pasos (días de espera)
+    if (lead.nextStepAtIso && stepIndexToRun > 0) {
+      const remainingMs = new Date(lead.nextStepAtIso).getTime() - Date.now();
+      if (remainingMs > 0) {
+        const remainingHours = Math.ceil(remainingMs / 3600000);
+        const human = remainingHours >= 24 ? `${Math.ceil(remainingHours / 24)} día(s)` : `${remainingHours} hora(s)`;
+        const proceed = confirm(
+          `El Paso ${stepIndexToRun + 1} (${stepDef?.title}) debe esperar aún ~${human} según el retardo configurado.\n\n¿Ejecutarlo de todos modos?`
+        );
+        if (!proceed) {
+          setExecutingLeadId(null);
+          return;
+        }
+      }
+    }
+    const leadKeyword = /lead\s*magnet/i.test(lead.monitorName)
+      ? (lead.monitorName.match(/lead\s*magnet\s+(\S+)/i)?.[1] || "").toUpperCase() || undefined
+      : undefined;
+
     try {
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
@@ -397,7 +417,7 @@ export function CampaignLeadsTracker({
           stepIndex: stepIndexToRun,
           leadName: lead.fullName,
           linkedinUrl: lead.linkedinUrl,
-          company: lead.company, language: lead.language,
+          company: lead.company, language: lead.language, keyword: leadKeyword,
           dryRun: isDry,
           accountId: activeAccount?.unipileAccountId || activeAccount?.id,
         }),
@@ -418,6 +438,11 @@ export function CampaignLeadsTracker({
               status: (isDone ? "completed" : "in_progress") as LeadCampaignTrackerItem["status"],
               lastActionTitle: `Paso ${stepIndexToRun + 1} (${stepDef?.title || "Paso"}) ejecutado exitosamente`,
               lastActionAt: "Ahora mismo",
+              nextStepAtIso: isDone
+                ? undefined
+                : new Date(
+                    Date.now() + (activeCampaign.steps[nextIdx]?.delayDaysBefore ?? 0) * 86400000
+                  ).toISOString(),
             };
           }
           return item;
@@ -462,6 +487,7 @@ export function CampaignLeadsTracker({
           currentStepIndex: 0,
           completedStepIndices: [],
           status: "in_progress" as const,
+          nextStepAtIso: undefined,
           lastActionTitle: "Secuencia reiniciada al Paso 1",
           lastActionAt: "Ahora mismo",
         };
