@@ -512,7 +512,7 @@ export default function CompetitorsSignalRadarPage() {
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Signal Radar - Nivel 02: Posts de la Competencia (Auditoria Rival)" />
 
       {/* Métricas del Nivel 2 */}

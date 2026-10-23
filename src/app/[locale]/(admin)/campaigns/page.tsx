@@ -619,7 +619,7 @@ export default function CampaignsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Campañas de Social Selling (Secuencias Lineales)" />
 
       {/* Cabecera Principal */}

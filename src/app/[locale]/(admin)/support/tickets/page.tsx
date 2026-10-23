@@ -102,7 +102,7 @@ export default function SupportTicketsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Tickets de Soporte Técnico" />
 
       {notice && (
@@ -112,24 +112,26 @@ export default function SupportTicketsPage() {
         </div>
       )}
 
-      {/* Header y Acción */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Asistencia & Tickets de Soporte
-          </h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Comunícate directamente con los ingenieros y especialistas de soporte de InHubFlow.
-          </p>
-        </div>
+      {/* Header y Acción en formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Asistencia & Tickets de Soporte
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Comunícate directamente con los ingenieros y especialistas de soporte de InHubFlow.
+            </p>
+          </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
-        >
-          <Plus className="size-4" />
-          <span>Abrir Nuevo Ticket</span>
-        </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+          >
+            <Plus className="size-4" />
+            <span>Abrir Nuevo Ticket</span>
+          </button>
+        </div>
       </div>
 
       {/* SLAs de Respuesta según Plan */}

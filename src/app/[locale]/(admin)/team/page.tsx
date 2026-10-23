@@ -140,7 +140,7 @@ export default function TeamManagementPage() {
 
   if (currentUser.role === "member") {
     return (
-      <div className="space-y-6">
+      <div className="w-full space-y-6">
         <PageBreadcrumb pageTitle="Equipo & Operadores" />
         <div className="rounded-lg border border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
@@ -158,7 +158,7 @@ export default function TeamManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Equipo & Operadores" />
 
       {/* Capacidad del Plan */}

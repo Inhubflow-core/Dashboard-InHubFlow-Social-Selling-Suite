@@ -53,7 +53,7 @@ export default function WorkspaceSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Configuración del Workspace" />
 
       {notice && (

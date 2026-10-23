@@ -758,7 +758,7 @@ export default function GlobalSignalsPage() {
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Signal Radar - Nivel 04: Posts Globales en LinkedIn (Top Voices & Tendencias)" />
 
       {/* Métricas del Nivel 4 */}

@@ -144,34 +144,36 @@ export default function SignalListsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Listas Dinamicas por Señal" />
 
-      {/* Cabecera */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Segmentos Alimentados por Señales
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Cada monitor de señales canaliza automaticamente los perfiles captados hacia su lista correspondiente para iniciar campañas personalizadas.
-          </p>
-        </div>
+      {/* Cabecera en formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Segmentos Alimentados por Señales
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Cada monitor de señales canaliza automaticamente los perfiles captados hacia su lista correspondiente para iniciar campañas personalizadas.
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <a
-            href="/leads"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-          >
-            Ver Directorio 360
-          </a>
-          <button
-            type="button"
-            onClick={() => setIsCreatingList(!isCreatingList)}
-            className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
-          >
-            {isCreatingList ? "Cerrar Formulario" : "+ Crear Nueva Lista"}
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/leads"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+            >
+              Ver Directorio 360
+            </a>
+            <button
+              type="button"
+              onClick={() => setIsCreatingList(!isCreatingList)}
+              className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+            >
+              {isCreatingList ? "Cerrar Formulario" : "+ Crear Nueva Lista"}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -69,7 +69,7 @@ const SERVICES: ServiceStatus[] = [
 
 export default function SystemStatusPage() {
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Estado del Sistema & Infraestructura" />
 
       {/* Banner Principal de Salud */}

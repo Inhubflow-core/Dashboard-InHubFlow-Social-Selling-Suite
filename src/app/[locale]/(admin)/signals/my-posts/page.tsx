@@ -523,7 +523,7 @@ export default function MyPostsSignalRadarPage() {
     activeAccount?.publicProfileUrl || "https://www.linkedin.com/in/robertoorse-agencia";
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Signal Radar - Nivel 01: Mis Posts (Lead Magnet)" />
 
       {/* Métricas del Nivel 1 */}

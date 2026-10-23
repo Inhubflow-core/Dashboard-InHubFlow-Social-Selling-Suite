@@ -46,12 +46,22 @@ export default function ApiDocsPage() {
 }`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <PageBreadcrumb pageTitle="Documentación Técnica & Sandbox de Webhooks" />
+    <div className="w-full space-y-6">
+      <PageBreadcrumb pageTitle="Documentación Técnica & Sandbox de Webhooks" />
 
-        {/* Selector de Pestañas */}
-        <div className="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Referencia Técnica & Simulador de Eventos
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Prueba webhooks en tiempo real y consulta la documentación de integración de InHubFlow Social Selling.
+            </p>
+          </div>
+
+          {/* Selector de Pestañas */}
+          <div className="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
           <button
             onClick={() => setActiveTab("simulator")}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
@@ -75,6 +85,7 @@ export default function ApiDocsPage() {
             <Code2 className="size-3.5" />
             <span>Referencia REST API</span>
           </button>
+          </div>
         </div>
       </div>
 

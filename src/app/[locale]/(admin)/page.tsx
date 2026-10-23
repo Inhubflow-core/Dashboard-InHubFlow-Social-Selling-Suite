@@ -76,7 +76,7 @@ const modules = [
 
 export default function SocialSellingDashboard() {
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Panel de Control | InHubFlow Social Selling" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

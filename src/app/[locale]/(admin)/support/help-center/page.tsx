@@ -94,7 +94,7 @@ export default function HelpCenterPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Centro de Ayuda & Guías" />
 
       {/* Hero del Centro de Ayuda */}

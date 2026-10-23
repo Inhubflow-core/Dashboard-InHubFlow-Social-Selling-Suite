@@ -341,7 +341,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
   const activeAccObj = accounts.find((a) => a.id === selectedAccountId);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Modelador de Contenido con IA" />
 
       {/* Banner de Referencia si viene de Radar Viral */}

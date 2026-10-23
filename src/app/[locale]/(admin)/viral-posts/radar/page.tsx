@@ -562,7 +562,7 @@ export default function ViralRadarPage() {
   const currentDisplayName = activeAccountName || activeAccount?.name || currentUser.name || "InHubFlow Creator";
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Post Finder (Top Posts de LinkedIn)" />
 
 

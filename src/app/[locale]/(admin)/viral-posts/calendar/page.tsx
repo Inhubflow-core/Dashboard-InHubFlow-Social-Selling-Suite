@@ -222,7 +222,7 @@ export default function EditorialCalendarPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Calendario Editorial" />
 
       {/* Alerta de confirmación al reprogramar */}
@@ -246,7 +246,7 @@ export default function EditorialCalendarPage() {
       )}
 
       {/* Contenedor Principal del Calendario */}
-      <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
         {/* Cabecera Superior: Título, Contador, Selector de Vista y Botón Programar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5">
           <div>
@@ -302,7 +302,7 @@ export default function EditorialCalendarPage() {
         </div>
 
         {/* Cuerpo del Calendario con línea divisoria igual que ComponentCard */}
-        <div className="border-t border-gray-300 p-4 sm:p-6 dark:border-gray-800 space-y-6">
+        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800 space-y-6">
           {/* Barra de Navegación del Mes & Filtros (Estilo exacto #b2b) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Navegación temporal: Flechas + Hoy + Nombre del Mes */}

@@ -42,7 +42,7 @@ export default function SecuritySettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="API Keys & Seguridad" />
 
       {notice && (

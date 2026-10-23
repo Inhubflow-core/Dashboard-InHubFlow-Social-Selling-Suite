@@ -106,7 +106,9 @@ export default function PipelineCalendarPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-140px)]">
+    <div className="w-full space-y-6">
+      <PageBreadcrumb pageTitle="Calendario de Citas Comerciales" />
+
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
@@ -115,34 +117,37 @@ export default function PipelineCalendarPage() {
         </div>
       )}
 
-      {/* Cabecera */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4">
-        <div>
-          <PageBreadcrumb pageTitle="Calendario de Citas Comerciales" />
-          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
-            Gestion y sincronizacion bidireccional de videollamadas cerradas desde LinkedIn con Google Calendar, Outlook y Cal.com.
-          </p>
+      {/* Cabecera + Barra de Integraciones en formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 py-5">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Agenda Comercial y Videollamadas
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Gestión y sincronización bidireccional de videollamadas cerradas desde LinkedIn con Google Calendar, Outlook y Cal.com.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/pipeline"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-2xs"
+            >
+              Ver Tablero Kanban
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
+            >
+              <Plus className="size-3.5" />
+              <span>Agendar Cita Manual</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/pipeline"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-2xs"
-          >
-            Ver Tablero Kanban
-          </Link>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
-          >
-            <Plus className="size-3.5" />
-            <span>Agendar Cita Manual</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Barra de Integraciones y Zona Horaria */}
-      <div className="rounded-lg border border-gray-300 bg-white p-4 mb-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        {/* Barra de Integraciones y Zona Horaria */}
+        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Proveedores Conectados */}
           <div className="flex flex-wrap items-center gap-3">
@@ -185,6 +190,7 @@ export default function PipelineCalendarPage() {
               <option value="America/New_York (GMT-5)">America/New York (GMT-5)</option>
             </select>
           </div>
+        </div>
         </div>
       </div>
 

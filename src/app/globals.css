@@ -198,6 +198,11 @@
     cursor: pointer;
   }
 
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
   body {
     background-color: #E9F0F7;
     @apply relative z-1 font-outfit font-normal;

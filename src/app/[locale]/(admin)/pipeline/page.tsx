@@ -154,7 +154,9 @@ export default function PipelinePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-140px)]">
+    <div className="w-full space-y-6">
+      <PageBreadcrumb pageTitle="Pipeline CRM Comercial (Kanban)" />
+
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
@@ -163,35 +165,39 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* Cabecera y Navegación */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4">
-        <div>
-          <PageBreadcrumb pageTitle="Pipeline CRM Comercial (Kanban)" />
-          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
-            Flujo de conversion visual de 7 etapas para prospeccion inbound y cierre de ventas en LinkedIn.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/pipeline/calendar"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
-          >
-            <Calendar className="size-3.5 text-brand-500" />
-            <span>Calendario de Citas</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
-          >
-            <Plus className="size-3.5" />
-            <span>Nueva Oportunidad</span>
-          </button>
+      {/* Cabecera y Navegación en formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Tablero Comercial de Oportunidades
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Flujo de conversión visual de 7 etapas para prospección inbound y cierre de ventas en LinkedIn.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/pipeline/calendar"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
+            >
+              <Calendar className="size-3.5 text-brand-500" />
+              <span>Calendario de Citas</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5 shadow-xs"
+            >
+              <Plus className="size-3.5" />
+              <span>Nueva Oportunidad</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Tarjetas de Métricas de Ventas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Valor Total Pipeline</span>

@@ -220,7 +220,7 @@ export default function LinkedInAccountsPage() {
   const activeAccount = displayedAccounts.find((a: ConnectedLinkedInAccount) => a.id === activeId) || displayedAccounts[0];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Cuentas de LinkedIn" />
 
       {/* Capacidad de Slots SaaS */}

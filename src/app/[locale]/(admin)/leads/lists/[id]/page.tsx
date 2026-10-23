@@ -239,10 +239,12 @@ export default function DynamicListDetailPage() {
     "Lista Dinámica";
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb con navegación directa */}
-      <div>
-        <div className="mb-2">
+    <div className="w-full space-y-6">
+      <PageBreadcrumb pageTitle={`Lista: ${cleanListName}`} />
+
+      {/* Cabecera de la Lista Dinámica con acciones y métricas */}
+      <div className="w-full px-6 py-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
+        <div className="mb-3">
           <Link
             href="/leads/lists"
             className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400 inline-flex items-center gap-1"
@@ -250,11 +252,6 @@ export default function DynamicListDetailPage() {
             &larr; Volver a Listas Dinámicas
           </Link>
         </div>
-        <PageBreadcrumb pageTitle={`Lista: ${cleanListName}`} />
-      </div>
-
-      {/* Cabecera de la Lista Dinámica con acciones y métricas */}
-      <div className="p-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">

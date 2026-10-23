@@ -176,7 +176,9 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
+    <div className="w-full space-y-6">
+      <PageBreadcrumb pageTitle="Inbox Unificado (Enfocado en Ventas)" />
+
       {/* Toast Notificacion */}
       {notificationMsg && (
         <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
@@ -185,24 +187,28 @@ export default function InboxPage() {
         </div>
       )}
 
-      {/* Cabecera */}
-      <div className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <PageBreadcrumb pageTitle="Inbox Unificado (Enfocado en Ventas)" />
-          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
-            Buzon depurado exclusivamente para prospectos de campanas activas con asistencia de SDR Co-Pilot.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Sincronización Cloud Activa (LinkedIn)
+      {/* Cabecera en formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Bandeja de Entrada Comercial & SDR Co-Pilot
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Buzón depurado exclusivamente para prospectos de campañas activas con asistencia de SDR Co-Pilot.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Sincronización Cloud Activa (LinkedIn)
+            </div>
           </div>
         </div>
       </div>
 
       {/* Contenedor Principal */}
-      <div className="flex-1 grid grid-cols-12 gap-0 rounded-lg border border-gray-300 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="w-full min-h-[680px] grid grid-cols-12 gap-0 rounded-lg border border-gray-300 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         {/* Panel Izquierdo: Lista de Conversaciones */}
         <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r border-gray-300 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
           {/* Filtros superiores */}

@@ -343,10 +343,10 @@ export default function PostsListPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Gestión de Publicaciones" />
 
-      <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -377,7 +377,7 @@ export default function PostsListPage() {
         </div>
 
         {/* Filtros */}
-        <div className="border-t border-gray-300 p-4 sm:p-6 dark:border-gray-800">
+        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-gray-500 mr-2">Estado:</span>

@@ -33,7 +33,7 @@ export default function PlansPricingPage() {
 
   if (currentUser.role === "member") {
     return (
-      <div className="space-y-6">
+      <div className="w-full space-y-6">
         <PageBreadcrumb pageTitle="Planes & Suscripcion" />
         <div className="rounded-lg border border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
@@ -51,7 +51,7 @@ export default function PlansPricingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Planes & Suscripcion" />
 
       {/* Capacidad Actual de Slots */}

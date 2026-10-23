@@ -345,7 +345,7 @@ export default function SdrAgentPage() {
   const currentModeInfo = getModeBadge(config.mode);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Asistente SDR IA" />
 
       {/* Notificación Toast */}

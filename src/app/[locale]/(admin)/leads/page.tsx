@@ -125,39 +125,40 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle="Directorio de Leads (Ficha del Contacto)" />
 
-      {/* Barra de control y exportación */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Base Central de Prospectos Calificados
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Contactos captados por monitores de señales en LinkedIn con trazabilidad de interacciones y datos de contacto.
-          </p>
+      {/* Barra de control, exportación y filtros en el formato estándar de Card */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Base Central de Prospectos Calificados
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Contactos captados por monitores de señales en LinkedIn con trazabilidad de interacciones y datos de contacto.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/leads/lists"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+            >
+              Ver Listas por Señal ({lists.length})
+            </a>
+            <button
+              type="button"
+              onClick={() => exportLeadsToCsv(filteredLeads)}
+              className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
+            >
+              Exportar a CSV ({filteredLeads.length})
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <a
-            href="/leads/lists"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-          >
-            Ver Listas por Señal ({lists.length})
-          </a>
-          <button
-            type="button"
-            onClick={() => exportLeadsToCsv(filteredLeads)}
-            className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
-          >
-            Exportar a CSV ({filteredLeads.length})
-          </button>
-        </div>
-      </div>
-
-      {/* Filtros de Búsqueda y Segmentación */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
+        {/* Filtros de Búsqueda y Segmentación */}
+        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <input
             type="text"
@@ -199,10 +200,14 @@ export default function LeadsPage() {
             <option value="closed_won">Ganado (Closed Won)</option>
           </select>
         </div>
+        </div>
       </div>
 
       {/* Tabla de Directorio 360 */}
-      <ComponentCard title={`Prospectos Registrados (${filteredLeads.length})`}>
+      <ComponentCard
+        title={`Prospectos Registrados (${filteredLeads.length})`}
+        desc="Listado general de leads enriquecidos con origen de señal, etapa comercial y estado de secuencia activa."
+      >
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando prospectos...</p>
         ) : filteredLeads.length === 0 ? (
