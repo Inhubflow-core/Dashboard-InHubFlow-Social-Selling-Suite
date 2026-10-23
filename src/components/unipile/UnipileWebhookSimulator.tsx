@@ -220,8 +220,8 @@ export default function UnipileWebhookSimulator() {
       )}
 
       {/* Selector de Evento a Simular */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+      <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between border-b -300 pb-4 dark:border-gray-800">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Disparador de Eventos Webhook en Vivo
@@ -295,14 +295,14 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simLeadName}
                     onChange={(e) => setSimLeadName(e.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border -300 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Destino en Suite
                   </label>
-                  <div className="mt-1.5 flex h-[38px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-950/50 dark:text-gray-400">
+                  <div className="mt-1.5 flex h-[38px] items-center rounded-lg border -300 bg-gray-50 px-3.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-950/50 dark:text-gray-400">
                     Inbox Unificado + Cola de Aprobacion SDR IA
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export default function UnipileWebhookSimulator() {
                   rows={3}
                   value={simMessageText}
                   onChange={(e) => setSimMessageText(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-3 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border -300 bg-white p-3 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -344,7 +344,7 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simAuthorName}
                     onChange={(e) => setSimAuthorName(e.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border -300 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
                 <div>
@@ -355,7 +355,7 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simPostTitle}
                     onChange={(e) => setSimPostTitle(e.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border -300 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
               </div>
@@ -368,7 +368,7 @@ export default function UnipileWebhookSimulator() {
                   type="text"
                   value={simCommentText}
                   onChange={(e) => setSimCommentText(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border -300 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -446,8 +446,8 @@ export default function UnipileWebhookSimulator() {
       </div>
 
       {/* Registro de Auditoría de Webhooks en Vivo */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+      <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between border-b -300 pb-4 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Terminal className="size-4 text-[#0099ff]" />
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -477,7 +477,7 @@ export default function UnipileWebhookSimulator() {
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs dark:border-gray-800 dark:bg-gray-950"
+                className="rounded-lg border -300 bg-gray-50 p-4 font-mono text-xs dark:border-gray-800 dark:bg-gray-950"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

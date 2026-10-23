@@ -575,7 +575,7 @@ export default function ViralRadarPage() {
           <div className="space-y-3">
             {/* Selector de cuenta si hay varias */}
             {availableAccounts.length > 1 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-gray-50 border border-gray-200 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-gray-50 border -300 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-600 dark:text-gray-400">
                     Cuenta conectada para indexar:
@@ -663,11 +663,11 @@ export default function ViralRadarPage() {
             </div>
 
             {/* Controles de Búsqueda: Temporalidad & Detección Automática de Mercado */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t -300 dark:border-gray-800 text-xs">
               {/* Ventana Temporal */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-gray-500 dark:text-gray-400">Ventana Temporal:</span>
-                <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
+                <div className="inline-flex rounded-lg border -300 dark:border-gray-800 p-0.5 bg-gray-50 dark:bg-gray-900">
                   {[
                     { id: "PAST_MONTH", label: "Último Mes (Recomendado)" },
                     { id: "PAST_WEEK", label: "Última Semana" },
@@ -697,7 +697,7 @@ export default function ViralRadarPage() {
           </div>
 
           {/* Filtros por Nivel de Viralidad y Formato */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t -300 dark:border-gray-800">
             {/* Nivel de Viralidad */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">
@@ -809,7 +809,7 @@ export default function ViralRadarPage() {
         </div>
 
         {isSearchingLive ? (
-          <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+          <div className="py-16 text-center space-y-3 bg-white rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Escaneando publicaciones en vivo en LinkedIn...
@@ -819,7 +819,7 @@ export default function ViralRadarPage() {
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800 p-6">
+          <div className="py-16 text-center space-y-3 bg-white rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800 p-6">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
               No se encontraron publicaciones virales para los filtros aplicados.
             </p>
@@ -848,7 +848,7 @@ export default function ViralRadarPage() {
             {filteredPosts.map((post) => (
               <div
                 key={post.id}
-                className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500/60 transition dark:border-gray-800 dark:bg-gray-900/60"
+                className="flex flex-col justify-between rounded-lg border -300 bg-white p-5 shadow-theme-xs hover:border-brand-500/60 transition dark:border-gray-800 dark:bg-gray-900/60"
               >
                 <div>
                   {/* Encabezado: Autor y Badges */}
@@ -858,7 +858,7 @@ export default function ViralRadarPage() {
                         <img
                           src={post.authorAvatar}
                           alt={post.author}
-                          className="h-10 w-10 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+                          className="h-10 w-10 rounded-full object-cover shrink-0 border -300 dark:border-gray-700"
                           onError={(e) => {
                             (e.currentTarget as HTMLElement).style.display = "none";
                           }}
@@ -896,7 +896,7 @@ export default function ViralRadarPage() {
                           ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800"
                           : post.format === "image"
                           ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800"
-                          : "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                          : "bg-gray-100 text-gray-700 border -300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                       }`}
                     >
                       {getFormatLabel(post.format)}
@@ -1027,7 +1027,7 @@ export default function ViralRadarPage() {
 
                   {/* Vista previa recortada de la imagen / recurso visual (para saber de un vistazo si incluye imagen) */}
                   {(post.mediaUrl || post.format === "image" || post.format === "carousel") && (
-                    <div className="relative mb-4 h-32 sm:h-36 w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-800 group">
+                    <div className="relative mb-4 h-32 sm:h-36 w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800/80 border -300 dark:border-gray-800 group">
                       {post.mediaUrl ? (
                         <img
                           src={post.mediaUrl}
@@ -1083,7 +1083,7 @@ export default function ViralRadarPage() {
                   )}
 
                   {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
-                  <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-100 py-2.5 text-center dark:border-gray-800">
+                  <div className="mb-5 grid grid-cols-3 gap-2 border-y -300 py-2.5 text-center dark:border-gray-800">
                     <div>
                       <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Likes
@@ -1111,7 +1111,7 @@ export default function ViralRadarPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2 pt-2 border-t -300 dark:border-gray-800">
                   <button
                     type="button"
                     onClick={() => handleOpenPostModal(post)}
@@ -1142,11 +1142,11 @@ export default function ViralRadarPage() {
       {/* Modal de Lectura Completa con Estructura Fiel a LinkedIn */}
       {selectedPostForModal && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 shadow-theme-xl border border-gray-200 dark:border-gray-800">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 shadow-theme-xl border -300 dark:border-gray-800">
             {/* Barra Superior de Metadatos y Cierre */}
-            <div className="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 pb-3 mb-4">
+            <div className="flex items-center justify-between gap-3 border-b -300 dark:border-gray-800 pb-3 mb-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 shadow-xs">
+                <span className="rounded-full bg-white dark:bg-gray-900 border -300 dark:border-gray-800 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 shadow-xs">
                   {getFormatLabel(selectedPostForModal.format)}
                 </span>
                 {selectedPostForModal.viralityBadge && (
@@ -1198,7 +1198,7 @@ export default function ViralRadarPage() {
             </div>
 
             {/* Tarjeta con Estructura Fiel a una Publicación de LinkedIn */}
-            <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden mb-4">
+            <div className="rounded-lg border -300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden mb-4">
               {/* Encabezado del Autor (Avatar + Nombre + Seguir + Titular + Tiempo) */}
               <div className="p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
@@ -1206,7 +1206,7 @@ export default function ViralRadarPage() {
                     <img
                       src={selectedPostForModal.authorAvatar}
                       alt={selectedPostForModal.author}
-                      className="h-12 w-12 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+                      className="h-12 w-12 rounded-full object-cover shrink-0 border -300 dark:border-gray-700"
                       onError={(e) => {
                         (e.currentTarget as HTMLElement).style.display = "none";
                       }}
@@ -1316,7 +1316,7 @@ export default function ViralRadarPage() {
 
               {/* Recurso Visual (Imagen o Carrusel - Justo debajo del Texto) */}
               {selectedPostForModal.mediaUrl && (
-                <div className="w-full overflow-hidden bg-black/5 dark:bg-black/50 border-y border-gray-100 dark:border-gray-800">
+                <div className="w-full overflow-hidden bg-black/5 dark:bg-black/50 border-y -300 dark:border-gray-800">
                   <img
                     src={selectedPostForModal.mediaUrl}
                     alt={selectedPostForModal.author}
@@ -1329,7 +1329,7 @@ export default function ViralRadarPage() {
               )}
 
               {/* Barra de Reacciones y Contadores de LinkedIn (Likes, Comentarios, Compartidos) */}
-              <div className="flex items-center justify-between px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400 border-b -300 dark:border-gray-800">
                 <div className="flex items-center gap-1.5">
                   <span className="flex items-center -space-x-1">
                     <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#0a66c2] text-white shadow-xs">
@@ -1385,7 +1385,7 @@ export default function ViralRadarPage() {
 
             {/* Enlace a publicación original en LinkedIn */}
             {selectedPostForModal.linkedinUrl && (
-              <div className="mb-4 flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 text-xs">
+              <div className="mb-4 flex items-center justify-between p-3 rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-gray-900 text-xs">
                 <span className="text-gray-600 dark:text-gray-400 font-medium">Publicación original en la red:</span>
                 <a
                   href={selectedPostForModal.linkedinUrl}
@@ -1400,7 +1400,7 @@ export default function ViralRadarPage() {
 
             {/* Estructura de Diapositivas (si es Carrusel) */}
             {selectedPostForModal.format === "carousel" && selectedPostForModal.carouselSlides && (
-              <div className="mb-4 rounded-lg border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
+              <div className="mb-4 rounded-lg border -300 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-2">
                   Estructura de Diapositivas ({selectedPostForModal.carouselSlides.length} diapositivas):
                 </h4>
@@ -1419,7 +1419,7 @@ export default function ViralRadarPage() {
 
             {/* Prompt Visual para IA (si aplica) */}
             {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
-              <div className="mb-4 rounded-lg border border-gray-200 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
+              <div className="mb-4 rounded-lg border -300 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Prompt Visual para IA:
                 </h4>
@@ -1430,7 +1430,7 @@ export default function ViralRadarPage() {
             )}
 
             {/* Botones de Acción */}
-            <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+            <div className="flex justify-end gap-3 border-t -300 pt-4 dark:border-gray-800">
               <button
                 type="button"
                 onClick={handleClosePostModal}

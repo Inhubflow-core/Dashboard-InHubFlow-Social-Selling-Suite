@@ -376,7 +376,7 @@ export default function PostsListPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium text-gray-500 mr-2">Estado:</span>
           {[
@@ -490,7 +490,7 @@ export default function PostsListPage() {
               return (
                 <div
                   key={post.id}
-                  className="rounded-lg border border-gray-200 bg-white p-4 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
+                  className="rounded-lg border -300 bg-white p-4 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="space-y-1.5 flex-1 min-w-0">
@@ -610,7 +610,7 @@ export default function PostsListPage() {
 
                       <a
                         href="/viral-posts/calendar"
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
+                        className="rounded-lg border -300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
                         title="Ver en Calendario"
                       >
                         <span>Ver en Calendario</span>
@@ -649,8 +649,8 @@ export default function PostsListPage() {
       {/* Modal para Editar Publicación */}
       {editingPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between border-b -300 pb-3 dark:border-gray-800">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                 Editar Publicación
               </h3>
@@ -702,7 +702,7 @@ export default function PostsListPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t -300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setEditingPost(null)}

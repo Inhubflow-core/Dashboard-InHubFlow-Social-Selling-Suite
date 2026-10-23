@@ -528,7 +528,7 @@ export default function MyPostsSignalRadarPage() {
 
       {/* Métricas del Nivel 1 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Monitores Nivel 1
           </span>
@@ -542,7 +542,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Comentarios Analizados
           </span>
@@ -554,7 +554,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Leads Captados & DMs Enviados
           </span>
@@ -566,7 +566,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Conversion de Post
           </span>
@@ -580,7 +580,7 @@ export default function MyPostsSignalRadarPage() {
       </div>
 
       {/* Botón de Creación y Explicación del Mecanismo */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Automatización de Lead Magnet en LinkedIn (Nivel 1)
@@ -658,10 +658,10 @@ export default function MyPostsSignalRadarPage() {
                 {/* Dropdown de Sugerencias de /viral-posts/list */}
                 {isDropdownOpen && createdPosts.length > 0 && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border -300 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
                     onMouseDown={(e) => e.preventDefault()}
                   >
-                    <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
+                    <div className="flex items-center justify-between px-2 py-1 border-b -300 dark:border-gray-800 mb-1">
                       <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                         Publicaciones en tu Base de Datos (/viral-posts/list)
                       </span>
@@ -832,7 +832,7 @@ export default function MyPostsSignalRadarPage() {
             </div>
 
             {/* Fila 3: Smart Automation Card - Reacción Automática */}
-            <div className="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex items-center p-3.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -973,7 +973,7 @@ export default function MyPostsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 dark:border-gray-800 [&_th]:font-normal">
+              <thead className="border-b -300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 dark:border-gray-800 [&_th]:font-normal">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta / Publicación</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabra Clave</th>
@@ -983,7 +983,7 @@ export default function MyPostsSignalRadarPage() {
                   <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
+              <tbody className="divide-y -300 text-xs dark:divide-gray-800">
                 {l1Monitors.map((mon) => {
                   const isExpanded = Boolean(expandedMonitorsPosts[mon.id]);
                   const activeBatch = selectedBatchSize[mon.id] || 50;
@@ -1000,7 +1000,7 @@ export default function MyPostsSignalRadarPage() {
                               <img
                                 src={currentUserPhoto}
                                 alt={currentDisplayName}
-                                className="h-8 w-8 object-cover rounded-full bg-white border border-gray-100 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5"
+                                className="h-8 w-8 object-cover rounded-full bg-white border -300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5"
                                 onError={(e) => {
                                   (e.target as HTMLElement).style.display = "none";
                                   const fb = (e.target as HTMLElement).nextElementSibling;
@@ -1109,7 +1109,7 @@ export default function MyPostsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border -300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1304,8 +1304,8 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Visualizar Leads Captados por un Monitor Específico */}
       {selectedMonitorForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border -300 dark:border-gray-800">
+            <div className="flex items-start justify-between border-b -300 pb-4 dark:border-gray-800">
               <div>
                 <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-mono font-bold text-brand-600 dark:bg-brand-950 dark:text-brand-300">
                   Palabra: {selectedMonitorForLeads.keyword}
@@ -1326,7 +1326,7 @@ export default function MyPostsSignalRadarPage() {
               </button>
             </div>
 
-            <div className="my-4 divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="my-4 divide-y -300 dark:divide-gray-800">
               {getMonitorLeads(selectedMonitorForLeads.id).length === 0 ? (
                 <div className="py-8 text-center space-y-3">
                   <p className="text-xs text-gray-500">
@@ -1390,7 +1390,7 @@ export default function MyPostsSignalRadarPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between pt-3 border-t -300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => handleSimulateCommentLead(selectedMonitorForLeads)}
@@ -1427,8 +1427,8 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Vincular URL de LinkedIn Manualmente */}
       {linkingUrlModalMonitor && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border -300 dark:border-gray-800">
+            <div className="flex items-start justify-between border-b -300 pb-3 dark:border-gray-800">
               <div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">
                   Vincular Publicación de LinkedIn
@@ -1464,7 +1464,7 @@ export default function MyPostsSignalRadarPage() {
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex justify-end gap-2 pt-2 border-t -300 dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => setLinkingUrlModalMonitor(null)}
@@ -1487,8 +1487,8 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Editar Monitor Nivel 1 */}
       {editingMonitor && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 my-8">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
+          <div className="relative w-full max-w-xl rounded-lg border -300 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 my-8">
+            <div className="flex items-center justify-between border-b -300 pb-3 dark:border-gray-800">
               <div className="flex items-center gap-2.5">
                 <div className="flex size-9 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
                   <Pencil className="size-4.5" />
@@ -1632,7 +1632,7 @@ export default function MyPostsSignalRadarPage() {
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t -300 dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => setEditingMonitor(null)}

@@ -74,7 +74,7 @@ export default function RecentOrders() {
   const tCommon = useTranslations("common");
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="overflow-hidden rounded-lg border -300 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/3">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -129,7 +129,7 @@ export default function RecentOrders() {
       <div className="max-w-full overflow-x-auto">
         <Table>
           {/* Table Header */}
-          <TableHeader className="border-y border-gray-100 dark:border-gray-800">
+          <TableHeader className="border-y -300 dark:border-gray-800">
             <TableRow>
               <TableCell
                 isHeader
@@ -160,7 +160,7 @@ export default function RecentOrders() {
 
           {/* Table Body */}
 
-          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <TableBody className="divide-y -300 dark:divide-gray-800">
             {tableData.map((product) => (
               <TableRow key={product.id} className="">
                 <TableCell className="py-3">

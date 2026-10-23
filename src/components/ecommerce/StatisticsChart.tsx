@@ -154,7 +154,7 @@ export default function StatisticsChart() {
   }, []);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-5 pt-5 pb-5 sm:px-6 sm:pt-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="rounded-lg border -300 bg-white px-5 pt-5 pb-5 sm:px-6 sm:pt-6 dark:border-gray-800 dark:bg-white/3">
       <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -171,7 +171,7 @@ export default function StatisticsChart() {
             <CalenderIcon className="inset-s-1/2 lg:inset-s-3 pointer-events-none absolute top-1/2 z-10 ms-2 -translate-x-1/2 -translate-y-1/2 text-gray-500 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2 rtl:translate-x-1/2 lg:rtl:translate-x-0 dark:text-gray-400" />
             <input
               ref={datePickerRef}
-              className="h-10 w-10 cursor-pointer rounded-lg border border-gray-200 bg-white text-sm font-medium text-transparent outline-none lg:h-auto lg:w-40 lg:py-2 lg:ps-10 lg:pe-3 lg:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:lg:text-gray-300"
+              className="h-10 w-10 cursor-pointer rounded-lg border -300 bg-white text-sm font-medium text-transparent outline-none lg:h-auto lg:w-40 lg:py-2 lg:ps-10 lg:pe-3 lg:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:lg:text-gray-300"
               placeholder={t("selectDateRange")}
             />
           </div>

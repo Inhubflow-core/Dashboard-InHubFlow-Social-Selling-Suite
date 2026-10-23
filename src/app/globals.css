@@ -190,7 +190,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-gray-300, currentColor);
   }
 
   button:not(:disabled),
@@ -971,7 +971,7 @@ pre[class*="language-"].line-numbers {
 
 /* FullCalendar Style Overrides */
 :root {
-  --fc-classic-border: var(--color-gray-200);
+  --fc-classic-border: var(--color-gray-300);
 }
 
 .custom-calendar .fc-scroller {

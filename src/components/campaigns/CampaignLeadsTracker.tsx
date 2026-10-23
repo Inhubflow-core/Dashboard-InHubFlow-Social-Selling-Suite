@@ -472,9 +472,9 @@ export function CampaignLeadsTracker({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs overflow-hidden">
+    <div className="rounded-lg border -300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs overflow-hidden">
       {/* Cabecera de la Sección */}
-      <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-gray-50/80 via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-850">
+      <div className="p-5 border-b -300 dark:border-gray-800 bg-gradient-to-r from-gray-50/80 via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-850">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -507,7 +507,7 @@ export function CampaignLeadsTracker({
                 <span>Sincronizar Radar</span>
               </button>
             )}
-            <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold border border-gray-200 dark:border-gray-700">
+            <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold border -300 dark:border-gray-700">
               Total: <strong className="text-gray-900 dark:text-white">{kpiStats.total}</strong>
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-800">
@@ -528,7 +528,7 @@ export function CampaignLeadsTracker({
         </div>
 
         {/* Barra de Filtros y Búsqueda */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-4 mt-4 border-t -300 dark:border-gray-800 text-xs">
           {/* Buscador de texto */}
           <div className="lg:col-span-4 relative">
             <Search className="size-3.5 text-gray-400 absolute left-3 top-2.5" />
@@ -646,7 +646,7 @@ export function CampaignLeadsTracker({
         ) : (
           <div className="overflow-x-auto px-5 pt-4 pb-2">
             <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
+              <thead className="border-b -300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
                   <th className="w-[22%] pb-3 pr-5">Prospecto</th>
                   <th className="w-[24%] pb-3 px-4">Cargo</th>
@@ -655,7 +655,7 @@ export function CampaignLeadsTracker({
                   <th className="w-[8%] pb-3 pl-4 whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
+              <tbody className="divide-y -300 text-xs dark:divide-gray-800">
                 {filteredLeads.map((lead) => {
                   const stepsCount = activeCampaign.steps.length;
                   const progressPercent = Math.round(
@@ -875,7 +875,7 @@ export function CampaignLeadsTracker({
       </div>
 
       {/* Pie de la tabla */}
-      <div className="p-3 px-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/60 flex items-center justify-between text-xs text-gray-500">
+      <div className="p-3 px-5 border-t -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/60 flex items-center justify-between text-xs text-gray-500">
         <span>
           Mostrando <strong>{filteredLeads.length}</strong> de <strong>{leadsTracker.length}</strong> prospectos en seguimiento activo.
         </span>

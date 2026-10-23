@@ -295,7 +295,7 @@ export default function SignalListsPage() {
                 className={`w-full rounded-lg border p-4 sm:p-5 shadow-xs transition dark:bg-gray-900 ${
                   isHighlighted
                     ? "border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/10 dark:border-brand-400 dark:bg-brand-950/20"
-                    : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700"
+                    : "-300 bg-white hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700"
                 }`}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -401,7 +401,7 @@ export default function SignalListsPage() {
                   </div>
 
                   {/* Bloque Derecho: Conteo de Leads y Botones de Acción */}
-                  <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100 dark:border-gray-800 lg:border-t-0 lg:pt-0 lg:justify-end shrink-0">
+                  <div className="flex items-center justify-between gap-4 pt-3 border-t -300 dark:border-gray-800 lg:border-t-0 lg:pt-0 lg:justify-end shrink-0">
                     <div className="text-left lg:text-right px-2">
                       <span className="text-lg font-black text-brand-600 dark:text-brand-400 tracking-tight">
                         {count}

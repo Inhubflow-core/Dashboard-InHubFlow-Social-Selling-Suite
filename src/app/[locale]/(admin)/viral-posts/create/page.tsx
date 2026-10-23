@@ -529,7 +529,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Formato 2: Generador de Prompt Visual */}
               {format === "image" && (
-                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
+                <div className="rounded-lg border -300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       Generador de Prompt Visual para Midjourney / Flux
@@ -571,7 +571,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Formato 3: Editor de Diapositivas del Carrusel */}
               {format === "carousel" && (
-                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
+                <div className="rounded-lg border -300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
@@ -615,7 +615,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     </div>
                   </div>
 
-                  <div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+                  <div className="space-y-3 bg-white p-3.5 rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800">
                     <div>
                       <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                         Titular de Diapositiva
@@ -688,7 +688,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               </div>
 
               {/* Acciones Finales */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t -300 dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => handleSavePost("draft")}
@@ -731,7 +731,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
             title="Previsualización Exacta en LinkedIn"
             desc="Visualización exacta con formato de escritorio y encuadre del contenido."
           >
-            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               {/* Cabecera de perfil */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
@@ -760,7 +760,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Adjunto Visual según Formato */}
               {format === "image" && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+                <div className="mb-4 rounded-lg overflow-hidden border -300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
                   {previewImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -782,7 +782,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               )}
 
               {format === "carousel" && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 shadow-theme-xs">
+                <div className="mb-4 rounded-lg overflow-hidden border -300 dark:border-gray-800 shadow-theme-xs">
                   {/* Vista fiel del Slide actual */}
                   <div
                     className="aspect-square w-full p-6 flex flex-col justify-between"
@@ -886,7 +886,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   </div>
 
                   {/* Barra de navegación de carrusel */}
-                  <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-100 text-xs dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t -300 text-xs dark:bg-gray-800 dark:border-gray-700">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Documento PDF de LinkedIn
                     </span>
@@ -913,7 +913,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               )}
 
               {/* Barra de interacción de LinkedIn */}
-              <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 dark:border-gray-800">
+              <div className="pt-3 border-t -300 flex items-center justify-between text-xs text-gray-500 dark:border-gray-800">
                 <span className="hover:text-gray-900 cursor-pointer">Reaccionar</span>
                 <span className="hover:text-gray-900 cursor-pointer">Comentar</span>
                 <span className="hover:text-gray-900 cursor-pointer">Compartir</span>

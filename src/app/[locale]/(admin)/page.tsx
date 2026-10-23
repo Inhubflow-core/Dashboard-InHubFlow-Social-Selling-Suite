@@ -83,7 +83,7 @@ export default function SocialSellingDashboard() {
         {metrics.map((m, idx) => (
           <div
             key={idx}
-            className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
+            className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-700 dark:bg-gray-900"
           >
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
               {m.title}
@@ -108,6 +108,7 @@ export default function SocialSellingDashboard() {
       <ComponentCard
         title="Line Chart 1"
         desc="Evolucion temporal de interacciones y captacion de leads en LinkedIn."
+        className="border-gray-300 dark:border-gray-700"
       >
         <LineChartOne />
       </ComponentCard>
@@ -126,7 +127,7 @@ export default function SocialSellingDashboard() {
           {modules.map((mod, idx) => (
             <div
               key={idx}
-              className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900/60"
+              className="flex flex-col justify-between rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-900/60"
             >
               <div>
                 <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -136,7 +137,7 @@ export default function SocialSellingDashboard() {
                   {mod.desc}
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="mt-4 pt-3 border-t -300 dark:border-gray-800">
                 <a
                   href={mod.link}
                   className="inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"

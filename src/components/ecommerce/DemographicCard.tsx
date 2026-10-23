@@ -21,7 +21,7 @@ export default function DemographicCard() {
     setIsOpen(false);
   }
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 sm:p-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="rounded-lg border -300 bg-white p-5 sm:p-6 dark:border-gray-800 dark:bg-white/3">
       <div className="flex justify-between">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">

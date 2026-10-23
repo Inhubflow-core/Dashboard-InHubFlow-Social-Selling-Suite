@@ -126,7 +126,7 @@ export default function PipelineCalendarPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/pipeline"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-2xs"
+            className="rounded-lg border -300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-2xs"
           >
             Ver Tablero Kanban
           </Link>
@@ -142,7 +142,7 @@ export default function PipelineCalendarPage() {
       </div>
 
       {/* Barra de Integraciones y Zona Horaria */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 mb-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border -300 bg-white p-4 mb-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Proveedores Conectados */}
           <div className="flex flex-wrap items-center gap-3">
@@ -160,7 +160,7 @@ export default function PipelineCalendarPage() {
               <span>Cal.com Webhook</span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+            <div className="flex items-center gap-1.5 rounded-lg border -300 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
               <CheckCircle2 className="size-3 text-emerald-500" />
               <span>Outlook 365</span>
             </div>
@@ -175,7 +175,7 @@ export default function PipelineCalendarPage() {
             <select
               value={selectedTimeZone}
               onChange={(e) => setSelectedTimeZone(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="rounded-lg border -300 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             >
               <option value="America/Buenos_Aires (GMT-3)">America/Buenos Aires (GMT-3)</option>
               <option value="America/Mexico_City (GMT-6)">America/Mexico City (GMT-6)</option>
@@ -190,7 +190,7 @@ export default function PipelineCalendarPage() {
 
       {/* Métricas de Citas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Reuniones esta Semana</span>
             <CalendarIcon className="size-4 text-brand-500" />
@@ -203,7 +203,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Show Rate (Asistencia)</span>
             <CheckCircle2 className="size-4 text-emerald-500" />
@@ -216,7 +216,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Duracion Promedio</span>
             <Clock className="size-4 text-purple-500" />
@@ -229,7 +229,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Pipeline Agendado</span>
             <Sparkles className="size-4 text-amber-500" />
@@ -244,7 +244,7 @@ export default function PipelineCalendarPage() {
       </div>
 
       {/* Filtros de Citas */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border -300 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2 flex-1 min-w-[220px]">
           <Search className="size-4 text-gray-400" />
           <input
@@ -260,7 +260,7 @@ export default function PipelineCalendarPage() {
           <select
             value={filterProvider}
             onChange={(e) => setFilterProvider(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            className="rounded-lg border -300 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
           >
             <option value="all">Todos los proveedores</option>
             <option value="Google Calendar">Google Calendar</option>
@@ -271,7 +271,7 @@ export default function PipelineCalendarPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            className="rounded-lg border -300 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
           >
             <option value="all">Todos los estados</option>
             <option value="Confirmada">Confirmada</option>
@@ -295,14 +295,14 @@ export default function PipelineCalendarPage() {
           </div>
 
           {filteredMeetings.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-lg border -300 bg-white p-8 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900">
               No hay citas que coincidan con la busqueda.
             </div>
           ) : (
             filteredMeetings.map((meet) => (
               <div
                 key={meet.id}
-                className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900"
+                className="rounded-lg border -300 bg-white p-4 shadow-2xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
@@ -354,7 +354,7 @@ export default function PipelineCalendarPage() {
                   </p>
                 )}
 
-                <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 dark:border-gray-800">
+                <div className="mt-3 pt-3 border-t -300 flex flex-wrap items-center justify-between gap-2 dark:border-gray-800">
                   <div className="flex items-center gap-2">
                     <a
                       href={meet.meetingLink}
@@ -396,7 +396,7 @@ export default function PipelineCalendarPage() {
 
         {/* Columna Derecha: Panel de Configuración y Enlace de Agendamiento Rápido */}
         <div className="space-y-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border -300 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Tu Enlace de Agendamiento
             </h4>
@@ -426,7 +426,7 @@ export default function PipelineCalendarPage() {
             </button>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border -300 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Protocolo de Asistencia (Show-Up)
             </h4>
@@ -451,8 +451,8 @@ export default function PipelineCalendarPage() {
       {/* Modal para Agendar Cita Manual */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="w-full max-w-md rounded-lg border -300 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between pb-3 border-b -300 dark:border-gray-800">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Agendar Reunion Comercial
               </h3>
@@ -476,7 +476,7 @@ export default function PipelineCalendarPage() {
                   placeholder="Ej. Valeria Rios"
                   value={newLeadName}
                   onChange={(e) => setNewLeadName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -490,7 +490,7 @@ export default function PipelineCalendarPage() {
                   placeholder="Ej. InnovaCorp"
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -502,7 +502,7 @@ export default function PipelineCalendarPage() {
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -515,7 +515,7 @@ export default function PipelineCalendarPage() {
                     type="text"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -526,7 +526,7 @@ export default function PipelineCalendarPage() {
                     type="text"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -541,7 +541,7 @@ export default function PipelineCalendarPage() {
                     onChange={(e) =>
                       setNewProvider(e.target.value as "Google Calendar" | "Outlook" | "Cal.com")
                     }
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     <option value="Google Calendar">Google Calendar</option>
                     <option value="Cal.com">Cal.com</option>
@@ -556,7 +556,7 @@ export default function PipelineCalendarPage() {
                     type="text"
                     value={newDealValue}
                     onChange={(e) => setNewDealValue(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -569,7 +569,7 @@ export default function PipelineCalendarPage() {
                   type="text"
                   value={newLink}
                   onChange={(e) => setNewLink(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -582,7 +582,7 @@ export default function PipelineCalendarPage() {
                   placeholder="Detalles sobre el caso de uso del prospecto..."
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 

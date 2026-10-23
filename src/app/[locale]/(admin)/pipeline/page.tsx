@@ -174,7 +174,7 @@ export default function PipelinePage() {
         <div className="flex items-center gap-2">
           <Link
             href="/pipeline/calendar"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
+            className="rounded-lg border -300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
           >
             <Calendar className="size-3.5 text-brand-500" />
             <span>Calendario de Citas</span>
@@ -192,7 +192,7 @@ export default function PipelinePage() {
 
       {/* Tarjetas de Métricas de Ventas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Valor Total Pipeline</span>
             <DollarSign className="size-4 text-emerald-500" />
@@ -205,7 +205,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Oportunidades Activas</span>
             <TrendingUp className="size-4 text-brand-500" />
@@ -218,7 +218,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Reuniones Agendadas</span>
             <Calendar className="size-4 text-purple-500" />
@@ -231,7 +231,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Deals Ganados</span>
             <UserCheck className="size-4 text-emerald-500" />
@@ -246,7 +246,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Barra de Filtros */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border -300 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2 flex-1 min-w-[220px]">
           <Search className="size-4 text-gray-400" />
           <input
@@ -266,7 +266,7 @@ export default function PipelinePage() {
           <select
             value={campaignFilter}
             onChange={(e) => setCampaignFilter(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            className="rounded-lg border -300 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
           >
             <option value="all">Todas las campanas</option>
             <option value="Nivel 1">Nivel 1 (Mis Posts)</option>
@@ -277,7 +277,7 @@ export default function PipelinePage() {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            className="rounded-lg border -300 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
           >
             <option value="all">Todas las prioridades</option>
             <option value="Alta">Prioridad Alta</option>
@@ -301,10 +301,10 @@ export default function PipelinePage() {
                 key={stage.id}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
-                className={`w-[245px] shrink-0 flex flex-col rounded-lg border border-gray-200 bg-gray-50/70 p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900/50 border-t-4 ${stage.headerBorder}`}
+                className={`w-[245px] shrink-0 flex flex-col rounded-lg border -300 bg-gray-50/70 p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900/50 border-t-4 ${stage.headerBorder}`}
               >
                 {/* Cabecera de Columna */}
-                <div className="pb-2.5 mb-2.5 border-b border-gray-200 dark:border-gray-800">
+                <div className="pb-2.5 mb-2.5 border-b -300 dark:border-gray-800">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
                       {stage.name}
@@ -328,7 +328,7 @@ export default function PipelinePage() {
                       key={deal.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal.id)}
-                      className="group rounded-lg border border-gray-200 bg-white p-3 shadow-2xs hover:border-brand-500 hover:shadow-xs transition cursor-grab active:cursor-grabbing dark:border-gray-800 dark:bg-gray-800"
+                      className="group rounded-lg border -300 bg-white p-3 shadow-2xs hover:border-brand-500 hover:shadow-xs transition cursor-grab active:cursor-grabbing dark:border-gray-800 dark:bg-gray-800"
                     >
                       {/* Top bar de la tarjeta */}
                       <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -367,7 +367,7 @@ export default function PipelinePage() {
                       </div>
 
                       {/* Deal Value */}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs dark:border-gray-700/60">
+                      <div className="flex items-center justify-between pt-2 border-t -300 text-xs dark:border-gray-700/60">
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {deal.dealValue}
                         </span>
@@ -386,7 +386,7 @@ export default function PipelinePage() {
                       </div>
 
                       {/* Barra de Acciones Rapidas */}
-                      <div className="mt-2.5 pt-1.5 border-t border-gray-100 flex items-center justify-between dark:border-gray-700/60">
+                      <div className="mt-2.5 pt-1.5 border-t -300 flex items-center justify-between dark:border-gray-700/60">
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
@@ -418,7 +418,7 @@ export default function PipelinePage() {
                   ))}
 
                   {stageDeals.length === 0 && (
-                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg text-xs text-gray-400 p-3 text-center dark:border-gray-800">
+                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed -300 rounded-lg text-xs text-gray-400 p-3 text-center dark:border-gray-800">
                       <span>Arrastra oportunidades aqui</span>
                     </div>
                   )}
@@ -432,8 +432,8 @@ export default function PipelinePage() {
       {/* Modal para Crear Nueva Oportunidad */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="w-full max-w-md rounded-lg border -300 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between pb-3 border-b -300 dark:border-gray-800">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Nueva Oportunidad Comercial
               </h3>
@@ -457,7 +457,7 @@ export default function PipelinePage() {
                   placeholder="Ej. Sofia Navarro"
                   value={newDealName}
                   onChange={(e) => setNewDealName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -471,7 +471,7 @@ export default function PipelinePage() {
                   placeholder="Ej. Nexo Growth Solutions"
                   value={newDealCompany}
                   onChange={(e) => setNewDealCompany(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -485,7 +485,7 @@ export default function PipelinePage() {
                     placeholder="Ej. VP of Sales"
                     value={newDealTitle}
                     onChange={(e) => setNewDealTitle(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -497,7 +497,7 @@ export default function PipelinePage() {
                     placeholder="Ej. $1,800/mes"
                     value={newDealValue}
                     onChange={(e) => setNewDealValue(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -510,7 +510,7 @@ export default function PipelinePage() {
                   <select
                     value={newDealStage}
                     onChange={(e) => setNewDealStage(e.target.value as PipelineStageId)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     {PIPELINE_STAGES.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -526,7 +526,7 @@ export default function PipelinePage() {
                   <select
                     value={newDealPriority}
                     onChange={(e) => setNewDealPriority(e.target.value as "Alta" | "Media" | "Baja")}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="mt-1 w-full rounded-lg border -300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     <option value="Alta">Alta</option>
                     <option value="Media">Media</option>
@@ -542,7 +542,7 @@ export default function PipelinePage() {
                 <select
                   value={newDealCampaign}
                   onChange={(e) => setNewDealCampaign(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border -300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="Nivel 1 - Post Lead Magnet SISTEMA">Nivel 1 - Post Lead Magnet SISTEMA</option>
                   <option value="Nivel 2 - Prospectos Adapta IA">Nivel 2 - Prospectos Adapta IA</option>

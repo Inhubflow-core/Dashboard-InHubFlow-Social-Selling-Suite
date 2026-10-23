@@ -296,7 +296,7 @@ export default function LinkedInAccountsPage() {
 
       {/* Banner de Estado del Motor Unipile */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-500">
@@ -327,7 +327,7 @@ export default function LinkedInAccountsPage() {
               </div>
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-3 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t -300 pt-3 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="size-3.5 text-[#0099ff]" />
@@ -349,7 +349,7 @@ export default function LinkedInAccountsPage() {
         </div>
 
         {/* Resumen de Cuentas */}
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
             Cuentas Conectadas
           </div>
@@ -390,7 +390,7 @@ export default function LinkedInAccountsPage() {
 
           {/* Filtros de Cuentas para Administradores */}
           {!isTeamMember && accounts.length > 1 && (
-            <div className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+            <div className="inline-flex items-center rounded-lg border -300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
               <button
                 onClick={() => setFilterMode("all")}
                 className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${

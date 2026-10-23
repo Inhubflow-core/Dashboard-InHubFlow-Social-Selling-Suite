@@ -202,11 +202,11 @@ export default function InboxPage() {
       </div>
 
       {/* Contenedor Principal */}
-      <div className="flex-1 grid grid-cols-12 gap-0 rounded-lg border border-gray-200 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex-1 grid grid-cols-12 gap-0 rounded-lg border -300 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         {/* Panel Izquierdo: Lista de Conversaciones */}
-        <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
+        <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r -300 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
           {/* Filtros superiores */}
-          <div className="p-3 border-b border-gray-100 dark:border-gray-800 space-y-2 bg-white dark:bg-gray-900">
+          <div className="p-3 border-b -300 dark:border-gray-800 space-y-2 bg-white dark:bg-gray-900">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 size-3.5 text-gray-400" />
               <input
@@ -214,7 +214,7 @@ export default function InboxPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar prospecto, empresa o mensaje..."
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-lg border -300 bg-gray-50 pl-8 pr-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
 
@@ -223,7 +223,7 @@ export default function InboxPage() {
                 value={filterCampaign}
                 onChange={(e) => setFilterCampaign(e.target.value)}
                 aria-label="Filtrar por campana"
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                className="w-full rounded-lg border -300 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
               >
                 <option value="all">Todas las Campanas</option>
                 {uniqueCampaigns.map((camp) => (
@@ -284,7 +284,7 @@ export default function InboxPage() {
           </div>
 
           {/* Lista scrolleable */}
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="flex-1 overflow-y-auto divide-y -300 dark:divide-gray-800">
             {filteredConversations.length === 0 ? (
               <div className="p-8 text-center text-xs text-gray-400">
                 No se encontraron conversaciones con los filtros aplicados.
@@ -357,7 +357,7 @@ export default function InboxPage() {
         {activeConversation ? (
           <div className="col-span-12 md:col-span-8 lg:col-span-8 flex flex-col h-full bg-gray-50/30 dark:bg-gray-900/40">
             {/* Header del Chat */}
-            <div className="p-3.5 border-b border-gray-100 bg-white flex flex-wrap items-center justify-between gap-3 dark:border-gray-800 dark:bg-gray-900">
+            <div className="p-3.5 border-b -300 bg-white flex flex-wrap items-center justify-between gap-3 dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-full bg-brand-500 text-white font-bold text-sm flex items-center justify-center">
                   {activeConversation.avatarInitials}
@@ -387,7 +387,7 @@ export default function InboxPage() {
                     id="crm-stage-select"
                     value={activeConversation.crmStageId}
                     onChange={(e) => handleChangeStage(e.target.value)}
-                    className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="rounded-lg border -300 bg-white px-2 py-1.5 text-xs font-medium text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     {STAGES.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -417,7 +417,7 @@ export default function InboxPage() {
             </div>
 
             {/* Barra de Contexto de Campaña */}
-            <div className="px-4 py-1.5 bg-gray-100/70 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
+            <div className="px-4 py-1.5 bg-gray-100/70 border-b -300 flex items-center justify-between text-xs text-gray-500 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-700 dark:text-gray-300">Origen:</span>
                 <span>{activeConversation.campaignSource}</span>
@@ -447,7 +447,7 @@ export default function InboxPage() {
                     className={`max-w-lg rounded-lg p-3.5 text-xs leading-relaxed shadow-xs ${
                       msg.isSender
                         ? "bg-brand-500 text-white rounded-tr-none"
-                        : "bg-white border border-gray-200 text-gray-800 dark:border-gray-800 dark:bg-gray-800 dark:text-white rounded-tl-none"
+                        : "bg-white border -300 text-gray-800 dark:border-gray-800 dark:bg-gray-800 dark:text-white rounded-tl-none"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-4 mb-1">
@@ -475,7 +475,7 @@ export default function InboxPage() {
                         className={`mt-2.5 rounded-lg p-2.5 flex items-center justify-between gap-3 ${
                           msg.isSender
                             ? "bg-white/15 border border-white/20"
-                            : "bg-gray-50 border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
+                            : "bg-gray-50 border -300 dark:bg-gray-900/60 dark:border-gray-700"
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -514,7 +514,7 @@ export default function InboxPage() {
                         className={`mt-2.5 rounded-lg p-2.5 flex items-center justify-between gap-3 ${
                           msg.isSender
                             ? "bg-white/15 border border-white/20"
-                            : "bg-gray-50 border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
+                            : "bg-gray-50 border -300 dark:bg-gray-900/60 dark:border-gray-700"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -593,7 +593,7 @@ export default function InboxPage() {
                     <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">
                       "{suggestion}"
                     </p>
-                    <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between dark:border-gray-700/60">
+                    <div className="mt-2 pt-2 border-t -300 flex items-center justify-between dark:border-gray-700/60">
                       <button
                         type="button"
                         onClick={() => handleSelectAiSuggestion(suggestion)}
@@ -616,7 +616,7 @@ export default function InboxPage() {
             </div>
 
             {/* Barra de Entrada de Mensajes y Acciones Multimedia */}
-            <div className="p-3 bg-white border-t border-gray-100 dark:border-gray-800 dark:bg-gray-900 space-y-2">
+            <div className="p-3 bg-white border-t -300 dark:border-gray-800 dark:bg-gray-900 space-y-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -654,7 +654,7 @@ export default function InboxPage() {
                     }
                   }}
                   placeholder="Escribe una respuesta o selecciona una sugerencia del SDR Co-Pilot..."
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="flex-1 rounded-lg border -300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
 
                 <button

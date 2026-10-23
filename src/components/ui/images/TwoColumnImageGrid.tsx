@@ -8,7 +8,7 @@ export default function TwoColumnImageGrid() {
         <Image
           src="/images/grid-image/image-02.png"
           alt=" grid"
-          className="w-full border border-gray-200 rounded-lg dark:border-gray-800"
+          className="w-full border -300 rounded-lg dark:border-gray-800"
           width={517}
           height={295}
         />
@@ -18,7 +18,7 @@ export default function TwoColumnImageGrid() {
         <Image
           src="/images/grid-image/image-03.png"
           alt=" grid"
-          className="w-full border border-gray-200 rounded-lg dark:border-gray-800"
+          className="w-full border -300 rounded-lg dark:border-gray-800"
           width={517}
           height={295}
         />

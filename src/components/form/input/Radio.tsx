@@ -47,7 +47,7 @@ const Radio: React.FC<RadioProps> = ({
             : "bg-transparent border-gray-300 dark:border-gray-700"
         } ${
           disabled
-            ? "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700"
+            ? "bg-gray-100 dark:bg-gray-700 -300 dark:border-gray-700"
             : ""
         }`}
       >

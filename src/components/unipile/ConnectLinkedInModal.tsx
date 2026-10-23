@@ -331,9 +331,9 @@ export default function ConnectLinkedInModal({
   return (
     <>
       <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-        <div className="relative w-full max-w-xl rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
+        <div className="relative w-full max-w-xl rounded-lg border -300 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
           {/* Header Superior Común Idéntico a B2B */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+          <div className="flex items-center justify-between px-6 py-4 border-b -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
             <div className="flex items-center gap-3">
               {modalStep === 2 && !initialAccount ? (
                 <button
@@ -481,7 +481,7 @@ export default function ConnectLinkedInModal({
                     </p>
 
                     {/* Sección Horario de Prospección */}
-                    <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
+                    <div className="border-t -300 dark:border-gray-800 pt-3 flex flex-col gap-3">
                       <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Horario de Prospección
                       </p>
@@ -589,7 +589,7 @@ export default function ConnectLinkedInModal({
                   </div>
 
                   {/* Footer Slide 1 */}
-                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                     <button
                       type="button"
                       className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
@@ -738,7 +738,7 @@ export default function ConnectLinkedInModal({
                       )}
 
                       {/* Opciones Avanzadas: Proxy y País */}
-                      <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-col gap-3">
+                      <div className="border-t -300 dark:border-gray-800 pt-3 flex flex-col gap-3">
                         <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           Opciones Avanzadas (Proxy y País)
                         </p>
@@ -794,7 +794,7 @@ export default function ConnectLinkedInModal({
                     </div>
 
                     {/* Footer Slide 2 */}
-                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                       <button
                         type="button"
                         onClick={() => {
@@ -875,7 +875,7 @@ export default function ConnectLinkedInModal({
                     </div>
 
                     {/* Footer 2FA */}
-                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                       <button
                         type="button"
                         onClick={onClose}
@@ -913,7 +913,7 @@ export default function ConnectLinkedInModal({
       {/* ── Modal Elegante de Recomendación para Estabilidad (Idéntico a B2B) ── */}
       {showSuccessAdviceModal && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+          <div className="bg-white dark:bg-gray-900 border -300 dark:border-gray-800 rounded-lg p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
             <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 text-3xl">
               🚀
             </div>

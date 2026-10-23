@@ -54,7 +54,7 @@ function CallbackContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+      <div className="w-full max-w-md rounded-lg border -300 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
         {isSuccess ? (
           <>
             <div className="mx-auto mb-5 flex size-20 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 ring-8 ring-emerald-50/50 dark:bg-emerald-950/40 dark:ring-emerald-950/20">
