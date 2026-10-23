@@ -399,7 +399,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="block text-xs font-semibold text-gray-500 uppercase">
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Cuenta de LinkedIn para Publicar:
                       </span>
                       <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
@@ -428,7 +428,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Selector de 3 Formatos */}
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <label className="mb-2 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                   Formato de Salida
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -488,7 +488,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               {/* Tema, Palabra Clave y Tono */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Tema del Post
                   </label>
                   <input
@@ -500,7 +500,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Palabra Clave (Lead Magnet)
                   </label>
                   <input
@@ -512,7 +512,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Tono del Copy
                   </label>
                   <select
@@ -564,7 +564,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               {format === "image" && (
                 <div className="rounded-xl border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
+                    <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       Generador de Prompt Visual para Midjourney / Flux
                     </span>
                     <button
@@ -582,7 +582,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                   <div className="pt-2">
-                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                    <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                       Subir Imagen Generada (Opcional)
                     </label>
                     <input
@@ -607,7 +607,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 <div className="rounded-xl border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
+                      <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                         Editor de Diapositiva ({currentSlideIndex + 1} de {slides.length})
                       </span>
                       <p className="text-xs text-gray-500">
@@ -650,7 +650,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                   <div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                         Titular de Diapositiva
                       </label>
                       <input
@@ -667,7 +667,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                     {currentSlide.subtitle !== undefined && (
                       <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                           Subtítulo
                         </label>
                         <input
@@ -684,7 +684,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     )}
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
                         Puntos de Contenido (1 por línea)
                       </label>
                       <textarea
@@ -705,7 +705,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               {/* Editor de Texto del Post de LinkedIn */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <label className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Cuerpo del Post (Copy de LinkedIn)
                   </label>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
