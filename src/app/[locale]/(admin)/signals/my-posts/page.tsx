@@ -613,7 +613,7 @@ export default function MyPostsSignalRadarPage() {
               {/* Buscador Inteligente con Dropdown desde /viral-posts/list */}
               <div className="relative">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase text-gray-500">
+                  <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                     Título Descriptivo del Post
                   </label>
                   {createdPosts.length > 0 && (
@@ -662,7 +662,7 @@ export default function MyPostsSignalRadarPage() {
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
-                      <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                         Publicaciones en tu Base de Datos (/viral-posts/list)
                       </span>
                       <button
@@ -755,7 +755,7 @@ export default function MyPostsSignalRadarPage() {
 
               {/* URL o Badge Inteligente si está Pendiente de Publicación */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   URL o URN del Post en LinkedIn
                 </label>
 
@@ -798,7 +798,7 @@ export default function MyPostsSignalRadarPage() {
             {/* Fila 2: Lead Magnet Trigger y Recurso Adjunto */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Palabra Clave Activadora (Trigger)
                 </label>
                 <input
@@ -815,7 +815,7 @@ export default function MyPostsSignalRadarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Recurso Adjunto (PDF o Enlace del Lead Magnet)
                 </label>
                 <input
@@ -854,7 +854,7 @@ export default function MyPostsSignalRadarPage() {
             {/* Fila 4: Pasos de Automatización Relacional */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Paso A: Respuesta Pública en el Post
                 </label>
                 <textarea
@@ -870,7 +870,7 @@ export default function MyPostsSignalRadarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Paso B: Nota de Invitación si no están conectados
                 </label>
                 <textarea
@@ -973,7 +973,7 @@ export default function MyPostsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-gray-800 dark:text-gray-300">
+              <thead className="border-b border-gray-100 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 dark:border-gray-800 [&_th]:font-normal">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta / Publicación</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabra Clave</th>
@@ -1448,7 +1448,7 @@ export default function MyPostsSignalRadarPage() {
 
             <form onSubmit={handleSaveManualUrl} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">
+                <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Pega la URL o URN del post publicado en LinkedIn
                 </label>
                 <input
