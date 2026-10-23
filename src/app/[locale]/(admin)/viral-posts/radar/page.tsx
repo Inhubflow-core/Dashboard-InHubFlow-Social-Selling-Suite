@@ -1085,13 +1085,15 @@ export default function ViralRadarPage() {
                   {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-100 py-2.5 text-center dark:border-gray-800">
                     <div>
-                      <span className="block text-xs text-gray-400 uppercase font-medium">Likes</span>
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                        Likes
+                      </span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.likes.toLocaleString()}
                       </span>
                     </div>
                     <div className="rounded-lg bg-brand-50/50 py-0.5 dark:bg-brand-950/20">
-                      <span className="block text-xs text-brand-600 dark:text-brand-400 uppercase font-bold">
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Comentarios
                       </span>
                       <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
@@ -1099,7 +1101,7 @@ export default function ViralRadarPage() {
                       </span>
                     </div>
                     <div>
-                      <span className="block text-xs text-gray-400 uppercase font-medium">
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         Reposts
                       </span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
