@@ -248,7 +248,7 @@ export default function UserDropdown() {
           </div>
         </div>
 
-        {/* Enlaces Rápidos del SaaS */}
+        {/* Enlaces Rápidos del SaaS (Mismo estilo tipográfico que AppSidebar) */}
         <ul className="flex flex-col gap-1 border-b border-gray-100 py-2.5 dark:border-gray-800">
           {sessionUser.role === "super_admin" && (
             <li>
@@ -256,10 +256,13 @@ export default function UserDropdown() {
                 onItemClick={closeDropdown}
                 tag="a"
                 href="/admin/subscribers"
-                className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#0099ff] hover:bg-[#0099ff]/10"
+                baseClassName=""
+                className="group menu-item menu-item-inactive"
               >
-                <ShieldCheck className="size-4" />
-                <span>{t("adminPanel")}</span>
+                <span className="menu-item-icon-inactive">
+                  <ShieldCheck className="size-5" />
+                </span>
+                <span className="menu-item-text">{t("adminPanel")}</span>
               </DropdownItem>
             </li>
           )}
@@ -269,10 +272,13 @@ export default function UserDropdown() {
               onItemClick={closeDropdown}
               tag="a"
               href="/plans"
-              className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+              baseClassName=""
+              className="group menu-item menu-item-inactive"
             >
-              <CreditCard className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>{t("plans")}</span>
+              <span className="menu-item-icon-inactive">
+                <CreditCard className="size-5" />
+              </span>
+              <span className="menu-item-text">{t("plans")}</span>
             </DropdownItem>
           </li>
 
@@ -281,10 +287,13 @@ export default function UserDropdown() {
               onItemClick={closeDropdown}
               tag="a"
               href="/team"
-              className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+              baseClassName=""
+              className="group menu-item menu-item-inactive"
             >
-              <Users className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>{t("team")}</span>
+              <span className="menu-item-icon-inactive">
+                <Users className="size-5" />
+              </span>
+              <span className="menu-item-text">{t("team")}</span>
             </DropdownItem>
           </li>
 
@@ -293,21 +302,24 @@ export default function UserDropdown() {
               onItemClick={closeDropdown}
               tag="a"
               href="/linkedin-accounts"
-              className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+              baseClassName=""
+              className="group menu-item menu-item-inactive"
             >
-              <Layers className="size-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white" />
-              <span>{t("linkedinAccounts")}</span>
+              <span className="menu-item-icon-inactive">
+                <Layers className="size-5" />
+              </span>
+              <span className="menu-item-text">{t("linkedinAccounts")}</span>
             </DropdownItem>
           </li>
         </ul>
 
-        {/* Cambiar Cuenta */}
+        {/* Cambiar Cuenta (Mismo estilo de cabecera e ítems que AppSidebar) */}
         <div className="border-b border-gray-100 py-2.5 dark:border-gray-800">
-          <span className="block px-2.5 mb-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <h2 className="mb-2 flex px-3 text-xs font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500">
             Cambiar Cuenta
-          </span>
+          </h2>
 
-          <div className="space-y-1 max-h-56 overflow-y-auto">
+          <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
             {switchableUsers.map((item) => {
               const isSelected = item.isCurrent;
 
@@ -315,19 +327,27 @@ export default function UserDropdown() {
                 <button
                   key={item.id}
                   onClick={() => handleSwitchUser(item.id)}
-                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-start text-xs transition-colors ${
-                    isSelected
-                      ? "bg-[#0099ff]/10 text-[#0099ff] font-semibold"
-                      : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                  className={`group menu-item justify-between text-start transition-colors ${
+                    isSelected ? "menu-item-active" : "menu-item-inactive"
                   }`}
                 >
                   <div className="truncate pr-2">
-                    <span className="block truncate font-semibold">{item.name}</span>
-                    <span className="block text-xs text-gray-400 dark:text-gray-500">
+                    <span className="block truncate text-theme-sm font-medium">
+                      {item.name}
+                    </span>
+                    <span
+                      className={`block text-xs font-normal ${
+                        isSelected
+                          ? "text-brand-500/80 dark:text-brand-400/80"
+                          : "text-gray-400 dark:text-gray-500"
+                      }`}
+                    >
                       {item.badgeLabel}
                     </span>
                   </div>
-                  {isSelected && <Check className="size-4 shrink-0 text-[#0099ff]" />}
+                  {isSelected && (
+                    <Check className="size-4.5 shrink-0 text-brand-500 dark:text-brand-400" />
+                  )}
                 </button>
               );
             })}
@@ -337,10 +357,12 @@ export default function UserDropdown() {
         <Link
           href="/signin"
           onClick={closeDropdown}
-          className="group mt-2 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5"
+          className="group menu-item menu-item-inactive mt-2 justify-center border border-gray-200 dark:border-gray-800"
         >
-          <LogOut className="size-3.5" />
-          <span>{t("signOut")}</span>
+          <span className="menu-item-icon-inactive">
+            <LogOut className="size-4.5" />
+          </span>
+          <span className="menu-item-text">{t("signOut")}</span>
         </Link>
       </Dropdown>
     </div>
