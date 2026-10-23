@@ -65,8 +65,8 @@ export default function WorkspaceSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Identidad de la Empresa */}
-        <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex items-center gap-3 border-b -300 pb-4 dark:border-gray-800">
+        <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-center gap-3 border-b border-gray-300 pb-4 dark:border-gray-800">
             <div className="flex size-10 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Building2 className="size-5" />
             </div>
@@ -91,7 +91,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
@@ -105,15 +105,15 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={billingEmail}
                 onChange={(e) => setBillingEmail(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
           </div>
         </div>
 
         {/* Zona Horaria y Horario Laboral */}
-        <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex items-center gap-3 border-b -300 pb-4 dark:border-gray-800">
+        <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-center gap-3 border-b border-gray-300 pb-4 dark:border-gray-800">
             <div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
               <Clock className="size-5" />
             </div>
@@ -136,7 +136,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               >
                 <option value="America/Santiago">Santiago, Chile (GMT-3)</option>
                 <option value="America/Bogota">Bogotá / Lima (GMT-5)</option>
@@ -156,7 +156,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={workingStart}
                 onChange={(e) => setWorkingStart(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
@@ -169,7 +169,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={workingEnd}
                 onChange={(e) => setWorkingEnd(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
           </div>
@@ -210,8 +210,8 @@ export default function WorkspaceSettingsPage() {
         </div>
 
         {/* Webhooks de Notificación */}
-        <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex items-center gap-3 border-b -300 pb-4 dark:border-gray-800">
+        <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-center gap-3 border-b border-gray-300 pb-4 dark:border-gray-800">
             <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
               <Webhook className="size-5" />
             </div>
@@ -236,12 +236,12 @@ export default function WorkspaceSettingsPage() {
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://tu-servidor.com/webhook"
-                className="mt-1.5 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="flex items-center gap-2.5 rounded-lg border -300 p-3 dark:border-gray-800">
+              <label className="flex items-center gap-2.5 rounded-lg border border-gray-300 p-3 dark:border-gray-800">
                 <input
                   type="checkbox"
                   disabled={isMember}
@@ -254,7 +254,7 @@ export default function WorkspaceSettingsPage() {
                 </span>
               </label>
 
-              <label className="flex items-center gap-2.5 rounded-lg border -300 p-3 dark:border-gray-800">
+              <label className="flex items-center gap-2.5 rounded-lg border border-gray-300 p-3 dark:border-gray-800">
                 <input
                   type="checkbox"
                   disabled={isMember}

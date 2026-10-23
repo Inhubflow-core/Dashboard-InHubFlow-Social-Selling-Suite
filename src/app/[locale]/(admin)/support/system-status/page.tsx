@@ -95,7 +95,7 @@ export default function SystemStatusPage() {
 
       {/* Métricas Globales */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Uptime Últimos 90 Días</span>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             99.98%
@@ -103,7 +103,7 @@ export default function SystemStatusPage() {
           <p className="mt-1 text-xs text-gray-500">Cero interrupciones críticas no planificadas.</p>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia Media de Respuesta</span>
           <div className="mt-2 text-2xl font-bold text-[#0099ff]">
             165 ms
@@ -111,7 +111,7 @@ export default function SystemStatusPage() {
           <p className="mt-1 text-xs text-gray-500">Optimizado para flujos en tiempo real.</p>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Capacidad de Pacing</span>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             100% Protegido
@@ -121,15 +121,15 @@ export default function SystemStatusPage() {
       </div>
 
       {/* Listado de Servicios */}
-      <div className="overflow-x-auto rounded-lg border -300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <div className="border-b -300 p-5 dark:border-gray-800">
+      <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="border-b border-gray-300 p-5 dark:border-gray-800">
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Componentes del Ecosistema InHubFlow
           </h3>
         </div>
 
         <table className="w-full text-left text-xs">
-          <thead className="border-b -300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
+          <thead className="border-b border-gray-300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
             <tr>
               <th className="px-5 py-3">Servicio</th>
               <th className="px-5 py-3">Área</th>
@@ -138,7 +138,7 @@ export default function SystemStatusPage() {
               <th className="px-5 py-3">Estado</th>
             </tr>
           </thead>
-          <tbody className="divide-y -300 dark:divide-gray-800">
+          <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
             {SERVICES.map((srv, idx) => (
               <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-850">
                 <td className="px-5 py-4 font-semibold text-gray-900 dark:text-white">

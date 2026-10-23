@@ -83,8 +83,8 @@ export default function ApiDocsPage() {
       ) : (
         <div className="space-y-6">
           {/* Introducción */}
-          <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center gap-3 border-b -300 pb-4 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center gap-3 border-b border-gray-300 pb-4 dark:border-gray-800">
               <div className="flex size-10 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
                 <Code2 className="size-5" />
               </div>
@@ -106,7 +106,7 @@ export default function ApiDocsPage() {
           </div>
 
           {/* Endpoint: Obtener Leads */}
-          <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="rounded-lg bg-emerald-500/10 px-2 py-0.5 font-mono text-xs font-bold text-emerald-600">
@@ -131,8 +131,8 @@ export default function ApiDocsPage() {
           </div>
 
           {/* Webhook Payload Example */}
-          <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center gap-2.5 border-b -300 pb-3 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center gap-2.5 border-b border-gray-300 pb-3 dark:border-gray-800">
               <Webhook className="size-4 text-[#0099ff]" />
               <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Estructura del Webhook Entrante de Mensajería de LinkedIn

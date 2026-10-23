@@ -111,11 +111,11 @@ const tableData: Order[] = [
 
 export default function BasicTableOne() {
   return (
-    <div className="overflow-hidden rounded-lg border -300 bg-white dark:border-white/5 dark:bg-white/3">
+    <div className="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-white/5 dark:bg-white/3">
       <div className="max-w-full overflow-x-auto">
         <Table>
           {/* Table Header */}
-          <TableHeader className="border-b -300 dark:border-white/5">
+          <TableHeader className="border-b border-gray-300 dark:border-white/5">
             <TableRow>
               <TableCell
                 isHeader
@@ -151,7 +151,7 @@ export default function BasicTableOne() {
           </TableHeader>
 
           {/* Table Body */}
-          <TableBody className="divide-y -300 dark:divide-white/5">
+          <TableBody className="divide-y divide-gray-300 dark:divide-white/5">
             {tableData.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="px-5 py-4 text-start sm:px-6">

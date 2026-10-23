@@ -623,7 +623,7 @@ export default function CampaignsPage() {
       <PageBreadcrumb pageTitle="Campañas de Social Selling (Secuencias Lineales)" />
 
       {/* Cabecera Principal */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border -300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Motor de Outreach Relacional en LinkedIn
@@ -703,7 +703,7 @@ export default function CampaignsPage() {
 
 
       {/* Selector de Pestañas de Secuencias Maestras */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b -300 dark:border-gray-800 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 dark:border-gray-800 pb-3">
         <div className="flex items-center gap-2">
           {campaigns.map((camp) => {
             const isSelected = camp.id === selectedCampaignId;
@@ -876,7 +876,7 @@ export default function CampaignsPage() {
                   </div>
 
                   {/* Píldora fija por defecto: Inmediato (0 días) no editable */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border -300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
                     <Clock className="h-3 w-3 text-brand-500 shrink-0" />
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
                       Inmediato (0 días)
@@ -898,7 +898,7 @@ export default function CampaignsPage() {
 
                   {/* Píldora compacta de retardo */}
                   <div className="relative">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border -300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs hover:border-brand-500/50 transition">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs hover:border-brand-500/50 transition">
                       <Clock className="h-3 w-3 text-brand-500 shrink-0" />
 
                       {/* Botón '-' para restar día */}
@@ -951,9 +951,9 @@ export default function CampaignsPage() {
                     {openDelayPopoverIndex === idx && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute left-0 top-full mt-1.5 z-40 w-64 p-3 bg-white dark:bg-gray-800 border -300 dark:border-gray-700 rounded-lg shadow-xl space-y-2.5"
+                        className="absolute left-0 top-full mt-1.5 z-40 w-64 p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl space-y-2.5"
                       >
-                        <div className="flex items-center justify-between border-b -300 dark:border-gray-700/60 pb-1.5">
+                        <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700/60 pb-1.5">
                           <span className="text-xs font-bold text-gray-800 dark:text-white flex items-center gap-1.5">
                             <Clock className="h-3.5 w-3.5 text-brand-500" />
                             Tiempo de Espera
@@ -999,7 +999,7 @@ export default function CampaignsPage() {
                         </div>
 
                         {/* Input numérico */}
-                        <div className="pt-1.5 border-t -300 dark:border-gray-700/60 flex items-center justify-between">
+                        <div className="pt-1.5 border-t border-gray-300 dark:border-gray-700/60 flex items-center justify-between">
                           <span className="text-xs text-gray-400">Personalizado:</span>
                           <div className="flex items-center gap-1.5">
                             <input
@@ -1011,7 +1011,7 @@ export default function CampaignsPage() {
                                 const val = Math.max(0, parseInt(e.target.value) || 0);
                                 handleUpdateStepDelay(idx, val);
                               }}
-                              className="w-14 px-2 py-0.5 text-xs text-center border -300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-500"
+                              className="w-14 px-2 py-0.5 text-xs text-center border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-500"
                             />
                             <span className="text-xs text-gray-500">días</span>
                           </div>
@@ -1023,11 +1023,11 @@ export default function CampaignsPage() {
               )}
 
               {/* Card del Paso (Limpia y Compacta: Solo Título, Badge, Descripción y Botones Cuadraditos) */}
-              <div className="rounded-lg border -300 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs hover:border-gray-300 dark:hover:border-gray-700 transition">
+              <div className="rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs hover:border-gray-300 dark:hover:border-gray-700 transition">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Caja de Icono */}
-                    <div className="h-9 w-9 rounded-lg border -300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="h-9 w-9 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-0.5">
                       {getStepIcon(step.type)}
                     </div>
 
@@ -1132,12 +1132,12 @@ export default function CampaignsPage() {
           {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado */}
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6 pointer-events-none">
             <div
-              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l -300 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
+              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-300 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
                 isDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
               }`}
             >
               {/* Cabecera del Panel Lateral */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b -300 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-300 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
                     {getStepIcon(editingStep.step.type)}
@@ -1190,7 +1190,7 @@ export default function CampaignsPage() {
                   </label>
                   {editingStep.index === 0 ? (
                     <div className="flex items-center gap-2">
-                      <div className="h-9 px-3 rounded-lg border -300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800/60 text-gray-500 flex items-center justify-center text-xs font-semibold select-none cursor-not-allowed">
+                      <div className="h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800/60 text-gray-500 flex items-center justify-center text-xs font-semibold select-none cursor-not-allowed">
                         Inmediato (0 días)
                       </div>
                       <span className="text-xs text-gray-400">
@@ -1397,7 +1397,7 @@ export default function CampaignsPage() {
               )}
 
               {/* Bloque: Selector de Contenido Adjunto y Multimedia (Imagen, Video, Notas de Voz, Archivos) */}
-              <div className="rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
+              <div className="rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
                 {/* Inputs de archivo ocultos nativos */}
                 <input
                   ref={imageInputRef}
@@ -1507,7 +1507,7 @@ export default function CampaignsPage() {
                 {/* Subpanel interactivo según la opción seleccionada */}
                 {/* 1. Imagen */}
                 {editingStep.step.attachmentType === "image" && (
-                  <div className="space-y-2.5 pt-2 border-t -300 dark:border-gray-700">
+                  <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Imagen o Enlace
@@ -1574,7 +1574,7 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de imagen */}
-                    <div className="rounded-lg border -300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {editingStep.step.attachmentUrl &&
                         (editingStep.step.attachmentUrl.startsWith("data:image") ||
@@ -1582,7 +1582,7 @@ export default function CampaignsPage() {
                           <img
                             src={editingStep.step.attachmentUrl}
                             alt="Previsualización"
-                            className="h-12 w-12 rounded-lg object-cover border -300 dark:border-gray-700 shrink-0"
+                            className="h-12 w-12 rounded-lg object-cover border border-gray-300 dark:border-gray-700 shrink-0"
                           />
                         ) : (
                           <div className="h-12 w-12 rounded-lg bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 shrink-0">
@@ -1621,7 +1621,7 @@ export default function CampaignsPage() {
 
                 {/* 2. Video */}
                 {editingStep.step.attachmentType === "video" && (
-                  <div className="space-y-2.5 pt-2 border-t -300 dark:border-gray-700">
+                  <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Video o Enlace (Loom / MP4)
@@ -1663,7 +1663,7 @@ export default function CampaignsPage() {
                     />
 
                     {/* Previsualización visual de Video */}
-                    <div className="rounded-lg border -300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
                           <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
@@ -1703,7 +1703,7 @@ export default function CampaignsPage() {
 
                 {/* 3. Nota de Voz */}
                 {editingStep.step.attachmentType === "voice_note" && (
-                  <div className="space-y-2.5 pt-2 border-t -300 dark:border-gray-700">
+                  <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Grabación o Archivo de Audio
@@ -1823,7 +1823,7 @@ export default function CampaignsPage() {
 
                 {/* 4. Archivo / PDF */}
                 {editingStep.step.attachmentType === "document" && (
-                  <div className="space-y-2.5 pt-2 border-t -300 dark:border-gray-700">
+                  <div className="space-y-2.5 pt-2 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                         Cargar Documento o PDF (Lead Magnet)
@@ -1893,7 +1893,7 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de documento */}
-                    <div className="rounded-lg border -300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-10 w-10 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
                           <FileText className="h-5 w-5" />
@@ -1931,7 +1931,7 @@ export default function CampaignsPage() {
             </div>
 
               {/* Pie del Panel Lateral */}
-              <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t -300 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
+              <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-gray-300 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={handleCloseDrawer}
@@ -1967,12 +1967,12 @@ export default function CampaignsPage() {
           {/* Panel Lateral Desplegable en el lado derecho con Slide Suavizado (mismo tamaño y proporciones exactas de editar) */}
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-6 pointer-events-none">
             <div
-              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l -300 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
+              className={`w-screen max-w-md sm:max-w-[520px] bg-white dark:bg-gray-900 border-l border-gray-300 dark:border-gray-800 shadow-2xl flex flex-col h-full pointer-events-auto ${
                 isAddDrawerClosing ? "animate-slide-out-right" : "animate-slide-in-right"
               }`}
             >
               {/* Cabecera del Panel Lateral */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b -300 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-300 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
                     <Layers className="size-4.5" />
@@ -2020,8 +2020,8 @@ export default function CampaignsPage() {
                         }}
                         className={`group relative rounded-lg border p-3 transition-all duration-200 select-none ${
                           inSequence
-                            ? "opacity-50 bg-gray-50/70 dark:bg-gray-800/30 border-dashed -300 dark:border-gray-800 cursor-not-allowed"
-                            : "bg-white dark:bg-gray-800/80 -300 dark:border-gray-700 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
+                            ? "opacity-50 bg-gray-50/70 dark:bg-gray-800/30 border-dashed border-gray-300 dark:border-gray-800 cursor-not-allowed"
+                            : "bg-white dark:bg-gray-800/80 border-gray-300 dark:border-gray-700 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -2098,7 +2098,7 @@ export default function CampaignsPage() {
               </div>
 
               {/* Pie del Panel Lateral */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-t -300 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
+              <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-300 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/60 shrink-0">
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   {activeCampaign.steps.length} de {AVAILABLE_PALETTE_STEPS.length} pasos en secuencia
                 </span>
@@ -2118,8 +2118,8 @@ export default function CampaignsPage() {
       {/* Modal de Límites de Seguridad (Pacing Limits) */}
       {showPacingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b -300 dark:border-gray-800">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-300 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-emerald-600" />
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">
@@ -2136,7 +2136,7 @@ export default function CampaignsPage() {
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-2.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Visitas de Perfil / Día
@@ -2159,7 +2159,7 @@ export default function CampaignsPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Invitaciones de Conexión / Día
@@ -2182,7 +2182,7 @@ export default function CampaignsPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Mensajes Directos (DM) / Día
@@ -2231,7 +2231,7 @@ export default function CampaignsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t -300 dark:border-gray-800">
+            <div className="flex justify-end pt-2 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setShowPacingModal(false)}
@@ -2247,8 +2247,8 @@ export default function CampaignsPage() {
       {/* Modal de Logs de Ejecución */}
       {showLogsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b -300 dark:border-gray-800">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-300 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-gray-500" />
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">
@@ -2286,7 +2286,7 @@ export default function CampaignsPage() {
                 runnerLogs.map((log, idx) => (
                   <div
                     key={`${log.id}-${idx}`}
-                    className="p-2.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
+                    className="p-2.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -2320,7 +2320,7 @@ export default function CampaignsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t -300 dark:border-gray-800">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 disabled={isExecutingRunner}

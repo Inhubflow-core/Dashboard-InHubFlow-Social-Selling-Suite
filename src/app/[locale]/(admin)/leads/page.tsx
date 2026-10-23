@@ -157,7 +157,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filtros de Búsqueda y Segmentación */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
         <div>
           <input
             type="text"
@@ -212,7 +212,7 @@ export default function LeadsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b -300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
+              <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
                   <th className="pb-3 min-w-[190px]">Prospecto</th>
                   <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo</th>
@@ -223,7 +223,7 @@ export default function LeadsPage() {
                   <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y -300 text-xs dark:divide-gray-800">
+              <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
                 {filteredLeads.map((lead) => {
                   const stageBadge = getStageLabel(lead.stage);
                   const sequenceBadge = getSequenceBadge(lead.sequenceStatus);
@@ -318,7 +318,7 @@ export default function LeadsPage() {
                         </button>
                         <a
                           href="/inbox"
-                          className="rounded-lg border -300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
+                          className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                           title="Abrir chat en Inbox"
                         >
                           Chat
@@ -336,9 +336,9 @@ export default function LeadsPage() {
       {/* Modal Interactivo: Ficha del Contacto */}
       {selectedLeadFor360 && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
             {/* Cabecera de la Ficha */}
-            <div className="flex items-start justify-between border-b -300 pb-4 dark:border-gray-800 gap-3">
+            <div className="flex items-start justify-between border-b border-gray-300 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <ProspectAvatar
                   imageUrl={selectedLeadFor360.avatarUrl}
@@ -426,7 +426,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Configuración Rápida de Etapa y Secuencia */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border -300 rounded-lg dark:border-gray-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-300 rounded-lg dark:border-gray-800">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Etapa en el Pipeline Comercial
@@ -502,7 +502,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Botones de Acción */}
-            <div className="flex items-center justify-between pt-4 border-t -300 dark:border-gray-800">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => {

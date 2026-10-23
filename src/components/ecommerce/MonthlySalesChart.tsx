@@ -126,7 +126,7 @@ export default function MonthlySalesChart() {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border -300 bg-white px-5 pt-5 sm:px-6 sm:pt-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="overflow-hidden rounded-lg border border-gray-300 bg-white px-5 pt-5 sm:px-6 sm:pt-6 dark:border-gray-800 dark:bg-white/3">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
           {t("monthlySales.title")}

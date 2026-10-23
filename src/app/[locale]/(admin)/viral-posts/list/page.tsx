@@ -346,85 +346,92 @@ export default function PostsListPage() {
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="Gestión de Publicaciones" />
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Cola Editorial y Contenido Emitido
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
-          </p>
+      <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div>
+            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+              Cola Editorial y Contenido Emitido
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={isSyncingMetrics}
+              onClick={() => syncAllPublishedPostsMetrics()}
+              className="rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+              title="Sincronizar métricas reales de publicaciones emitidas con LinkedIn"
+            >
+              <RefreshCw className={`size-3.5 ${isSyncingMetrics ? "animate-spin text-brand-500" : ""}`} />
+              <span>{isSyncingMetrics ? "Sincronizando..." : "Sincronizar Métricas"}</span>
+            </button>
+            <a
+              href="/viral-posts/create"
+              className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
+            >
+              + Crear Nueva Publicación
+            </a>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            disabled={isSyncingMetrics}
-            onClick={() => syncAllPublishedPostsMetrics()}
-            className="rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-xs flex items-center gap-1.5 disabled:opacity-50"
-            title="Sincronizar métricas reales de publicaciones emitidas con LinkedIn"
-          >
-            <RefreshCw className={`size-3.5 ${isSyncingMetrics ? "animate-spin text-brand-500" : ""}`} />
-            <span>{isSyncingMetrics ? "Sincronizando..." : "Sincronizar Métricas"}</span>
-          </button>
-          <a
-            href="/viral-posts/create"
-            className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
-          >
-            + Crear Nueva Publicación
-          </a>
+
+        {/* Filtros */}
+        <div className="border-t border-gray-300 p-4 sm:p-6 dark:border-gray-800">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 mr-2">Estado:</span>
+              {[
+                { id: "all", label: "Todos" },
+                { id: "scheduled", label: "Programados" },
+                { id: "published", label: "Publicados" },
+                { id: "draft", label: "Borradores" },
+              ].map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setFilterStatus(s.id as "all" | PostStatus)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    filterStatus === s.id
+                      ? "bg-brand-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 mr-2">Formato:</span>
+              {[
+                { id: "all", label: "Todos" },
+                { id: "text", label: "Texto" },
+                { id: "image", label: "Imagen" },
+                { id: "carousel", label: "Carrusel" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFilterFormat(f.id as "all" | PostFormat)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                    filterFormat === f.id
+                      ? "border border-brand-500 text-brand-600 bg-brand-50 dark:bg-brand-950 dark:text-brand-300"
+                      : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-lg border -300 dark:bg-gray-900 dark:border-gray-800">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-gray-500 mr-2">Estado:</span>
-          {[
-            { id: "all", label: "Todos" },
-            { id: "scheduled", label: "Programados" },
-            { id: "published", label: "Publicados" },
-            { id: "draft", label: "Borradores" },
-          ].map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setFilterStatus(s.id as "all" | PostStatus)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                filterStatus === s.id
-                  ? "bg-brand-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-gray-500 mr-2">Formato:</span>
-          {[
-            { id: "all", label: "Todos" },
-            { id: "text", label: "Texto" },
-            { id: "image", label: "Imagen" },
-            { id: "carousel", label: "Carrusel" },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilterFormat(f.id as "all" | PostFormat)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
-                filterFormat === f.id
-                  ? "border border-brand-500 text-brand-600 bg-brand-50 dark:bg-brand-950 dark:text-brand-300"
-                  : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <ComponentCard title={`Publicaciones (${filteredPosts.length})`}>
+      <ComponentCard
+        title={`Publicaciones (${filteredPosts.length})`}
+        desc="Listado detallado de publicaciones programadas, emitidas en LinkedIn y borradores activos."
+      >
         {!isLoaded ? (
           <p className="text-xs text-gray-400 py-4">Cargando publicaciones...</p>
         ) : filteredPosts.length === 0 ? (
@@ -490,7 +497,7 @@ export default function PostsListPage() {
               return (
                 <div
                   key={post.id}
-                  className="rounded-lg border -300 bg-white p-4 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
+                  className="rounded-lg border border-gray-300 bg-white p-4 hover:border-brand-500/60 transition shadow-theme-xs dark:border-gray-800 dark:bg-gray-900/60"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="space-y-1.5 flex-1 min-w-0">
@@ -610,7 +617,7 @@ export default function PostsListPage() {
 
                       <a
                         href="/viral-posts/calendar"
-                        className="rounded-lg border -300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
                         title="Ver en Calendario"
                       >
                         <span>Ver en Calendario</span>
@@ -649,8 +656,8 @@ export default function PostsListPage() {
       {/* Modal para Editar Publicación */}
       {editingPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between border-b -300 pb-3 dark:border-gray-800">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                 Editar Publicación
               </h3>
@@ -702,7 +709,7 @@ export default function PostsListPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t -300 dark:border-gray-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setEditingPost(null)}

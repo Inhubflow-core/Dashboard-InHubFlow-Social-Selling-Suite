@@ -58,7 +58,7 @@ export default function LinkedInAccountCard({
       }`}
     >
       {/* Avatar compacto (10x10) idéntico a B2B */}
-      <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border -300 dark:border-gray-700">
+      <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-300 dark:border-gray-700">
         {account.profilePictureUrl && account.profilePictureUrl !== "/images/user/owner.png" ? (
           <img
             src={account.profilePictureUrl}
@@ -143,7 +143,7 @@ export default function LinkedInAccountCard({
           </span>
         ) : (
           <span
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border -300 dark:border-gray-700"
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border border-gray-300 dark:border-gray-700"
             title="Conecta esta cuenta para sincronizar con LinkedIn"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Sin conectar

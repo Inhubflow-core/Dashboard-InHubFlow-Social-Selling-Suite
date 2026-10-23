@@ -134,7 +134,7 @@ export default function SupportTicketsPage() {
 
       {/* SLAs de Respuesta según Plan */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border -300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Starter</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 24 Horas
@@ -150,7 +150,7 @@ export default function SupportTicketsPage() {
           <p className="mt-0.5 text-xs text-gray-500">Soporte preferente multi-cuenta.</p>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Business</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 2 Horas
@@ -160,9 +160,9 @@ export default function SupportTicketsPage() {
       </div>
 
       {/* Tabla de Tickets */}
-      <div className="overflow-x-auto rounded-lg border -300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <table className="w-full text-left text-xs">
-          <thead className="border-b -300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
+          <thead className="border-b border-gray-300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
             <tr>
               <th className="px-5 py-3">Ticket ID</th>
               <th className="px-5 py-3">Asunto</th>
@@ -172,7 +172,7 @@ export default function SupportTicketsPage() {
               <th className="px-5 py-3">Última Respuesta</th>
             </tr>
           </thead>
-          <tbody className="divide-y -300 dark:divide-gray-800">
+          <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
             {tickets.map((t) => {
               const status = getStatusBadge(t.status);
               const priority = getPriorityBadge(t.priority);
@@ -208,7 +208,7 @@ export default function SupportTicketsPage() {
       {/* Modal Nuevo Ticket */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-lg border -300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-lg rounded-lg border border-gray-300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-base font-bold text-gray-900 dark:text-white">
               Crear Nuevo Ticket de Soporte
             </h4>
@@ -227,7 +227,7 @@ export default function SupportTicketsPage() {
                   placeholder="Ej: Problema al conectar cuenta de LinkedIn de operador"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="mt-1 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -239,7 +239,7 @@ export default function SupportTicketsPage() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as SupportTicket["category"])}
-                    className="mt-1 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   >
                     <option value="technical">Incidencia Técnica</option>
                     <option value="linkedin">Conexión de Cuentas LinkedIn</option>
@@ -255,7 +255,7 @@ export default function SupportTicketsPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as SupportTicket["priority"])}
-                    className="mt-1 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   >
                     <option value="low">Baja (Consulta general)</option>
                     <option value="medium">Media (Afecta parte del flujo)</option>
@@ -274,7 +274,7 @@ export default function SupportTicketsPage() {
                   placeholder="Explica qué ocurrió, qué cuenta se vio afectada y los pasos para reproducir..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 w-full rounded-lg border -300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 

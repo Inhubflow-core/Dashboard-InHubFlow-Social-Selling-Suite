@@ -517,7 +517,7 @@ export default function CompetitorsSignalRadarPage() {
 
       {/* Métricas del Nivel 2 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Cuentas Rivales Monitoreadas
           </span>
@@ -529,7 +529,7 @@ export default function CompetitorsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Prospectos Calificados Extraidos
           </span>
@@ -541,7 +541,7 @@ export default function CompetitorsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Aceptacion Relacional
           </span>
@@ -637,11 +637,11 @@ export default function CompetitorsSignalRadarPage() {
                 {/* Dropdown de cuentas de LinkedIn encontradas */}
                 {isSearchDropdownOpen && (searchResults.length > 0 || !isSearching) && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-lg border -300 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     {/* Header con tabs de categoría y botón cerrar */}
-                    <div className="p-2.5 border-b -300 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
+                    <div className="p-2.5 border-b border-gray-300 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 shrink-0">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                           Sugerencias de LinkedIn ({searchResults.length} resultados)
@@ -716,7 +716,7 @@ export default function CompetitorsSignalRadarPage() {
                                   <img
                                     src={item.logoUrl}
                                     alt={item.name}
-                                    className={`h-9 w-9 object-contain bg-white border -300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 ${
+                                    className={`h-9 w-9 object-contain bg-white border border-gray-300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 ${
                                       isCompany ? "rounded-lg" : "rounded-full object-cover"
                                     }`}
                                     onError={(e) => {
@@ -775,7 +775,7 @@ export default function CompetitorsSignalRadarPage() {
                     </div>
 
                     {/* Footer informativo de scroll */}
-                    <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t -300 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
+                    <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-300 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between shrink-0">
                       <span>Desplaza con el cursor para explorar más opciones</span>
                       <span className="font-semibold text-brand-600 dark:text-brand-400">
                         {filteredSearchResults.length} opciones
@@ -925,7 +925,7 @@ export default function CompetitorsSignalRadarPage() {
             {/* Fila 3: Tipo de Interacciones y Filtro Anti-Colaboradores (Diseño Armonioso Lado a Lado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Tarjeta 1: Tipo de Interacciones a Monitorear */}
-              <div className="flex flex-col justify-center p-3.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Tipo de Interacciones a Capturar
                 </span>
@@ -952,7 +952,7 @@ export default function CompetitorsSignalRadarPage() {
               </div>
 
               {/* Tarjeta 2: Filtro Anti-Engagement Interno */}
-              <div className="flex items-center p-3.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex items-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1064,7 +1064,7 @@ export default function CompetitorsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b -300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
+              <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Cuenta Objetivo</th>
                   <th className="px-4 py-3 min-w-[140px]">Palabras Clave</th>
@@ -1074,7 +1074,7 @@ export default function CompetitorsSignalRadarPage() {
                   <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y -300 text-xs dark:divide-gray-800">
+              <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
                 {l2Monitors.map((comp) => {
                   const isPerson = comp.competitorType === "person" || comp.competitorUrl.includes("/in/");
                   const scannedPosts = getCompetitorScannedPosts(comp);
@@ -1090,7 +1090,7 @@ export default function CompetitorsSignalRadarPage() {
                               <img
                                 src={comp.logoUrl}
                                 alt={comp.competitorName}
-                                className={`h-8 w-8 object-contain bg-white border -300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5 ${
+                                className={`h-8 w-8 object-contain bg-white border border-gray-300 p-0.5 shadow-xs dark:border-gray-800 shrink-0 mt-0.5 ${
                                   isPerson ? "rounded-full object-cover" : "rounded-lg"
                                 }`}
                                 onError={(e) => {
@@ -1207,7 +1207,7 @@ export default function CompetitorsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-lg border -300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la próxima auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1382,8 +1382,8 @@ export default function CompetitorsSignalRadarPage() {
       {/* Modal de Edición de Monitor Nivel 2 */}
       {editingMonitor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-xl rounded-lg border -300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between border-b -300 pb-3 dark:border-gray-800">
+          <div className="w-full max-w-xl rounded-lg border border-gray-300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Pencil className="size-5 text-brand-500" />
                 <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -1483,7 +1483,7 @@ export default function CompetitorsSignalRadarPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 rounded-lg border -300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
+              <div className="flex flex-col gap-2 rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                   Tipos de Interacciones a Monitorear
                 </span>
@@ -1519,7 +1519,7 @@ export default function CompetitorsSignalRadarPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border -300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
                 <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1607,7 +1607,7 @@ export default function CompetitorsSignalRadarPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2 border-t -300 pt-3 dark:border-gray-800">
+            <div className="mt-6 flex justify-end gap-2 border-t border-gray-300 pt-3 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setEditingMonitor(null)}

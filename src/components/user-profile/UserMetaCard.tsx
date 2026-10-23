@@ -16,12 +16,12 @@ export default function UserMetaCard() {
   };
   return (
     <>
-      <div className="mb-6 rounded-lg border -300 p-5 lg:p-6 dark:border-gray-800">
+      <div className="mb-6 rounded-lg border border-gray-300 p-5 lg:p-6 dark:border-gray-800">
         <div className="flex flex-col gap-5 sm:flex-row xl:gap-10">
           <div className="flex-1">
             <div className="mb-4 flex flex-col gap-5 sm:flex-row lg:mb-6 xl:items-center xl:justify-between">
               <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center lg:gap-6">
-                <div className="overflow-hidden rounded-full border -300 dark:border-gray-800">
+                <div className="overflow-hidden rounded-full border border-gray-300 dark:border-gray-800">
                   <Image
                     src="/images/user/owner.png"
                     width={80}
@@ -208,7 +208,7 @@ export default function UserMetaCard() {
                     />
                     <label
                       htmlFor="file-upload"
-                      className="absolute end-0 bottom-0 flex size-8 cursor-pointer items-center justify-center rounded-full border -300 bg-white text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+                      className="absolute end-0 bottom-0 flex size-8 cursor-pointer items-center justify-center rounded-full border border-gray-300 bg-white text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
                     >
                       <input
                         type="file"

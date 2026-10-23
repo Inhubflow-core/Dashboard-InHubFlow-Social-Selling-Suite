@@ -156,7 +156,7 @@ export default function UserDropdown() {
     return (
       <div className="relative">
         <div className="flex items-center text-gray-700 dark:text-gray-400">
-          <div className="me-2.5 h-10 w-10 overflow-hidden rounded-lg border -300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse" />
+          <div className="me-2.5 h-10 w-10 overflow-hidden rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse" />
           <div className="hidden text-left xl:block me-2">
             <div className="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse mb-1" />
             <div className="h-2.5 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
@@ -175,7 +175,7 @@ export default function UserDropdown() {
         title={`${currentUser.name} (${subtitleText})`}
       >
         <div className="relative me-2.5 shrink-0">
-          <span className="h-10 w-10 overflow-hidden rounded-lg border -300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
+          <span className="h-10 w-10 overflow-hidden rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
             {renderAvatar(currentUser, 40)}
           </span>
           <span
@@ -202,13 +202,13 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute mt-4.25 flex w-80 flex-col rounded-lg border -300 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute mt-4.25 flex w-80 flex-col rounded-lg border border-gray-300 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
       >
         {/* Cabecera del usuario activo */}
-        <div className="border-b -300 pb-3 dark:border-gray-800">
+        <div className="border-b border-gray-300 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 border -300 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
                 {renderAvatar(currentUser, 40)}
               </div>
               <span
@@ -249,7 +249,7 @@ export default function UserDropdown() {
         </div>
 
         {/* Enlaces Rápidos del SaaS (Mismo estilo tipográfico que AppSidebar) */}
-        <ul className="flex flex-col gap-1 border-b -300 py-2.5 dark:border-gray-800">
+        <ul className="flex flex-col gap-1 border-b border-gray-300 py-2.5 dark:border-gray-800">
           {sessionUser.role === "super_admin" && (
             <li>
               <DropdownItem
@@ -314,7 +314,7 @@ export default function UserDropdown() {
         </ul>
 
         {/* Cambiar Cuenta (Mismo estilo de cabecera e ítems que AppSidebar) */}
-        <div className="border-b -300 py-2.5 dark:border-gray-800">
+        <div className="border-b border-gray-300 py-2.5 dark:border-gray-800">
           <h2 className="mb-3 flex px-3 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase justify-start">
             Cambiar Cuenta
           </h2>
@@ -357,7 +357,7 @@ export default function UserDropdown() {
         <Link
           href="/signin"
           onClick={closeDropdown}
-          className="group menu-item menu-item-inactive mt-2 justify-center border -300 dark:border-gray-800"
+          className="group menu-item menu-item-inactive mt-2 justify-center border border-gray-300 dark:border-gray-800"
         >
           <span className="menu-item-icon-inactive">
             <LogOut className="size-4.5" />

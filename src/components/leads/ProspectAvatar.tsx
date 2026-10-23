@@ -68,7 +68,7 @@ export default function ProspectAvatar({
           src={cleanUrl!}
           alt={name || "Prospecto"}
           referrerPolicy="no-referrer"
-          className={`${sizeClasses} rounded-full object-cover border -300 dark:border-gray-700 shadow-xs bg-gray-100 dark:bg-gray-800`}
+          className={`${sizeClasses} rounded-full object-cover border border-gray-300 dark:border-gray-700 shadow-xs bg-gray-100 dark:bg-gray-800`}
           onError={() => setHasError(true)}
           loading="lazy"
         />

@@ -15,14 +15,14 @@ export default function BadgePage() {
     <div>
       <PageBreadcrumb pageTitle="Badges" />
       <div className="space-y-5 sm:space-y-6">
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               With Light Background
             </h3>
           </div>
 
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               {/* Light Variant */}
               <Badge variant="light" color="primary">
@@ -50,13 +50,13 @@ export default function BadgePage() {
           </div>
         </div>
 
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               With Solid Background
             </h3>
           </div>
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               {/* Light Variant */}
               <Badge variant="solid" color="primary">
@@ -84,13 +84,13 @@ export default function BadgePage() {
           </div>
         </div>
 
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Light Background with Leading Icon
             </h3>
           </div>
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="light" color="primary" startIcon={<PlusIcon />}>
                 Primary
@@ -117,13 +117,13 @@ export default function BadgePage() {
           </div>
         </div>
 
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Solid Background with Leading Icon
             </h3>
           </div>
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="solid" color="primary" startIcon={<PlusIcon />}>
                 Primary
@@ -150,13 +150,13 @@ export default function BadgePage() {
           </div>
         </div>
 
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Light Background with Trailing Icon
             </h3>
           </div>
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="light" color="primary" endIcon={<PlusIcon />}>
                 Primary
@@ -183,13 +183,13 @@ export default function BadgePage() {
           </div>
         </div>
 
-        <div className="rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3">
+        <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
           <div className="px-6 py-5">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Solid Background with Trailing Icon
             </h3>
           </div>
-          <div className="border-t -300 p-6 xl:p-10 dark:border-gray-800">
+          <div className="border-t border-gray-300 p-6 xl:p-10 dark:border-gray-800">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="solid" color="primary" endIcon={<PlusIcon />}>
                 Primary

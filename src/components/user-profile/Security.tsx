@@ -6,12 +6,12 @@ export default function Security() {
   const [switcherToggle, setSwitcherToggle] = useState(false);
 
   return (
-    <div className="mb-6 rounded-lg border -300 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="mb-6 rounded-lg border border-gray-300 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/3">
       <h4 className="mb-4 text-lg font-semibold text-gray-800 lg:mb-6 dark:text-white/90">
         Security
       </h4>
       <div>
-        <div className="flex flex-col justify-between gap-4 border-b -300 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
+        <div className="flex flex-col justify-between gap-4 border-b border-gray-300 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
           <div>
             <span className="mb-1 block text-base font-medium text-gray-800 dark:text-white/90">
               Change Password
@@ -41,7 +41,7 @@ export default function Security() {
             </button>
           </div>
         </div>
-        <div className="flex flex-col justify-between gap-4 border-b -300 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
+        <div className="flex flex-col justify-between gap-4 border-b border-gray-300 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
           <div>
             <span className="block text-base font-medium text-gray-800 dark:text-white/90">
               Two-factor authentication (2FA)

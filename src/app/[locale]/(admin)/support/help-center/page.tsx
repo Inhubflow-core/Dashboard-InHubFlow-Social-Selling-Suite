@@ -98,7 +98,7 @@ export default function HelpCenterPage() {
       <PageBreadcrumb pageTitle="Centro de Ayuda & Guías" />
 
       {/* Hero del Centro de Ayuda */}
-      <div className="rounded-lg border -300 bg-gradient-to-r from-blue-50 to-white p-8 text-center shadow-theme-xs dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/60">
+      <div className="rounded-lg border border-gray-300 bg-gradient-to-r from-blue-50 to-white p-8 text-center shadow-theme-xs dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/60">
         <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
           <LifeBuoy className="size-6" />
         </div>
@@ -118,7 +118,7 @@ export default function HelpCenterPage() {
               placeholder="Buscar guías, tutoriales o preguntas frecuentes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border -300 bg-white py-2.5 pr-4 pl-10 text-xs text-gray-900 shadow-xs focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+              className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-10 text-xs text-gray-900 shadow-xs focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
             />
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function HelpCenterPage() {
           {filteredGuides.map((guide, idx) => (
             <div
               key={idx}
-              className="flex flex-col justify-between rounded-lg border -300 bg-white p-5 shadow-theme-xs transition hover:border-[#0099ff] dark:border-gray-800 dark:bg-gray-900"
+              className="flex flex-col justify-between rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs transition hover:border-[#0099ff] dark:border-gray-800 dark:bg-gray-900"
             >
               <div>
                 <span className="rounded-lg bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
@@ -152,7 +152,7 @@ export default function HelpCenterPage() {
                   {guide.desc}
                 </p>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t -300 pt-3 text-xs text-gray-400 dark:border-gray-800">
+              <div className="mt-4 flex items-center justify-between border-t border-gray-300 pt-3 text-xs text-gray-400 dark:border-gray-800">
                 <span>{guide.readTime}</span>
                 <span className="font-semibold text-[#0099ff]">Leer guía &rarr;</span>
               </div>
@@ -162,15 +162,15 @@ export default function HelpCenterPage() {
       </div>
 
       {/* Preguntas Frecuentes (FAQs) */}
-      <div className="rounded-lg border -300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center gap-2.5 border-b -300 pb-4 dark:border-gray-800">
+      <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center gap-2.5 border-b border-gray-300 pb-4 dark:border-gray-800">
           <HelpCircle className="size-5 text-[#0099ff]" />
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Preguntas Frecuentes (FAQs)
           </h3>
         </div>
 
-        <div className="mt-4 divide-y -300 dark:divide-gray-800">
+        <div className="mt-4 divide-y divide-gray-300 dark:divide-gray-800">
           {FAQS.map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (

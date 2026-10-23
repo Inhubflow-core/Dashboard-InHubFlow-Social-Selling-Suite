@@ -70,7 +70,7 @@ export default function SlotsCapacityCard({
         className={`rounded-lg border transition-all ${
           capacity.isAtCapacity
             ? "border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-transparent to-transparent dark:border-amber-500/40"
-            : "-300 bg-white dark:border-gray-800 dark:bg-gray-900/60"
+            : "border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900/60"
         } ${compact ? "p-3.5" : "p-4 sm:p-5"}`}
       >
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

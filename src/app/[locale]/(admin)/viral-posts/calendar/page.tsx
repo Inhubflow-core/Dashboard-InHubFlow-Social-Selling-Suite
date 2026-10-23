@@ -246,14 +246,14 @@ export default function EditorialCalendarPage() {
       )}
 
       {/* Contenedor Principal del Calendario */}
-      <div className="rounded-lg border -300 bg-white p-5 sm:p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 space-y-6">
+      <div className="rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
         {/* Cabecera Superior: Título, Contador, Selector de Vista y Botón Programar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Calendario
-              </h1>
+              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+                Calendario Editorial y Programación
+              </h3>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-200/60 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-800/80">
                 {totalActiveCount} {totalActiveCount === 1 ? "publicación" : "publicaciones"}
               </span>
@@ -265,7 +265,7 @@ export default function EditorialCalendarPage() {
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* Selector de Modo: Mes | Semana */}
-            <div className="flex items-center rounded-lg border -300 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-950/40 p-1 shadow-2xs">
+            <div className="flex items-center rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-950/40 p-1 shadow-2xs">
               <button
                 type="button"
                 onClick={() => setViewMode("month")}
@@ -301,11 +301,13 @@ export default function EditorialCalendarPage() {
           </div>
         </div>
 
-        {/* Barra de Navegación del Mes & Filtros (Estilo exacto #b2b) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+        {/* Cuerpo del Calendario con línea divisoria igual que ComponentCard */}
+        <div className="border-t border-gray-300 p-4 sm:p-6 dark:border-gray-800 space-y-6">
+          {/* Barra de Navegación del Mes & Filtros (Estilo exacto #b2b) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Navegación temporal: Flechas + Hoy + Nombre del Mes */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center rounded-lg border -300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs p-1">
+            <div className="flex items-center rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs p-1">
               <button
                 type="button"
                 onClick={handlePrev}
@@ -338,7 +340,7 @@ export default function EditorialCalendarPage() {
 
           {/* Filtros de Estado: Todas | Programadas | Publicadas */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="inline-flex rounded-lg border -300 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-950/40 text-xs shadow-2xs">
+            <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-950/40 text-xs shadow-2xs">
               {[
                 { id: "all", label: "Todas" },
                 { id: "scheduled", label: "Programadas" },
@@ -381,9 +383,9 @@ export default function EditorialCalendarPage() {
 
         {/* Vista Mensual Estilo #b2b con Días de la Semana y 7 Columnas */}
         {viewMode === "month" ? (
-          <div className="w-full rounded-lg border -300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs overflow-hidden">
+          <div className="w-full rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs overflow-hidden">
             {/* Cabecera de Días de la Semana: LUN, MAR, MIÉ, JUE, VIE, SÁB, DOM */}
-            <div className="grid grid-cols-7 border-b -300 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50 divide-x -300 dark:divide-gray-800">
+            <div className="grid grid-cols-7 border-b border-gray-300 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50 divide-x divide-gray-300 dark:divide-gray-800">
               {WEEKDAYS.map((wd) => (
                 <div
                   key={wd}
@@ -563,10 +565,10 @@ export default function EditorialCalendarPage() {
                       ? "border-brand-500 bg-brand-50/20 dark:border-brand-500/60 dark:bg-brand-950/30"
                       : day.isPeak
                       ? "border-brand-200 bg-brand-25/30 dark:border-brand-900/40 dark:bg-brand-950/10"
-                      : "-300 bg-white dark:border-gray-800 dark:bg-gray-900"
+                      : "border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900"
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-2 border-b -300 dark:border-gray-800">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-300 dark:border-gray-800">
                     <div>
                       <div className="flex items-center gap-1.5">
                         <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
@@ -609,7 +611,7 @@ export default function EditorialCalendarPage() {
                           setDragOverDateKey(null);
                         }}
                         onClick={() => setSelectedPostDetails(post)}
-                        className={`cursor-grab active:cursor-grabbing rounded-lg border -300 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
+                        className={`cursor-grab active:cursor-grabbing rounded-lg border border-gray-300 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
                           draggedPostId === post.id
                             ? "opacity-30 scale-95 border-dashed border-brand-500"
                             : ""
@@ -639,7 +641,7 @@ export default function EditorialCalendarPage() {
                           {post.title}
                         </p>
 
-                        <div className="mt-2 flex items-center justify-between text-xs text-gray-400 border-t -300 dark:border-gray-700 pt-1.5">
+                        <div className="mt-2 flex items-center justify-between text-xs text-gray-400 border-t border-gray-300 dark:border-gray-700 pt-1.5">
                           <span>
                             {post.scheduledAt
                               ? new Date(post.scheduledAt).toLocaleTimeString([], {
@@ -662,7 +664,7 @@ export default function EditorialCalendarPage() {
                         className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-3 text-center text-xs transition ${
                           isDropTarget
                             ? "border-brand-500 bg-brand-100/50 text-brand-700 font-bold dark:bg-brand-950/60 dark:text-brand-300"
-                            : "-300 text-gray-400 dark:border-gray-800"
+                            : "border-gray-300 text-gray-400 dark:border-gray-800"
                         }`}
                       >
                         <span>{isDropTarget ? "Soltar publicación aquí" : "Arrastra un post aquí"}</span>
@@ -674,13 +676,14 @@ export default function EditorialCalendarPage() {
             })}
           </div>
         )}
+        </div>
       </div>
 
       {/* Modal de Detalle de Publicación */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
-            <div className="flex items-start justify-between border-b -300 pb-3 dark:border-gray-800">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-start justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <div>
                 <span className="text-xs uppercase font-bold text-brand-600">
                   {selectedPostDetails.format} • {selectedPostDetails.status}
@@ -711,7 +714,7 @@ export default function EditorialCalendarPage() {
               </p>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t -300 dark:border-gray-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setSelectedPostDetails(null)}

@@ -187,7 +187,7 @@ const Calendar: React.FC = () => {
 
   return (
     <div
-      className="overflow-hidden rounded-lg border -300 bg-white dark:border-gray-800 dark:bg-white/3"
+      className="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3"
       data-color-scheme={theme}
     >
       <div
@@ -235,14 +235,14 @@ const Calendar: React.FC = () => {
                 <ChevronLeftIcon className="size-5 bg-transparent text-gray-700 sm:size-6 rtl:rotate-180 dark:text-gray-400" />
               ),
               className:
-                "flex size-9! sm:size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! -300! text-gray-700 hover:-300 hover:bg-gray-50! focus:shadow-none active:-300! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
+                "flex size-9! sm:size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-300! text-gray-700 hover:border-gray-300 hover:bg-gray-50! focus:shadow-none active:border-gray-300! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
             },
             next: {
               iconContent: () => (
                 <ChevronRightIcon className="size-5 bg-transparent text-gray-700 sm:size-6 rtl:rotate-180 dark:text-gray-400" />
               ),
               className:
-                "flex size-9! sm:size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! -300! text-gray-700 hover:-300 hover:bg-gray-50! focus:shadow-none active:-300! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
+                "flex size-9! sm:size-10! p-0! items-center justify-center! rounded-lg! border! bg-transparent! border-gray-300! text-gray-700 hover:border-gray-300 hover:bg-gray-50! focus:shadow-none active:border-gray-300! active:bg-transparent! active:shadow-none! dark:border-gray-800! dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900! dark:active:border-gray-800!",
             },
             addEventButton: {
               text: "Add Event +",
@@ -257,7 +257,7 @@ const Calendar: React.FC = () => {
               multiMonthMaxColumns: 3,
               singleMonthClass: "fc-multimonth",
               tableClass:
-                "overflow-visible! border-0! sm:border! sm:-300! dark:sm:border-gray-800! rounded-none! sm:rounded-lg! mt-0! bg-transparent!",
+                "overflow-visible! border-0! sm:border! sm:border-gray-300! dark:sm:border-gray-800! rounded-none! sm:rounded-lg! mt-0! bg-transparent!",
               singleMonthHeaderClass: "mb-0!",
               tableHeaderClass:
                 "mb-0! rounded-none! sm:rounded-t-lg! bg-gray-50 dark:bg-gray-900",
@@ -269,7 +269,7 @@ const Calendar: React.FC = () => {
               dayHeaderRowClass: "fc-multimonth-day-header-row",
               dayHeaderClass: (data: DayHeaderInfo) =>
                 data.inPopover
-                  ? "relative! border-b! -300! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
+                  ? "relative! border-b! border-gray-300! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
                   : "border-0! bg-gray-50 py-2! dark:bg-gray-900 dark:sm:bg-transparent! first:rounded-none! first:sm:rounded-ss-lg! last:rounded-none! last:sm:rounded-se-lg!",
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
                 data.inPopover
@@ -310,8 +310,8 @@ const Calendar: React.FC = () => {
                 data.inPopover ? "start" : "center",
               dayHeaderClass: (data: DayHeaderInfo) =>
                 data.inPopover
-                  ? "relative! border-b! -300! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
-                  : "border-x-0! border-t -300! bg-gray-50 dark:border-gray-800! dark:bg-gray-900",
+                  ? "relative! border-b! border-gray-300! bg-gray-50/70! px-4! py-3! text-start! dark:border-gray-800! dark:bg-gray-800/50!"
+                  : "border-x-0! border-t border-gray-300! bg-gray-50 dark:border-gray-800! dark:bg-gray-900",
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
                 data.inPopover
                   ? "text-sm! font-semibold! text-gray-800! dark:text-white/90!"
@@ -391,18 +391,18 @@ const Calendar: React.FC = () => {
                     : ""
                 }`,
               slotHeaderDividerClass:
-                "border-e! border-s-0! border-y-0! -300! dark:border-gray-800!",
+                "border-e! border-s-0! border-y-0! border-gray-300! dark:border-gray-800!",
               slotHeaderClass:
                 "px-1.5! sm:px-3! py-1.5! sm:py-2! text-start! text-xs! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
-              slotLaneClass: "-300! dark:border-gray-800/60!",
+              slotLaneClass: "border-gray-300! dark:border-gray-800/60!",
               dayLaneClass: (data: DayLaneInfo) =>
-                `-300! dark:border-gray-800! ${
+                `border-gray-300! dark:border-gray-800! ${
                   data.isToday
                     ? "bg-brand-50/15! dark:bg-brand-500/[0.03]!"
                     : ""
                 }`,
               allDayDividerClass:
-                "border-b! border-t-0! border-x-0! -300! p-0! bg-transparent! dark:border-gray-800!",
+                "border-b! border-t-0! border-x-0! border-gray-300! p-0! bg-transparent! dark:border-gray-800!",
               allDayHeaderClass:
                 "border-0! bg-gray-50! text-xs! sm:text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
             },
@@ -446,18 +446,18 @@ const Calendar: React.FC = () => {
                     : ""
                 }`,
               slotHeaderDividerClass:
-                "border-e! border-s-0! border-y-0! -300! dark:border-gray-800!",
+                "border-e! border-s-0! border-y-0! border-gray-300! dark:border-gray-800!",
               slotHeaderClass:
                 "px-2! sm:px-3! py-1.5! sm:py-2! text-start! text-xs! sm:text-xs! font-medium! text-gray-400! dark:text-gray-500!",
-              slotLaneClass: "-300! dark:border-gray-800/60!",
+              slotLaneClass: "border-gray-300! dark:border-gray-800/60!",
               dayLaneClass: (data: DayLaneInfo) =>
-                `-300! dark:border-gray-800! ${
+                `border-gray-300! dark:border-gray-800! ${
                   data.isToday
                     ? "bg-brand-50/15! dark:bg-brand-500/[0.03]!"
                     : ""
                 }`,
               allDayDividerClass:
-                "border-b! border-t-0! border-x-0! -300! p-0! bg-transparent! dark:border-gray-800!",
+                "border-b! border-t-0! border-x-0! border-gray-300! p-0! bg-transparent! dark:border-gray-800!",
               allDayHeaderClass:
                 "border-0! bg-gray-50! text-xs! font-medium! text-gray-500! dark:border-0! dark:bg-gray-900! dark:text-gray-400!",
             },
@@ -465,12 +465,12 @@ const Calendar: React.FC = () => {
           // Body configuration
           height="auto"
           borderless={true}
-          viewClass="border-t! border-b-0! border-x-0! -300! bg-transparent! dark:border-gray-800! dark:bg-transparent!"
+          viewClass="border-t! border-b-0! border-x-0! border-gray-300! bg-transparent! dark:border-gray-800! dark:bg-transparent!"
           tableHeaderClass="border-0! bg-gray-50! dark:bg-gray-900!"
-          dayHeaderDividerClass="border-b! border-t-0! border-x-0! -300! p-0! bg-transparent! dark:border-gray-800!"
+          dayHeaderDividerClass="border-b! border-t-0! border-x-0! border-gray-300! p-0! bg-transparent! dark:border-gray-800!"
           slotMinHeight={56}
-          slotHeaderDividerClass="border-e! border-s-0! border-y-0! -300! dark:border-gray-800!"
-          allDayDividerClass="border-b! border-t-0! border-x-0! -300! p-0! bg-transparent! dark:border-gray-800!"
+          slotHeaderDividerClass="border-e! border-s-0! border-y-0! border-gray-300! dark:border-gray-800!"
+          allDayDividerClass="border-b! border-t-0! border-x-0! border-gray-300! p-0! bg-transparent! dark:border-gray-800!"
           eventClass="focus:shadow-none"
           nowIndicator={false}
           columnEventClass="bg-transparent! border-0! p-1! shadow-none! hover:shadow-none! focus:outline-none"
@@ -480,7 +480,7 @@ const Calendar: React.FC = () => {
           rowEventClass="bg-transparent! border-0! px-1! py-0.5! shadow-none! hover:shadow-none! focus:outline-none"
           rowEventInnerClass="p-0! border-0! bg-transparent!"
           popoverFormat={{ month: "short", day: "numeric", year: "numeric" }}
-          popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-lg border -300 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
+          popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-lg border border-gray-300 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
           popoverCloseClass="absolute end-3 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
           popoverCloseContent={() => <CloseIcon className="size-4" />}
           datesSet={(arg) => {

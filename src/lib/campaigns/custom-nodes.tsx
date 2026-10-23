@@ -36,7 +36,7 @@ export function ActionCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[240px] max-w-[280px] rounded-lg bg-white border -300 p-3.5 shadow-theme-xs transition dark:bg-gray-900 dark:border-gray-700 ${
+      className={`min-w-[240px] max-w-[280px] rounded-lg bg-white border border-gray-300 p-3.5 shadow-theme-xs transition dark:bg-gray-900 dark:border-gray-700 ${
         selected ? "border-brand-500 ring-2 ring-brand-200" : ""
       }`}
     >
@@ -45,7 +45,7 @@ export function ActionCustomNode({ data, selected }: NodeProps) {
         position={Position.Top}
         className="h-3 w-3 rounded-full !bg-brand-500"
       />
-      <div className="flex items-center justify-between pb-1.5 border-b -300 dark:border-gray-800">
+      <div className="flex items-center justify-between pb-1.5 border-b border-gray-300 dark:border-gray-800">
         <span className="text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full dark:bg-blue-950 dark:text-blue-300">
           ACCION
         </span>
@@ -81,7 +81,7 @@ export function ConditionCustomNode({ data, selected }: NodeProps) {
         position={Position.Top}
         className="h-3 w-3 rounded-full !bg-brand-500"
       />
-      <div className="flex items-center justify-between pb-1.5 border-b -300 dark:border-gray-800">
+      <div className="flex items-center justify-between pb-1.5 border-b border-gray-300 dark:border-gray-800">
         <span className="text-xs font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full dark:bg-purple-950 dark:text-purple-300">
           CONDICION
         </span>
@@ -98,7 +98,7 @@ export function ConditionCustomNode({ data, selected }: NodeProps) {
         </p>
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-2 border-t -300 dark:border-gray-800 text-xs font-bold">
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-300 dark:border-gray-800 text-xs font-bold">
         <span className="text-green-600 dark:text-green-400">Rama: SI (Derecha)</span>
         <span className="text-red-500 dark:text-red-400">Rama: NO (Izquierda)</span>
       </div>

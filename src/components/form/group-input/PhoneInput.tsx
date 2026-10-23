@@ -61,7 +61,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="h-full appearance-none rounded-s-lg border-0 border-e -300 bg-transparent bg-none py-3 ps-3.5 pe-8 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-800 dark:text-gray-400"
+            className="h-full appearance-none rounded-s-lg border-0 border-e border-gray-300 bg-transparent bg-none py-3 ps-3.5 pe-8 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-800 dark:text-gray-400"
           >
             {countries.map((country) => (
               <option
@@ -119,7 +119,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="h-full appearance-none rounded-e-lg border-0 border-s -300 bg-transparent bg-none py-3 ps-3.5 pe-8 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden rtl:ps-8 rtl:pe-3.5 dark:border-gray-800 dark:text-gray-400"
+            className="h-full appearance-none rounded-e-lg border-0 border-s border-gray-300 bg-transparent bg-none py-3 ps-3.5 pe-8 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden rtl:ps-8 rtl:pe-3.5 dark:border-gray-800 dark:text-gray-400"
           >
             {countries.map((country) => (
               <option

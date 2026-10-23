@@ -31,9 +31,9 @@ const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full xl:h-[76px] items-center border-b -300 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-40 flex w-full xl:h-[76px] items-center border-b border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="flex grow h-full flex-col items-center justify-between xl:flex-row xl:px-6">
-        <div className="flex w-full h-full items-center justify-between gap-2 border-b -300 px-3 py-3 sm:gap-4 xl:w-auto xl:border-b-0 xl:px-0 xl:py-0 dark:border-gray-800">
+        <div className="flex w-full h-full items-center justify-between gap-2 border-b border-gray-300 px-3 py-3 sm:gap-4 xl:w-auto xl:border-b-0 xl:px-0 xl:py-0 dark:border-gray-800">
           <button
             className={`flex h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 lg:h-11 lg:w-11 lg:bg-transparent xl:border dark:border-gray-800 dark:text-gray-400 dark:lg:bg-transparent ${
               isMobileOpen ? "bg-gray-100 dark:bg-white/3" : ""

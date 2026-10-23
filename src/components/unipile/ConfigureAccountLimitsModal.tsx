@@ -124,9 +124,9 @@ export default function ConfigureAccountLimitsModal({
 
   return (
     <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-lg border -300 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
+      <div className="relative w-full max-w-xl rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
         {/* Cabecera idéntica a #b2b */}
-        <div className="flex items-center justify-between px-6 py-4 border-b -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg select-none">
               in
@@ -247,7 +247,7 @@ export default function ConfigureAccountLimitsModal({
             </p>
 
             {/* Sección Horario de Prospección */}
-            <div className="border-t -300 dark:border-gray-800 pt-3 flex flex-col gap-3">
+            <div className="border-t border-gray-300 dark:border-gray-800 pt-3 flex flex-col gap-3">
               <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                 HORARIO DE PROSPECCIÓN
               </p>
@@ -354,7 +354,7 @@ export default function ConfigureAccountLimitsModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
             <button
               type="button"
               className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"

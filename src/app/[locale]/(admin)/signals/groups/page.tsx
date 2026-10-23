@@ -275,7 +275,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
       {/* Métricas del Nivel 3 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Grupos de LinkedIn Monitoreados
           </span>
@@ -287,7 +287,7 @@ export default function LinkedInGroupsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Decisores Calificados Extraidos
           </span>
@@ -299,7 +299,7 @@ export default function LinkedInGroupsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Aceptacion Relacional
           </span>
@@ -424,7 +424,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
             {/* Fila 3: Filtro de Tracción y Tipos de Interacción */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col justify-center p-3.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Tipo de Interacciones a Capturar
                 </span>
@@ -450,7 +450,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center p-3.5 rounded-lg border -300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Filtro de Traccion Minima en Debates
                 </span>
@@ -565,7 +565,7 @@ export default function LinkedInGroupsSignalRadarPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b -300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
+              <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3 min-w-[260px]">Comunidad / Grupo</th>
                   <th className="px-4 py-3 min-w-[160px]">Tematicas / Dolores</th>
@@ -575,7 +575,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                   <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y -300 text-xs dark:divide-gray-800">
+              <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
                 {l3GroupMonitors.map((group) => {
                   const scannedPosts = group.lastScannedPosts || [];
                   const isExpanded = Boolean(expandedGroupPosts[group.id]);
@@ -691,7 +691,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-lg border -300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamano de lote para la proxima auditoria"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -871,8 +871,8 @@ export default function LinkedInGroupsSignalRadarPage() {
       {/* Modal de Edición de Monitor de Grupo */}
       {editingMonitor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border -300 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b -300 dark:border-gray-800">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-300 dark:border-gray-800">
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">
                 Editar Monitor: {editingMonitor.groupName}
               </h3>
@@ -939,7 +939,7 @@ export default function LinkedInGroupsSignalRadarPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t -300 dark:border-gray-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-300 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setEditingMonitor(null)}

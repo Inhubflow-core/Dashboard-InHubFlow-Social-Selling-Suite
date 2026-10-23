@@ -142,7 +142,7 @@ export default function TeamManagementPage() {
     return (
       <div className="space-y-6">
         <PageBreadcrumb pageTitle="Equipo & Operadores" />
-        <div className="rounded-lg border -300 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+        <div className="rounded-lg border border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
             <ShieldAlert className="size-7" />
           </div>
@@ -240,7 +240,7 @@ export default function TeamManagementPage() {
 
       {/* Métricas de Capacidad de Equipo */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Slots Totales del Plan
@@ -263,7 +263,7 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Miembros de Equipo (Team)
@@ -282,7 +282,7 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border -300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Cupos de Equipo Disponibles
@@ -305,7 +305,7 @@ export default function TeamManagementPage() {
       </div>
 
       {/* Tabs Miembros vs Invitaciones */}
-      <div className="border-b -300 dark:border-gray-800">
+      <div className="border-b border-gray-300 dark:border-gray-800">
         <div className="flex gap-6">
           <button
             onClick={() => setActiveTab("members")}
@@ -332,9 +332,9 @@ export default function TeamManagementPage() {
 
       {/* Vista de Miembros */}
       {activeTab === "members" && (
-        <div className="overflow-hidden rounded-lg border -300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b -300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
+            <thead className="border-b border-gray-300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
                 <th className="px-5 py-3.5">Colaborador</th>
                 <th className="px-5 py-3.5">Rol en Organizacion</th>
@@ -343,7 +343,7 @@ export default function TeamManagementPage() {
                 <th className="px-5 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y -300 dark:divide-gray-800">
+            <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
               {/* Dueño / Admin de la cuenta */}
               <tr className="bg-[#0099ff]/5">
                 <td className="px-5 py-4">
@@ -441,9 +441,9 @@ export default function TeamManagementPage() {
 
       {/* Vista de Invitaciones */}
       {activeTab === "invitations" && (
-        <div className="overflow-hidden rounded-lg border -300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b -300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
+            <thead className="border-b border-gray-300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
                 <th className="px-5 py-3.5">Correo Destinatario</th>
                 <th className="px-5 py-3.5">Rol Propuesto</th>
@@ -452,7 +452,7 @@ export default function TeamManagementPage() {
                 <th className="px-5 py-3.5 text-right">Accion</th>
               </tr>
             </thead>
-            <tbody className="divide-y -300 dark:divide-gray-800">
+            <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
               {invitations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-gray-500">
@@ -503,7 +503,7 @@ export default function TeamManagementPage() {
       {/* Modal Invitar Miembro */}
       {isInviteModalOpen && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-md rounded-lg border -300 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="relative w-full max-w-md rounded-lg border border-gray-300 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
             <button
               onClick={() => setIsInviteModalOpen(false)}
               className="absolute top-4 right-4 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
@@ -520,7 +520,7 @@ export default function TeamManagementPage() {
               Asigna a un colaborador para operar tus cuentas de LinkedIn dentro de tu cuota contratada.
             </p>
 
-            <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 p-2.5 dark:bg-gray-800/60 border -300 dark:border-gray-700/60">
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 p-2.5 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60">
               <span className="text-xs text-gray-500 dark:text-gray-400">Cupos libres de equipo:</span>
               <span className="text-xs font-bold text-[#0099ff]">
                 {isSuperAdmin ? "Ilimitados" : `${availableTeamSlots} de ${maxTeamAllowed} disponibles`}
@@ -544,7 +544,7 @@ export default function TeamManagementPage() {
                   placeholder="operador@tuempresa.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full rounded-lg border -300 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -555,7 +555,7 @@ export default function TeamManagementPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full rounded-lg border -300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="member">Team · Operador SDR (Acceso a su bandeja asignada)</option>
                   <option value="admin">Team · Co-Administrador (Gestion de campanas y equipo)</option>
@@ -569,7 +569,7 @@ export default function TeamManagementPage() {
                 <select
                   value={inviteAccountId}
                   onChange={(e) => setInviteAccountId(e.target.value)}
-                  className="w-full rounded-lg border -300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="">-- Sin asignar por ahora --</option>
                   {accounts.map((acc) => (
@@ -580,7 +580,7 @@ export default function TeamManagementPage() {
                 </select>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3 border-t -300 pt-4 dark:border-gray-800">
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-300 pt-4 dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => setIsInviteModalOpen(false)}

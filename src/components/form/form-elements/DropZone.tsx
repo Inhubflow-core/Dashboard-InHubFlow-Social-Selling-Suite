@@ -165,7 +165,7 @@ export default function DropzoneComponent() {
               {files.map((file) => (
                 <div
                   key={`${file.name}-${file.lastModified}`}
-                  className="group relative overflow-hidden rounded-lg border -300 bg-white shadow-theme-xs transition hover:shadow-theme-sm dark:border-gray-800 dark:bg-gray-900"
+                  className="group relative overflow-hidden rounded-lg border border-gray-300 bg-white shadow-theme-xs transition hover:shadow-theme-sm dark:border-gray-800 dark:bg-gray-900"
                 >
                   {/* Image Preview Container */}
                   <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
@@ -240,7 +240,7 @@ export default function DropzoneComponent() {
                 </p>
               </div>
 
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border -300 bg-gray-100 dark:border-gray-800 dark:bg-gray-800">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-gray-300 bg-gray-100 dark:border-gray-800 dark:bg-gray-800">
                 {previewImage.preview && (
                   <Image
                     src={previewImage.preview}
