@@ -28,13 +28,6 @@ import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
 
-function truncateText(text: string | undefined, maxLength = 44): string {
-  if (!text) return "No especificado";
-  const clean = text.trim();
-  if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength).trimEnd()}...`;
-}
-
 export interface LeadCampaignTrackerItem {
   id: string;
   fullName: string;
@@ -652,14 +645,14 @@ export function CampaignLeadsTracker({
           </div>
         ) : (
           <div className="overflow-x-auto px-5 pt-4 pb-2">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
               <thead className="border-b border-gray-100 text-xs font-semibold uppercase text-gray-400 dark:border-gray-800">
                 <tr>
-                  <th className="pb-3 min-w-[200px]">Prospecto</th>
-                  <th className="pb-3 min-w-[200px] max-w-[260px]">Cargo</th>
-                  <th className="pb-3 min-w-[150px] whitespace-nowrap">Origen de Señal</th>
-                  <th className="pb-3 min-w-[290px]">Avance de Secuencia</th>
-                  <th className="pb-3 min-w-[100px] whitespace-nowrap text-right">Acciones</th>
+                  <th className="w-[22%] pb-3 pr-5">Prospecto</th>
+                  <th className="w-[24%] pb-3 px-4">Cargo</th>
+                  <th className="w-[19%] pb-3 px-4 whitespace-nowrap">Origen de Señal</th>
+                  <th className="w-[27%] pb-3 px-5">Avance de Secuencia</th>
+                  <th className="w-[8%] pb-3 pl-4 whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs dark:divide-gray-800">
@@ -676,8 +669,8 @@ export function CampaignLeadsTracker({
                       key={lead.id}
                       className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition"
                     >
-                      {/* 1. Columna: Prospecto (Idéntico a Directorio de Leads) */}
-                      <td className="py-3.5 pr-3 min-w-[200px]">
+                      {/* 1. Columna: Prospecto */}
+                      <td className="py-4 pr-5">
                         <div className="flex items-center gap-3">
                           <ProspectAvatar
                             imageUrl={lead.avatarUrl}
@@ -723,27 +716,27 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 2. Columna: Cargo */}
-                      <td className="py-3.5 pr-3 max-w-[260px]">
+                      <td className="py-4 px-4">
                         <p
                           className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate leading-snug cursor-help"
                           title={lead.headline}
                         >
-                          {truncateText(lead.headline, 44)}
+                          {lead.headline || "No especificado"}
                         </p>
                       </td>
 
                       {/* 3. Columna: Origen de Señal */}
-                      <td className="py-3.5 pr-3 whitespace-nowrap">
+                      <td className="py-4 px-4">
                         <span
-                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[180px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-full truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={`${lead.monitorName} (${lead.listName})`}
                         >
-                          {truncateText(lead.monitorName, 26)}
+                          {lead.monitorName}
                         </span>
                       </td>
 
                       {/* 4. Columna: Avance de Secuencia */}
-                      <td className="py-3.5 pr-3 min-w-[290px] max-w-md">
+                      <td className="py-4 px-5">
                         <div className="flex items-center justify-between text-xs mb-2 font-medium">
                           <span className="font-semibold text-gray-800 dark:text-gray-200 truncate pr-2">
                             {isCompleted
@@ -758,7 +751,7 @@ export function CampaignLeadsTracker({
                         </div>
 
                         {/* La Barra Visual con Estaciones / Stepper */}
-                        <div className="relative flex items-center w-full px-2">
+                        <div className="relative flex items-center w-full px-1">
                           {/* Línea horizontal base conectora */}
                           <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-gray-200 dark:bg-gray-700 z-0 rounded-full" />
                           {/* Línea de progreso llena */}
@@ -820,7 +813,7 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 5. Columna: Acciones */}
-                      <td className="py-3.5 text-right whitespace-nowrap">
+                      <td className="py-4 pl-4 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1.5">
                           {/* Botón Ejecutar Siguiente Paso */}
                           <button
