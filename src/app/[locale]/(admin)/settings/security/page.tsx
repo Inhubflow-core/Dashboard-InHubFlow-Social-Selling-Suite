@@ -46,16 +46,16 @@ export default function SecuritySettingsPage() {
       <PageBreadcrumb pageTitle="API Keys & Seguridad" />
 
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <Check className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
       )}
 
       {/* Claves de API del Workspace */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
             <Key className="size-5" />
           </div>
           <div>
@@ -78,7 +78,7 @@ export default function SecuritySettingsPage() {
                 type={showKey ? "text" : "password"}
                 readOnly
                 value={apiKey}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 font-mono text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-gray-200"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 font-mono text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-gray-200"
               />
               <button
                 type="button"
@@ -91,7 +91,7 @@ export default function SecuritySettingsPage() {
 
             <button
               onClick={handleCopyKey}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-200 dark:hover:bg-gray-800"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-200 dark:hover:bg-gray-800"
             >
               {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
               <span>{copied ? "Copiada" : "Copiar"}</span>
@@ -100,7 +100,7 @@ export default function SecuritySettingsPage() {
             {!isMember && (
               <button
                 onClick={handleRegenerateKey}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20"
               >
                 <RefreshCw className="size-4" />
                 <span>Regenerar</span>
@@ -114,9 +114,9 @@ export default function SecuritySettingsPage() {
       </div>
 
       {/* Protocolos de Conexión Cloud LinkedIn */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
             <ShieldCheck className="size-5" />
           </div>
           <div>
@@ -130,7 +130,7 @@ export default function SecuritySettingsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3 text-xs">
-          <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Cifrado AES-256
             </span>
@@ -139,7 +139,7 @@ export default function SecuritySettingsPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Rotación Residencial de IPs
             </span>
@@ -148,7 +148,7 @@ export default function SecuritySettingsPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <span className="text-base font-medium text-gray-800 dark:text-white/90">
               Aislamiento de Sesión
             </span>
@@ -160,7 +160,7 @@ export default function SecuritySettingsPage() {
       </div>
 
       {/* Sesiones Activas */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
           Sesiones Activas en el Workspace
         </h3>

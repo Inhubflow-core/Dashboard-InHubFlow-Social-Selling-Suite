@@ -169,10 +169,10 @@ export default function UnipileWebhookSimulator() {
   return (
     <div className="space-y-6">
       {/* Banner de Estado del Sandbox Unipile */}
-      <div className="rounded-2xl border border-[#0099ff]/20 bg-[#0099ff]/5 p-5 dark:border-[#0099ff]/30 dark:bg-[#0099ff]/10">
+      <div className="rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-5 dark:border-[#0099ff]/30 dark:bg-[#0099ff]/10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0099ff] text-white shadow-md shadow-[#0099ff]/20">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#0099ff] text-white shadow-md shadow-[#0099ff]/20">
               <Shield className="size-5" />
             </div>
             <div>
@@ -194,7 +194,7 @@ export default function UnipileWebhookSimulator() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => copyToClipboard("/api/unipile/webhook", "webhook-endpoint")}
-              className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
             >
               {copiedKey === "webhook-endpoint" ? (
                 <>
@@ -213,14 +213,14 @@ export default function UnipileWebhookSimulator() {
       </div>
 
       {feedbackNotice && (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300">
+        <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300">
           <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
           <span>{feedbackNotice}</span>
         </div>
       )}
 
       {/* Selector de Evento a Simular */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -231,7 +231,7 @@ export default function UnipileWebhookSimulator() {
             </p>
           </div>
 
-          <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+          <div className="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
             <button
               onClick={() => setActiveTab("message")}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
@@ -295,14 +295,14 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simLeadName}
                     onChange={(e) => setSimLeadName(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Destino en Suite
                   </label>
-                  <div className="mt-1.5 flex h-[38px] items-center rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-950/50 dark:text-gray-400">
+                  <div className="mt-1.5 flex h-[38px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-950/50 dark:text-gray-400">
                     Inbox Unificado + Cola de Aprobacion SDR IA
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export default function UnipileWebhookSimulator() {
                   rows={3}
                   value={simMessageText}
                   onChange={(e) => setSimMessageText(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-3 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-3 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -324,7 +324,7 @@ export default function UnipileWebhookSimulator() {
                 <button
                   disabled={isSubmitting}
                   onClick={() => handleTriggerSimulation("incoming_message")}
-                  className="flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
                 >
                   <Play className="size-3.5 fill-current" />
                   <span>{isSubmitting ? "Disparando..." : "Disparar Mensaje Entrante a Inbox & SDR"}</span>
@@ -344,7 +344,7 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simAuthorName}
                     onChange={(e) => setSimAuthorName(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
                 <div>
@@ -355,7 +355,7 @@ export default function UnipileWebhookSimulator() {
                     type="text"
                     value={simPostTitle}
                     onChange={(e) => setSimPostTitle(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
               </div>
@@ -368,7 +368,7 @@ export default function UnipileWebhookSimulator() {
                   type="text"
                   value={simCommentText}
                   onChange={(e) => setSimCommentText(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-900 focus:border-[#0099ff] focus:outline-none dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -376,7 +376,7 @@ export default function UnipileWebhookSimulator() {
                 <button
                   disabled={isSubmitting}
                   onClick={() => handleTriggerSimulation("keyword_comment")}
-                  className="flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
                 >
                   <Play className="size-3.5 fill-current" />
                   <span>{isSubmitting ? "Disparando..." : "Disparar Comentario & Capturar Lead en Signal Radar"}</span>
@@ -387,7 +387,7 @@ export default function UnipileWebhookSimulator() {
 
           {activeTab === "invitation" && (
             <div className="space-y-4">
-              <div className="rounded-xl bg-gray-50 p-4 text-xs text-gray-600 dark:bg-gray-800/50 dark:text-gray-300">
+              <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-600 dark:bg-gray-800/50 dark:text-gray-300">
                 <p>
                   Simula que el decisor <strong className="text-gray-900 dark:text-white">Carlos Benitez (VP Sales)</strong> acaba de aceptar la solicitud de conexion enviada por tu cuenta de LinkedIn. El evento disparara la actualizacion automatica del grado de relacion a 1er grado y despertara la secuencia de bienvenida.
                 </p>
@@ -397,7 +397,7 @@ export default function UnipileWebhookSimulator() {
                 <button
                   disabled={isSubmitting}
                   onClick={() => handleTriggerSimulation("invitation_accepted")}
-                  className="flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
                 >
                   <Play className="size-3.5 fill-current" />
                   <span>{isSubmitting ? "Disparando..." : "Disparar Aceptacion de Conexion (1er Grado)"}</span>
@@ -418,7 +418,7 @@ export default function UnipileWebhookSimulator() {
                       key={st}
                       type="button"
                       onClick={() => setSimAccountStatus(st)}
-                      className={`rounded-xl border px-4 py-2 text-xs font-bold transition ${
+                      className={`rounded-lg border px-4 py-2 text-xs font-bold transition ${
                         simAccountStatus === st
                           ? "border-[#0099ff] bg-[#0099ff]/10 text-[#0099ff]"
                           : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
@@ -434,7 +434,7 @@ export default function UnipileWebhookSimulator() {
                 <button
                   disabled={isSubmitting}
                   onClick={() => handleTriggerSimulation("account_status")}
-                  className="flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0099ff]/25 hover:bg-[#0088ee] disabled:opacity-50"
                 >
                   <Play className="size-3.5 fill-current" />
                   <span>{isSubmitting ? "Disparando..." : `Disparar Cambio de Estado (${simAccountStatus})`}</span>
@@ -446,7 +446,7 @@ export default function UnipileWebhookSimulator() {
       </div>
 
       {/* Registro de Auditoría de Webhooks en Vivo */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Terminal className="size-4 text-[#0099ff]" />
@@ -477,11 +477,11 @@ export default function UnipileWebhookSimulator() {
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="rounded-xl border border-gray-200 bg-gray-50 p-4 font-mono text-xs dark:border-gray-800 dark:bg-gray-950"
+                className="rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs dark:border-gray-800 dark:bg-gray-950"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600">
+                    <span className="rounded-lg bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600">
                       HTTP 200 OK
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-white">

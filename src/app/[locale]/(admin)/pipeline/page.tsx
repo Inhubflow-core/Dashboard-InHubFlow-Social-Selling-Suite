@@ -157,7 +157,7 @@ export default function PipelinePage() {
     <div className="flex flex-col min-h-[calc(100vh-140px)]">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-xl bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
           <Sparkles className="size-4 text-brand-400" />
           <span>{toastMsg}</span>
         </div>
@@ -192,7 +192,7 @@ export default function PipelinePage() {
 
       {/* Tarjetas de Métricas de Ventas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Valor Total Pipeline</span>
             <DollarSign className="size-4 text-emerald-500" />
@@ -205,7 +205,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Oportunidades Activas</span>
             <TrendingUp className="size-4 text-brand-500" />
@@ -218,7 +218,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Reuniones Agendadas</span>
             <Calendar className="size-4 text-purple-500" />
@@ -231,7 +231,7 @@ export default function PipelinePage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Deals Ganados</span>
             <UserCheck className="size-4 text-emerald-500" />
@@ -246,7 +246,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Barra de Filtros */}
-      <div className="rounded-xl border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2 flex-1 min-w-[220px]">
           <Search className="size-4 text-gray-400" />
           <input
@@ -301,7 +301,7 @@ export default function PipelinePage() {
                 key={stage.id}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
-                className={`w-[245px] shrink-0 flex flex-col rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900/50 border-t-4 ${stage.headerBorder}`}
+                className={`w-[245px] shrink-0 flex flex-col rounded-lg border border-gray-200 bg-gray-50/70 p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900/50 border-t-4 ${stage.headerBorder}`}
               >
                 {/* Cabecera de Columna */}
                 <div className="pb-2.5 mb-2.5 border-b border-gray-200 dark:border-gray-800">
@@ -328,11 +328,11 @@ export default function PipelinePage() {
                       key={deal.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal.id)}
-                      className="group rounded-xl border border-gray-200 bg-white p-3 shadow-2xs hover:border-brand-500 hover:shadow-xs transition cursor-grab active:cursor-grabbing dark:border-gray-800 dark:bg-gray-800"
+                      className="group rounded-lg border border-gray-200 bg-white p-3 shadow-2xs hover:border-brand-500 hover:shadow-xs transition cursor-grab active:cursor-grabbing dark:border-gray-800 dark:bg-gray-800"
                     >
                       {/* Top bar de la tarjeta */}
                       <div className="flex items-center justify-between gap-1 mb-1.5">
-                        <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded truncate max-w-[130px] dark:bg-brand-950/60 dark:text-brand-300">
+                        <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-lg truncate max-w-[130px] dark:bg-brand-950/60 dark:text-brand-300">
                           {deal.sourceCampaign.replace("Nivel ", "N")}
                         </span>
                         <span
@@ -380,7 +380,7 @@ export default function PipelinePage() {
                       </div>
 
                       {/* Actividad / Siguiente Paso */}
-                      <div className="mt-2 rounded bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
+                      <div className="mt-2 rounded-lg bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
                         <span className="font-semibold text-gray-700 dark:text-gray-300">Paso: </span>
                         {deal.nextAction}
                       </div>
@@ -392,7 +392,7 @@ export default function PipelinePage() {
                             type="button"
                             onClick={() => handleMoveStep(deal, "prev")}
                             title="Mover a etapa anterior"
-                            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                            className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           >
                             <ArrowLeft className="size-3" />
                           </button>
@@ -400,7 +400,7 @@ export default function PipelinePage() {
                             type="button"
                             onClick={() => handleMoveStep(deal, "next")}
                             title="Mover a siguiente etapa"
-                            className="p-1 rounded text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40 transition"
+                            className="p-1 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40 transition"
                           >
                             <ArrowRight className="size-3" />
                           </button>
@@ -418,7 +418,7 @@ export default function PipelinePage() {
                   ))}
 
                   {stageDeals.length === 0 && (
-                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl text-xs text-gray-400 p-3 text-center dark:border-gray-800">
+                    <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg text-xs text-gray-400 p-3 text-center dark:border-gray-800">
                       <span>Arrastra oportunidades aqui</span>
                     </div>
                   )}
@@ -432,7 +432,7 @@ export default function PipelinePage() {
       {/* Modal para Crear Nueva Oportunidad */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Nueva Oportunidad Comercial

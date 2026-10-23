@@ -346,7 +346,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
       {/* Banner de Referencia si viene de Radar Viral */}
       {referenceAuthor && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
           <div className="space-y-0.5">
             <span className="text-xs uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
               Modelando desde Post Finder:
@@ -359,7 +359,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
             type="button"
             onClick={handleGenerateAi}
             disabled={isGeneratingAi}
-            className="rounded-xl bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+            className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
           >
             {isGeneratingAi ? (
               <>
@@ -375,7 +375,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
       {publishFeedback && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-medium border ${
+          className={`p-3.5 rounded-lg text-xs font-medium border ${
             publishFeedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-300"
@@ -402,7 +402,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <button
                     type="button"
                     onClick={() => setFormat("text")}
-                    className={`rounded-xl p-3.5 text-center transition ${
+                    className={`rounded-lg p-3.5 text-center transition ${
                       format === "text"
                         ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
@@ -419,7 +419,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <button
                     type="button"
                     onClick={() => setFormat("image")}
-                    className={`rounded-xl p-3.5 text-center transition ${
+                    className={`rounded-lg p-3.5 text-center transition ${
                       format === "image"
                         ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
@@ -436,7 +436,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <button
                     type="button"
                     onClick={() => setFormat("carousel")}
-                    className={`rounded-xl p-3.5 text-center transition ${
+                    className={`rounded-lg p-3.5 text-center transition ${
                       format === "carousel"
                         ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
                         : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
@@ -496,7 +496,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               </div>
 
               {/* Botón de Generación / Mejora con IA + Base de Conocimiento (RAG) */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -529,7 +529,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Formato 2: Generador de Prompt Visual */}
               {format === "image" && (
-                <div className="rounded-xl border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
+                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       Generador de Prompt Visual para Midjourney / Flux
@@ -537,7 +537,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     <button
                       type="button"
                       onClick={handleCopyPrompt}
-                      className="rounded-md bg-white border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+                      className="rounded-lg bg-white border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
                     >
                       {copiedPrompt ? "Copiado al Portapapeles" : "Copiar Prompt"}
                     </button>
@@ -571,7 +571,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Formato 3: Editor de Diapositivas del Carrusel */}
               {format === "carousel" && (
-                <div className="rounded-xl border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
+                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
@@ -628,7 +628,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                           updated[currentSlideIndex].title = e.target.value;
                           setSlides(updated);
                         }}
-                        className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-900 font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-900 font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                       />
                     </div>
 
@@ -645,7 +645,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                             updated[currentSlideIndex].subtitle = e.target.value;
                             setSlides(updated);
                           }}
-                          className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                         />
                       </div>
                     )}
@@ -662,7 +662,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                           updated[currentSlideIndex].content = e.target.value.split("\n");
                           setSlides(updated);
                         }}
-                        className="w-full rounded-md border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                       />
                     </div>
                   </div>
@@ -731,7 +731,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
             title="Previsualización Exacta en LinkedIn"
             desc="Visualización exacta con formato de escritorio y encuadre del contenido."
           >
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               {/* Cabecera de perfil */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
@@ -760,7 +760,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Adjunto Visual según Formato */}
               {format === "image" && (
-                <div className="mb-4 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
                   {previewImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -782,7 +782,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               )}
 
               {format === "carousel" && (
-                <div className="mb-4 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-theme-xs">
+                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 shadow-theme-xs">
                   {/* Vista fiel del Slide actual */}
                   <div
                     className="aspect-square w-full p-6 flex flex-col justify-between"
@@ -895,7 +895,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         type="button"
                         disabled={currentSlideIndex === 0}
                         onClick={() => setCurrentSlideIndex((p) => Math.max(0, p - 1))}
-                        className="rounded px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="rounded-lg px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       >
                         &larr;
                       </button>
@@ -903,7 +903,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                         type="button"
                         disabled={currentSlideIndex === slides.length - 1}
                         onClick={() => setCurrentSlideIndex((p) => Math.min(slides.length - 1, p + 1))}
-                        className="rounded px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="rounded-lg px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       >
                         &rarr;
                       </button>

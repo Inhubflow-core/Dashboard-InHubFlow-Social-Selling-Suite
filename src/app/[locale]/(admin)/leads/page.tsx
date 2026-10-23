@@ -157,7 +157,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filtros de Búsqueda y Segmentación */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-2xl border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
         <div>
           <input
             type="text"
@@ -245,7 +245,7 @@ export default function LeadsPage() {
                               </h4>
                               {lead.language && (
                                 <span
-                                  className={`rounded px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
+                                  className={`rounded-lg px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
                                     lead.language === "en"
                                       ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       : lead.language === "pt"
@@ -280,7 +280,7 @@ export default function LeadsPage() {
                       {/* Columna: Origen de Señal */}
                       <td className="py-3.5 pr-2 whitespace-nowrap">
                         <span
-                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={lead.signalSource}
                         >
                           {truncateText(lead.signalSource, 26)}
@@ -336,7 +336,7 @@ export default function LeadsPage() {
       {/* Modal Interactivo: Ficha del Contacto */}
       {selectedLeadFor360 && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             {/* Cabecera de la Ficha */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -352,7 +352,7 @@ export default function LeadsPage() {
                     </h3>
                     {selectedLeadFor360.language && (
                       <span
-                        className={`rounded px-1.5 py-0.5 text-xs font-bold border shrink-0 ${
+                        className={`rounded-lg px-1.5 py-0.5 text-xs font-bold border shrink-0 ${
                           selectedLeadFor360.language === "en"
                             ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                             : selectedLeadFor360.language === "pt"
@@ -396,7 +396,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
-            <div className="rounded-xl border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
+            <div className="rounded-lg border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
               <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 block mb-1">
                 Cargo y Titular Completo en LinkedIn
               </span>
@@ -406,7 +406,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Datos de Contacto y Estado Rápido */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-xl dark:bg-gray-800/50 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg dark:bg-gray-800/50 text-xs">
               <div>
                 <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Email Corporativo</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
@@ -426,7 +426,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Configuración Rápida de Etapa y Secuencia */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg dark:border-gray-800">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                   Etapa en el Pipeline Comercial

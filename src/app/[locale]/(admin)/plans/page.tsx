@@ -35,8 +35,8 @@ export default function PlansPricingPage() {
     return (
       <div className="space-y-6">
         <PageBreadcrumb pageTitle="Planes & Suscripcion" />
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-[#0099ff]/10 text-[#0099ff]">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
             <ShieldCheck className="size-7" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -59,7 +59,7 @@ export default function PlansPricingPage() {
 
       {/* Notificación temporal */}
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <Check className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -79,7 +79,7 @@ export default function PlansPricingPage() {
         </p>
 
         {/* Toggle Facturación */}
-        <div className="mt-5 inline-flex items-center rounded-xl border border-gray-200 bg-gray-100 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+        <div className="mt-5 inline-flex items-center rounded-lg border border-gray-200 bg-gray-100 p-1 dark:border-gray-800 dark:bg-gray-800/60">
           <button
             onClick={() => setBillingCycle("monthly")}
             className={`rounded-lg px-4 py-1.5 text-xs font-medium transition-colors ${
@@ -99,7 +99,7 @@ export default function PlansPricingPage() {
             }`}
           >
             <span>Facturacion Anual</span>
-            <span className="rounded bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-lg bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
               Ahorra 20%
             </span>
           </button>
@@ -115,7 +115,7 @@ export default function PlansPricingPage() {
           return (
             <div
               key={plan.id}
-              className={`relative flex flex-col rounded-2xl border p-6 transition-all ${
+              className={`relative flex flex-col rounded-lg border p-6 transition-all ${
                 plan.popular
                   ? "border-[#0099ff] bg-gradient-to-b from-[#0099ff]/5 to-transparent shadow-lg dark:from-[#0099ff]/10"
                   : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:bg-gray-800/40"
@@ -138,7 +138,7 @@ export default function PlansPricingPage() {
                 </div>
 
                 {/* Destacado de Slots */}
-                <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-center dark:border-gray-800 dark:bg-gray-900/60">
+                <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-4 text-center dark:border-gray-800 dark:bg-gray-900/60">
                   <div className="text-3xl font-extrabold text-[#0099ff]">
                     {plan.slots} {plan.slots === 1 ? "Cuenta" : "Cuentas"}
                   </div>
@@ -207,7 +207,7 @@ export default function PlansPricingPage() {
               <button
                 disabled={isCurrent}
                 onClick={() => handleSelectPlan(plan.id)}
-                className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold transition-all ${
+                className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-semibold transition-all ${
                   isCurrent
                     ? "cursor-default border border-gray-200 bg-gray-100 text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
                     : plan.popular
@@ -230,13 +230,13 @@ export default function PlansPricingPage() {
       </div>
 
       {/* Preguntas Frecuentes / Detalles de Slots */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
           Preguntas Frecuentes sobre el Sistema de Slots
         </h3>
 
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Que es un Slot de Cuenta?
             </h4>
@@ -245,7 +245,7 @@ export default function PlansPricingPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Puedo reasignar o cambiar una cuenta conectada?
             </h4>
@@ -254,7 +254,7 @@ export default function PlansPricingPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Que limites diarios de seguridad tiene cada cuenta?
             </h4>
@@ -263,7 +263,7 @@ export default function PlansPricingPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
             <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
               Como funciona la administracion multi-operador y los 3 roles?
             </h4>

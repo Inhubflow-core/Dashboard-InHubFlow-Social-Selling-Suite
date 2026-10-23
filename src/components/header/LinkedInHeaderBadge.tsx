@@ -43,11 +43,11 @@ export default function LinkedInHeaderBadge() {
   return (
     <Link
       href="/linkedin-accounts"
-      className="hidden md:inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-2.5 py-1.5 transition hover:border-brand-500 hover:bg-white dark:border-gray-800 dark:bg-gray-800/80 dark:hover:border-brand-500 dark:hover:bg-gray-800"
+      className="hidden md:inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 py-1.5 transition hover:border-brand-500 hover:bg-white dark:border-gray-800 dark:bg-gray-800/80 dark:hover:border-brand-500 dark:hover:bg-gray-800"
       title={`${t("activeAccount")}: ${activeAccount.name}`}
     >
       <div className="relative">
-        <div className="size-6 rounded-md bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
+        <div className="size-6 rounded-lg bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
           {activeAccount.name.charAt(0).toUpperCase()}
         </div>
         <span

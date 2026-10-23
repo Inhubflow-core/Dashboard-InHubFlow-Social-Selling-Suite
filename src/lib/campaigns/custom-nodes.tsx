@@ -7,7 +7,7 @@ export function TriggerCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[240px] max-w-[280px] rounded-2xl bg-brand-500 text-white p-3.5 shadow-theme-md transition ${
+      className={`min-w-[240px] max-w-[280px] rounded-lg bg-brand-500 text-white p-3.5 shadow-theme-md transition ${
         selected ? "ring-4 ring-brand-300 ring-offset-2" : ""
       }`}
     >
@@ -36,7 +36,7 @@ export function ActionCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[240px] max-w-[280px] rounded-2xl bg-white border border-gray-200 p-3.5 shadow-theme-xs transition dark:bg-gray-900 dark:border-gray-700 ${
+      className={`min-w-[240px] max-w-[280px] rounded-lg bg-white border border-gray-200 p-3.5 shadow-theme-xs transition dark:bg-gray-900 dark:border-gray-700 ${
         selected ? "border-brand-500 ring-2 ring-brand-200" : ""
       }`}
     >
@@ -72,7 +72,7 @@ export function ConditionCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[250px] max-w-[290px] rounded-2xl bg-white border-2 border-brand-500/80 p-3.5 shadow-theme-xs transition dark:bg-gray-900 ${
+      className={`min-w-[250px] max-w-[290px] rounded-lg bg-white border-2 border-brand-500/80 p-3.5 shadow-theme-xs transition dark:bg-gray-900 ${
         selected ? "ring-2 ring-brand-300" : ""
       }`}
     >
@@ -126,7 +126,7 @@ export function DelayCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[220px] max-w-[260px] rounded-2xl bg-amber-50/70 border border-amber-200 p-3 shadow-theme-xs transition dark:bg-amber-950/20 dark:border-amber-900 ${
+      className={`min-w-[220px] max-w-[260px] rounded-lg bg-amber-50/70 border border-amber-200 p-3 shadow-theme-xs transition dark:bg-amber-950/20 dark:border-amber-900 ${
         selected ? "border-amber-500 ring-2 ring-amber-200" : ""
       }`}
     >
@@ -164,7 +164,7 @@ export function CrmCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[240px] max-w-[280px] rounded-2xl bg-emerald-50/70 border border-emerald-300 p-3.5 shadow-theme-xs transition dark:bg-emerald-950/20 dark:border-emerald-900 ${
+      className={`min-w-[240px] max-w-[280px] rounded-lg bg-emerald-50/70 border border-emerald-300 p-3.5 shadow-theme-xs transition dark:bg-emerald-950/20 dark:border-emerald-900 ${
         selected ? "border-emerald-500 ring-2 ring-emerald-200" : ""
       }`}
     >
@@ -202,7 +202,7 @@ export function ControlCustomNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as NodeConfigData;
   return (
     <div
-      className={`min-w-[200px] rounded-2xl bg-gray-100 border border-gray-300 p-3 shadow-theme-xs transition dark:bg-gray-800 dark:border-gray-700 ${
+      className={`min-w-[200px] rounded-lg bg-gray-100 border border-gray-300 p-3 shadow-theme-xs transition dark:bg-gray-800 dark:border-gray-700 ${
         selected ? "border-gray-500 ring-2 ring-gray-300" : ""
       }`}
     >

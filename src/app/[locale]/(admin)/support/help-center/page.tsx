@@ -98,8 +98,8 @@ export default function HelpCenterPage() {
       <PageBreadcrumb pageTitle="Centro de Ayuda & Guías" />
 
       {/* Hero del Centro de Ayuda */}
-      <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-blue-50 to-white p-8 text-center shadow-theme-xs dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/60">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[#0099ff]/10 text-[#0099ff]">
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-r from-blue-50 to-white p-8 text-center shadow-theme-xs dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/60">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
           <LifeBuoy className="size-6" />
         </div>
         <h2 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
@@ -118,7 +118,7 @@ export default function HelpCenterPage() {
               placeholder="Buscar guías, tutoriales o preguntas frecuentes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-xs text-gray-900 shadow-xs focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-xs text-gray-900 shadow-xs focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
             />
           </div>
         </div>
@@ -139,10 +139,10 @@ export default function HelpCenterPage() {
           {filteredGuides.map((guide, idx) => (
             <div
               key={idx}
-              className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs transition hover:border-[#0099ff] dark:border-gray-800 dark:bg-gray-900"
+              className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs transition hover:border-[#0099ff] dark:border-gray-800 dark:bg-gray-900"
             >
               <div>
-                <span className="rounded-md bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
+                <span className="rounded-lg bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                   {guide.category}
                 </span>
                 <h4 className="mt-3 text-base font-medium text-gray-800 dark:text-white/90">
@@ -162,7 +162,7 @@ export default function HelpCenterPage() {
       </div>
 
       {/* Preguntas Frecuentes (FAQs) */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4 dark:border-gray-800">
           <HelpCircle className="size-5 text-[#0099ff]" />
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">

@@ -434,7 +434,7 @@ const AppSidebar: React.FC = () => {
                   href="/admin/subscribers"
                   title={!isExpanded && !isHovered ? "SuperAdmin" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-1.5 text-sm transition-all mb-2",
+                    "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all mb-2",
                     isActive("/admin/subscribers")
                       ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold"
                       : "text-amber-600/90 hover:bg-amber-500/10 dark:text-amber-400/90 hover:text-amber-600 dark:hover:text-amber-300",
@@ -454,7 +454,7 @@ const AppSidebar: React.FC = () => {
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
                       <span className="truncate font-semibold">SuperAdmin</span>
-                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300">
                         MASTER
                       </span>
                     </>
@@ -468,7 +468,7 @@ const AppSidebar: React.FC = () => {
                   href="/team"
                   title={!isExpanded && !isHovered ? "Admin" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-1.5 text-sm transition-all mb-2",
+                    "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all mb-2",
                     isActive("/team")
                       ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold"
                       : "text-emerald-600/90 hover:bg-emerald-500/10 dark:text-emerald-400/90 hover:text-emerald-600 dark:hover:text-emerald-300",
@@ -488,7 +488,7 @@ const AppSidebar: React.FC = () => {
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
                       <span className="truncate font-semibold">Admin</span>
-                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                      <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                         TEAM
                       </span>
                     </>

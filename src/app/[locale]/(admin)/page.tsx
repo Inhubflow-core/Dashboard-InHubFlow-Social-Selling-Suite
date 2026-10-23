@@ -83,7 +83,7 @@ export default function SocialSellingDashboard() {
         {metrics.map((m, idx) => (
           <div
             key={idx}
-            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
+            className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
           >
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
               {m.title}
@@ -126,7 +126,7 @@ export default function SocialSellingDashboard() {
           {modules.map((mod, idx) => (
             <div
               key={idx}
-              className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900/60"
+              className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900/60"
             >
               <div>
                 <h4 className="text-base font-medium text-gray-800 dark:text-white/90">

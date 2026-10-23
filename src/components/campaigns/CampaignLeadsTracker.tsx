@@ -472,13 +472,13 @@ export function CampaignLeadsTracker({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs overflow-hidden">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs overflow-hidden">
       {/* Cabecera de la Sección */}
       <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-gray-50/80 via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-850">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-8 w-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
+              <span className="h-8 w-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
                 <Radio className="size-4" />
               </span>
               <div>
@@ -608,7 +608,7 @@ export function CampaignLeadsTracker({
       <div>
         {leadsTracker.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center">
-            <div className="h-12 w-12 rounded-2xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
+            <div className="h-12 w-12 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
               <Users className="size-6" />
             </div>
             <h4 className="text-sm font-bold text-gray-900 dark:text-white">
@@ -621,7 +621,7 @@ export function CampaignLeadsTracker({
               <button
                 type="button"
                 onClick={handleSyncLeadsFromRadar}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 shadow-sm transition"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 shadow-sm transition"
               >
                 <RefreshCw className="size-3.5" />
                 <span>Sincronizar {allLeads.length} Prospectos de Signal Radar</span>
@@ -684,7 +684,7 @@ export function CampaignLeadsTracker({
                               </h4>
                               {lead.language && (
                                 <span
-                                  className={`rounded px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
+                                  className={`rounded-lg px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
                                     lead.language === "en"
                                       ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       : lead.language === "pt"
@@ -728,7 +728,7 @@ export function CampaignLeadsTracker({
                       {/* 3. Columna: Origen de Señal */}
                       <td className="py-4 px-4">
                         <span
-                          className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-full truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-full truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={`${lead.monitorName} (${lead.listName})`}
                         >
                           {lead.monitorName}

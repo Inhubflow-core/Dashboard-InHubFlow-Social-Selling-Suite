@@ -73,9 +73,9 @@ export default function SystemStatusPage() {
       <PageBreadcrumb pageTitle="Estado del Sistema & Infraestructura" />
 
       {/* Banner Principal de Salud */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3.5">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-xs">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-xs">
             <CheckCircle2 className="size-6" />
           </div>
           <div>
@@ -95,7 +95,7 @@ export default function SystemStatusPage() {
 
       {/* Métricas Globales */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Uptime Últimos 90 Días</span>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             99.98%
@@ -103,7 +103,7 @@ export default function SystemStatusPage() {
           <p className="mt-1 text-xs text-gray-500">Cero interrupciones críticas no planificadas.</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia Media de Respuesta</span>
           <div className="mt-2 text-2xl font-bold text-[#0099ff]">
             165 ms
@@ -111,7 +111,7 @@ export default function SystemStatusPage() {
           <p className="mt-1 text-xs text-gray-500">Optimizado para flujos en tiempo real.</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Capacidad de Pacing</span>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             100% Protegido
@@ -121,7 +121,7 @@ export default function SystemStatusPage() {
       </div>
 
       {/* Listado de Servicios */}
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="border-b border-gray-100 p-5 dark:border-gray-800">
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Componentes del Ecosistema InHubFlow

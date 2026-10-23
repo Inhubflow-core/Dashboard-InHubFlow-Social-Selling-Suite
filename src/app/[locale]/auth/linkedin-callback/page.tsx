@@ -54,10 +54,10 @@ function CallbackContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
         {isSuccess ? (
           <>
-            <div className="mx-auto mb-5 flex size-20 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 ring-8 ring-emerald-50/50 dark:bg-emerald-950/40 dark:ring-emerald-950/20">
+            <div className="mx-auto mb-5 flex size-20 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 ring-8 ring-emerald-50/50 dark:bg-emerald-950/40 dark:ring-emerald-950/20">
               <CheckCircle2 className="size-10 text-emerald-500" />
             </div>
 
@@ -75,7 +75,7 @@ function CallbackContent() {
             </p>
 
             <div className="mt-6 flex flex-col items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <div className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                 {closing ? "Cerrando ventana de asistente..." : "Sincronizando con tu Dashboard..."}
               </div>
@@ -90,7 +90,7 @@ function CallbackContent() {
           </>
         ) : (
           <>
-            <div className="mx-auto mb-5 flex size-20 items-center justify-center rounded-2xl bg-red-50 text-red-500 ring-8 ring-red-50/50 dark:bg-red-950/40 dark:ring-red-950/20">
+            <div className="mx-auto mb-5 flex size-20 items-center justify-center rounded-lg bg-red-50 text-red-500 ring-8 ring-red-50/50 dark:bg-red-950/40 dark:ring-red-950/20">
               <XCircle className="size-10 text-red-500" />
             </div>
 
@@ -104,7 +104,7 @@ function CallbackContent() {
 
             <button
               onClick={handleClose}
-              className="mt-6 inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+              className="mt-6 inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
             >
               Regresar al Dashboard
             </button>

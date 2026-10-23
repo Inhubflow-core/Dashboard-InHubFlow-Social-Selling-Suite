@@ -528,7 +528,7 @@ export default function MyPostsSignalRadarPage() {
 
       {/* Métricas del Nivel 1 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Monitores Nivel 1
           </span>
@@ -542,7 +542,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Comentarios Analizados
           </span>
@@ -554,7 +554,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Leads Captados & DMs Enviados
           </span>
@@ -566,7 +566,7 @@ export default function MyPostsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Conversion de Post
           </span>
@@ -580,7 +580,7 @@ export default function MyPostsSignalRadarPage() {
       </div>
 
       {/* Botón de Creación y Explicación del Mecanismo */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Automatización de Lead Magnet en LinkedIn (Nivel 1)
@@ -658,7 +658,7 @@ export default function MyPostsSignalRadarPage() {
                 {/* Dropdown de Sugerencias de /viral-posts/list */}
                 {isDropdownOpen && createdPosts.length > 0 && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <div className="flex items-center justify-between px-2 py-1 border-b border-gray-100 dark:border-gray-800 mb-1">
@@ -742,7 +742,7 @@ export default function MyPostsSignalRadarPage() {
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
                     <span className="font-bold">✓ Publicación vinculada:</span>
                     <span className="font-semibold underline truncate max-w-[200px]">{selectedCreatedPost.title}</span>
-                    <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
+                    <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
                       {selectedCreatedPost.status === "published" ? "Publicada" : selectedCreatedPost.status === "scheduled" ? "Programada" : "Borrador"}
                     </span>
                   </div>
@@ -832,13 +832,13 @@ export default function MyPostsSignalRadarPage() {
             </div>
 
             {/* Fila 3: Smart Automation Card - Reacción Automática */}
-            <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={newAutoLike}
                   onChange={(e) => setNewAutoLike(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                  className="mt-0.5 rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                 />
                 <div>
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
@@ -920,7 +920,7 @@ export default function MyPostsSignalRadarPage() {
       {/* Banner de Feedback de Escaneo o Acciones */}
       {scanFeedback && (
         <div
-          className={`rounded-xl p-3.5 text-xs border flex items-center justify-between ${
+          className={`rounded-lg p-3.5 text-xs border flex items-center justify-between ${
             scanFeedback.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
@@ -1066,7 +1066,7 @@ export default function MyPostsSignalRadarPage() {
 
                         {/* 2. Palabra Clave */}
                         <td className="px-4 py-3.5 align-top">
-                          <span className="rounded bg-brand-50 border border-brand-200/60 px-2.5 py-1 font-mono font-bold text-xs text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300 inline-block">
+                          <span className="rounded-lg bg-brand-50 border border-brand-200/60 px-2.5 py-1 font-mono font-bold text-xs text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300 inline-block">
                             {mon.keyword}
                           </span>
                         </td>
@@ -1086,14 +1086,14 @@ export default function MyPostsSignalRadarPage() {
                         {/* 5. Estado */}
                         <td className="px-4 py-3.5 whitespace-nowrap align-top">
                           {mon.status === "pending_publish" ? (
-                            <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 font-semibold text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                            <span className="inline-block rounded-lg bg-amber-50 px-2.5 py-0.5 font-semibold text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                               ⏳ En Espera
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={() => toggleLevel1Status(mon.id)}
-                              className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
+                              className={`rounded-lg px-2.5 py-0.5 font-semibold text-xs transition ${
                                 mon.status === "active"
                                   ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1109,7 +1109,7 @@ export default function MyPostsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1125,7 +1125,7 @@ export default function MyPostsSignalRadarPage() {
                                         [mon.id]: batchVal,
                                       }))
                                     }
-                                    className={`px-1.5 py-0.5 rounded transition ${
+                                    className={`px-1.5 py-0.5 rounded-lg transition ${
                                       isSelected
                                         ? "bg-brand-500 text-white font-bold shadow-2xs"
                                         : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -1145,7 +1145,7 @@ export default function MyPostsSignalRadarPage() {
                                   setLinkingUrlModalMonitor(mon);
                                   setManualLinkedInUrlInput("");
                                 }}
-                                className="rounded-md bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
+                                className="rounded-lg bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
                                 title="Vincular URL oficial de LinkedIn para activar este monitor"
                               >
                                 🔗 Vincular URL
@@ -1155,7 +1155,7 @@ export default function MyPostsSignalRadarPage() {
                                 type="button"
                                 disabled={isScanningId === mon.id}
                                 onClick={() => handleScanMonitor(mon)}
-                                className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                                className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
                                 title={`Escanear comentarios con lote seguro de ${activeBatch}`}
                               >
                                 {isScanningId === mon.id ? (
@@ -1166,7 +1166,7 @@ export default function MyPostsSignalRadarPage() {
                                 ) : (
                                   <>
                                     <span>Escanear</span>
-                                    <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
+                                    <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                       {activeBatch}
                                     </span>
                                   </>
@@ -1177,7 +1177,7 @@ export default function MyPostsSignalRadarPage() {
                             {/* Botón Ver Lista / Leads */}
                             <Link
                               href={`/leads/lists?listId=${encodeURIComponent(targetListId)}`}
-                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir lista inteligente de "${mon.postTitle}"`}
                             >
                               <span>Ver Leads ({effectiveCount})</span>
@@ -1188,7 +1188,7 @@ export default function MyPostsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => setEditingMonitor(mon)}
-                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
                               title="Editar monitor"
                             >
                               <Pencil className="size-3.5" />
@@ -1219,7 +1219,7 @@ export default function MyPostsSignalRadarPage() {
                                   }
                                 }
                               }}
-                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                               title="Eliminar monitor"
                             >
                               <X className="size-3.5" />
@@ -1232,7 +1232,7 @@ export default function MyPostsSignalRadarPage() {
                       {isExpanded && (
                         <tr key={`${mon.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
+                            <div className="w-full rounded-lg border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-gray-800 dark:text-blue-200 flex items-center gap-1.5">
                                   <Link2 className="size-3.5 text-brand-600 dark:text-brand-400" />
@@ -1304,10 +1304,10 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Visualizar Leads Captados por un Monitor Específico */}
       {selectedMonitorForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-mono font-bold text-brand-600 dark:bg-brand-950 dark:text-brand-300">
+                <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-mono font-bold text-brand-600 dark:bg-brand-950 dark:text-brand-300">
                   Palabra: {selectedMonitorForLeads.keyword}
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
@@ -1358,7 +1358,7 @@ export default function MyPostsSignalRadarPage() {
                         <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                           {lead.fullName}
                         </h4>
-                        <span className="rounded bg-green-50 px-1.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-400">
+                        <span className="rounded-lg bg-green-50 px-1.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-400">
                           Intencion Muy Alta
                         </span>
                       </div>
@@ -1427,7 +1427,7 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Vincular URL de LinkedIn Manualmente */}
       {linkingUrlModalMonitor && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">
@@ -1487,10 +1487,10 @@ export default function MyPostsSignalRadarPage() {
       {/* Modal para Editar Monitor Nivel 1 */}
       {editingMonitor && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 my-8">
+          <div className="relative w-full max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 my-8">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div className="flex items-center gap-2.5">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
                   <Pencil className="size-4.5" />
                 </div>
                 <div>
@@ -1551,7 +1551,7 @@ export default function MyPostsSignalRadarPage() {
                   type="text"
                   defaultValue={editingMonitor.postTitle}
                   required
-                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 />
               </div>
 
@@ -1564,7 +1564,7 @@ export default function MyPostsSignalRadarPage() {
                   type="text"
                   defaultValue={editingMonitor.postUrl}
                   placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-                  className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 />
               </div>
 
@@ -1578,7 +1578,7 @@ export default function MyPostsSignalRadarPage() {
                     type="text"
                     defaultValue={editingMonitor.keyword}
                     required
-                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs font-mono font-bold text-brand-600 dark:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 uppercase"
+                    className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs font-mono font-bold text-brand-600 dark:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 uppercase"
                   />
                 </div>
                 <div>
@@ -1590,7 +1590,7 @@ export default function MyPostsSignalRadarPage() {
                     type="text"
                     defaultValue={editingMonitor.attachedPdfName}
                     required
-                    className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                    className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                   />
                 </div>
               </div>
@@ -1603,7 +1603,7 @@ export default function MyPostsSignalRadarPage() {
                   name="publicReplyTemplate"
                   rows={2}
                   defaultValue={editingMonitor.publicReplyTemplate}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 />
               </div>
 
@@ -1615,7 +1615,7 @@ export default function MyPostsSignalRadarPage() {
                   name="nonConnectedNoteTemplate"
                   rows={2}
                   defaultValue={editingMonitor.nonConnectedNoteTemplate}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
                 />
               </div>
 
@@ -1625,7 +1625,7 @@ export default function MyPostsSignalRadarPage() {
                   type="checkbox"
                   id="editAutoLike"
                   defaultChecked={editingMonitor.autoLikeComment}
-                  className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
+                  className="h-4 w-4 rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
                 />
                 <label htmlFor="editAutoLike" className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer font-medium">
                   Auto-dar like al comentario del prospecto
@@ -1636,13 +1636,13 @@ export default function MyPostsSignalRadarPage() {
                 <button
                   type="button"
                   onClick={() => setEditingMonitor(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition cursor-pointer"
+                  className="px-5 py-2 rounded-lg text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition cursor-pointer"
                 >
                   Guardar Cambios
                 </button>

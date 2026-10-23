@@ -21,7 +21,7 @@ export default function DemographicCard() {
     setIsOpen(false);
   }
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="rounded-lg border border-gray-200 bg-white p-5 sm:p-6 dark:border-gray-800 dark:bg-white/3">
       <div className="flex justify-between">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -56,7 +56,7 @@ export default function DemographicCard() {
           </Dropdown>
         </div>
       </div>
-      <div className="border-gary-200 my-6 overflow-hidden rounded-2xl border bg-gray-50 px-4 py-6 sm:px-6 dark:border-gray-800 dark:bg-gray-900">
+      <div className="border-gary-200 my-6 overflow-hidden rounded-lg border bg-gray-50 px-4 py-6 sm:px-6 dark:border-gray-800 dark:bg-gray-900">
         <div
           id="mapOne"
           className="mapOne map-btn -mx-4 -my-6 h-53 w-63 2xsm:w-76.75 xsm:w-89.5 sm:-mx-6 md:w-167 lg:w-158.5 xl:w-98.25 2xl:w-138.5"
@@ -88,8 +88,8 @@ export default function DemographicCard() {
           </div>
 
           <div className="flex w-full max-w-35 items-center gap-3">
-            <div className="relative block h-2 w-full max-w-25 rounded-sm bg-gray-200 dark:bg-gray-800">
-              <div className="absolute top-0 left-0 flex h-full w-[79%] items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white"></div>
+            <div className="relative block h-2 w-full max-w-25 rounded-lg bg-gray-200 dark:bg-gray-800">
+              <div className="absolute top-0 left-0 flex h-full w-[79%] items-center justify-center rounded-lg bg-brand-500 text-xs font-medium text-white"></div>
             </div>
             <p className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
               79%
@@ -119,8 +119,8 @@ export default function DemographicCard() {
           </div>
 
           <div className="flex w-full max-w-35 items-center gap-3">
-            <div className="relative block h-2 w-full max-w-25 rounded-sm bg-gray-200 dark:bg-gray-800">
-              <div className="absolute top-0 left-0 flex h-full w-[23%] items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white"></div>
+            <div className="relative block h-2 w-full max-w-25 rounded-lg bg-gray-200 dark:bg-gray-800">
+              <div className="absolute top-0 left-0 flex h-full w-[23%] items-center justify-center rounded-lg bg-brand-500 text-xs font-medium text-white"></div>
             </div>
             <p className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
               23%

@@ -53,7 +53,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
       <div
         dir="ltr"
         className={cn(
-          "event-fc-color flex h-full w-full flex-col justify-start overflow-hidden rounded-md p-1 transition-colors sm:rounded-lg sm:p-1.5",
+          "event-fc-color flex h-full w-full flex-col justify-start overflow-hidden rounded-lg p-1 transition-colors sm:rounded-lg sm:p-1.5",
           colors.bg,
         )}
       >
@@ -88,7 +88,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
     <div
       dir="ltr"
       className={cn(
-        "event-fc-color flex items-center rounded-md py-1 ps-1.5 pe-2 transition-colors sm:rounded-lg sm:py-1.5 sm:ps-2.5 sm:pe-3",
+        "event-fc-color flex items-center rounded-lg py-1 ps-1.5 pe-2 transition-colors sm:rounded-lg sm:py-1.5 sm:ps-2.5 sm:pe-3",
         colors.bg,
       )}
     >

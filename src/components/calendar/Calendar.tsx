@@ -187,7 +187,7 @@ const Calendar: React.FC = () => {
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3"
+      className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3"
       data-color-scheme={theme}
     >
       <div
@@ -280,7 +280,7 @@ const Calendar: React.FC = () => {
                 let cls = "relative! p-0.5 sm:p-1!";
                 if (data.isToday)
                   cls +=
-                    " isolate rounded-sm! bg-gray-100! dark:bg-gray-800/40! font-semibold text-brand-500 dark:text-brand-400";
+                    " isolate rounded-lg! bg-gray-100! dark:bg-gray-800/40! font-semibold text-brand-500 dark:text-brand-400";
                 if (data.isOther) cls += " bg-transparent!";
                 return cls;
               },
@@ -328,7 +328,7 @@ const Calendar: React.FC = () => {
                 if (data.inPopover)
                   return "flex custom-scrollbar max-h-60 flex-col gap-1.5 overflow-y-auto";
                 if (isMobile) return "h-0 max-h-0 overflow-hidden invisible";
-                return data.isToday ? "rounded-sm!" : "";
+                return data.isToday ? "rounded-lg!" : "";
               },
               rowMoreLinkClass: isMobile
                 ? "absolute! -top-1! -start-0.5! z-10! border-0! bg-transparent! p-0!"
@@ -345,7 +345,7 @@ const Calendar: React.FC = () => {
                   );
                 }
                 return (
-                  <span className="fc-more-link-badge inline-flex items-center rounded-sm bg-brand-50 px-1 py-0.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-100 sm:px-1.5 sm:text-xs dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                  <span className="fc-more-link-badge inline-flex items-center rounded-lg bg-brand-50 px-1 py-0.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-100 sm:px-1.5 sm:text-xs dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
                     +{args.num} more
                   </span>
                 );
@@ -480,7 +480,7 @@ const Calendar: React.FC = () => {
           rowEventClass="bg-transparent! border-0! px-1! py-0.5! shadow-none! hover:shadow-none! focus:outline-none"
           rowEventInnerClass="p-0! border-0! bg-transparent!"
           popoverFormat={{ month: "short", day: "numeric", year: "numeric" }}
-          popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
+          popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
           popoverCloseClass="absolute end-3 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
           popoverCloseContent={() => <CloseIcon className="size-4" />}
           datesSet={(arg) => {

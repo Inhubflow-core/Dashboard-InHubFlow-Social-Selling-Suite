@@ -43,7 +43,7 @@ export default function PlanUpgradeModal({
 
   return (
     <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-5xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:p-8">
+      <div className="relative w-full max-w-5xl rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:p-8">
         {/* Botón Cerrar */}
         <button
           onClick={onClose}
@@ -77,7 +77,7 @@ export default function PlanUpgradeModal({
           </p>
 
           {/* Toggle Mensual / Anual */}
-          <div className="mt-5 inline-flex items-center rounded-xl border border-gray-200 bg-gray-100 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+          <div className="mt-5 inline-flex items-center rounded-lg border border-gray-200 bg-gray-100 p-1 dark:border-gray-800 dark:bg-gray-800/60">
             <button
               onClick={() => setBillingCycle("monthly")}
               className={`rounded-lg px-4 py-1.5 text-xs font-medium transition-colors ${
@@ -97,7 +97,7 @@ export default function PlanUpgradeModal({
               }`}
             >
               <span>Facturacion Anual</span>
-              <span className="rounded bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
+              <span className="rounded-lg bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
                 -20%
               </span>
             </button>
@@ -106,7 +106,7 @@ export default function PlanUpgradeModal({
 
         {/* Notificación de éxito */}
         {successNotice && (
-          <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-sm font-medium text-emerald-500">
+          <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-sm font-medium text-emerald-500">
             {successNotice}
           </div>
         )}
@@ -120,7 +120,7 @@ export default function PlanUpgradeModal({
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-2xl border p-6 transition-all ${
+                className={`relative flex flex-col rounded-lg border p-6 transition-all ${
                   plan.popular
                     ? "border-[#0099ff] bg-gradient-to-b from-[#0099ff]/5 to-transparent shadow-lg dark:from-[#0099ff]/10"
                     : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:bg-gray-800/40"
@@ -145,7 +145,7 @@ export default function PlanUpgradeModal({
                   </div>
 
                   {/* Destacado de Slots */}
-                  <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3 text-center dark:border-gray-800 dark:bg-gray-900/60">
+                  <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3 text-center dark:border-gray-800 dark:bg-gray-900/60">
                     <div className="text-2xl font-extrabold text-[#0099ff]">
                       {plan.slots} {plan.slots === 1 ? "Cuenta" : "Cuentas"}
                     </div>
@@ -202,7 +202,7 @@ export default function PlanUpgradeModal({
                 <button
                   disabled={isCurrent}
                   onClick={() => handleSelectPlan(plan.id)}
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold transition-all ${
+                  className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-semibold transition-all ${
                     isCurrent
                       ? "cursor-default border border-gray-200 bg-gray-100 text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
                       : plan.popular

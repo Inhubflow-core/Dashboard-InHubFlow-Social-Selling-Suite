@@ -331,7 +331,7 @@ export default function ConnectLinkedInModal({
   return (
     <>
       <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-        <div className="relative w-full max-w-xl rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
+        <div className="relative w-full max-w-xl rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden my-8">
           {/* Header Superior Común Idéntico a B2B */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
             <div className="flex items-center gap-3">
@@ -342,13 +342,13 @@ export default function ConnectLinkedInModal({
                     setModalStep(1);
                     setAuthError(null);
                   }}
-                  className="p-1.5 -ml-1 rounded-xl text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="p-1.5 -ml-1 rounded-lg text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   title="Volver al Paso 1"
                 >
                   <ArrowLeft className="size-4" />
                 </button>
               ) : (
-                <div className="w-9 h-9 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg select-none">
+                <div className="w-9 h-9 rounded-lg bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg select-none">
                   in
                 </div>
               )}
@@ -396,7 +396,7 @@ export default function ConnectLinkedInModal({
                       </label>
                       <input
                         type="text"
-                        className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                        className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                         placeholder="Ej. Roberto Orse LinkedIn"
                         value={form.name}
                         onChange={(e) => {
@@ -413,7 +413,7 @@ export default function ConnectLinkedInModal({
                       </label>
                       <input
                         type="email"
-                        className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                        className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                         placeholder="tu-correo@linkedin.com"
                         value={form.email}
                         onChange={(e) => {
@@ -432,7 +432,7 @@ export default function ConnectLinkedInModal({
                         </label>
                         <input
                           type="number"
-                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                           value={form.daily_connection_limit}
                           onChange={(e) => {
                             const val = Number(e.target.value);
@@ -448,7 +448,7 @@ export default function ConnectLinkedInModal({
                         </label>
                         <input
                           type="number"
-                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                           value={form.daily_message_limit}
                           onChange={(e) => {
                             const val = Number(e.target.value);
@@ -464,7 +464,7 @@ export default function ConnectLinkedInModal({
                         </label>
                         <input
                           type="number"
-                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                           value={form.daily_visit_limit}
                           onChange={(e) => {
                             const val = Number(e.target.value);
@@ -492,7 +492,7 @@ export default function ConnectLinkedInModal({
                             Inicio
                           </label>
                           <select
-                            className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                            className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
                             value={form.active_hours_start}
                             onChange={(e) => setForm({ ...form, active_hours_start: Number(e.target.value) })}
                           >
@@ -508,7 +508,7 @@ export default function ConnectLinkedInModal({
                             Fin
                           </label>
                           <select
-                            className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                            className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
                             value={form.active_hours_end}
                             onChange={(e) => setForm({ ...form, active_hours_end: Number(e.target.value) })}
                           >
@@ -537,7 +537,7 @@ export default function ConnectLinkedInModal({
                           Zona Horaria
                         </label>
                         <select
-                          className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                          className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
                           value={form.timezone}
                           onChange={(e) => setForm({ ...form, timezone: e.target.value })}
                         >
@@ -569,7 +569,7 @@ export default function ConnectLinkedInModal({
                                     setForm({ ...form, working_days: next.sort().join(",") });
                                   }
                                 }}
-                                className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                                   active
                                     ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
                                     : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
@@ -592,14 +592,14 @@ export default function ConnectLinkedInModal({
                   <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                     <button
                       type="button"
-                      className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                       onClick={onClose}
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer"
                     >
                       <span>Añadir y Conectar</span>
                       <ArrowRight className="size-4" />
@@ -625,7 +625,7 @@ export default function ConnectLinkedInModal({
                               setAuthMode("credentials");
                               setAuthError(null);
                             }}
-                            className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                               authMode === "credentials"
                                 ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
                                 : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
@@ -639,7 +639,7 @@ export default function ConnectLinkedInModal({
                               setAuthMode("cookie");
                               setAuthError(null);
                             }}
-                            className={`flex-1 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                               authMode === "cookie"
                                 ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
                                 : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
@@ -658,7 +658,7 @@ export default function ConnectLinkedInModal({
                             </label>
                             <input
                               type="text"
-                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                               placeholder="ejemplo@empresa.com"
                               value={authEmail}
                               onChange={(e) => {
@@ -677,7 +677,7 @@ export default function ConnectLinkedInModal({
                             <div className="relative">
                               <input
                                 type={showAuthPassword ? "text" : "password"}
-                                className="h-9 w-full pr-9 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                className="h-9 w-full pr-9 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                                 placeholder="••••••••••••"
                                 value={authPassword}
                                 onChange={(e) => {
@@ -706,7 +706,7 @@ export default function ConnectLinkedInModal({
                             </label>
                             <input
                               type="password"
-                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                               placeholder="AQEDAQ..."
                               value={authCookieLiAt}
                               onChange={(e) => {
@@ -727,7 +727,7 @@ export default function ConnectLinkedInModal({
                             </label>
                             <input
                               type="password"
-                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                               placeholder="AQEDAQ... (opcional)"
                               value={authCookieLiA}
                               onChange={(e) => setAuthCookieLiA(e.target.value)}
@@ -748,7 +748,7 @@ export default function ConnectLinkedInModal({
                               País del Proxy
                             </label>
                             <select
-                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
                               value={authCountry}
                               onChange={(e) => setAuthCountry(e.target.value)}
                               disabled={authLoading}
@@ -775,7 +775,7 @@ export default function ConnectLinkedInModal({
                             </label>
                             <input
                               type="text"
-                              className="h-9 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                               placeholder="host:port:user:pass"
                               value={authCustomProxy}
                               onChange={(e) => setAuthCustomProxy(e.target.value)}
@@ -801,7 +801,7 @@ export default function ConnectLinkedInModal({
                           setModalStep(1);
                           setAuthError(null);
                         }}
-                        className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         disabled={authLoading}
                       >
                         Volver
@@ -809,7 +809,7 @@ export default function ConnectLinkedInModal({
                       <button
                         type="submit"
                         disabled={authLoading}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
                       >
                         {authLoading ? (
                           <>
@@ -841,7 +841,7 @@ export default function ConnectLinkedInModal({
                       <div>
                         <input
                           type="text"
-                          className="h-12 w-full text-center text-xl font-mono font-bold tracking-widest rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                          className="h-12 w-full text-center text-xl font-mono font-bold tracking-widest rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                           placeholder="123456"
                           value={checkpointCode}
                           onChange={(e) => {
@@ -879,7 +879,7 @@ export default function ConnectLinkedInModal({
                       <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         disabled={checkpointLoading}
                       >
                         Cancelar
@@ -887,7 +887,7 @@ export default function ConnectLinkedInModal({
                       <button
                         type="submit"
                         disabled={checkpointLoading}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
                       >
                         {checkpointLoading ? (
                           <>
@@ -913,8 +913,8 @@ export default function ConnectLinkedInModal({
       {/* ── Modal Elegante de Recomendación para Estabilidad (Idéntico a B2B) ── */}
       {showSuccessAdviceModal && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
-            <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+            <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 text-3xl">
               🚀
             </div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -924,7 +924,7 @@ export default function ConnectLinkedInModal({
               Tu espacio de trabajo ya está sincronizado con LinkedIn y listo para ejecutar campañas de Social Selling.
             </p>
 
-            <div className="bg-brand-500/10 border border-brand-500/20 rounded-2xl p-4 mb-6 text-left">
+            <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-4 mb-6 text-left">
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0">💡</span>
                 <div>
@@ -941,7 +941,7 @@ export default function ConnectLinkedInModal({
             <button
               type="button"
               onClick={handleFinishAll}
-              className="w-full py-3 px-6 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition-all duration-200 cursor-pointer"
+              className="w-full py-3 px-6 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg shadow-lg shadow-brand-500/25 transition-all duration-200 cursor-pointer"
             >
               Entendido, ¡a interactuar!
             </button>

@@ -106,7 +106,7 @@ export default function SupportTicketsPage() {
       <PageBreadcrumb pageTitle="Tickets de Soporte Técnico" />
 
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -125,7 +125,7 @@ export default function SupportTicketsPage() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
         >
           <Plus className="size-4" />
           <span>Abrir Nuevo Ticket</span>
@@ -134,7 +134,7 @@ export default function SupportTicketsPage() {
 
       {/* SLAs de Respuesta según Plan */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Starter</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 24 Horas
@@ -142,7 +142,7 @@ export default function SupportTicketsPage() {
           <p className="mt-0.5 text-xs text-gray-500">Soporte por ticket y correo.</p>
         </div>
 
-        <div className="rounded-2xl border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 shadow-theme-xs">
+        <div className="rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 shadow-theme-xs">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Growth</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 8 Horas
@@ -150,7 +150,7 @@ export default function SupportTicketsPage() {
           <p className="mt-0.5 text-xs text-gray-500">Soporte preferente multi-cuenta.</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">SLA Business</span>
           <div className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
             Respuesta &lt; 2 Horas
@@ -160,7 +160,7 @@ export default function SupportTicketsPage() {
       </div>
 
       {/* Tabla de Tickets */}
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <table className="w-full text-left text-xs">
           <thead className="border-b border-gray-100 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
             <tr>
@@ -208,7 +208,7 @@ export default function SupportTicketsPage() {
       {/* Modal Nuevo Ticket */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-base font-bold text-gray-900 dark:text-white">
               Crear Nuevo Ticket de Soporte
             </h4>
@@ -227,7 +227,7 @@ export default function SupportTicketsPage() {
                   placeholder="Ej: Problema al conectar cuenta de LinkedIn de operador"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -239,7 +239,7 @@ export default function SupportTicketsPage() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as SupportTicket["category"])}
-                    className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   >
                     <option value="technical">Incidencia Técnica</option>
                     <option value="linkedin">Conexión de Cuentas LinkedIn</option>
@@ -255,7 +255,7 @@ export default function SupportTicketsPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as SupportTicket["priority"])}
-                    className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   >
                     <option value="low">Baja (Consulta general)</option>
                     <option value="medium">Media (Afecta parte del flujo)</option>
@@ -274,7 +274,7 @@ export default function SupportTicketsPage() {
                   placeholder="Explica qué ocurrió, qué cuenta se vio afectada y los pasos para reproducir..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -282,13 +282,13 @@ export default function SupportTicketsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
+                  className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
                 >
                   Enviar Ticket
                 </button>

@@ -142,8 +142,8 @@ export default function TeamManagementPage() {
     return (
       <div className="space-y-6">
         <PageBreadcrumb pageTitle="Equipo & Operadores" />
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
             <ShieldAlert className="size-7" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -166,10 +166,10 @@ export default function TeamManagementPage() {
 
       {/* Alerta de Plan Starter monousuario */}
       {isStarterPlan && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5">
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white shadow-sm">
                 <ShieldAlert className="size-5" />
               </div>
               <div>
@@ -183,7 +183,7 @@ export default function TeamManagementPage() {
             </div>
             <button
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition"
             >
               <span>Actualizar a Plan Growth</span>
               <ExternalLink className="size-3.5" />
@@ -194,7 +194,7 @@ export default function TeamManagementPage() {
 
       {/* Notificación temporal */}
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -220,7 +220,7 @@ export default function TeamManagementPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleOpenInvite}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition ${
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition ${
               isStarterPlan || isTeamCapacityReached
                 ? "bg-amber-500 hover:bg-amber-600"
                 : "bg-[#0099ff] hover:bg-[#0088e6]"
@@ -240,12 +240,12 @@ export default function TeamManagementPage() {
 
       {/* Métricas de Capacidad de Equipo */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Slots Totales del Plan
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Layers className="size-4.5" />
             </div>
           </div>
@@ -263,12 +263,12 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Miembros de Equipo (Team)
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
               <Users className="size-4.5" />
             </div>
           </div>
@@ -282,12 +282,12 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Cupos de Equipo Disponibles
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
               <ShieldCheck className="size-4.5" />
             </div>
           </div>
@@ -332,7 +332,7 @@ export default function TeamManagementPage() {
 
       {/* Vista de Miembros */}
       {activeTab === "members" && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
@@ -348,7 +348,7 @@ export default function TeamManagementPage() {
               <tr className="bg-[#0099ff]/5">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#0099ff] font-bold text-white">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#0099ff] font-bold text-white">
                       {currentUser.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -390,7 +390,7 @@ export default function TeamManagementPage() {
                 <tr key={m.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         {m.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
@@ -441,7 +441,7 @@ export default function TeamManagementPage() {
 
       {/* Vista de Invitaciones */}
       {activeTab === "invitations" && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
@@ -472,7 +472,7 @@ export default function TeamManagementPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs dark:bg-gray-800">
+                        <code className="rounded-lg bg-gray-100 px-2 py-0.5 font-mono text-xs dark:bg-gray-800">
                           {inv.inviteCode}
                         </code>
                         <button
@@ -503,7 +503,7 @@ export default function TeamManagementPage() {
       {/* Modal Invitar Miembro */}
       {isInviteModalOpen && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="relative w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
             <button
               onClick={() => setIsInviteModalOpen(false)}
               className="absolute top-4 right-4 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
@@ -520,7 +520,7 @@ export default function TeamManagementPage() {
               Asigna a un colaborador para operar tus cuentas de LinkedIn dentro de tu cuota contratada.
             </p>
 
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-gray-50 p-2.5 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/60">
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 p-2.5 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/60">
               <span className="text-xs text-gray-500 dark:text-gray-400">Cupos libres de equipo:</span>
               <span className="text-xs font-bold text-[#0099ff]">
                 {isSuperAdmin ? "Ilimitados" : `${availableTeamSlots} de ${maxTeamAllowed} disponibles`}
@@ -528,7 +528,7 @@ export default function TeamManagementPage() {
             </div>
 
             {formError && (
-              <div className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-500">
+              <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-500">
                 {formError}
               </div>
             )}
@@ -544,7 +544,7 @@ export default function TeamManagementPage() {
                   placeholder="operador@tuempresa.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -555,7 +555,7 @@ export default function TeamManagementPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="member">Team · Operador SDR (Acceso a su bandeja asignada)</option>
                   <option value="admin">Team · Co-Administrador (Gestion de campanas y equipo)</option>
@@ -569,7 +569,7 @@ export default function TeamManagementPage() {
                 <select
                   value={inviteAccountId}
                   onChange={(e) => setInviteAccountId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="">-- Sin asignar por ahora --</option>
                   {accounts.map((acc) => (
@@ -584,13 +584,13 @@ export default function TeamManagementPage() {
                 <button
                   type="button"
                   onClick={() => setIsInviteModalOpen(false)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
+                  className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
                   Enviar Invitacion
                 </button>

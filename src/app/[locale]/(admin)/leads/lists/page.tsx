@@ -292,7 +292,7 @@ export default function SignalListsPage() {
             return (
               <div
                 key={list.id}
-                className={`w-full rounded-2xl border p-4 sm:p-5 shadow-xs transition dark:bg-gray-900 ${
+                className={`w-full rounded-lg border p-4 sm:p-5 shadow-xs transition dark:bg-gray-900 ${
                   isHighlighted
                     ? "border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/10 dark:border-brand-400 dark:bg-brand-950/20"
                     : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700"
@@ -381,7 +381,7 @@ export default function SignalListsPage() {
                           {list.keywords.map((kw, i) => (
                             <span
                               key={i}
-                              className="rounded bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300"
+                              className="rounded-lg bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300"
                             >
                               {kw}
                             </span>
@@ -430,7 +430,7 @@ export default function SignalListsPage() {
                         type="button"
                         onClick={() => handleDeleteList(list)}
                         title="Eliminar lista y todos sus prospectos"
-                        className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                        className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                       >
                         <X className="size-3.5" />
                       </button>

@@ -275,7 +275,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
       {/* Métricas del Nivel 3 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Grupos de LinkedIn Monitoreados
           </span>
@@ -287,7 +287,7 @@ export default function LinkedInGroupsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Decisores Calificados Extraidos
           </span>
@@ -299,7 +299,7 @@ export default function LinkedInGroupsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Aceptacion Relacional
           </span>
@@ -313,7 +313,7 @@ export default function LinkedInGroupsSignalRadarPage() {
       </div>
 
       {/* Explicación de la Estrategia */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecanica de Prospeccion en Grupos de LinkedIn (Nivel 3)
@@ -408,7 +408,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
                             Optimo
                           </span>
                         )}
@@ -424,7 +424,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
             {/* Fila 3: Filtro de Tracción y Tipos de Interacción */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col justify-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Tipo de Interacciones a Capturar
                 </span>
@@ -434,7 +434,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                       type="checkbox"
                       checked={trackComments}
                       onChange={(e) => setTrackComments(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                     <span>Comentarios (Mayor intencion)</span>
                   </label>
@@ -443,14 +443,14 @@ export default function LinkedInGroupsSignalRadarPage() {
                       type="checkbox"
                       checked={trackLikes}
                       onChange={(e) => setTrackLikes(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                     <span>Likes / Reacciones</span>
                   </label>
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Filtro de Traccion Minima en Debates
                 </span>
@@ -460,7 +460,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                       key={val}
                       type="button"
                       onClick={() => setMinCommentThreshold(val)}
-                      className={`px-3 py-1 rounded text-xs font-semibold transition ${
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                         minCommentThreshold === val
                           ? "bg-brand-500 text-white"
                           : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
@@ -512,7 +512,7 @@ export default function LinkedInGroupsSignalRadarPage() {
       {/* Banner de Feedback */}
       {scanFeedback && (
         <div
-          className={`rounded-xl p-3.5 text-xs border flex items-center justify-between ${
+          className={`rounded-lg p-3.5 text-xs border flex items-center justify-between ${
             scanFeedback.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
@@ -646,13 +646,13 @@ export default function LinkedInGroupsSignalRadarPage() {
                             {group.topicsFilter.map((topic, i) => (
                               <span
                                 key={i}
-                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               >
                                 {topic}
                               </span>
                             ))}
                             {group.minCommentThreshold && (
-                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                              <span className="rounded-lg bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                                 &gt;={group.minCommentThreshold} coms
                               </span>
                             )}
@@ -677,7 +677,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                           <button
                             type="button"
                             onClick={() => toggleLevel3GroupStatus(group.id)}
-                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                            className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold transition ${
                               group.status === "active"
                                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
@@ -691,7 +691,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamano de lote para la proxima auditoria"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -708,7 +708,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                         [group.id]: batchVal,
                                       }))
                                     }
-                                    className={`px-1.5 py-0.5 rounded transition ${
+                                    className={`px-1.5 py-0.5 rounded-lg transition ${
                                       isSelected
                                         ? "bg-brand-500 text-white font-bold shadow-2xs"
                                         : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -728,7 +728,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   type="button"
                                   disabled={isScanningId === group.id}
                                   onClick={() => handleScanGroup(group, activeBatch)}
-                                  className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                                  className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
                                   title={`Escanear debates y extraer lote de hasta ${activeBatch} decisores`}
                                 >
                                   {isScanningId === group.id ? (
@@ -739,7 +739,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   ) : (
                                     <>
                                       <span>Escanear</span>
-                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
+                                      <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                         {activeBatch}
                                       </span>
                                     </>
@@ -751,7 +751,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                             {/* Botón Ver Lista Directa */}
                             <Link
                               href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&group=${encodeURIComponent(group.groupName)}`}
-                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir lista inteligente de ${group.groupName}`}
                             >
                               <span>Ver Leads ({leadCount})</span>
@@ -762,7 +762,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => setEditingMonitor(group)}
-                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
                               title="Editar monitor de grupo"
                             >
                               <Pencil className="size-3.5" />
@@ -793,7 +793,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                                   }
                                 }
                               }}
-                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                               title="Eliminar grupo"
                             >
                               <X className="size-3.5" />
@@ -806,7 +806,7 @@ export default function LinkedInGroupsSignalRadarPage() {
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${group.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-emerald-100 bg-emerald-50/60 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 shadow-xs">
+                            <div className="w-full rounded-lg border border-emerald-100 bg-emerald-50/60 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
                                   <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
@@ -871,7 +871,7 @@ export default function LinkedInGroupsSignalRadarPage() {
       {/* Modal de Edición de Monitor de Grupo */}
       {editingMonitor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">
                 Editar Monitor: {editingMonitor.groupName}

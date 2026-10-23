@@ -179,7 +179,7 @@ export default function AdminSubscribersPage() {
 
       {/* Notificación temporal */}
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/10 p-3.5 text-sm font-medium text-brand-600 dark:text-brand-400">
+        <div className="flex items-center gap-2 rounded-lg border border-brand-500/20 bg-brand-500/10 p-3.5 text-sm font-medium text-brand-600 dark:text-brand-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -204,7 +204,7 @@ export default function AdminSubscribersPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
           >
             <Plus className="size-4" />
             <span>Nuevo Suscriptor</span>
@@ -215,12 +215,12 @@ export default function AdminSubscribersPage() {
       {/* Métricas Globales del SaaS */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total Clientes */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Clientes Suscritos
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Users className="size-4.5" />
             </div>
           </div>
@@ -233,12 +233,12 @@ export default function AdminSubscribersPage() {
         </div>
 
         {/* Suscripciones Activas */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Suscripciones Activas
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
               <CheckCircle2 className="size-4.5" />
             </div>
           </div>
@@ -251,12 +251,12 @@ export default function AdminSubscribersPage() {
         </div>
 
         {/* Total Slots Asignados */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Slots Contratados
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
               <Layers className="size-4.5" />
             </div>
           </div>
@@ -269,12 +269,12 @@ export default function AdminSubscribersPage() {
         </div>
 
         {/* Cuentas Conectadas en Tiempo Real */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
               Perfiles Vinculados
             </span>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-500">
               <Zap className="size-4.5" />
             </div>
           </div>
@@ -289,7 +289,7 @@ export default function AdminSubscribersPage() {
 
       {/* Desglose por Planes */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
               Plan Starter (1 Slot)
@@ -303,7 +303,7 @@ export default function AdminSubscribersPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 dark:border-[#0099ff]/20">
+        <div className="rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 dark:border-[#0099ff]/20">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#0099ff]">
               Plan Growth (5 Slots)
@@ -317,7 +317,7 @@ export default function AdminSubscribersPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
               Plan Business (10 Slots)
@@ -333,7 +333,7 @@ export default function AdminSubscribersPage() {
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -342,7 +342,7 @@ export default function AdminSubscribersPage() {
               placeholder="Buscar por cliente, email o empresa..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-xs text-gray-900 outline-none transition focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-xs text-gray-900 outline-none transition focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
           </div>
 
@@ -350,7 +350,7 @@ export default function AdminSubscribersPage() {
             <select
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
-              className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >
               <option value="all">Todos los Planes</option>
               <option value="starter">Plan Starter (1 Slot)</option>
@@ -362,7 +362,7 @@ export default function AdminSubscribersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >
               <option value="all">Todos los Estados</option>
               <option value="active">Activo</option>
@@ -375,7 +375,7 @@ export default function AdminSubscribersPage() {
       </div>
 
       {/* Tabla de Suscriptores */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-100 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
@@ -412,7 +412,7 @@ export default function AdminSubscribersPage() {
                       {/* Cliente / Empresa */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                             {u.name.substring(0, 2).toUpperCase()}
                           </div>
                           <div>
@@ -536,7 +536,7 @@ export default function AdminSubscribersPage() {
       {/* MODAL: Crear Suscriptor */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="relative w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
             <button
               onClick={() => setIsCreateModalOpen(false)}
               className="absolute top-4 right-4 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
@@ -552,7 +552,7 @@ export default function AdminSubscribersPage() {
             </p>
 
             {formError && (
-              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-500">
+              <div className="mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-500">
                 {formError}
               </div>
             )}
@@ -568,7 +568,7 @@ export default function AdminSubscribersPage() {
                   placeholder="cliente@empresa.com"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -581,7 +581,7 @@ export default function AdminSubscribersPage() {
                   placeholder="Ej. Juan Perez"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -595,7 +595,7 @@ export default function AdminSubscribersPage() {
                   placeholder="Ej. Alpha Sales Agency"
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -607,7 +607,7 @@ export default function AdminSubscribersPage() {
                   <select
                     value={newPlan}
                     onChange={(e) => setNewPlan(e.target.value as PlanTier)}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     <option value="starter">Plan Starter (1 Slot)</option>
                     <option value="growth">Plan Growth (5 Slots)</option>
@@ -626,7 +626,7 @@ export default function AdminSubscribersPage() {
                     max={999}
                     value={newSlots}
                     onChange={(e) => setNewSlots(parseInt(e.target.value, 10) || 1)}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -635,13 +635,13 @@ export default function AdminSubscribersPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
+                  className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
                   Crear Suscriptor
                 </button>
@@ -654,7 +654,7 @@ export default function AdminSubscribersPage() {
       {/* MODAL: Editar Suscriptor */}
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="relative w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
             <button
               onClick={() => setIsEditModalOpen(false)}
               className="absolute top-4 right-4 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
@@ -679,7 +679,7 @@ export default function AdminSubscribersPage() {
                   required
                   value={editCompany}
                   onChange={(e) => setEditCompany(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -695,7 +695,7 @@ export default function AdminSubscribersPage() {
                       setEditPlan(p);
                       setEditSlots(getPlanConfig(p).slots);
                     }}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
                     <option value="starter">Plan Starter (1 Slot)</option>
                     <option value="growth">Plan Growth (5 Slots)</option>
@@ -714,7 +714,7 @@ export default function AdminSubscribersPage() {
                     max={999}
                     value={editSlots}
                     onChange={(e) => setEditSlots(parseInt(e.target.value, 10) || 1)}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -726,7 +726,7 @@ export default function AdminSubscribersPage() {
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value as SubscriptionStatus)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="active">Activo</option>
                   <option value="trial">Trial de Prueba</option>
@@ -739,13 +739,13 @@ export default function AdminSubscribersPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
+                  className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
                   Guardar Cambios
                 </button>

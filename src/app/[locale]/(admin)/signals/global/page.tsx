@@ -763,7 +763,7 @@ export default function GlobalSignalsPage() {
 
       {/* Métricas del Nivel 4 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Temáticas Virales en Escucha
           </span>
@@ -775,7 +775,7 @@ export default function GlobalSignalsPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Decisores en Debate Calificado
           </span>
@@ -787,7 +787,7 @@ export default function GlobalSignalsPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Respuesta en Debate
           </span>
@@ -801,7 +801,7 @@ export default function GlobalSignalsPage() {
       </div>
 
       {/* Explicación de la Estrategia (Nivel 4) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Prospección por Tendencias y Debate Viral (Nivel 4)
@@ -864,14 +864,14 @@ export default function GlobalSignalsPage() {
                 </button>
 
                 {isCountryDropdownOpen && (
-                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
                     <div className="p-1.5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
                       <input
                         type="text"
                         placeholder="Buscar país..."
                         value={countrySearch}
                         onChange={(e) => setCountrySearch(e.target.value)}
-                        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                         autoFocus
                       />
                     </div>
@@ -937,7 +937,7 @@ export default function GlobalSignalsPage() {
                           {thresh.label}
                         </span>
                         {thresh.recommended && (
-                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
                             Óptimo
                           </span>
                         )}
@@ -979,7 +979,7 @@ export default function GlobalSignalsPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
                             Óptimo
                           </span>
                         )}
@@ -997,13 +997,13 @@ export default function GlobalSignalsPage() {
             </div>
 
             {/* Fila 3: Filtro Anti-Colaboradores */}
-            <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={excludeInternalEngagement}
                   onChange={(e) => setExcludeInternalEngagement(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                  className="mt-0.5 rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                 />
                 <div>
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
@@ -1051,7 +1051,7 @@ export default function GlobalSignalsPage() {
       {/* Banner de Feedback de Escaneo */}
       {scanFeedback && (
         <div
-          className={`rounded-xl p-3.5 text-xs border flex flex-wrap items-center justify-between gap-2 ${
+          className={`rounded-lg p-3.5 text-xs border flex flex-wrap items-center justify-between gap-2 ${
             scanFeedback.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
@@ -1179,10 +1179,10 @@ export default function GlobalSignalsPage() {
                         {/* 2. Filtro de Debate & Región */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex flex-wrap gap-1 max-w-[150px]">
-                            <span className="rounded bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                            <span className="rounded-lg bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                               Mín. {rule.minPostReactions || 15} comentarios
                             </span>
-                            <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                               {countryFlag} {countryName}
                             </span>
                           </div>
@@ -1213,7 +1213,7 @@ export default function GlobalSignalsPage() {
                           <button
                             type="button"
                             onClick={() => toggleLevel3Status(rule.id)}
-                            className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
+                            className={`rounded-lg px-2.5 py-0.5 font-semibold text-xs transition ${
                               rule.status === "active"
                                 ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1228,7 +1228,7 @@ export default function GlobalSignalsPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold shrink-0"
+                              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold shrink-0"
                               title="Seleccionar tamaño de lote para la cosecha"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1244,7 +1244,7 @@ export default function GlobalSignalsPage() {
                                         [rule.id]: batchVal,
                                       }))
                                     }
-                                    className={`px-1.5 py-0.5 rounded transition ${
+                                    className={`px-1.5 py-0.5 rounded-lg transition ${
                                       isSelected
                                         ? "bg-brand-500 text-white font-bold shadow-2xs"
                                         : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -1261,7 +1261,7 @@ export default function GlobalSignalsPage() {
                               type="button"
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
-                              className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs shrink-0"
+                              className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs shrink-0"
                               title={`Escanear publicaciones virales y cosechar lote seguro de hasta ${activeBatch} leads`}
                             >
                               {isScanningId === rule.id ? (
@@ -1272,7 +1272,7 @@ export default function GlobalSignalsPage() {
                               ) : (
                                 <>
                                   <span>Escanear</span>
-                                  <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
+                                  <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                     {activeBatch}
                                   </span>
                                 </>
@@ -1283,7 +1283,7 @@ export default function GlobalSignalsPage() {
                             <button
                               type="button"
                               onClick={() => setSelectedRuleForLeads(rule)}
-                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition shrink-0"
+                              className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition shrink-0"
                               title={`Abrir decisores captados de ${rule.searchQuery}`}
                             >
                               <span>Ver Leads ({leadsCount})</span>
@@ -1294,7 +1294,7 @@ export default function GlobalSignalsPage() {
                             <button
                               type="button"
                               onClick={() => setEditingRule(rule)}
-                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
                               title="Editar radar de tendencias"
                             >
                               <Pencil className="size-3.5" />
@@ -1325,7 +1325,7 @@ export default function GlobalSignalsPage() {
                                   }
                                 }
                               }}
-                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                               title="Eliminar radar"
                             >
                               <X className="size-3.5" />
@@ -1338,7 +1338,7 @@ export default function GlobalSignalsPage() {
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${rule.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
+                            <div className="w-full rounded-lg border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
@@ -1398,10 +1398,10 @@ export default function GlobalSignalsPage() {
       {/* Modal para Visualizar Leads Extraídos */}
       {selectedRuleForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
               <div>
-                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1 w-fit">
+                <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1 w-fit">
                   <span>{selectedRuleForLeads.targetCountryFlag || "🌎"}</span>
                   <span>Tendencia Viral: {selectedRuleForLeads.searchQuery}</span>
                 </span>
@@ -1423,7 +1423,7 @@ export default function GlobalSignalsPage() {
 
             {/* Publicaciones Seleccionadas en LinkedIn */}
             {selectedRuleForLeads.lastScannedPosts && selectedRuleForLeads.lastScannedPosts.length > 0 && (
-              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
+              <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
                     <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
@@ -1526,7 +1526,7 @@ export default function GlobalSignalsPage() {
       {/* Modal de Edición de Radar Viral */}
       {editingRule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Pencil className="size-5 text-brand-500" />
@@ -1554,7 +1554,7 @@ export default function GlobalSignalsPage() {
                   onChange={(e) =>
                     setEditingRule({ ...editingRule, searchQuery: e.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   placeholder="Ej: Prospección B2B, Inteligencia Artificial"
                 />
               </div>
@@ -1574,7 +1574,7 @@ export default function GlobalSignalsPage() {
                       minPostReactions: Number(e.target.value),
                     })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -1593,7 +1593,7 @@ export default function GlobalSignalsPage() {
                       targetCountryFlag: found ? found.flag : editingRule.targetCountryFlag,
                     });
                   }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   {COUNTRY_OPTIONS.map((c) => (
                     <option key={c.code} value={c.code}>
@@ -1608,7 +1608,7 @@ export default function GlobalSignalsPage() {
               <button
                 type="button"
                 onClick={() => setEditingRule(null)}
-                className="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Cancelar
               </button>
@@ -1627,7 +1627,7 @@ export default function GlobalSignalsPage() {
                   });
                   setEditingRule(null);
                 }}
-                className="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
+                className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
               >
                 Guardar Cambios
               </button>

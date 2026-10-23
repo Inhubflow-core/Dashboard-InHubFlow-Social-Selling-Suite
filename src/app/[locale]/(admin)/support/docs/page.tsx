@@ -51,7 +51,7 @@ export default function ApiDocsPage() {
         <PageBreadcrumb pageTitle="Documentación Técnica & Sandbox de Webhooks" />
 
         {/* Selector de Pestañas */}
-        <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+        <div className="flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
           <button
             onClick={() => setActiveTab("simulator")}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
@@ -83,9 +83,9 @@ export default function ApiDocsPage() {
       ) : (
         <div className="space-y-6">
           {/* Introducción */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
                 <Code2 className="size-5" />
               </div>
               <div>
@@ -106,10 +106,10 @@ export default function ApiDocsPage() {
           </div>
 
           {/* Endpoint: Obtener Leads */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 font-mono text-xs font-bold text-emerald-600">
+                <span className="rounded-lg bg-emerald-500/10 px-2 py-0.5 font-mono text-xs font-bold text-emerald-600">
                   GET
                 </span>
                 <span className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
@@ -119,7 +119,7 @@ export default function ApiDocsPage() {
               <span className="text-xs text-gray-400">Listado de prospectos del CRM</span>
             </div>
 
-            <div className="mt-3 relative rounded-xl bg-gray-950 p-4 font-mono text-xs text-gray-200">
+            <div className="mt-3 relative rounded-lg bg-gray-950 p-4 font-mono text-xs text-gray-200">
               <pre className="overflow-x-auto">{curlExample}</pre>
               <button
                 onClick={() => handleCopy(curlExample, "curl")}
@@ -131,7 +131,7 @@ export default function ApiDocsPage() {
           </div>
 
           {/* Webhook Payload Example */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-3 dark:border-gray-800">
               <Webhook className="size-4 text-[#0099ff]" />
               <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -143,7 +143,7 @@ export default function ApiDocsPage() {
               Payload JSON recibido directamente desde los servidores de enlace cuando un prospecto envía un mensaje o acepta una invitación:
             </p>
 
-            <div className="mt-3 relative rounded-xl bg-gray-950 p-4 font-mono text-xs text-emerald-400">
+            <div className="mt-3 relative rounded-lg bg-gray-950 p-4 font-mono text-xs text-emerald-400">
               <pre className="overflow-x-auto">{webhookPayload}</pre>
               <button
                 onClick={() => handleCopy(webhookPayload, "webhook")}

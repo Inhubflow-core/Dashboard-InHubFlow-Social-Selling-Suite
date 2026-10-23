@@ -21,7 +21,7 @@ export default function PlanHeaderBadge() {
     <>
       <button
         onClick={() => setIsUpgradeModalOpen(true)}
-        className={`hidden items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all sm:inline-flex ${
+        className={`hidden items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-semibold transition-all sm:inline-flex ${
           capacity.isAtCapacity
             ? "border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white"
             : "border-[#0099ff]/30 bg-[#0099ff]/10 text-[#0099ff] hover:bg-[#0099ff] hover:text-white"

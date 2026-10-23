@@ -623,7 +623,7 @@ export default function CampaignsPage() {
       <PageBreadcrumb pageTitle="Campañas de Social Selling (Secuencias Lineales)" />
 
       {/* Cabecera Principal */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
             Motor de Outreach Relacional en LinkedIn
@@ -715,7 +715,7 @@ export default function CampaignsPage() {
                   setSelectedCampaignId(camp.id);
                   setSimulatedStepIndex(0);
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
                   isSelected
                     ? "bg-brand-500 text-white shadow-2xs"
                     : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300"
@@ -789,7 +789,7 @@ export default function CampaignsPage() {
             }
             setDraggedStepType(null);
           }}
-          className={`w-full max-w-lg xl:max-w-xl mx-auto space-y-0 transition-all duration-200 p-2 rounded-2xl ${
+          className={`w-full max-w-lg xl:max-w-xl mx-auto space-y-0 transition-all duration-200 p-2 rounded-lg ${
             isDragOverWorkflow
               ? "bg-brand-50/20 dark:bg-brand-950/10 ring-2 ring-dashed ring-brand-500/50"
               : ""
@@ -797,14 +797,14 @@ export default function CampaignsPage() {
         >
           {/* Banner indicador cuando se está arrastrando sobre la zona de drop */}
           {isDragOverWorkflow && (
-            <div className="w-full mb-4 p-3 rounded-xl border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
+            <div className="w-full mb-4 p-3 rounded-lg border-2 border-dashed border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300 flex items-center justify-center gap-2 text-xs font-bold animate-pulse">
               <Plus className="size-4" />
               <span>Suelta aquí para añadir este paso al flujo de la secuencia</span>
             </div>
           )}
             {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
         {linkedList && (
-          <div className="mb-3 rounded-2xl border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="mb-3 rounded-lg border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 flex items-center justify-center shrink-0">
                 <Zap className="h-4 w-4" />
@@ -843,9 +843,9 @@ export default function CampaignsPage() {
         )}
 
         {/* Card del Disparador / Activador con Contraste #E9F0F7 */}
-        <div className="rounded-2xl border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-[#E9F0F7] dark:bg-brand-950/20 p-4 shadow-2xs">
+        <div className="rounded-lg border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-[#E9F0F7] dark:bg-brand-950/20 p-4 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="h-9 w-9 rounded-lg bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs">
               <Zap className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
@@ -876,7 +876,7 @@ export default function CampaignsPage() {
                   </div>
 
                   {/* Píldora fija por defecto: Inmediato (0 días) no editable */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
                     <Clock className="h-3 w-3 text-brand-500 shrink-0" />
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
                       Inmediato (0 días)
@@ -898,7 +898,7 @@ export default function CampaignsPage() {
 
                   {/* Píldora compacta de retardo */}
                   <div className="relative">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs hover:border-brand-500/50 transition">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs hover:border-brand-500/50 transition">
                       <Clock className="h-3 w-3 text-brand-500 shrink-0" />
 
                       {/* Botón '-' para restar día */}
@@ -922,7 +922,7 @@ export default function CampaignsPage() {
                           e.stopPropagation();
                           setOpenDelayPopoverIndex(openDelayPopoverIndex === idx ? null : idx);
                         }}
-                        className="text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition flex items-center gap-1 px-1 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition flex items-center gap-1 px-1 py-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                         title="Seleccionar tiempo de espera"
                       >
                         <span>
@@ -951,7 +951,7 @@ export default function CampaignsPage() {
                     {openDelayPopoverIndex === idx && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute left-0 top-full mt-1.5 z-40 w-64 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl space-y-2.5"
+                        className="absolute left-0 top-full mt-1.5 z-40 w-64 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl space-y-2.5"
                       >
                         <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-1.5">
                           <span className="text-xs font-bold text-gray-800 dark:text-white flex items-center gap-1.5">
@@ -1011,7 +1011,7 @@ export default function CampaignsPage() {
                                 const val = Math.max(0, parseInt(e.target.value) || 0);
                                 handleUpdateStepDelay(idx, val);
                               }}
-                              className="w-14 px-2 py-0.5 text-xs text-center border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-500"
+                              className="w-14 px-2 py-0.5 text-xs text-center border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-500"
                             />
                             <span className="text-xs text-gray-500">días</span>
                           </div>
@@ -1023,11 +1023,11 @@ export default function CampaignsPage() {
               )}
 
               {/* Card del Paso (Limpia y Compacta: Solo Título, Badge, Descripción y Botones Cuadraditos) */}
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs hover:border-gray-300 dark:hover:border-gray-700 transition">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-2xs hover:border-gray-300 dark:hover:border-gray-700 transition">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Caja de Icono */}
-                    <div className="h-9 w-9 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="h-9 w-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-0.5">
                       {getStepIcon(step.type)}
                     </div>
 
@@ -1054,7 +1054,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={() => setEditingStep({ step: sanitizeSequenceStep(step), index: idx })}
-                      className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
+                      className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
                       title="Editar paso de la secuencia"
                     >
                       <Pencil className="size-3.5" />
@@ -1064,7 +1064,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteStep(idx)}
-                      className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
+                      className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition"
                       title="Eliminar paso"
                     >
                       <X className="size-3.5" />
@@ -1080,7 +1080,7 @@ export default function CampaignsPage() {
         {activeCampaign.steps.length === 0 && (
           <div className="py-6 flex flex-col items-center justify-center text-center">
             <div className="w-px h-6 border-l-2 border-dashed border-gray-300 dark:border-gray-700 mb-2" />
-            <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 text-xs text-gray-500 dark:text-gray-400 max-w-sm">
+            <div className="p-4 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 text-xs text-gray-500 dark:text-gray-400 max-w-sm">
               <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">
                 La secuencia no tiene pasos activos
               </p>
@@ -1096,7 +1096,7 @@ export default function CampaignsPage() {
           <button
             type="button"
             onClick={handleOpenAddDrawer}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-dashed border-brand-300 dark:border-brand-700 hover:border-brand-500 bg-white dark:bg-gray-800 text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-950/40 transition shadow-2xs cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-dashed border-brand-300 dark:border-brand-700 hover:border-brand-500 bg-white dark:bg-gray-800 text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-950/40 transition shadow-2xs cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Agregar Paso a la Secuencia</span>
@@ -1139,7 +1139,7 @@ export default function CampaignsPage() {
               {/* Cabecera del Panel Lateral */}
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
+                  <div className="h-9 w-9 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
                     {getStepIcon(editingStep.step.type)}
                   </div>
                   <div>
@@ -1250,7 +1250,7 @@ export default function CampaignsPage() {
               {(editingStep.step.type === "connect" ||
                 editingStep.step.type === "connect_message" ||
                 editingStep.step.connectNote !== undefined) && (
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2.5">
+                <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10 p-3 space-y-2.5">
                   <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-2">
                     <span className="font-bold shrink-0">Acción 2-en-1:</span>
                     <span>Al enviar la invitación de conexión, LinkedIn activa automáticamente el seguimiento del perfil para maximizar la visibilidad mutua en el feed.</span>
@@ -1293,7 +1293,7 @@ export default function CampaignsPage() {
                             },
                           })
                         }
-                        className="text-xs bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono hover:bg-emerald-50 transition"
+                        className="text-xs bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-lg font-mono hover:bg-emerald-50 transition"
                       >
                         {tag}
                       </button>
@@ -1304,7 +1304,7 @@ export default function CampaignsPage() {
 
               {/* Bloque: Comentario en Publicación (si aplica) */}
               {editingStep.step.type === "like_comment" && (
-                <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/20 dark:bg-purple-950/10 p-3 space-y-2">
+                <div className="rounded-lg border border-purple-200 dark:border-purple-900/50 bg-purple-50/20 dark:bg-purple-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <ThumbsUp className="h-3.5 w-3.5 text-purple-600" />
@@ -1320,7 +1320,7 @@ export default function CampaignsPage() {
                             step: { ...editingStep.step, useAiComment: e.target.checked },
                           })
                         }
-                        className="rounded text-purple-600 focus:ring-0"
+                        className="rounded-lg text-purple-600 focus:ring-0"
                       />
                       <span>Generar comentario contextualizado con IA</span>
                     </label>
@@ -1343,7 +1343,7 @@ export default function CampaignsPage() {
               {/* Bloque: Mensaje Directo DM (si aplica) */}
               {(editingStep.step.type.startsWith("message") ||
                 editingStep.step.messageTemplate !== undefined) && (
-                <div className="rounded-xl border border-brand-200 dark:border-brand-900/50 bg-brand-50/20 dark:bg-brand-950/10 p-3 space-y-2">
+                <div className="rounded-lg border border-brand-200 dark:border-brand-900/50 bg-brand-50/20 dark:bg-brand-950/10 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase flex items-center gap-1.5">
                       <Send className="h-3.5 w-3.5 text-brand-600" />
@@ -1387,7 +1387,7 @@ export default function CampaignsPage() {
                             },
                           })
                         }
-                        className="text-xs bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded font-mono hover:bg-brand-50 transition"
+                        className="text-xs bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded-lg font-mono hover:bg-brand-50 transition"
                       >
                         {tag}
                       </button>
@@ -1397,7 +1397,7 @@ export default function CampaignsPage() {
               )}
 
               {/* Bloque: Selector de Contenido Adjunto y Multimedia (Imagen, Video, Notas de Voz, Archivos) */}
-              <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-3.5 space-y-3">
                 {/* Inputs de archivo ocultos nativos */}
                 <input
                   ref={imageInputRef}
@@ -1491,7 +1491,7 @@ export default function CampaignsPage() {
                             });
                           }
                         }}
-                        className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition gap-1.5 ${
+                        className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition gap-1.5 ${
                           active
                             ? "bg-brand-500 text-white border-brand-500 shadow-2xs font-semibold ring-2 ring-brand-500/20"
                             : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-brand-300 hover:bg-gray-50 dark:hover:bg-gray-700/60"
@@ -1526,7 +1526,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
                       Haz clic para subir una imagen (PNG, JPG, WEBP)
@@ -1566,7 +1566,7 @@ export default function CampaignsPage() {
                               },
                             })
                           }
-                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-lg hover:bg-gray-100"
                         >
                           {img}
                         </button>
@@ -1574,7 +1574,7 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de imagen */}
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {editingStep.step.attachmentUrl &&
                         (editingStep.step.attachmentUrl.startsWith("data:image") ||
@@ -1602,14 +1602,14 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => imageInputRef.current?.click()}
-                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded-lg font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
                         <button
                           type="button"
                           onClick={handleRemoveAttachment}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
                           title="Eliminar imagen"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1639,7 +1639,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={() => videoInputRef.current?.click()}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
                       Haz clic para subir un video MP4, WebM o MOV
@@ -1663,11 +1663,11 @@ export default function CampaignsPage() {
                     />
 
                     {/* Previsualización visual de Video */}
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-12 w-16 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0 relative shadow-xs">
                           <Play className="h-5 w-5 text-brand-400 fill-brand-400" />
-                          <span className="absolute bottom-1 right-1 text-xs bg-black/80 px-1 rounded text-white font-mono">
+                          <span className="absolute bottom-1 right-1 text-xs bg-black/80 px-1 rounded-lg text-white font-mono">
                             01:30
                           </span>
                         </div>
@@ -1684,14 +1684,14 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => videoInputRef.current?.click()}
-                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded-lg font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
                         <button
                           type="button"
                           onClick={handleRemoveAttachment}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
                           title="Eliminar video"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1724,7 +1724,7 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={stopVoiceRecording}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition animate-pulse"
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition animate-pulse"
                         >
                           <Square className="h-3.5 w-3.5 fill-white" />
                           Detener Grabación (00:{String(recordingSeconds).padStart(2, "0")})
@@ -1733,7 +1733,7 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={startVoiceRecording}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-xs transition"
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-xs transition"
                         >
                           <Mic className="h-4 w-4" />
                           Grabar Nota de Voz con Micrófono
@@ -1742,7 +1742,7 @@ export default function CampaignsPage() {
                       <button
                         type="button"
                         onClick={() => audioInputRef.current?.click()}
-                        className="flex items-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                        className="flex items-center gap-1.5 py-2.5 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                       >
                         <Upload className="h-3.5 w-3.5 text-brand-500" />
                         Subir Audio
@@ -1767,7 +1767,7 @@ export default function CampaignsPage() {
                                 },
                               })
                             }
-                            className={`text-xs px-2 py-0.5 rounded font-semibold transition ${
+                            className={`text-xs px-2 py-0.5 rounded-lg font-semibold transition ${
                               (editingStep.step.voiceNoteDurationSec || 45) === sec
                                 ? "bg-brand-500 text-white"
                                 : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
@@ -1780,7 +1780,7 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Reproductor de Nota de Voz Simulado estilo LinkedIn DM */}
-                    <div className="rounded-xl border border-brand-200 dark:border-brand-900/60 bg-gradient-to-r from-brand-50/50 via-white to-brand-50/30 dark:from-brand-950/30 dark:via-gray-800 dark:to-brand-950/20 p-3 flex items-center gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-brand-200 dark:border-brand-900/60 bg-gradient-to-r from-brand-50/50 via-white to-brand-50/30 dark:from-brand-950/30 dark:via-gray-800 dark:to-brand-950/20 p-3 flex items-center gap-3 shadow-2xs">
                       <button
                         type="button"
                         className="h-10 w-10 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs hover:bg-brand-600 transition"
@@ -1812,7 +1812,7 @@ export default function CampaignsPage() {
                       <button
                         type="button"
                         onClick={handleRemoveAttachment}
-                        className="p-1 text-gray-400 hover:text-red-500 rounded"
+                        className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
                         title="Eliminar nota de voz"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -1841,7 +1841,7 @@ export default function CampaignsPage() {
                     <button
                       type="button"
                       onClick={() => documentInputRef.current?.click()}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-xl bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-brand-200 dark:border-brand-900/60 hover:border-brand-500 rounded-lg bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-brand-50/20 transition cursor-pointer"
                     >
                       <Upload className="h-4 w-4 text-brand-500" />
                       Haz clic para subir un PDF o recurso descargable
@@ -1885,7 +1885,7 @@ export default function CampaignsPage() {
                               },
                             })
                           }
-                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-100"
+                          className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-lg hover:bg-gray-100"
                         >
                           {doc}
                         </button>
@@ -1893,7 +1893,7 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Previsualización visual de documento */}
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 flex items-center justify-between gap-3 shadow-2xs">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-10 w-10 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
                           <FileText className="h-5 w-5" />
@@ -1911,14 +1911,14 @@ export default function CampaignsPage() {
                         <button
                           type="button"
                           onClick={() => documentInputRef.current?.click()}
-                          className="px-2 py-1 text-xs rounded font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+                          className="px-2 py-1 text-xs rounded-lg font-semibold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40"
                         >
                           Cambiar
                         </button>
                         <button
                           type="button"
                           onClick={handleRemoveAttachment}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded-lg"
                           title="Eliminar archivo"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1974,7 +1974,7 @@ export default function CampaignsPage() {
               {/* Cabecera del Panel Lateral */}
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/60 dark:bg-gray-800/40">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
+                  <div className="h-9 w-9 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-2xs">
                     <Layers className="size-4.5" />
                   </div>
                   <div>
@@ -2018,7 +2018,7 @@ export default function CampaignsPage() {
                             handleAddStep(paletteStep.type);
                           }
                         }}
-                        className={`group relative rounded-xl border p-3 transition-all duration-200 select-none ${
+                        className={`group relative rounded-lg border p-3 transition-all duration-200 select-none ${
                           inSequence
                             ? "opacity-50 bg-gray-50/70 dark:bg-gray-800/30 border-dashed border-gray-200 dark:border-gray-800 cursor-not-allowed"
                             : "bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 shadow-2xs hover:shadow-md hover:border-brand-400 dark:hover:border-brand-500 cursor-grab active:cursor-grabbing hover:-translate-y-0.5"
@@ -2118,7 +2118,7 @@ export default function CampaignsPage() {
       {/* Modal de Límites de Seguridad (Pacing Limits) */}
       {showPacingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-emerald-600" />
@@ -2136,7 +2136,7 @@ export default function CampaignsPage() {
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Visitas de Perfil / Día
@@ -2159,7 +2159,7 @@ export default function CampaignsPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Invitaciones de Conexión / Día
@@ -2182,7 +2182,7 @@ export default function CampaignsPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                   <span className="font-semibold text-gray-800 dark:text-gray-200 block">
                     Mensajes Directos (DM) / Día
@@ -2206,7 +2206,7 @@ export default function CampaignsPage() {
               </div>
 
               {/* Stop on Reply */}
-              <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/40 dark:bg-emerald-950/20">
+              <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50/40 dark:bg-emerald-950/20">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-bold text-emerald-800 dark:text-emerald-300 block">
@@ -2225,7 +2225,7 @@ export default function CampaignsPage() {
                         stopOnReply: e.target.checked,
                       }))
                     }
-                    className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded-lg border-emerald-300 text-emerald-600 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -2247,7 +2247,7 @@ export default function CampaignsPage() {
       {/* Modal de Logs de Ejecución */}
       {showLogsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-gray-500" />
@@ -2260,7 +2260,7 @@ export default function CampaignsPage() {
                   <button
                     type="button"
                     onClick={handleClearLogs}
-                    className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition px-2 py-1 rounded"
+                    className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition px-2 py-1 rounded-lg"
                     title="Limpiar todos los registros"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -2286,7 +2286,7 @@ export default function CampaignsPage() {
                 runnerLogs.map((log, idx) => (
                   <div
                     key={`${log.id}-${idx}`}
-                    className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
+                    className="p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-xs flex items-start justify-between gap-3"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -2295,7 +2295,7 @@ export default function CampaignsPage() {
                         </span>
                         <span className="text-xs text-gray-400">{log.timestamp?.slice(11, 19)}</span>
                         <span
-                          className={`rounded px-1.5 py-0.2 text-xs font-bold ${
+                          className={`rounded-lg px-1.5 py-0.2 text-xs font-bold ${
                             log.status === "success"
                               ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                               : log.status === "paused"
@@ -2306,7 +2306,7 @@ export default function CampaignsPage() {
                           {log.status.toUpperCase()}
                         </span>
                         {Boolean(log.details?.attachmentName) && (
-                          <span className="inline-flex items-center gap-1 rounded bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 text-xs font-semibold border border-brand-200 dark:border-brand-900">
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 px-1.5 py-0.2 text-xs font-semibold border border-brand-200 dark:border-brand-900">
                             <Paperclip className="h-2.5 w-2.5" />
                             {String(log.details?.attachmentName ?? "")}
                             {log.details?.attachmentSize ? ` (${String(log.details.attachmentSize)})` : ""}

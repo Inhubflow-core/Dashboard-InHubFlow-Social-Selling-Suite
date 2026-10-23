@@ -76,8 +76,8 @@ export default function MonthlyTarget() {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/3">
-      <div className="shadow-default rounded-2xl bg-white px-5 pt-5 pb-5 sm:px-6 sm:pt-6 sm:pb-11 dark:bg-gray-900">
+    <div className="rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/3">
+      <div className="shadow-default rounded-lg bg-white px-5 pt-5 pb-5 sm:px-6 sm:pt-6 sm:pb-11 dark:bg-gray-900">
         <div className="flex justify-between">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">

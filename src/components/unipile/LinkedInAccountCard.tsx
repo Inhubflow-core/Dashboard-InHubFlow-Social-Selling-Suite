@@ -51,14 +51,14 @@ export default function LinkedInAccountCard({
           onSelectActive(account.id);
         }
       }}
-      className={`flex items-center gap-4 px-4 py-3 bg-white dark:bg-gray-900 border rounded-2xl shadow-xs transition-colors cursor-pointer ${
+      className={`flex items-center gap-4 px-4 py-3 bg-white dark:bg-gray-900 border rounded-lg shadow-xs transition-colors cursor-pointer ${
         isActive
           ? "border-brand-500 ring-2 ring-brand-500/15"
           : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
       }`}
     >
       {/* Avatar compacto (10x10) idéntico a B2B */}
-      <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-200 dark:border-gray-700">
+      <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-200 dark:border-gray-700">
         {account.profilePictureUrl && account.profilePictureUrl !== "/images/user/owner.png" ? (
           <img
             src={account.profilePictureUrl}
@@ -84,7 +84,7 @@ export default function LinkedInAccountCard({
             {account.name}
           </p>
           {isActive && (
-            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-950/40 dark:text-brand-300 shrink-0">
+            <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-950/40 dark:text-brand-300 shrink-0">
               Activa
             </span>
           )}
@@ -154,7 +154,7 @@ export default function LinkedInAccountCard({
         {isCheckpoint ? (
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-all cursor-pointer shadow-xs"
             onClick={() => onReconnect(account.id)}
           >
             <AlertTriangle className="size-3.5" /> Resolver 2FA
@@ -162,7 +162,7 @@ export default function LinkedInAccountCard({
         ) : (
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20 transition-all cursor-pointer"
             onClick={() => onReconnect(account.id)}
           >
             <ShieldCheck className="size-3.5" /> {isHealthy ? "Reconectar" : "Conectar LinkedIn"}

@@ -36,10 +36,10 @@ export default function SlotsCapacityCard({
 
   if (isSuperAdmin) {
     return (
-      <div className="rounded-2xl border border-[#0099ff]/20 bg-gradient-to-r from-[#0099ff]/10 via-transparent to-transparent p-4 sm:p-5 dark:border-[#0099ff]/30">
+      <div className="rounded-lg border border-[#0099ff]/20 bg-gradient-to-r from-[#0099ff]/10 via-transparent to-transparent p-4 sm:p-5 dark:border-[#0099ff]/30">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0099ff] text-white shadow-md shadow-[#0099ff]/20">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#0099ff] text-white shadow-md shadow-[#0099ff]/20">
               <ShieldCheck className="size-5" />
             </div>
             <div>
@@ -67,7 +67,7 @@ export default function SlotsCapacityCard({
   return (
     <>
       <div
-        className={`rounded-2xl border transition-all ${
+        className={`rounded-lg border transition-all ${
           capacity.isAtCapacity
             ? "border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-transparent to-transparent dark:border-amber-500/40"
             : "border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900/60"
@@ -77,7 +77,7 @@ export default function SlotsCapacityCard({
           {/* Info del Plan y Slots */}
           <div className="flex items-start gap-3.5">
             <div
-              className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${
+              className={`flex size-10 shrink-0 items-center justify-center rounded-lg text-white shadow-sm ${
                 capacity.isAtCapacity ? "bg-amber-500" : "bg-[#0099ff]"
               }`}
             >
@@ -132,7 +132,7 @@ export default function SlotsCapacityCard({
             {/* Botón Upgrade */}
             <button
               onClick={handleOpenUpgrade}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
                 capacity.isAtCapacity
                   ? "bg-amber-500 text-white shadow-md shadow-amber-500/20 hover:bg-amber-600"
                   : "border border-[#0099ff]/40 bg-[#0099ff]/10 text-[#0099ff] hover:bg-[#0099ff] hover:text-white"

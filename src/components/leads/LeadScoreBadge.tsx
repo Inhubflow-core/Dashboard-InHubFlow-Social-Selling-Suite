@@ -57,7 +57,7 @@ export function LeadScoreBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-semibold border rounded-md cursor-help transition select-none ${badgeConfig.badgeClass} ${
+      className={`inline-flex items-center gap-1 font-semibold border rounded-lg cursor-help transition select-none ${badgeConfig.badgeClass} ${
         isSmall ? "px-1.5 py-0.5 text-xs" : "px-2 py-0.5 text-xs"
       } ${className}`}
       title={badgeConfig.title}

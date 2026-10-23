@@ -179,7 +179,7 @@ export default function InboxPage() {
     <div className="flex flex-col h-[calc(100vh-140px)]">
       {/* Toast Notificacion */}
       {notificationMsg && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-xl bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
           <Sparkles className="size-4 text-brand-400 animate-pulse" />
           <span>{notificationMsg}</span>
         </div>
@@ -202,7 +202,7 @@ export default function InboxPage() {
       </div>
 
       {/* Contenedor Principal */}
-      <div className="flex-1 grid grid-cols-12 gap-0 rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex-1 grid grid-cols-12 gap-0 rounded-lg border border-gray-200 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         {/* Panel Izquierdo: Lista de Conversaciones */}
         <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
           {/* Filtros superiores */}
@@ -239,7 +239,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("all")}
-                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
+                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
                   tabFilter === "all"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -250,7 +250,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("unread")}
-                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
+                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
                   tabFilter === "unread"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -261,7 +261,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("interested")}
-                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
+                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
                   tabFilter === "interested"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -272,7 +272,7 @@ export default function InboxPage() {
               <button
                 type="button"
                 onClick={() => setTabFilter("meeting")}
-                className={`flex-1 rounded-md py-1 text-xs font-medium transition ${
+                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
                   tabFilter === "meeting"
                     ? "bg-brand-500 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
@@ -331,7 +331,7 @@ export default function InboxPage() {
                     </p>
 
                     <div className="mt-2.5 flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-lg">
                         {conv.campaignSource.replace("Nivel ", "N")}
                       </span>
                       <span
@@ -367,7 +367,7 @@ export default function InboxPage() {
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                       {activeConversation.leadName}
                     </h3>
-                    <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.2 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300">
+                    <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-1.5 py-0.2 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300">
                       LinkedIn 1st
                     </span>
                   </div>
@@ -422,7 +422,7 @@ export default function InboxPage() {
                 <span className="font-semibold text-gray-700 dark:text-gray-300">Origen:</span>
                 <span>{activeConversation.campaignSource}</span>
                 {activeConversation.leadMagnetUsed && (
-                  <span className="rounded bg-brand-100/50 text-brand-700 px-1.5 py-0.5 text-xs dark:bg-brand-950/50 dark:text-brand-300 font-mono">
+                  <span className="rounded-lg bg-brand-100/50 text-brand-700 px-1.5 py-0.5 text-xs dark:bg-brand-950/50 dark:text-brand-300 font-mono">
                     Recurso: {activeConversation.leadMagnetUsed}
                   </span>
                 )}
@@ -444,7 +444,7 @@ export default function InboxPage() {
                   className={`flex ${msg.isSender ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-lg rounded-2xl p-3.5 text-xs leading-relaxed shadow-xs ${
+                    className={`max-w-lg rounded-lg p-3.5 text-xs leading-relaxed shadow-xs ${
                       msg.isSender
                         ? "bg-brand-500 text-white rounded-tr-none"
                         : "bg-white border border-gray-200 text-gray-800 dark:border-gray-800 dark:bg-gray-800 dark:text-white rounded-tl-none"
@@ -472,7 +472,7 @@ export default function InboxPage() {
                     {/* Adjuntos: PDF o Audio */}
                     {msg.attachment && msg.attachment.type === "pdf" && (
                       <div
-                        className={`mt-2.5 rounded-xl p-2.5 flex items-center justify-between gap-3 ${
+                        className={`mt-2.5 rounded-lg p-2.5 flex items-center justify-between gap-3 ${
                           msg.isSender
                             ? "bg-white/15 border border-white/20"
                             : "bg-gray-50 border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
@@ -498,7 +498,7 @@ export default function InboxPage() {
                         <button
                           type="button"
                           onClick={() => showNotice(`Descargando ${msg.attachment?.name}...`)}
-                          className={`rounded-md px-2 py-1 text-xs font-semibold transition ${
+                          className={`rounded-lg px-2 py-1 text-xs font-semibold transition ${
                             msg.isSender
                               ? "bg-white text-brand-600 hover:bg-white/90"
                               : "bg-brand-500 text-white hover:bg-brand-600"
@@ -511,7 +511,7 @@ export default function InboxPage() {
 
                     {msg.attachment && msg.attachment.type === "audio" && (
                       <div
-                        className={`mt-2.5 rounded-xl p-2.5 flex items-center justify-between gap-3 ${
+                        className={`mt-2.5 rounded-lg p-2.5 flex items-center justify-between gap-3 ${
                           msg.isSender
                             ? "bg-white/15 border border-white/20"
                             : "bg-gray-50 border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
@@ -588,7 +588,7 @@ export default function InboxPage() {
                 {activeConversation.aiSuggestions.map((suggestion, idx) => (
                   <div
                     key={idx}
-                    className="group relative rounded-xl border border-brand-200 bg-white p-2.5 shadow-2xs hover:border-brand-500 hover:shadow-xs transition dark:border-gray-700 dark:bg-gray-800"
+                    className="group relative rounded-lg border border-brand-200 bg-white p-2.5 shadow-2xs hover:border-brand-500 hover:shadow-xs transition dark:border-gray-700 dark:bg-gray-800"
                   >
                     <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">
                       "{suggestion}"

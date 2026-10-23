@@ -57,7 +57,7 @@ export default function WorkspaceSettingsPage() {
       <PageBreadcrumb pageTitle="Configuración del Workspace" />
 
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -65,9 +65,9 @@ export default function WorkspaceSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Identidad de la Empresa */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Building2 className="size-5" />
             </div>
             <div>
@@ -91,7 +91,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
@@ -105,16 +105,16 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={billingEmail}
                 onChange={(e) => setBillingEmail(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
           </div>
         </div>
 
         {/* Zona Horaria y Horario Laboral */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
               <Clock className="size-5" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               >
                 <option value="America/Santiago">Santiago, Chile (GMT-3)</option>
                 <option value="America/Bogota">Bogotá / Lima (GMT-5)</option>
@@ -156,7 +156,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={workingStart}
                 onChange={(e) => setWorkingStart(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
@@ -169,7 +169,7 @@ export default function WorkspaceSettingsPage() {
                 disabled={isMember}
                 value={workingEnd}
                 onChange={(e) => setWorkingEnd(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function WorkspaceSettingsPage() {
                     type="button"
                     disabled={isMember}
                     onClick={() => toggleDay(day.id)}
-                    className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+                    className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                       isSelected
                         ? "bg-[#0099ff] text-white shadow-xs"
                         : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -210,9 +210,9 @@ export default function WorkspaceSettingsPage() {
         </div>
 
         {/* Webhooks de Notificación */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-800">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
               <Webhook className="size-5" />
             </div>
             <div>
@@ -236,31 +236,31 @@ export default function WorkspaceSettingsPage() {
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://tu-servidor.com/webhook"
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="flex items-center gap-2.5 rounded-xl border border-gray-100 p-3 dark:border-gray-800">
+              <label className="flex items-center gap-2.5 rounded-lg border border-gray-100 p-3 dark:border-gray-800">
                 <input
                   type="checkbox"
                   disabled={isMember}
                   checked={notifyOnReply}
                   onChange={(e) => setNotifyOnReply(e.target.checked)}
-                  className="size-4 rounded-sm accent-[#0099ff]"
+                  className="size-4 rounded-lg accent-[#0099ff]"
                 />
                 <span className="text-xs text-gray-700 dark:text-gray-300">
                   Disparar webhook cuando un lead responda un mensaje
                 </span>
               </label>
 
-              <label className="flex items-center gap-2.5 rounded-xl border border-gray-100 p-3 dark:border-gray-800">
+              <label className="flex items-center gap-2.5 rounded-lg border border-gray-100 p-3 dark:border-gray-800">
                 <input
                   type="checkbox"
                   disabled={isMember}
                   checked={notifyOnMeeting}
                   onChange={(e) => setNotifyOnMeeting(e.target.checked)}
-                  className="size-4 rounded-sm accent-[#0099ff]"
+                  className="size-4 rounded-lg accent-[#0099ff]"
                 />
                 <span className="text-xs text-gray-700 dark:text-gray-300">
                   Disparar webhook cuando se agende una reunión en el calendario
@@ -274,7 +274,7 @@ export default function WorkspaceSettingsPage() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
             >
               <Save className="size-4" />
               <span>Guardar Configuración del Workspace</span>

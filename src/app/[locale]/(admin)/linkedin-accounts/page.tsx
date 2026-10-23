@@ -230,7 +230,7 @@ export default function LinkedInAccountsPage() {
 
       {/* Notificación informativa para Miembros del Equipo */}
       {isTeamMember && (
-        <div className="flex items-center gap-2.5 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs font-medium text-blue-700 dark:text-blue-300">
+        <div className="flex items-center gap-2.5 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-xs font-medium text-blue-700 dark:text-blue-300">
           <Info className="size-4 shrink-0 text-[#0099ff]" />
           <span>
             Estas conectado como <strong>Operador SDR</strong> ({currentUser.name}) en <strong>{currentUser.companyName}</strong>. 
@@ -241,7 +241,7 @@ export default function LinkedInAccountsPage() {
 
       {/* Notificación temporal */}
       {notice && (
-        <div className="flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/10 p-3.5 text-sm font-medium text-brand-600 dark:text-brand-400">
+        <div className="flex items-center gap-2 rounded-lg border border-brand-500/20 bg-brand-500/10 p-3.5 text-sm font-medium text-brand-600 dark:text-brand-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -275,7 +275,7 @@ export default function LinkedInAccountsPage() {
           <button
             onClick={handleSyncAll}
             disabled={isSyncing}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <RefreshCw className={`size-4 ${isSyncing ? "animate-spin text-brand-500" : ""}`} />
             <span>{isSyncing ? "Sincronizando..." : "Sincronizar"}</span>
@@ -285,7 +285,7 @@ export default function LinkedInAccountsPage() {
           {!isTeamMember && (
             <button
               onClick={handleConnectClick}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
             >
               <Plus className="size-4" />
               <span>Conectar Cuenta</span>
@@ -296,10 +296,10 @@ export default function LinkedInAccountsPage() {
 
       {/* Banner de Estado del Motor Unipile */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-500">
                 <Server className="size-5" />
               </div>
               <div>
@@ -349,7 +349,7 @@ export default function LinkedInAccountsPage() {
         </div>
 
         {/* Resumen de Cuentas */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
             Cuentas Conectadas
           </div>
@@ -390,7 +390,7 @@ export default function LinkedInAccountsPage() {
 
           {/* Filtros de Cuentas para Administradores */}
           {!isTeamMember && accounts.length > 1 && (
-            <div className="inline-flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+            <div className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
               <button
                 onClick={() => setFilterMode("all")}
                 className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
@@ -426,8 +426,8 @@ export default function LinkedInAccountsPage() {
         </div>
 
         {displayedAccounts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-[#0099ff]/10 text-[#0099ff]">
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Plus className="size-6" />
             </div>
             <h4 className="mt-4 text-base font-semibold text-gray-900 dark:text-white">
@@ -441,7 +441,7 @@ export default function LinkedInAccountsPage() {
             {!isTeamMember && (
               <button
                 onClick={handleConnectClick}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
               >
                 <Plus className="size-4" />
                 <span>Conectar Cuenta de LinkedIn</span>

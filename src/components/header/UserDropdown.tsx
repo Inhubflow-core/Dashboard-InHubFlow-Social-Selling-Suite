@@ -156,10 +156,10 @@ export default function UserDropdown() {
     return (
       <div className="relative">
         <div className="flex items-center text-gray-700 dark:text-gray-400">
-          <div className="me-2.5 h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse" />
+          <div className="me-2.5 h-10 w-10 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse" />
           <div className="hidden text-left xl:block me-2">
-            <div className="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-            <div className="h-2.5 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-3.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse mb-1" />
+            <div className="h-2.5 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function UserDropdown() {
         title={`${currentUser.name} (${subtitleText})`}
       >
         <div className="relative me-2.5 shrink-0">
-          <span className="h-10 w-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
+          <span className="h-10 w-10 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
             {renderAvatar(currentUser, 40)}
           </span>
           <span
@@ -202,13 +202,13 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute mt-4.25 flex w-80 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute mt-4.25 flex w-80 flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
       >
         {/* Cabecera del usuario activo */}
         <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 overflow-hidden">
                 {renderAvatar(currentUser, 40)}
               </div>
               <span
@@ -240,7 +240,7 @@ export default function UserDropdown() {
                 </>
               )}
             </div>
-            <span className="rounded bg-[#0099ff]/10 px-2 py-0.5 text-xs font-bold text-[#0099ff]">
+            <span className="rounded-lg bg-[#0099ff]/10 px-2 py-0.5 text-xs font-bold text-[#0099ff]">
               {currentUser.role === "super_admin"
                 ? t("unlimitedSlots")
                 : `${capacity.usedSlots}/${capacity.totalSlots} ${t("slots")}`}

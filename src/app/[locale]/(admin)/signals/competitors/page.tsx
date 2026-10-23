@@ -517,7 +517,7 @@ export default function CompetitorsSignalRadarPage() {
 
       {/* Métricas del Nivel 2 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Cuentas Rivales Monitoreadas
           </span>
@@ -529,7 +529,7 @@ export default function CompetitorsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Prospectos Calificados Extraidos
           </span>
@@ -541,7 +541,7 @@ export default function CompetitorsSignalRadarPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Tasa de Aceptacion Relacional
           </span>
@@ -555,7 +555,7 @@ export default function CompetitorsSignalRadarPage() {
       </div>
 
       {/* Explicación de la Estrategia */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-brand-200 bg-white dark:border-brand-900 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
             Mecánica de Prospección a Competidores (Nivel 2)
@@ -637,7 +637,7 @@ export default function CompetitorsSignalRadarPage() {
                 {/* Dropdown de cuentas de LinkedIn encontradas */}
                 {isSearchDropdownOpen && (searchResults.length > 0 || !isSearching) && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-[30rem] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 text-xs flex flex-col"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     {/* Header con tabs de categoría y botón cerrar */}
@@ -661,7 +661,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("all")}
-                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition ${
+                          className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold transition ${
                             searchCategoryFilter === "all"
                               ? "bg-white text-gray-900 shadow-xs dark:bg-gray-700 dark:text-white"
                               : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -672,7 +672,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("companies")}
-                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1 ${
+                          className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 ${
                             searchCategoryFilter === "companies"
                               ? "bg-white text-blue-700 shadow-xs dark:bg-gray-700 dark:text-blue-300"
                               : "text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300"
@@ -683,7 +683,7 @@ export default function CompetitorsSignalRadarPage() {
                         <button
                           type="button"
                           onClick={() => setSearchCategoryFilter("people")}
-                          className={`flex-1 py-1 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1 ${
+                          className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 ${
                             searchCategoryFilter === "people"
                               ? "bg-white text-purple-700 shadow-xs dark:bg-gray-700 dark:text-purple-300"
                               : "text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-300"
@@ -791,7 +791,7 @@ export default function CompetitorsSignalRadarPage() {
                         src={selectedCompetitorItem.logoUrl}
                         alt={selectedCompetitorItem.name}
                         className={`h-6 w-6 object-contain bg-white border border-emerald-200 p-0.5 shrink-0 ${
-                          selectedCompetitorItem.type === "person" ? "rounded-full object-cover" : "rounded-md"
+                          selectedCompetitorItem.type === "person" ? "rounded-full object-cover" : "rounded-lg"
                         }`}
                       />
                     )}
@@ -800,7 +800,7 @@ export default function CompetitorsSignalRadarPage() {
                         {selectedCompetitorItem.type === "person" ? "Perfil referente vinculado: " : "Cuenta oficial de empresa vinculada: "}
                       </span>
                       <span className="font-semibold underline">{selectedCompetitorItem.name}</span>
-                      <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
+                      <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
                         {selectedCompetitorItem.type === "person" ? "Perfil" : "Empresa"}
                       </span>
                       {selectedCompetitorItem.followers && (
@@ -863,7 +863,7 @@ export default function CompetitorsSignalRadarPage() {
                           {thresh.label}
                         </span>
                         {thresh.recommended && (
-                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
                             Óptimo
                           </span>
                         )}
@@ -905,7 +905,7 @@ export default function CompetitorsSignalRadarPage() {
                           {opt.label}
                         </span>
                         {opt.recommended && (
-                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded">
+                          <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
                             Óptimo
                           </span>
                         )}
@@ -925,7 +925,7 @@ export default function CompetitorsSignalRadarPage() {
             {/* Fila 3: Tipo de Interacciones y Filtro Anti-Colaboradores (Diseño Armonioso Lado a Lado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Tarjeta 1: Tipo de Interacciones a Monitorear */}
-              <div className="flex flex-col justify-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
                   Tipo de Interacciones a Capturar
                 </span>
@@ -935,7 +935,7 @@ export default function CompetitorsSignalRadarPage() {
                       type="checkbox"
                       checked={trackComments}
                       onChange={(e) => setTrackComments(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                     <span>Comentarios (Mayor intención)</span>
                   </label>
@@ -944,7 +944,7 @@ export default function CompetitorsSignalRadarPage() {
                       type="checkbox"
                       checked={trackLikes}
                       onChange={(e) => setTrackLikes(e.target.checked)}
-                      className="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                     <span>Likes / Reacciones</span>
                   </label>
@@ -952,13 +952,13 @@ export default function CompetitorsSignalRadarPage() {
               </div>
 
               {/* Tarjeta 2: Filtro Anti-Engagement Interno */}
-              <div className="flex items-center p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={excludeAuthorEmployees}
                     onChange={(e) => setExcludeAuthorEmployees(e.target.checked)}
-                    className="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                    className="mt-0.5 rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
                   <div>
                     <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
@@ -1011,7 +1011,7 @@ export default function CompetitorsSignalRadarPage() {
       {/* Banner de Feedback de Auditoría */}
       {scanFeedback && (
         <div
-          className={`rounded-xl p-3.5 text-xs border flex items-center justify-between ${
+          className={`rounded-lg p-3.5 text-xs border flex items-center justify-between ${
             scanFeedback.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-300"
@@ -1168,13 +1168,13 @@ export default function CompetitorsSignalRadarPage() {
                             {comp.keywordsFilter.map((kw, i) => (
                               <span
                                 key={i}
-                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               >
                                 {kw}
                               </span>
                             ))}
                             {comp.minCommentThreshold && (
-                              <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
+                              <span className="rounded-lg bg-brand-50 border border-brand-200 px-1.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
                                 +{comp.minCommentThreshold} com.
                               </span>
                             )}
@@ -1193,7 +1193,7 @@ export default function CompetitorsSignalRadarPage() {
                           <button
                             type="button"
                             onClick={() => toggleLevel2Status(comp.id)}
-                            className={`rounded-full px-2.5 py-0.5 font-semibold text-xs transition ${
+                            className={`rounded-lg px-2.5 py-0.5 font-semibold text-xs transition ${
                               comp.status === "active"
                                 ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/40 dark:text-green-400"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
@@ -1207,7 +1207,7 @@ export default function CompetitorsSignalRadarPage() {
                           <div className="inline-flex items-center justify-end gap-1.5 flex-nowrap shrink-0">
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
-                              className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
+                              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
                               title="Seleccionar tamaño de lote para la próxima auditoría"
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
@@ -1224,7 +1224,7 @@ export default function CompetitorsSignalRadarPage() {
                                         [comp.id]: batchVal,
                                       }))
                                     }
-                                    className={`px-1.5 py-0.5 rounded transition ${
+                                    className={`px-1.5 py-0.5 rounded-lg transition ${
                                       isSelected
                                         ? "bg-brand-500 text-white font-bold shadow-2xs"
                                         : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -1244,7 +1244,7 @@ export default function CompetitorsSignalRadarPage() {
                                   type="button"
                                   disabled={isScanningId === comp.id}
                                   onClick={() => handleScanCompetitor(comp, false, activeBatch)}
-                                  className="rounded-md bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
+                                  className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
                                   title={`Escanear publicaciones y extraer lote seguro de hasta ${activeBatch} decisores`}
                                 >
                                   {isScanningId === comp.id ? (
@@ -1255,7 +1255,7 @@ export default function CompetitorsSignalRadarPage() {
                                   ) : (
                                     <>
                                       <span>Escanear</span>
-                                      <span className="rounded bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
+                                      <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                         {activeBatch}
                                       </span>
                                     </>
@@ -1267,7 +1267,7 @@ export default function CompetitorsSignalRadarPage() {
                             {/* Botón Ver Lista Directa */}
                             <Link
                               href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&competitor=${encodeURIComponent(comp.competitorName)}`}
-                              className="rounded-md border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
+                              className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir lista inteligente de ${comp.competitorName}`}
                             >
                               <span>Ver Leads ({leadCount})</span>
@@ -1278,7 +1278,7 @@ export default function CompetitorsSignalRadarPage() {
                             <button
                               type="button"
                               onClick={() => setEditingMonitor(comp)}
-                              className="h-[26px] w-[26px] rounded-md border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
                               title="Editar monitor de competidor"
                             >
                               <Pencil className="size-3.5" />
@@ -1309,7 +1309,7 @@ export default function CompetitorsSignalRadarPage() {
                                   }
                                 }
                               }}
-                              className="h-[26px] w-[26px] rounded-md border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                              className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
                               title="Eliminar competidor"
                             >
                               <X className="size-3.5" />
@@ -1322,7 +1322,7 @@ export default function CompetitorsSignalRadarPage() {
                       {isExpanded && scannedPosts.length > 0 && (
                         <tr key={`${comp.id}-posts-card`} className="border-t-0">
                           <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
-                            <div className="w-full rounded-xl border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
+                            <div className="w-full rounded-lg border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <span>🔗</span>
@@ -1382,7 +1382,7 @@ export default function CompetitorsSignalRadarPage() {
       {/* Modal de Edición de Monitor Nivel 2 */}
       {editingMonitor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Pencil className="size-5 text-brand-500" />
@@ -1410,7 +1410,7 @@ export default function CompetitorsSignalRadarPage() {
                   onChange={(e) =>
                     setEditingMonitor({ ...editingMonitor, competitorName: e.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -1424,7 +1424,7 @@ export default function CompetitorsSignalRadarPage() {
                   onChange={(e) =>
                     setEditingMonitor({ ...editingMonitor, competitorUrl: e.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
@@ -1445,7 +1445,7 @@ export default function CompetitorsSignalRadarPage() {
                     })
                   }
                   placeholder="Ej: Agentes IA, Prospección, Automatización"
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Deja vacío para auditar todos los posts del competidor sin filtro de temáticas.
@@ -1498,7 +1498,7 @@ export default function CompetitorsSignalRadarPage() {
                           : editingMonitor.interactionTypes.filter((t) => t !== "comments");
                         setEditingMonitor({ ...editingMonitor, interactionTypes: types });
                       }}
-                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
                     Comentarios (Alta intención)
                   </label>
@@ -1512,7 +1512,7 @@ export default function CompetitorsSignalRadarPage() {
                           : editingMonitor.interactionTypes.filter((t) => t !== "likes");
                         setEditingMonitor({ ...editingMonitor, interactionTypes: types });
                       }}
-                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                      className="rounded-lg border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
                     Reacciones / Likes
                   </label>
@@ -1530,7 +1530,7 @@ export default function CompetitorsSignalRadarPage() {
                         excludeAuthorEmployees: e.target.checked,
                       })
                     }
-                    className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                    className="rounded-lg border-gray-300 text-brand-600 focus:ring-brand-500"
                   />
                   <span>
                     Excluir empleados del competidor y miembros de mi propio equipo (Engagement Bait Filter)
@@ -1551,7 +1551,7 @@ export default function CompetitorsSignalRadarPage() {
                       outreachTemplate: e.target.value,
                     })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Variables disponibles: {"{{first_name}}"}, {"{{competitor_name}}"}, {"{{topic}}"}
@@ -1569,7 +1569,7 @@ export default function CompetitorsSignalRadarPage() {
                       scanFrequency: e.target.value as "daily" | "manual",
                     })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="daily">Diaria (Cada 24 horas - Estándar Plataforma)</option>
                   <option value="manual">Solo Manual (Al pulsar &quot;Escanear&quot;)</option>
@@ -1611,7 +1611,7 @@ export default function CompetitorsSignalRadarPage() {
               <button
                 type="button"
                 onClick={() => setEditingMonitor(null)}
-                className="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Cancelar
               </button>
@@ -1630,7 +1630,7 @@ export default function CompetitorsSignalRadarPage() {
                   });
                   setEditingMonitor(null);
                 }}
-                className="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
+                className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
               >
                 Guardar Cambios
               </button>

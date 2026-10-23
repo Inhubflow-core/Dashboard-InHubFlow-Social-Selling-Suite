@@ -18,7 +18,7 @@ export default function UserAddressCard() {
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
+      <div className="rounded-lg border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
         <div className="flex flex-col gap-6 sm:flex-row lg:items-start lg:justify-between">
           <div className="flex-1">
             <h4 className="mb-4 text-lg font-semibold text-gray-800 lg:mb-6 dark:text-white/90">
@@ -76,7 +76,7 @@ export default function UserAddressCard() {
         </div>
       </div>
       <Modal isOpen={isOpen} onClose={closeModal} className="m-4 max-w-[700px]">
-        <div className="relative no-scrollbar w-full overflow-y-auto rounded-3xl bg-white p-4 lg:p-11 dark:bg-gray-900">
+        <div className="relative no-scrollbar w-full overflow-y-auto rounded-lg bg-white p-4 lg:p-11 dark:bg-gray-900">
           <div className="px-2 pe-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               Edit Address

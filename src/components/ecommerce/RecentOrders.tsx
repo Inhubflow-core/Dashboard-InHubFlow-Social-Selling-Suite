@@ -74,7 +74,7 @@ export default function RecentOrders() {
   const tCommon = useTranslations("common");
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/3">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -165,7 +165,7 @@ export default function RecentOrders() {
               <TableRow key={product.id} className="">
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-12.5 w-12.5 overflow-hidden rounded-md">
+                    <div className="h-12.5 w-12.5 overflow-hidden rounded-lg">
                       <Image
                         width={50}
                         height={50}

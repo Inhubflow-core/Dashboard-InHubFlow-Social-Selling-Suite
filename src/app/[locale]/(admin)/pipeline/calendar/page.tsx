@@ -109,7 +109,7 @@ export default function PipelineCalendarPage() {
     <div className="flex flex-col min-h-[calc(100vh-140px)]">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-xl bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-lg bg-gray-900 border border-brand-500/30 px-4 py-2.5 text-xs text-white shadow-xl dark:bg-black">
           <Sparkles className="size-4 text-brand-400" />
           <span>{toastMsg}</span>
         </div>
@@ -142,7 +142,7 @@ export default function PipelineCalendarPage() {
       </div>
 
       {/* Barra de Integraciones y Zona Horaria */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 mb-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 mb-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Proveedores Conectados */}
           <div className="flex flex-wrap items-center gap-3">
@@ -190,7 +190,7 @@ export default function PipelineCalendarPage() {
 
       {/* Métricas de Citas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Reuniones esta Semana</span>
             <CalendarIcon className="size-4 text-brand-500" />
@@ -203,7 +203,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Show Rate (Asistencia)</span>
             <CheckCircle2 className="size-4 text-emerald-500" />
@@ -216,7 +216,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Duracion Promedio</span>
             <Clock className="size-4 text-purple-500" />
@@ -229,7 +229,7 @@ export default function PipelineCalendarPage() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Pipeline Agendado</span>
             <Sparkles className="size-4 text-amber-500" />
@@ -244,7 +244,7 @@ export default function PipelineCalendarPage() {
       </div>
 
       {/* Filtros de Citas */}
-      <div className="rounded-xl border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2 flex-1 min-w-[220px]">
           <Search className="size-4 text-gray-400" />
           <input
@@ -295,19 +295,19 @@ export default function PipelineCalendarPage() {
           </div>
 
           {filteredMeetings.length === 0 ? (
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900">
               No hay citas que coincidan con la busqueda.
             </div>
           ) : (
             filteredMeetings.map((meet) => (
               <div
                 key={meet.id}
-                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900"
+                className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs hover:border-brand-500 transition dark:border-gray-800 dark:bg-gray-900"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-950/60 dark:text-brand-300">
+                      <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-600 dark:bg-brand-950/60 dark:text-brand-300">
                         {meet.time}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -316,7 +316,7 @@ export default function PipelineCalendarPage() {
                       <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                         {meet.status}
                       </span>
-                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                      <span className="rounded-lg bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                         {meet.provider}
                       </span>
                     </div>
@@ -396,7 +396,7 @@ export default function PipelineCalendarPage() {
 
         {/* Columna Derecha: Panel de Configuración y Enlace de Agendamiento Rápido */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Tu Enlace de Agendamiento
             </h4>
@@ -404,7 +404,7 @@ export default function PipelineCalendarPage() {
               Comparte este enlace directamente en LinkedIn o insertalo en los flujos automatizados para que los leads elijan su horario.
             </p>
 
-            <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-2.5 dark:border-brand-900 dark:bg-brand-950/20 mb-3">
+            <div className="rounded-lg border border-brand-200 bg-brand-50/50 p-2.5 dark:border-brand-900 dark:bg-brand-950/20 mb-3">
               <span className="text-xs font-semibold text-brand-700 dark:text-brand-300 block mb-0.5">
                 Cal.com / InHubFlow SDR
               </span>
@@ -426,7 +426,7 @@ export default function PipelineCalendarPage() {
             </button>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
             <h4 className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-2">
               Protocolo de Asistencia (Show-Up)
             </h4>
@@ -451,7 +451,7 @@ export default function PipelineCalendarPage() {
       {/* Modal para Agendar Cita Manual */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Agendar Reunion Comercial

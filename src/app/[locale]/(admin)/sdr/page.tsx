@@ -350,17 +350,17 @@ export default function SdrAgentPage() {
 
       {/* Notificación Toast */}
       {notification && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-4 shrink-0" />
           <span>{notification}</span>
         </div>
       )}
 
       {/* Header del Agente & Selector de Modo Operativo */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:p-6">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#0099ff]/10 text-[#0099ff]">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Bot className="size-6" />
             </div>
             <div>
@@ -374,7 +374,7 @@ export default function SdrAgentPage() {
                   <span className="size-1.5 rounded-full bg-current" />
                   {currentModeInfo.label}
                 </span>
-                <span className="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                <span className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
                   Modelo: {config.model}
                 </span>
               </div>
@@ -390,7 +390,7 @@ export default function SdrAgentPage() {
               <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                 Modo Operativo
               </span>
-              <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+              <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
                 {(["off", "shadow", "approval", "auto"] as SdrMode[]).map((mode) => (
                   <button
                     key={mode}
@@ -415,7 +415,7 @@ export default function SdrAgentPage() {
 
       {/* Métricas Clave */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Decisiones IA</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.totalDecisions}
@@ -426,7 +426,7 @@ export default function SdrAgentPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza Media</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.averageConfidence}%
@@ -434,7 +434,7 @@ export default function SdrAgentPage() {
           <div className="mt-1 text-xs text-gray-500">Umbral mín: 85%</div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Por Aprobar</div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-[#0099ff]">
@@ -445,7 +445,7 @@ export default function SdrAgentPage() {
           <div className="mt-1 text-xs text-blue-600">Human-in-the-loop</div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Handoffs a Humano</div>
           <div className="mt-2 text-2xl font-bold text-amber-600">
             {stats.handoffCount}
@@ -453,7 +453,7 @@ export default function SdrAgentPage() {
           <div className="mt-1 text-xs text-gray-500">Protección activa</div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Envíos Autónomos</div>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             {stats.autonomousRepliesSent}
@@ -503,7 +503,7 @@ export default function SdrAgentPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Estado del Pipeline SDR */}
-            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
+            <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Ciclo de Vida de Mensajes Entrantes
               </h3>
@@ -512,7 +512,7 @@ export default function SdrAgentPage() {
               </p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
                   <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
                     <MessageSquare className="size-4" />
                   </div>
@@ -524,7 +524,7 @@ export default function SdrAgentPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
                   <div className="flex size-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
                     <Brain className="size-4" />
                   </div>
@@ -536,7 +536,7 @@ export default function SdrAgentPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
                   <div className="flex size-7 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
                     <BookOpen className="size-4" />
                   </div>
@@ -548,7 +548,7 @@ export default function SdrAgentPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
                   <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
                     <Send className="size-4" />
                   </div>
@@ -562,7 +562,7 @@ export default function SdrAgentPage() {
               </div>
 
               {/* Banner de Modo Operativo */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+              <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
@@ -583,7 +583,7 @@ export default function SdrAgentPage() {
             </div>
 
             {/* Configuración Rápida / Resumen */}
-            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Parámetros de Seguridad
               </h3>
@@ -627,7 +627,7 @@ export default function SdrAgentPage() {
 
               <button
                 onClick={() => setActiveTab("simulator")}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
               >
                 <Play className="size-3.5" />
                 <span>Probar en el Simulador</span>
@@ -655,8 +655,8 @@ export default function SdrAgentPage() {
           </div>
 
           {pendingActions.filter((a) => a.status === "pending").length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
                 <CheckCircle2 className="size-6" />
               </div>
               <h4 className="mt-3 text-base font-semibold text-gray-900 dark:text-white">
@@ -677,7 +677,7 @@ export default function SdrAgentPage() {
                   return (
                     <div
                       key={action.id}
-                      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs transition-all dark:border-gray-800 dark:bg-gray-900"
+                      className="rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs transition-all dark:border-gray-800 dark:bg-gray-900"
                     >
                       {/* Top Bar: Prospecto & Badges */}
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
@@ -702,14 +702,14 @@ export default function SdrAgentPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${intentInfo.color}`}>
+                          <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${intentInfo.color}`}>
                             {intentInfo.label}
                           </span>
-                          <span className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                          <span className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
                             Confianza: {Math.round(action.confidence * 100)}%
                           </span>
                           <span
-                            className={`rounded-md px-2 py-1 text-xs font-medium ${
+                            className={`rounded-lg px-2 py-1 text-xs font-medium ${
                               action.riskLevel === "low"
                                 ? "bg-emerald-500/10 text-emerald-600"
                                 : action.riskLevel === "medium"
@@ -723,7 +723,7 @@ export default function SdrAgentPage() {
                       </div>
 
                       {/* Mensaje Entrante del Lead */}
-                      <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800/80 dark:bg-gray-800/40">
+                      <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-800/80 dark:bg-gray-800/40">
                         <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           Mensaje del Prospecto (LinkedIn)
                         </span>
@@ -764,10 +764,10 @@ export default function SdrAgentPage() {
                             value={editedReply}
                             onChange={(e) => setEditedReply(e.target.value)}
                             rows={4}
-                            className="w-full rounded-xl border border-[#0099ff] bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:bg-gray-950 dark:text-white"
+                            className="w-full rounded-lg border border-[#0099ff] bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:bg-gray-950 dark:text-white"
                           />
                         ) : (
-                          <div className="rounded-xl border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
+                          <div className="rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
                             {action.suggestedReply}
                           </div>
                         )}
@@ -780,7 +780,7 @@ export default function SdrAgentPage() {
                             {action.citations.map((cite, idx) => (
                               <span
                                 key={idx}
-                                className="rounded-sm bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded-lg bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                               >
                                 {cite}
                               </span>
@@ -793,7 +793,7 @@ export default function SdrAgentPage() {
                       <div className="mt-5 flex flex-wrap items-center justify-end gap-2.5 border-t border-gray-100 pt-3.5 dark:border-gray-800">
                         <button
                           onClick={() => handleRejectAction(action.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
                         >
                           <Trash2 className="size-3.5" />
                           <span>Descartar</span>
@@ -801,7 +801,7 @@ export default function SdrAgentPage() {
 
                         <button
                           onClick={() => handleHandoffAction(action)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20"
                         >
                           <ShieldAlert className="size-3.5" />
                           <span>Escalar a Humano</span>
@@ -809,7 +809,7 @@ export default function SdrAgentPage() {
 
                         <button
                           onClick={() => handleApproveAction(action)}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                         >
                           <Send className="size-3.5" />
                           <span>Aprobar & Enviar a LinkedIn</span>
@@ -838,7 +838,7 @@ export default function SdrAgentPage() {
             {!isMember && (
               <button
                 onClick={() => setIsAddKnowledgeOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
               >
                 <Plus className="size-3.5" />
                 <span>Agregar Documento</span>
@@ -855,11 +855,11 @@ export default function SdrAgentPage() {
                 placeholder="Buscar en la base de conocimiento..."
                 value={knowledgeSearch}
                 onChange={(e) => setKnowledgeSearch(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white py-2 pr-4 pl-9 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-200 bg-white py-2 pr-4 pl-9 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
               />
             </div>
 
-            <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
               {[
                 { key: "all", label: "Todos" },
                 { key: "value_prop", label: "Propuesta" },
@@ -887,12 +887,12 @@ export default function SdrAgentPage() {
             {filteredKnowledge.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
+                className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="rounded-md bg-[#0099ff]/10 px-2 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
+                      <span className="rounded-lg bg-[#0099ff]/10 px-2 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                         {item.category.replace("_", " ")}
                       </span>
                       <h4 className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
@@ -926,7 +926,7 @@ export default function SdrAgentPage() {
           {/* Modal Agregar Documento */}
           {isAddKnowledgeOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-              <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+              <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-base font-bold text-gray-900 dark:text-white">
                   Agregar Documento a la Base de Conocimiento
                 </h4>
@@ -945,7 +945,7 @@ export default function SdrAgentPage() {
                       placeholder="Ej: Política de Reembolso o Tarifas de Implementación"
                       value={newKbTitle}
                       onChange={(e) => setNewKbTitle(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
@@ -956,7 +956,7 @@ export default function SdrAgentPage() {
                     <select
                       value={newKbCategory}
                       onChange={(e) => setNewKbCategory(e.target.value as KnowledgeCategory)}
-                      className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     >
                       <option value="value_prop">Propuesta de Valor</option>
                       <option value="pricing">Precios y Tarifas</option>
@@ -976,7 +976,7 @@ export default function SdrAgentPage() {
                       placeholder="Redacta la información detallada que el agente usará para responder..."
                       value={newKbContent}
                       onChange={(e) => setNewKbContent(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
@@ -984,13 +984,13 @@ export default function SdrAgentPage() {
                     <button
                       type="button"
                       onClick={() => setIsAddKnowledgeOpen(false)}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="rounded-xl bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
+                      className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
                     >
                       Guardar Documento
                     </button>
@@ -1005,7 +1005,7 @@ export default function SdrAgentPage() {
       {/* ── TAB 4: POLICIES & CONFIG ── */}
       {activeTab === "policies" && (
         <form onSubmit={handleSaveConfig} className="space-y-6">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Identidad y Parámetros del Asistente SDR
             </h3>
@@ -1023,7 +1023,7 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.name}
                   onChange={(e) => setConfig({ ...config, name: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -1035,7 +1035,7 @@ export default function SdrAgentPage() {
                   type="text"
                   disabled
                   value={config.model}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
                 />
               </div>
 
@@ -1078,7 +1078,7 @@ export default function SdrAgentPage() {
                   onChange={(e) =>
                     setConfig({ ...config, maxAutoTurns: parseInt(e.target.value, 10) || 3 })
                   }
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
                 <span className="text-xs text-gray-400">
                   Tras este número de respuestas consecutivas, el lead pasa a un humano.
@@ -1095,7 +1095,7 @@ export default function SdrAgentPage() {
                   value={config.bookingLink || ""}
                   onChange={(e) => setConfig({ ...config, bookingLink: e.target.value })}
                   placeholder="https://cal.inhubflow.com/demo-20min"
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -1108,7 +1108,7 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.handoffEmail}
                   onChange={(e) => setConfig({ ...config, handoffEmail: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
             </div>
@@ -1123,7 +1123,7 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.systemPrompt}
                   onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
@@ -1136,7 +1136,7 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.customInstructions}
                   onChange={(e) => setConfig({ ...config, customInstructions: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
             </div>
@@ -1145,7 +1145,7 @@ export default function SdrAgentPage() {
               <div className="mt-6 flex justify-end">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
                   <Check className="size-4" />
                   <span>Guardar Políticas & Configuración</span>
@@ -1160,7 +1160,7 @@ export default function SdrAgentPage() {
       {activeTab === "simulator" && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Panel Izquierdo: Entrada de Prueba */}
-          <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
                 Simulador Interactivo de Decisión
@@ -1179,7 +1179,7 @@ export default function SdrAgentPage() {
                   type="text"
                   value={simSender}
                   onChange={(e) => setSimSender(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
               <div>
@@ -1190,7 +1190,7 @@ export default function SdrAgentPage() {
                   type="text"
                   value={simCompany}
                   onChange={(e) => setSimCompany(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
             </div>
@@ -1204,7 +1204,7 @@ export default function SdrAgentPage() {
                 value={simText}
                 onChange={(e) => setSimText(e.target.value)}
                 placeholder="Ejemplo: 'Hola, me llamó la atención su herramienta. ¿Cuánto cuesta para 5 personas de mi equipo?'"
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
 
@@ -1238,7 +1238,7 @@ export default function SdrAgentPage() {
             <button
               onClick={() => handleRunSimulation()}
               disabled={isSimulating || !simText.trim()}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
             >
               {isSimulating ? (
                 <span>Evaluando con Gemini...</span>
@@ -1252,13 +1252,13 @@ export default function SdrAgentPage() {
           </div>
 
           {/* Panel Derecho: Resultado de la Simulación */}
-          <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
               Análisis y Respuesta de la IA
             </h3>
 
             {!simResult ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center dark:border-gray-800">
+              <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center dark:border-gray-800">
                 <Brain className="mx-auto size-8 text-gray-400" />
                 <p className="mt-2 text-xs text-gray-500">
                   Ingresa o selecciona un mensaje a la izquierda y presiona &quot;Simular Decisión IA&quot; para ver la clasificación en tiempo real.
@@ -1268,28 +1268,28 @@ export default function SdrAgentPage() {
               <div className="space-y-4">
                 {/* Badges de Decisión */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
                     <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Intención</div>
                     <div className="mt-1 text-xs font-bold text-gray-900 dark:text-white">
                       {simResult.intent}
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
                     <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza</div>
                     <div className="mt-1 text-xs font-bold text-[#0099ff]">
                       {Math.round(simResult.confidence * 100)}%
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
                     <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Acción</div>
                     <div className="mt-1 text-xs font-bold text-emerald-600">
                       {simResult.recommendedAction}
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
                     <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia</div>
                     <div className="mt-1 text-xs font-bold text-gray-700 dark:text-gray-300">
                       {simResult.latencyMs} ms
@@ -1298,7 +1298,7 @@ export default function SdrAgentPage() {
                 </div>
 
                 {/* Razonamiento */}
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/40">
+                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/40">
                   <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     Resumen de Razonamiento
                   </span>
@@ -1312,7 +1312,7 @@ export default function SdrAgentPage() {
                   <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                     Borrador de Respuesta Sugerida
                   </span>
-                  <div className="mt-1.5 rounded-xl border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
+                  <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
                     {simResult.replyDraft}
                   </div>
                 </div>
@@ -1325,7 +1325,7 @@ export default function SdrAgentPage() {
                     {simResult.citations.map((c, i) => (
                       <span
                         key={i}
-                        className="rounded-sm bg-gray-100 px-1.5 py-0.5 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        className="rounded-lg bg-gray-100 px-1.5 py-0.5 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                       >
                         {c}
                       </span>
@@ -1354,11 +1354,11 @@ export default function SdrAgentPage() {
             {gates.map((gate) => (
               <div
                 key={gate.key}
-                className="flex items-start justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
+                className="flex items-start justify-between rounded-lg border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
               >
                 <div className="flex items-start gap-3.5">
                   <div
-                    className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
                       gate.passed
                         ? "bg-emerald-500/10 text-emerald-600"
                         : "bg-red-500/10 text-red-600"
@@ -1411,7 +1411,7 @@ export default function SdrAgentPage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-gray-100 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
                 <tr>
@@ -1441,7 +1441,7 @@ export default function SdrAgentPage() {
                       {log.inboundText}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-600">
+                      <span className="rounded-lg bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-600">
                         {log.intent}
                       </span>
                     </td>

@@ -227,7 +227,7 @@ export default function EditorialCalendarPage() {
 
       {/* Alerta de confirmación al reprogramar */}
       {justRescheduledInfo && (
-        <div className="rounded-2xl bg-emerald-50 p-3.5 text-xs text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-xs">
+        <div className="rounded-lg bg-emerald-50 p-3.5 text-xs text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>
@@ -246,7 +246,7 @@ export default function EditorialCalendarPage() {
       )}
 
       {/* Contenedor Principal del Calendario */}
-      <div className="rounded-3xl border border-gray-200/80 bg-white p-5 sm:p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 space-y-6">
+      <div className="rounded-lg border border-gray-200/80 bg-white p-5 sm:p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 space-y-6">
         {/* Cabecera Superior: Título, Contador, Selector de Vista y Botón Programar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -265,7 +265,7 @@ export default function EditorialCalendarPage() {
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* Selector de Modo: Mes | Semana */}
-            <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-950/40 p-1 shadow-2xs">
+            <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-950/40 p-1 shadow-2xs">
               <button
                 type="button"
                 onClick={() => setViewMode("month")}
@@ -293,7 +293,7 @@ export default function EditorialCalendarPage() {
             {/* Botón de Acción Principal */}
             <Link
               href="/viral-posts/create"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 shadow-xs transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 shadow-xs transition"
             >
               <Plus size={15} />
               Programar Post
@@ -305,7 +305,7 @@ export default function EditorialCalendarPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
           {/* Navegación temporal: Flechas + Hoy + Nombre del Mes */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs p-1">
+            <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs p-1">
               <button
                 type="button"
                 onClick={handlePrev}
@@ -338,7 +338,7 @@ export default function EditorialCalendarPage() {
 
           {/* Filtros de Estado: Todas | Programadas | Publicadas */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-950/40 text-xs shadow-2xs">
+            <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-950/40 text-xs shadow-2xs">
               {[
                 { id: "all", label: "Todas" },
                 { id: "scheduled", label: "Programadas" },
@@ -381,7 +381,7 @@ export default function EditorialCalendarPage() {
 
         {/* Vista Mensual Estilo #b2b con Días de la Semana y 7 Columnas */}
         {viewMode === "month" ? (
-          <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs overflow-hidden">
+          <div className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs overflow-hidden">
             {/* Cabecera de Días de la Semana: LUN, MAR, MIÉ, JUE, VIE, SÁB, DOM */}
             <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50 divide-x divide-gray-200 dark:divide-gray-800">
               {WEEKDAYS.map((wd) => (
@@ -556,7 +556,7 @@ export default function EditorialCalendarPage() {
                     e.preventDefault();
                     handleDropOnDay(day.dateKey);
                   }}
-                  className={`flex flex-col min-h-[380px] rounded-2xl border p-3 transition-all duration-150 ${
+                  className={`flex flex-col min-h-[380px] rounded-lg border p-3 transition-all duration-150 ${
                     isDropTarget
                       ? "border-2 border-brand-500 bg-brand-100/70 dark:bg-brand-950/60 dark:border-brand-400 ring-4 ring-brand-500/20 scale-[1.01] shadow-md z-10"
                       : day.isToday
@@ -573,7 +573,7 @@ export default function EditorialCalendarPage() {
                           {day.name}
                         </p>
                         {day.isToday && (
-                          <span className="rounded bg-brand-500 px-1 py-0.2 text-xs font-bold text-white uppercase">
+                          <span className="rounded-lg bg-brand-500 px-1 py-0.2 text-xs font-bold text-white uppercase">
                             Hoy
                           </span>
                         )}
@@ -583,7 +583,7 @@ export default function EditorialCalendarPage() {
                       </h4>
                     </div>
                     {day.isPeak && (
-                      <span className="rounded bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
+                      <span className="rounded-lg bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                         Pico B2B
                       </span>
                     )}
@@ -609,7 +609,7 @@ export default function EditorialCalendarPage() {
                           setDragOverDateKey(null);
                         }}
                         onClick={() => setSelectedPostDetails(post)}
-                        className={`cursor-grab active:cursor-grabbing rounded-xl border border-gray-200 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
+                        className={`cursor-grab active:cursor-grabbing rounded-lg border border-gray-200 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
                           draggedPostId === post.id
                             ? "opacity-30 scale-95 border-dashed border-brand-500"
                             : ""
@@ -618,7 +618,7 @@ export default function EditorialCalendarPage() {
                       >
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span
-                            className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase ${
+                            className={`rounded-lg px-1.5 py-0.5 text-xs font-bold uppercase ${
                               post.format === "carousel"
                                 ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
                                 : post.format === "image"
@@ -659,7 +659,7 @@ export default function EditorialCalendarPage() {
 
                     {dayPosts.length === 0 && (
                       <div
-                        className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-3 text-center text-xs transition ${
+                        className={`h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-3 text-center text-xs transition ${
                           isDropTarget
                             ? "border-brand-500 bg-brand-100/50 text-brand-700 font-bold dark:bg-brand-950/60 dark:text-brand-300"
                             : "border-gray-200 text-gray-400 dark:border-gray-800"
@@ -679,7 +679,7 @@ export default function EditorialCalendarPage() {
       {/* Modal de Detalle de Publicación */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
             <div className="flex items-start justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
               <div>
                 <span className="text-xs uppercase font-bold text-brand-600">
@@ -698,7 +698,7 @@ export default function EditorialCalendarPage() {
               </button>
             </div>
 
-            <div className="rounded-xl bg-gray-50 p-3.5 font-mono text-xs text-gray-700 leading-relaxed whitespace-pre-wrap dark:bg-gray-800/60 dark:text-gray-300">
+            <div className="rounded-lg bg-gray-50 p-3.5 font-mono text-xs text-gray-700 leading-relaxed whitespace-pre-wrap dark:bg-gray-800/60 dark:text-gray-300">
               {selectedPostDetails.content}
             </div>
 
