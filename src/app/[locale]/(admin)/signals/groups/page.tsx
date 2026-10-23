@@ -583,7 +583,7 @@ export default function LinkedInGroupsSignalRadarPage() {
 
                   return (
                     <Fragment key={group.id}>
-                      <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
+                      <tr className={`hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top ${isExpanded && scannedPosts.length > 0 ? "border-b-0!" : ""}`}>
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
                             <div className="h-8 w-8 rounded-full bg-brand-500 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-xs mt-0.5">
@@ -804,8 +804,8 @@ export default function LinkedInGroupsSignalRadarPage() {
 
                       {/* Card de Ancho Completo para Debates Analizados */}
                       {isExpanded && scannedPosts.length > 0 && (
-                        <tr key={`${group.id}-posts-card`} className="border-t-0">
-                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
+                        <tr key={`${group.id}-posts-card`} className="border-t-0!">
+                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0!">
                             <div className="w-full rounded-lg border border-emerald-100 bg-emerald-50/60 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">

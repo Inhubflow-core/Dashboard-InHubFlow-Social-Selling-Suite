@@ -1124,7 +1124,7 @@ export default function GlobalSignalsPage() {
 
                   return (
                     <Fragment key={rule.id}>
-                      <tr className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top">
+                      <tr className={`hover:bg-gray-50/50 dark:hover:bg-white/2 transition align-top ${isExpanded && scannedPosts.length > 0 ? "border-b-0!" : ""}`}>
                         {/* 1. Temática & Problema en LinkedIn */}
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex items-start gap-2.5">
@@ -1336,8 +1336,8 @@ export default function GlobalSignalsPage() {
 
                       {/* Card de Ancho Completo: Feed de Publicaciones Virales Cazadas (Opción B) */}
                       {isExpanded && scannedPosts.length > 0 && (
-                        <tr key={`${rule.id}-posts-card`} className="border-t-0">
-                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0">
+                        <tr key={`${rule.id}-posts-card`} className="border-t-0!">
+                          <td colSpan={6} className="px-4 pb-4 pt-0 border-t-0!">
                             <div className="w-full rounded-lg border border-blue-200/80 bg-[#E9F0F7] p-3.5 dark:border-blue-900/40 dark:bg-gray-800/60 shadow-xs">
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
