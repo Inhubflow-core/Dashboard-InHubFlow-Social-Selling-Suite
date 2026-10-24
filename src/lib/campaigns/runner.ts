@@ -263,6 +263,7 @@ export async function executeCampaignStepForLead(params: {
 
     case "action_like_comment": {
       let targetPostId = `post_target_${leadState.leadId}`;
+      let rawPostText = "";
       try {
         const posts = await unipile.getUserPosts({
           account_id: accountId,
@@ -271,6 +272,7 @@ export async function executeCampaignStepForLead(params: {
         });
         if (posts && posts.length > 0 && posts[0].id) {
           targetPostId = posts[0].id;
+          rawPostText = posts[0].text || (posts[0] as any).content || "";
         }
       } catch (err) {
         console.warn("[Runner] No se pudieron obtener posts del prospecto, usando post de referencia:", err);
@@ -287,16 +289,34 @@ export async function executeCampaignStepForLead(params: {
         console.warn("[Runner] Advertencia al reaccionar al post:", error);
       }
 
-      // Comentario contextual con adaptacion multilingue inteligente
-      let commentTemplate = nodeData.commentText || "Gran aporte {{first_name}}, excelente punto de vista.";
-      if (leadState.language && leadState.language !== "es") {
+      // Comentario contextual: lectura profunda con Asistente SDR IA Gemini o plantilla de fallback
+      let commentBody = (nodeData.commentText || "Gran aporte {{first_name}}, excelente punto de vista.").replace(
+        /{{first_name}}/gi,
+        leadState.leadName.split(" ")[0]
+      );
+      let isAiGeneratedComment = false;
+
+      if (nodeData.useAiComment !== false && rawPostText && rawPostText.trim().length > 30) {
         try {
-          commentTemplate = await translateOutreachMessage(commentTemplate, leadState.language);
+          const smartComment = await generateSmartPostComment({
+            postText: rawPostText,
+            leadName: leadState.leadName,
+            language: leadState.language,
+          });
+          if (smartComment) {
+            commentBody = smartComment;
+            isAiGeneratedComment = true;
+          }
+        } catch (aiErr) {
+          console.warn("[Runner] Fallback en generación de comentario SDR IA:", aiErr);
+        }
+      } else if (leadState.language && leadState.language !== "es") {
+        try {
+          commentBody = await translateOutreachMessage(commentBody, leadState.language);
         } catch (e) {
-          console.warn("[Runner] Fallback en traduccion de comentario:", e);
+          console.warn("[Runner] Fallback en traducción de comentario:", e);
         }
       }
-      const commentBody = commentTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
 
       try {
         await unipile.commentOnPost({
@@ -1192,7 +1212,7 @@ export async function executeLinearSequenceStepForLead(params: {
         }
       }
 
-      const logAiTag = "";
+      const logAiTag = isAiGeneratedComment ? " (redactado por Asistente SDR IA tras analizar el post)" : "";
       const log: CampaignExecutionLog = {
         id: generateLogId("log-seq"),
         campaignId: campaign.id,
