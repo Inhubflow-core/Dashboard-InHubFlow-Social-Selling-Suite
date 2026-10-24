@@ -2,6 +2,7 @@
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import {
+  addIncomingMessageToConversation,
   getInboxConversations,
   markConversationAsRead,
   saveInboxConversations,
@@ -27,6 +28,8 @@ import {
   Sparkles,
   UserCheck,
   Volume2,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -614,7 +617,7 @@ export default function InboxPage() {
                         onClick={() => handleSendAiSuggestionDirectly(suggestion)}
                         className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center gap-1"
                       >
-                        <span>Enviar</span>
+                        <span>{t("send")}</span>
                         <ArrowRight className="size-2.5" />
                       </button>
                     </div>

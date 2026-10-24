@@ -27,6 +27,7 @@ import type {
 import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
+import { recordOutgoingCampaignMessage } from "@/lib/inbox/store";
 
 export interface LeadCampaignTrackerItem {
   id: string;
@@ -449,6 +450,35 @@ export function CampaignLeadsTracker({
         });
 
         saveTrackerList(updatedList);
+
+        // Si el paso fue un mensaje o invitación con nota, registrar de inmediato en el Inbox
+        if (
+          stepDef &&
+          [
+            "connect_message",
+            "message_icebreaker",
+            "message_followup",
+            "message_value_prop",
+          ].includes(stepDef.type)
+        ) {
+          const sentText =
+            data.result?.log?.details?.message ||
+            data.result?.log?.details?.note ||
+            stepDef.messageTemplate ||
+            `Mensaje enviado de campaña (${stepDef.title})`;
+          recordOutgoingCampaignMessage({
+            leadId: lead.id,
+            leadName: lead.fullName,
+            leadTitle: lead.headline,
+            company: lead.company,
+            location: lead.location,
+            campaignName: activeCampaign.name || lead.monitorName,
+            leadMagnetUsed: /lead\s*magnet/i.test(lead.monitorName)
+              ? "SISTEMA"
+              : undefined,
+            messageText: sentText,
+          });
+        }
         setRowNotice({
           leadId: lead.id,
           message: `✓ Paso ${stepIndexToRun + 1} (${stepDef?.title}) ejecutado con éxito`,

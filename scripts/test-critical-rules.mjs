@@ -1040,6 +1040,156 @@ try {
   assert(false, `Error en validación i18n: ${err.message}`);
 }
 
+// -----------------------------------------------------------------------------
+// PRUEBA 18: Reglas del Inbox Comercial (Exclusivo para Leads de Campañas)
+// -----------------------------------------------------------------------------
+console.log("\n--- 18. Prueba de Reglas del Inbox Comercial (Exclusivo para Leads de Campañas) ---");
+
+// Simulación de Leads de Campañas en memoria / store
+const mockCampaignLeads = [
+  {
+    id: "lead-roberto-orse",
+    fullName: "Roberto OrSe",
+    title: "Founder & CEO | Social Selling B2B",
+    company: "InHubFlow / Agencia OrSe",
+    location: "Brasil",
+    linkedinUrl: "https://www.linkedin.com/in/robertoorse",
+    stage: "in_sequence",
+    sequenceStatus: "in_progress",
+    listName: "02. Secuencia: Lead Magnet SISTEMA",
+  },
+  {
+    id: "lead-valeria-ruiz",
+    fullName: "Valeria Ruiz",
+    title: "Directora Comercial",
+    company: "TechLatam Group",
+    location: "Colombia",
+    linkedinUrl: "https://www.linkedin.com/in/valeria-ruiz-sales",
+    stage: "in_sequence",
+    sequenceStatus: "in_progress",
+    listName: "01. Secuencia: Listas de Leads",
+  },
+];
+
+function isCampaignLead(identifier, leadsPool) {
+  const targetName = (identifier.senderName || "").toLowerCase().trim();
+  const targetUrl = (identifier.senderProfileUrl || "").toLowerCase().trim().replace(/\/$/, "");
+  const targetId = identifier.leadId || "";
+
+  return leadsPool.find((l) => {
+    if (targetId && l.id === targetId) return true;
+    if (targetUrl && l.linkedinUrl && l.linkedinUrl.toLowerCase().includes(targetUrl)) return true;
+    if (targetName && l.fullName.toLowerCase() === targetName) return true;
+    return false;
+  }) || null;
+}
+
+function processInboxIncomingMessage(msg, currentConversations, leadsPool) {
+  // 1. Si existe conversacion previa, admitir
+  const existing = currentConversations.find((c) => c.leadId === msg.senderId || c.leadName === msg.senderName);
+  if (existing) {
+    return {
+      accepted: true,
+      reason: "existing_conversation",
+      conversations: currentConversations.map((c) =>
+        c.id === existing.id
+          ? { ...c, messages: [...c.messages, { id: "m2", text: msg.text, isSender: false }] }
+          : c
+      ),
+      stopOnReply: true,
+    };
+  }
+
+  // 2. Si es nueva conversacion, validar contra leads de campana
+  const campaignLead = isCampaignLead({ leadId: msg.senderId, senderName: msg.senderName, senderProfileUrl: msg.senderProfileUrl }, leadsPool);
+  if (!campaignLead) {
+    return {
+      accepted: false,
+      reason: "not_a_campaign_lead",
+      conversations: currentConversations,
+      stopOnReply: false,
+    };
+  }
+
+  // 3. Crear conversacion con datos fidedignos del prospecto
+  const newConv = {
+    id: `conv-${campaignLead.id}`,
+    leadId: campaignLead.id,
+    leadName: campaignLead.fullName,
+    company: campaignLead.company,
+    campaignSource: campaignLead.listName,
+    messages: [{ id: "m1", text: msg.text, isSender: false }],
+  };
+
+  return {
+    accepted: true,
+    reason: "campaign_lead_matched",
+    conversations: [newConv, ...currentConversations],
+    stopOnReply: true,
+  };
+}
+
+let inboxStore = [];
+
+// Caso A: Mensaje de persona desconocida (Spam / Amigo personal / No comercial)
+const externalMsg = {
+  senderId: "unknown-person-99",
+  senderName: "Juan Perez (Externo)",
+  senderProfileUrl: "https://www.linkedin.com/in/juan-perez-desconocido",
+  text: "Hola, te ofrezco servicios de diseño para tu empresa.",
+};
+const externalResult = processInboxIncomingMessage(externalMsg, inboxStore, mockCampaignLeads);
+assert(externalResult.accepted === false, "Mensaje de persona no perteneciente a campañas es rechazado por el filtro estricto");
+assert(externalResult.reason === "not_a_campaign_lead", "Motivo de rechazo es 'not_a_campaign_lead'");
+assert(externalResult.conversations.length === 0, "El Inbox no crea ninguna conversación para personas ajenas a las campañas");
+assert(externalResult.stopOnReply === false, "No se activa regla Stop on Reply para contactos no comerciales");
+
+// Caso B: Mensaje de prospecto legítimo captado por campaña (Roberto OrSe)
+const campaignLeadMsg = {
+  senderId: "lead-roberto-orse",
+  senderName: "Roberto OrSe",
+  senderProfileUrl: "https://www.linkedin.com/in/robertoorse",
+  text: "Hola Roberto, vi el caso de éxito de prospección con IA y me interesa el Lead Magnet SISTEMA.",
+};
+const campaignResult = processInboxIncomingMessage(campaignLeadMsg, inboxStore, mockCampaignLeads);
+assert(campaignResult.accepted === true, "Mensaje de prospecto activo en campaña es admitido en el Inbox");
+assert(campaignResult.reason === "campaign_lead_matched", "Contacto es verificado como lead de campaña");
+assert(campaignResult.conversations.length === 1, "Se crea la conversación en el Inbox");
+assert(campaignResult.conversations[0].leadName === "Roberto OrSe", "Conversación contiene el nombre real del lead");
+assert(campaignResult.conversations[0].company === "InHubFlow / Agencia OrSe", "Conversación contiene la empresa real del lead");
+assert(campaignResult.stopOnReply === true, "Llegada de respuesta activa la regla Stop on Reply para la secuencia");
+
+// Caso C: Enviar mensaje saliente desde la campaña agrega o actualiza el hilo en Inbox
+function recordCampaignOutgoingMessage(lead, messageText, currentConversations) {
+  const existing = currentConversations.find((c) => c.leadId === lead.id);
+  const outMsg = { id: `out-${Date.now()}`, text: messageText, isSender: true };
+  if (existing) {
+    return currentConversations.map((c) => (c.id === existing.id ? { ...c, messages: [...c.messages, outMsg] } : c));
+  }
+  return [
+    {
+      id: `conv-${lead.id}`,
+      leadId: lead.id,
+      leadName: lead.fullName,
+      company: lead.company,
+      campaignSource: lead.listName,
+      messages: [outMsg],
+    },
+    ...currentConversations,
+  ];
+}
+
+const valeriaLead = mockCampaignLeads[1];
+const updatedAfterCampaignSend = recordCampaignOutgoingMessage(
+  valeriaLead,
+  "Hola Valeria, te comparto nuestra propuesta de prospección B2B.",
+  campaignResult.conversations
+);
+assert(updatedAfterCampaignSend.length === 2, "El envío de un paso de mensaje en campaña registra la conversación en el Inbox");
+const valeriaConv = updatedAfterCampaignSend.find((c) => c.leadId === "lead-valeria-ruiz");
+assert(valeriaConv !== undefined, "Existe conversación en el Inbox para Valeria Ruiz tras el envío de campaña");
+assert(valeriaConv.messages[0].isSender === true, "El mensaje saliente de la campaña queda registrado con isSender = true");
+
 // Limpieza de base de datos de test
 
 db.close();

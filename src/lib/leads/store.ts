@@ -1160,3 +1160,91 @@ export function getOrCreateLevel1MonitorList(params: {
   }
   return newList;
 }
+
+
+export function saveStoredLeads(leads: Lead360Item[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+  } catch {}
+}
+
+export function updateStoredLeadStage(leadId: string, newStage: CrmStage, timelineNote?: string): void {
+  const currentLeads = getStoredLeads();
+  const updated = currentLeads.map((l) => {
+    if (l.id === leadId) {
+      const event = {
+        id: `tl-${Date.now()}`,
+        timestamp: "Ahora mismo",
+        title: "Actualización de CRM desde Inbox",
+        detail: timelineNote || `Etapa actualizada a: ${newStage}`,
+        type: "crm" as const,
+      };
+      return {
+        ...l,
+        stage: newStage,
+        timeline: [event, ...(l.timeline || [])],
+        lastActivityAt: "Ahora mismo",
+      };
+    }
+    return l;
+  });
+  saveStoredLeads(updated);
+}
+
+export function markLeadAsRepliedInCampaign(leadIdOrName: string, replyText: string): void {
+  const currentLeads = getStoredLeads();
+  const targetLower = leadIdOrName.toLowerCase().trim();
+  const updated = currentLeads.map((l) => {
+    const isMatch =
+      l.id === leadIdOrName ||
+      l.fullName.toLowerCase().trim() === targetLower ||
+      (l.linkedinUrl && l.linkedinUrl.toLowerCase().includes(targetLower));
+    if (isMatch) {
+      const event = {
+        id: `tl-${Date.now()}`,
+        timestamp: "Ahora mismo",
+        title: "Respuesta en LinkedIn (Stop on Reply)",
+        detail: `Prospecto respondió: "${replyText.slice(0, 100)}...". Secuencia detenida automáticamente y movido a Conversación Activa.`,
+        type: "reply" as const,
+      };
+      return {
+        ...l,
+        stage: "active_conversation" as CrmStage,
+        sequenceStatus: "replied" as SequenceStatus,
+        timeline: [event, ...(l.timeline || [])],
+        lastActivityAt: "Ahora mismo",
+      };
+    }
+    return l;
+  });
+  saveStoredLeads(updated);
+
+  // Detener también en el tracker de secuencias de campaña
+  if (typeof window !== "undefined") {
+    try {
+      const rawTracker = localStorage.getItem("inhubflow_campaign_leads_tracker_v2");
+      if (rawTracker) {
+        const trackerList = JSON.parse(rawTracker);
+        if (Array.isArray(trackerList)) {
+          const updatedTracker = trackerList.map((item) => {
+            const isMatch =
+              item.id === leadIdOrName ||
+              item.fullName.toLowerCase().trim() === targetLower ||
+              (item.linkedinUrl && item.linkedinUrl.toLowerCase().includes(targetLower));
+            if (isMatch) {
+              return {
+                ...item,
+                status: "replied",
+                lastActionTitle: "Respuesta recibida en LinkedIn (Stop on Reply)",
+                lastActionAt: "Ahora mismo",
+              };
+            }
+            return item;
+          });
+          localStorage.setItem("inhubflow_campaign_leads_tracker_v2", JSON.stringify(updatedTracker));
+        }
+      }
+    } catch {}
+  }
+}
