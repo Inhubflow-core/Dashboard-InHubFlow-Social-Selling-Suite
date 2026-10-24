@@ -1,10 +1,9 @@
 import { getStoredLeads, saveStoredLeads, updateStoredLeadStage } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item } from "@/lib/leads/types";
-import { INITIAL_DEALS, INITIAL_MEETINGS, PIPELINE_STAGES } from "./mock-data";
-import { CommercialMeeting, PipelineDeal, PipelineStageId } from "./types";
+import { INITIAL_DEALS, PIPELINE_STAGES } from "./mock-data";
+import { PipelineDeal, PipelineStageId } from "./types";
 
 const DEALS_STORAGE_KEY = "inhubflow_pipeline_deals";
-const MEETINGS_STORAGE_KEY = "inhubflow_pipeline_meetings";
 
 export function mapCrmStageToPipelineStage(crmStage: CrmStage | string): PipelineStageId {
   switch (crmStage) {
@@ -81,7 +80,7 @@ function convertLeadToDeal(lead: Lead360Item): PipelineDeal {
     in_sequence: "Ejecutar siguiente paso social (Like / Visita / Conexión)",
     connected_material_sent: "Hacer seguimiento sobre el recurso entregado",
     interested: "Proponer llamada de 15 min y enviar enlace Cal.com",
-    meeting_scheduled: "Preparar presentación comercial y demo personalizada",
+    meeting_scheduled: "Demostración comercial agendada por Cal.com",
     proposal_sent: "Seguimiento de términos y resolución de objeciones",
     closed_won: "Iniciar onboarding del cliente y entrega de accesos",
     closed_lost: "Archivar para reactivación futura en 90 días",
@@ -104,7 +103,7 @@ function convertLeadToDeal(lead: Lead360Item): PipelineDeal {
     lastActivity: lead.lastActivityAt || "Activo en campañas",
     nextAction: nextActionByStage[stageId] || "Seguimiento comercial",
     priority,
-    meetingDate: stageId === "meeting_scheduled" ? "Próx. Martes 11:00 AM" : undefined,
+    meetingDate: stageId === "meeting_scheduled" ? "Cal.com confirmada" : undefined,
   };
 }
 
@@ -208,23 +207,17 @@ export function moveDealStage(dealId: string, targetStageId: PipelineStageId): P
   const targetStageConfig = PIPELINE_STAGES.find((s) => s.id === targetStageId);
   const targetStageName = targetStageConfig?.name || targetStageId;
   let targetLeadId: string | null = null;
-  let targetLeadName = "";
-  let targetCompany = "";
-  let targetDealValue = "$1,500/mes";
 
   const updated = deals.map((d) => {
     if (d.id === dealId || d.leadId === dealId) {
       targetLeadId = d.leadId;
-      targetLeadName = d.leadName;
-      targetCompany = d.company;
-      targetDealValue = d.dealValue;
 
       const nextActionByStage: Record<PipelineStageId, string> = {
         lead_captured: "Iniciar secuencia lineal o entrega de recurso",
         in_sequence: "Ejecutar siguiente paso social (Like / Visita / Conexión)",
         connected_material_sent: "Hacer seguimiento sobre el recurso entregado",
         interested: "Proponer llamada de 15 min y enviar enlace Cal.com",
-        meeting_scheduled: "Preparar presentación comercial y demo personalizada",
+        meeting_scheduled: "Demostración comercial agendada por Cal.com",
         proposal_sent: "Seguimiento de términos y resolución de objeciones",
         closed_won: "Iniciar onboarding del cliente y entrega de accesos",
         closed_lost: "Archivar para reactivación futura en 90 días",
@@ -237,7 +230,7 @@ export function moveDealStage(dealId: string, targetStageId: PipelineStageId): P
         nextAction: nextActionByStage[targetStageId] || d.nextAction,
         meetingDate:
           targetStageId === "meeting_scheduled"
-            ? d.meetingDate || "Próx. Martes 11:00 AM"
+            ? d.meetingDate || "Cal.com confirmada"
             : d.meetingDate,
       };
     }
@@ -280,35 +273,6 @@ export function moveDealStage(dealId: string, targetStageId: PipelineStageId): P
       }
     } catch (err) {
       console.warn("[Pipeline] Error sincronizando con Inbox:", err);
-    }
-
-    // 3. Si la etapa es reunión agendada, asegurar que exista una cita comercial registrada
-    if (targetStageId === "meeting_scheduled") {
-      try {
-        const currentMeetings = getMeetings();
-        const existingMeeting = currentMeetings.find(
-          (m) => m.leadName.toLowerCase() === targetLeadName.toLowerCase()
-        );
-        if (!existingMeeting) {
-          addCommercialMeeting({
-            leadName: targetLeadName,
-            company: targetCompany,
-            title: `Demostración InHubFlow - ${targetLeadName}`,
-            date: "Próximo Martes, 11:00 AM",
-            time: "11:00 AM - 11:30 AM",
-            duration: "30 min",
-            provider: "Cal.com",
-            meetingLink: "https://cal.inhubflow.com/demo-20min",
-            status: "Confirmada",
-            timeZone: "America/Sao_Paulo (GMT-3)",
-            attendees: ["roberto@inhubflow.com"],
-            dealValue: targetDealValue,
-            notes: "Cita comercial agendada automáticamente desde el Pipeline Kanban.",
-          });
-        }
-      } catch (err) {
-        console.warn("[Pipeline] Error creando reunión comercial:", err);
-      }
     }
   }
 
@@ -371,48 +335,4 @@ export function addPipelineDeal(deal: Omit<PipelineDeal, "id">): PipelineDeal[] 
 
 export function syncPipelineWithCampaignLeads(): PipelineDeal[] {
   return getPipelineDeals();
-}
-
-export function getMeetings(): CommercialMeeting[] {
-  if (typeof window === "undefined") return INITIAL_MEETINGS;
-  try {
-    const raw = localStorage.getItem(MEETINGS_STORAGE_KEY);
-    if (!raw) {
-      if (INITIAL_MEETINGS.length > 0) {
-        localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(INITIAL_MEETINGS));
-      }
-      return INITIAL_MEETINGS;
-    }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    const clean = parsed.filter((m: CommercialMeeting) => m && !/^meet-[1-3]$/.test(m.id));
-    if (clean.length === 0 && INITIAL_MEETINGS.length > 0) {
-      localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(INITIAL_MEETINGS));
-      return INITIAL_MEETINGS;
-    }
-    if (clean.length !== parsed.length) localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(clean));
-    return clean;
-  } catch {
-    return [];
-  }
-}
-
-export function saveMeetings(meetings: CommercialMeeting[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(meetings));
-  } catch {
-    // ignore
-  }
-}
-
-export function addCommercialMeeting(meeting: Omit<CommercialMeeting, "id">): CommercialMeeting[] {
-  const meetings = getMeetings();
-  const newMeeting: CommercialMeeting = {
-    ...meeting,
-    id: "meet-" + Date.now(),
-  };
-  const updated = [newMeeting, ...meetings];
-  saveMeetings(updated);
-  return updated;
 }

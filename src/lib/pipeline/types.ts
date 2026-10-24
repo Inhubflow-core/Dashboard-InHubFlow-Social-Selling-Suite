@@ -34,20 +34,3 @@ export interface PipelineDeal {
   meetingDate?: string;
   notes?: string;
 }
-
-export interface CommercialMeeting {
-  id: string;
-  leadName: string;
-  company: string;
-  title: string;
-  date: string;
-  time: string;
-  duration: string;
-  provider: "Google Calendar" | "Outlook" | "Cal.com";
-  meetingLink: string;
-  status: "Confirmada" | "Completada" | "Reprogramada" | "Cancelada";
-  timeZone: string;
-  attendees: string[];
-  dealValue?: string;
-  notes?: string;
-}

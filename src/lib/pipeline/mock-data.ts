@@ -1,4 +1,4 @@
-import { CommercialMeeting, PipelineDeal, PipelineStageConfig } from "./types";
+import { PipelineDeal, PipelineStageConfig } from "./types";
 
 export const PIPELINE_STAGES: PipelineStageConfig[] = [
   {
@@ -53,22 +53,3 @@ export const PIPELINE_STAGES: PipelineStageConfig[] = [
 ];
 
 export const INITIAL_DEALS: PipelineDeal[] = [];
-
-export const INITIAL_MEETINGS: CommercialMeeting[] = [
-  {
-    id: "meet-roberto-orse",
-    leadName: "Roberto OrSe",
-    company: "InHubFlow / Agencia OrSe",
-    title: "Demo Comercial: Implementación de Social Selling B2B con IA",
-    date: "Próximo Martes, 11:00 AM",
-    time: "11:00 AM - 11:30 AM",
-    duration: "30 min",
-    provider: "Cal.com",
-    meetingLink: "https://cal.inhubflow.com/demo-20min",
-    status: "Confirmada",
-    timeZone: "America/Sao_Paulo (GMT-3)",
-    attendees: ["roberto@inhubflow.com", "robertoorse@agenciaorse.com"],
-    dealValue: "$2,400/mes",
-    notes: "Interesado en implementar secuencias automáticas y Signal Radar para su equipo comercial.",
-  },
-];

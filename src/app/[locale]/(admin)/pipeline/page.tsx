@@ -224,13 +224,7 @@ export default function PipelinePage() {
               <RefreshCw className={`size-3.5 text-brand-600 ${isSyncing ? "animate-spin" : ""}`} />
               <span>Sincronizar Campañas</span>
             </button>
-            <Link
-              href="/pipeline/calendar"
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
-            >
-              <Calendar className="size-3.5 text-brand-500" />
-              <span>{t("calendarBtn")}</span>
-            </Link>
+            
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
@@ -439,14 +433,13 @@ export default function PipelinePage() {
                           {deal.dealValue}
                         </span>
                         {deal.meetingDate && (
-                          <Link
-                            href="/pipeline/calendar"
-                            className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1 hover:underline"
-                            title="Ver cita en Calendario Comercial"
+                          <span
+                            className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1"
+                            title="Cita comercial confirmada"
                           >
                             <Calendar className="size-2.5" />
                             {deal.meetingDate}
-                          </Link>
+                          </span>
                         )}
                       </div>
 

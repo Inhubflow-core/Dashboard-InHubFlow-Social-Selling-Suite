@@ -99,10 +99,7 @@ const navItems: NavItem[] = [
   {
     icon: <TableIcon />,
     key: "pipeline",
-    subItems: [
-      { key: "pipelineKanban", path: "/pipeline" },
-      { key: "pipelineCalendar", path: "/pipeline/calendar" },
-    ],
+    path: "/pipeline",
   },
 ];
 
