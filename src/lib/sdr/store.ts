@@ -312,3 +312,96 @@ export function getSdrStats(): SdrStats {
     autonomousRepliesSent: autonomous,
   };
 }
+
+
+export function setSdrMode(mode: "copilot" | "auto" | "approval" | "off" | "shadow"): SdrAgentConfig {
+  const current = getStoredSdrConfig();
+  const updated: SdrAgentConfig = { ...current, mode };
+  saveStoredSdrConfig(updated);
+  return updated;
+}
+
+export function approveAndSendPendingAction(
+  actionId: string,
+  editedReply?: string
+): { success: boolean; replyText: string; action?: SdrPendingAction } {
+  const actions = getStoredPendingActions();
+  const target = actions.find((a) => a.id === actionId);
+  if (!target) return { success: false, replyText: "" };
+
+  const finalReply = editedReply || target.suggestedReply;
+  const updatedActions = actions.map((a) =>
+    a.id === actionId
+      ? { ...a, status: (editedReply ? "edited" : "approved") as SdrPendingAction["status"], suggestedReply: finalReply }
+      : a
+  );
+  saveStoredPendingActions(updatedActions);
+
+  // Registrar en los decision logs
+  addStoredDecisionLog({
+    id: "log-" + Date.now(),
+    timestamp: new Date().toISOString(),
+    prospectName: target.prospectName,
+    accountId: target.accountId,
+    inboundText: target.lastInboundMessage,
+    intent: target.intent,
+    confidence: target.confidence,
+    riskLevel: target.riskLevel,
+    action: target.intent === "meeting_request" ? "offer_slots" : "answer",
+    tokensUsed: 350,
+    latencyMs: 180,
+    status: "executed",
+  });
+
+  return { success: true, replyText: finalReply, action: target };
+}
+
+export function rejectPendingAction(actionId: string): void {
+  const actions = getStoredPendingActions();
+  const updated = actions.map((a) => (a.id === actionId ? { ...a, status: "rejected" as const } : a));
+  saveStoredPendingActions(updated);
+}
+
+export function handoffPendingAction(actionId: string): void {
+  const actions = getStoredPendingActions();
+  const updated = actions.map((a) => (a.id === actionId ? { ...a, status: "handed_off" as const } : a));
+  saveStoredPendingActions(updated);
+
+  const target = actions.find((a) => a.id === actionId);
+  if (target) {
+    addStoredDecisionLog({
+      id: "log-ho-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      prospectName: target.prospectName,
+      accountId: target.accountId,
+      inboundText: target.lastInboundMessage,
+      intent: "human_requested",
+      confidence: 0.98,
+      riskLevel: "medium",
+      action: "handoff",
+      tokensUsed: 180,
+      latencyMs: 120,
+      status: "handed_off",
+    });
+  }
+}
+
+export function addOrUpdateKnowledgeSource(source: KnowledgeSource): KnowledgeSource[] {
+  const sources = getStoredKnowledgeSources();
+  const existingIdx = sources.findIndex((s) => s.id === source.id);
+  let updated: KnowledgeSource[];
+  if (existingIdx >= 0) {
+    updated = sources.map((s) => (s.id === source.id ? source : s));
+  } else {
+    updated = [source, ...sources];
+  }
+  saveStoredKnowledgeSources(updated);
+  return updated;
+}
+
+export function deleteKnowledgeSource(sourceId: string): KnowledgeSource[] {
+  const sources = getStoredKnowledgeSources();
+  const updated = sources.filter((s) => s.id !== sourceId);
+  saveStoredKnowledgeSources(updated);
+  return updated;
+}

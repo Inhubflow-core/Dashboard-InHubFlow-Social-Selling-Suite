@@ -1,4 +1,4 @@
-export type SdrMode = "off" | "shadow" | "approval" | "auto";
+export type SdrMode = "copilot" | "auto" | "approval" | "off" | "shadow";
 
 export type SdrIntent =
   | "interested"

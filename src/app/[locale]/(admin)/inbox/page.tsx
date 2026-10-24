@@ -32,6 +32,8 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { getStoredSdrConfig, setSdrMode } from "@/lib/sdr/store";
+import type { SdrMode } from "@/lib/sdr/types";
 import { useTranslations } from "next-intl";
 
 const STAGES = [
@@ -54,6 +56,7 @@ export default function InboxPage() {
   const [messageInput, setMessageInput] = useState<string>("");
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [sdrMode, setLocalSdrMode] = useState<SdrMode>("copilot");
 
   useEffect(() => {
     const list = getInboxConversations();

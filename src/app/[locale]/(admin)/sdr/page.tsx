@@ -61,6 +61,7 @@ import {
 } from "@/lib/sdr/store";
 import { runSdrDecision, SdrSimulationOutput } from "@/lib/sdr/simulation-engine";
 import { getVisibleAccountsForUser } from "@/lib/unipile/store";
+import { sendMessageToConversation } from "@/lib/inbox/store";
 
 type SdrTab =
   | "overview"
@@ -299,23 +300,25 @@ export default function SdrAgentPage() {
     switch (mode) {
       case "auto":
         return {
-          label: "Autónomo Seguro",
+          label: "Modo Automático",
           bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-          desc: "Responde automáticamente si confianza >= umbral y riesgo = bajo.",
+          desc: "La IA responde directamente de forma autónoma: hace propuestas, maneja objeciones y agenda reuniones según la Base de Conocimiento oficial.",
         };
+      case "copilot":
       case "approval":
         return {
-          label: "Supervisión / Aprobación",
+          label: "Modo Copiloto",
           bg: "bg-[#0099ff]/10 text-[#0099ff] border-[#0099ff]/20",
-          desc: "Genera borradores y requiere aprobación humana de un clic.",
+          desc: "La IA genera la propuesta o manejo de objeción fundamentado en la Base de Conocimiento; el humano decide si enviarla, editarla o transferirla.",
         };
       case "shadow":
         return {
           label: "Modo Sombra",
           bg: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-          desc: "Analiza y genera decisiones internamente sin enviar nada al lead.",
+          desc: "Analiza y genera decisiones internamente sin enviar nada al lead para evaluar respuestas.",
         };
       case "off":
+      default:
         return {
           label: "Desactivado",
           bg: "bg-gray-500/10 text-gray-500 border-gray-500/20",
@@ -389,25 +392,45 @@ export default function SdrAgentPage() {
           {!isMember && (
             <div className="flex flex-col gap-1.5 sm:items-end">
               <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                Modo Operativo
+                Modo de Operación del Asistente
               </span>
               <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
-                {(["off", "shadow", "approval", "auto"] as SdrMode[]).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => handleModeChange(mode)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      config.mode === mode
-                        ? "bg-[#0099ff] text-white shadow-xs"
-                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                    }`}
-                  >
-                    {mode === "off" && "Pausado"}
-                    {mode === "shadow" && "Sombra"}
-                    {mode === "approval" && "Supervisión"}
-                    {mode === "auto" && "Autónomo"}
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("copilot")}
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                    config.mode === "copilot" || config.mode === "approval"
+                      ? "bg-[#0099ff] text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  }`}
+                >
+                  <UserCheck className="size-3.5" />
+                  <span>Modo Copiloto (Revisa / Edita)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("auto")}
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                    config.mode === "auto"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  }`}
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>Modo Automático (Autónomo)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("off")}
+                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                    config.mode === "off"
+                      ? "bg-gray-700 text-white shadow-xs"
+                      : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+                  }`}
+                  title="Pausar Asistente"
+                >
+                  Pausado
+                </button>
               </div>
             </div>
           )}

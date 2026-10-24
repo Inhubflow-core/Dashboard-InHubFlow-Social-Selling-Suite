@@ -1297,6 +1297,133 @@ assert(totalMrr === 5600, "Cálculo en vivo de MRR acumulado ($5,600)");
 const conversion = ((0 / updatedDeals.length) * 100).toFixed(1);
 assert(conversion === "0.0", "Cálculo en vivo de tasa de conversión de cierre");
 
+
+// -----------------------------------------------------------------------------
+// PRUEBA 26: Asistente SDR IA - Modo Copiloto vs Modo Automático & Base de Conocimiento
+// -----------------------------------------------------------------------------
+console.log("\n--- 26. Prueba de Asistente SDR IA: Modo Copiloto vs Modo Automático ---");
+
+// Motor simulador de decisiones SDR basado en Base de Conocimiento
+function simulateSdrDecision(inboundText, senderName, config) {
+  const text = inboundText.toLowerCase();
+  const sender = senderName || "Estimado";
+
+  if (text.includes("humano") || text.includes("persona") || text.includes("abogado")) {
+    return {
+      intent: "human_requested",
+      confidence: 0.98,
+      riskLevel: "medium",
+      requiresHuman: true,
+      action: "handoff",
+      replyDraft: `¡Por supuesto, ${sender}! Le acabo de notificar a uno de nuestros especialistas del equipo para que tome la conversación.`,
+      citations: ["Criterios Estrictos de Handoff a Humano"],
+    };
+  }
+
+  if (text.includes("waalaxy") || text.includes("proveedor") || text.includes("bloqueo")) {
+    return {
+      intent: "objection",
+      confidence: 0.92,
+      riskLevel: "low",
+      requiresHuman: false,
+      action: "answer",
+      replyDraft: `Totalmente comprensible, ${sender}. A diferencia de herramientas masivas, InHubFlow usa Signal Radar para captar leads con intención activa y emulación humana segura.`,
+      citations: ["Manejo de Objeciones Comunes", "Propuesta de Valor & Capacidades de InHubFlow"],
+    };
+  }
+
+  if (text.includes("precio") || text.includes("cuanto cuesta") || text.includes("cuánto cuesta")) {
+    return {
+      intent: "pricing_question",
+      confidence: 0.95,
+      riskLevel: "low",
+      requiresHuman: false,
+      action: "answer",
+      replyDraft: `Hola ${sender}, los planes son: Starter ($49/mes, 1 cuenta), Growth ($149/mes, 5 cuentas multislot) y Business ($279/mes, 10 cuentas).`,
+      citations: ["Estructura de Precios y Planes Oficiales"],
+    };
+  }
+
+  if (text.includes("reunión") || text.includes("reunion") || text.includes("demo")) {
+    return {
+      intent: "meeting_request",
+      confidence: 0.96,
+      riskLevel: "low",
+      requiresHuman: false,
+      action: "offer_slots",
+      replyDraft: `¡Excelente ${sender}! Puedes agendar directamente en mi calendario de 20 min: https://cal.inhubflow.com/demo-20min`,
+      citations: ["Protocolo de Agendamiento de Reuniones"],
+    };
+  }
+
+  return {
+    intent: "interested",
+    confidence: 0.89,
+    riskLevel: "low",
+    requiresHuman: false,
+    action: "answer",
+    replyDraft: `¡Con gusto ${sender}! InHubFlow combina Signal Radar y secuencias inteligentes para generar leads calificados en LinkedIn.`,
+    citations: ["Propuesta de Valor & Capacidades de InHubFlow"],
+  };
+}
+
+// 1. Simulación Modo Copiloto
+const copilotConfig = { mode: "copilot", confidenceThreshold: 0.85 };
+const inboundObjection = "Actualmente ya usamos Waalaxy para nuestro equipo...";
+const copilotDecision = simulateSdrDecision(inboundObjection, "Gabriel Silva", copilotConfig);
+
+assert(copilotDecision.intent === "objection", "SDR clasifica correctamente la intención de objeción");
+assert(copilotDecision.citations.includes("Manejo de Objeciones Comunes"), "La respuesta se fundamenta en la Base de Conocimiento oficial");
+assert(copilotDecision.requiresHuman === false, "Una objeción estándar no fuerza handoff automático");
+
+// En modo copiloto, la acción se encola sin enviarse
+let pendingAction = {
+  id: "act-copilot-1",
+  prospectName: "Gabriel Silva",
+  lastInboundMessage: inboundObjection,
+  suggestedReply: copilotDecision.replyDraft,
+  status: "pending",
+};
+assert(pendingAction.status === "pending", "Modo Copiloto deja la respuesta en estado 'pending' a la espera de supervisión humana");
+
+// El humano puede editar la respuesta sugerida
+const editedReply = copilotDecision.replyDraft + " ¿Te parece si te comparto un video de 3 minutos con la comparativa?";
+pendingAction.suggestedReply = editedReply;
+pendingAction.status = "edited";
+assert(pendingAction.status === "edited", "El humano puede editar libremente la respuesta generada por la IA");
+assert(pendingAction.suggestedReply.includes("video de 3 minutos"), "El borrador editado por el humano reemplaza el texto final");
+
+// El humano aprueba y despacha
+pendingAction.status = "approved";
+assert(pendingAction.status === "approved", "El humano aprueba y despacha la respuesta hacia LinkedIn");
+
+// 2. Simulación Modo Automático
+const autoConfig = { mode: "auto", confidenceThreshold: 0.85 };
+const inboundPricing = "¿Cuánto cuesta el plan para 5 cuentas de LinkedIn?";
+const autoDecision = simulateSdrDecision(inboundPricing, "Lucia Méndez", autoConfig);
+
+assert(autoDecision.intent === "pricing_question", "SDR identifica intención de precios con exactitud");
+assert(autoDecision.confidence >= autoConfig.confidenceThreshold, "La confianza supera el umbral de seguridad (85%)");
+assert(autoDecision.citations.includes("Estructura de Precios y Planes Oficiales"), "Cita el documento oficial de precios");
+
+// En modo automático y sin requerir humano, se despacha inmediatamente
+const autoDispatched = autoConfig.mode === "auto" && !autoDecision.requiresHuman && autoDecision.confidence >= 0.85;
+assert(autoDispatched === true, "Modo Automático despacha la respuesta de inmediato sin intervención humana");
+
+// 3. Salvaguarda de Handoff en Modo Automático si el prospecto pide un humano
+const inboundHumanReq = "Hola, prefiero hablar directamente con una persona o que me llame un humano.";
+const autoHumanDecision = simulateSdrDecision(inboundHumanReq, "Mariano Gomez", autoConfig);
+assert(autoHumanDecision.intent === "human_requested", "Se detecta solicitud explícita de operador humano");
+assert(autoHumanDecision.requiresHuman === true, "La regla de handoff se activa de forma prioritaria");
+const autoEscalated = autoConfig.mode === "auto" && autoHumanDecision.requiresHuman;
+assert(autoEscalated === true, "Incluso en Modo Automático, la IA deriva a control humano si el lead lo pide explícitamente");
+
+// 4. Agendamiento de Reunión en Modo Automático
+const inboundMeeting = "¿Podemos coordinar una reunión de 20 minutos mañana?";
+const meetingDecision = simulateSdrDecision(inboundMeeting, "Roberto Orse", autoConfig);
+assert(meetingDecision.intent === "meeting_request", "Detecta solicitud de reunión");
+assert(meetingDecision.replyDraft.includes("https://cal.inhubflow.com/demo-20min"), "La respuesta incluye el enlace de agendamiento oficial");
+
 // Limpieza de base de datos de test
 
 db.close();

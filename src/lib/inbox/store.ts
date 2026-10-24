@@ -1,6 +1,13 @@
 import { getStoredLeads, markLeadAsRepliedInCampaign, updateStoredLeadStage } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item } from "@/lib/leads/types";
 import { ChatConversation, ChatMessage } from "./types";
+import { runSdrDecision } from "@/lib/sdr/simulation-engine";
+import {
+  addStoredDecisionLog,
+  addStoredPendingAction,
+  getStoredKnowledgeSources,
+  getStoredSdrConfig,
+} from "@/lib/sdr/store";
 
 const STORAGE_KEY = "inhubflow_inbox_conversations";
 
@@ -370,6 +377,9 @@ export function addIncomingMessageToConversation(
   senderName?: string,
   senderProfileUrl?: string
 ): ChatConversation[] {
+  const sdrConfig = getStoredSdrConfig();
+  const knowledgeSources = getStoredKnowledgeSources();
+  const isAutoPilot = sdrConfig.mode === "auto";
   const list = getInboxConversations();
   const existingIndex = list.findIndex(
     (c) =>
@@ -392,19 +402,80 @@ export function addIncomingMessageToConversation(
     const existing = list[existingIndex];
     const leadFirstName = existing.leadName.split(" ")[0] || "estimado";
 
+    const sdrDecision = runSdrDecision({
+      inboundText: text,
+      senderName: existing.leadName,
+      senderCompany: existing.company,
+      config: sdrConfig,
+      knowledgeSources,
+    });
+
+    let newMessages = [...existing.messages, incomingMsg];
+    let lastMsgText = text;
+
+    // Si está en Modo Automático (Piloto Automático) y no requiere handoff, responder de inmediato
+    if (isAutoPilot && !sdrDecision.requiresHuman && sdrDecision.replyDraft) {
+      const autoReplyMsg: ChatMessage = {
+        id: "msg-sdr-auto-" + Date.now(),
+        senderId: "sdr_ai",
+        senderName: "InHubFlow SDR IA (Autopilot)",
+        isSender: true,
+        text: sdrDecision.replyDraft,
+        timestamp: "Ahora mismo (Automático)",
+      };
+      newMessages.push(autoReplyMsg);
+      lastMsgText = sdrDecision.replyDraft;
+
+      addStoredDecisionLog({
+        id: "log-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        prospectName: existing.leadName,
+        accountId: "acc-main",
+        inboundText: text,
+        intent: sdrDecision.intent,
+        confidence: sdrDecision.confidence,
+        riskLevel: sdrDecision.riskLevel,
+        action: sdrDecision.recommendedAction,
+        tokensUsed: 380,
+        latencyMs: sdrDecision.latencyMs,
+        status: "executed",
+      });
+    } else {
+      // Modo Copiloto: encolar para supervisión y generar sugerencias ricas
+      addStoredPendingAction({
+        id: "act-" + Date.now(),
+        threadId: existing.id,
+        accountId: "acc-main",
+        accountName: "RobertoOrse Agencia",
+        prospectName: existing.leadName,
+        prospectTitle: existing.leadTitle,
+        prospectCompany: existing.company,
+        lastInboundMessage: text,
+        intent: sdrDecision.intent,
+        confidence: sdrDecision.confidence,
+        riskLevel: sdrDecision.riskLevel,
+        suggestedReply: sdrDecision.replyDraft,
+        citations: sdrDecision.citations,
+        createdAt: new Date().toISOString(),
+        status: sdrDecision.requiresHuman ? "handed_off" : "pending",
+      });
+    }
+
+    const defaultSuggestions = [
+      sdrDecision.replyDraft || `Hola ${leadFirstName}, gracias por responder. Con gusto te comparto los detalles solicitados.`,
+      `¡Excelente ${leadFirstName}! Puedes elegir el mejor horario directamente en mi calendario de 20 min: https://cal.inhubflow.com/demo-20min`,
+      `Hola ${leadFirstName}, te comparto este breve documento para que revises con tu equipo comercial.`,
+    ];
+
     const updatedConv: ChatConversation = {
       ...existing,
-      unread: true,
-      lastMessage: text,
+      unread: !isAutoPilot,
+      lastMessage: lastMsgText,
       lastMessageTime: "Recién recibido",
-      crmStage: "4. Conversacion Activa / Interesado",
-      crmStageId: "interested",
-      messages: [...existing.messages, incomingMsg],
-      aiSuggestions: [
-        `Hola ${leadFirstName}, gracias por tu respuesta. Con gusto te comparto los detalles y te propongo coordinar una breve llamada de 15 min esta semana.`,
-        `¡Excelente ${leadFirstName}! Te dejo mi enlace para agendar cuando te quede cómodo: https://cal.inhubflow.com/demo-20min`,
-        `Hola ${leadFirstName}, te adjunto la guía en PDF para que la revises con tu equipo comercial.`,
-      ],
+      crmStage: sdrDecision.intent === "meeting_request" ? "5. Reunion Agendada" : "4. Conversacion Activa / Interesado",
+      crmStageId: sdrDecision.intent === "meeting_request" ? "meeting_scheduled" : "interested",
+      messages: newMessages,
+      aiSuggestions: defaultSuggestions,
     };
 
     const updated = [updatedConv, ...list.filter((_, idx) => idx !== existingIndex)];
@@ -447,6 +518,71 @@ export function addIncomingMessageToConversation(
       ? "02. Secuencia: Lead Magnet"
       : "01. Secuencia: Listas de Leads");
 
+  const sdrDecision = runSdrDecision({
+    inboundText: text,
+    senderName: campaignLead.fullName,
+    senderCompany: campaignLead.company,
+    config: sdrConfig,
+    knowledgeSources,
+  });
+
+  let newMessages = [incomingMsg];
+  let lastMsgText = text;
+
+  // Si está en Modo Automático (Piloto Automático) y no requiere handoff, responder de inmediato
+  if (isAutoPilot && !sdrDecision.requiresHuman && sdrDecision.replyDraft) {
+    const autoReplyMsg: ChatMessage = {
+      id: "msg-sdr-auto-" + Date.now(),
+      senderId: "sdr_ai",
+      senderName: "InHubFlow SDR IA (Autopilot)",
+      isSender: true,
+      text: sdrDecision.replyDraft,
+      timestamp: "Ahora mismo (Automático)",
+    };
+    newMessages.push(autoReplyMsg);
+    lastMsgText = sdrDecision.replyDraft;
+
+    addStoredDecisionLog({
+      id: "log-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      prospectName: campaignLead.fullName,
+      accountId: "acc-main",
+      inboundText: text,
+      intent: sdrDecision.intent,
+      confidence: sdrDecision.confidence,
+      riskLevel: sdrDecision.riskLevel,
+      action: sdrDecision.recommendedAction,
+      tokensUsed: 380,
+      latencyMs: sdrDecision.latencyMs,
+      status: "executed",
+    });
+  } else {
+    // Modo Copiloto: encolar para supervisión
+    addStoredPendingAction({
+      id: "act-" + Date.now(),
+      threadId: `conv-${campaignLead.id}`,
+      accountId: "acc-main",
+      accountName: "RobertoOrse Agencia",
+      prospectName: campaignLead.fullName,
+      prospectTitle: campaignLead.title,
+      prospectCompany: campaignLead.company,
+      lastInboundMessage: text,
+      intent: sdrDecision.intent,
+      confidence: sdrDecision.confidence,
+      riskLevel: sdrDecision.riskLevel,
+      suggestedReply: sdrDecision.replyDraft,
+      citations: sdrDecision.citations,
+      createdAt: new Date().toISOString(),
+      status: sdrDecision.requiresHuman ? "handed_off" : "pending",
+    });
+  }
+
+  const defaultSuggestions = [
+    sdrDecision.replyDraft || `Hola ${leadFirstName}, gracias por contactarme. ¿Cómo podemos ayudarte con tus objetivos de prospección?`,
+    `¡Excelente ${leadFirstName}! Puedes elegir el mejor horario directamente en mi calendario de 20 min: https://cal.inhubflow.com/demo-20min`,
+    `Hola ${leadFirstName}, te adjunto la metodología en PDF para que la evalúes con tu equipo.`,
+  ];
+
   const newLeadConv: ChatConversation = {
     id: `conv-${campaignLead.id}`,
     leadId: campaignLead.id,
@@ -457,17 +593,13 @@ export function addIncomingMessageToConversation(
     avatarInitials: initials,
     campaignSource,
     leadMagnetUsed: campaignLead.signalLevel === "level_1" ? "SISTEMA" : undefined,
-    crmStage: "4. Conversacion Activa / Interesado",
-    crmStageId: "interested",
-    unread: true,
-    lastMessage: text,
+    crmStage: sdrDecision.intent === "meeting_request" ? "5. Reunion Agendada" : "4. Conversacion Activa / Interesado",
+    crmStageId: sdrDecision.intent === "meeting_request" ? "meeting_scheduled" : "interested",
+    unread: !isAutoPilot,
+    lastMessage: lastMsgText,
     lastMessageTime: "Recién recibido",
-    messages: [incomingMsg],
-    aiSuggestions: [
-      `Hola ${leadFirstName}, gracias por contactarme. ¿Te vendría bien agendar una videollamada de 15 min esta semana para ver cómo implementar esto en ${campaignLead.company || "tu empresa"}?`,
-      `¡Excelente ${leadFirstName}! Puedes elegir el mejor horario directamente en mi calendario: https://cal.inhubflow.com/demo-20min`,
-      `Hola ${leadFirstName}, te adjunto el documento completo para que lo evalúes con tu equipo.`,
-    ],
+    messages: newMessages,
+    aiSuggestions: defaultSuggestions,
   };
 
   const updated = [newLeadConv, ...list];
