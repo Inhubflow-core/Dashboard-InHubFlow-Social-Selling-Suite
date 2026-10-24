@@ -3,7 +3,12 @@ import { useTranslations } from "next-intl";
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { PIPELINE_STAGES } from "@/lib/pipeline/mock-data";
-import { addPipelineDeal, getPipelineDeals, moveDealStage } from "@/lib/pipeline/store";
+import {
+  addPipelineDeal,
+  getPipelineDeals,
+  moveDealStage,
+  syncPipelineWithCampaignLeads,
+} from "@/lib/pipeline/store";
 import type { PipelineDeal, PipelineStageId } from "@/lib/pipeline/types";
 import {
   ArrowLeft,
@@ -11,13 +16,17 @@ import {
   Briefcase,
   Building,
   Calendar,
+  CheckCircle2,
   DollarSign,
+  ExternalLink,
   Filter,
   MessageSquare,
   Plus,
+  RefreshCw,
   Search,
   Sparkles,
   TrendingUp,
+  User,
   UserCheck,
   X,
 } from "lucide-react";
@@ -33,6 +42,7 @@ export default function PipelinePage() {
   const [draggedDealId, setDraggedDealId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Formulario nuevo deal
   const [newDealName, setNewDealName] = useState("");
@@ -51,8 +61,27 @@ export default function PipelinePage() {
     setToastMsg(msg);
     setTimeout(() => {
       setToastMsg(null);
-    }, 3000);
+    }, 3500);
   };
+
+  const handleSyncFromCampaigns = () => {
+    setIsSyncing(true);
+    try {
+      const refreshed = syncPipelineWithCampaignLeads();
+      setDeals(refreshed);
+      showToast(`✓ Pipeline sincronizado: ${refreshed.length} oportunidades activas de campañas`);
+    } finally {
+      setTimeout(() => setIsSyncing(false), 500);
+    }
+  };
+
+  const uniqueCampaigns = useMemo(() => {
+    const set = new Set<string>();
+    deals.forEach((d) => {
+      if (d.sourceCampaign) set.add(d.sourceCampaign);
+    });
+    return Array.from(set);
+  }, [deals]);
 
   const filteredDeals = useMemo(() => {
     return deals.filter((d) => {
@@ -62,7 +91,7 @@ export default function PipelinePage() {
         d.leadTitle.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchCampaign =
-        campaignFilter === "all" || d.sourceCampaign.includes(campaignFilter);
+        campaignFilter === "all" || d.sourceCampaign === campaignFilter;
 
       const matchPriority =
         priorityFilter === "all" || d.priority === priorityFilter;
@@ -87,6 +116,11 @@ export default function PipelinePage() {
     return deals.filter((d) => d.stageId === "meeting_scheduled").length;
   }, [deals]);
 
+  const conversionRate = useMemo(() => {
+    if (deals.length === 0) return "0.0";
+    return ((wonDealsCount / deals.length) * 100).toFixed(1);
+  }, [deals, wonDealsCount]);
+
   // Drag & drop handlers
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     setDraggedDealId(dealId);
@@ -105,7 +139,8 @@ export default function PipelinePage() {
     const updated = moveDealStage(dealId, targetStage);
     setDeals(updated);
     setDraggedDealId(null);
-    showToast(`Oportunidad movida a: ${PIPELINE_STAGES.find((s) => s.id === targetStage)?.name}`);
+    const targetName = PIPELINE_STAGES.find((s) => s.id === targetStage)?.name || targetStage;
+    showToast(`Oportunidad movida a: ${targetName}`);
   };
 
   const handleMoveStep = (deal: PipelineDeal, direction: "prev" | "next") => {
@@ -129,7 +164,7 @@ export default function PipelinePage() {
       .split(" ")
       .map((w) => w[0])
       .join("")
-      .substring(0, 2)
+      .slice(0, 2)
       .toUpperCase();
 
     const updated = addPipelineDeal({
@@ -152,7 +187,7 @@ export default function PipelinePage() {
     setNewDealName("");
     setNewDealCompany("");
     setNewDealTitle("");
-    showToast("Nueva oportunidad agregada al Pipeline");
+    showToast("Nueva oportunidad agregada al Pipeline comercial");
   };
 
   return (
@@ -178,7 +213,17 @@ export default function PipelinePage() {
               {t("cardDesc")}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSyncFromCampaigns}
+              disabled={isSyncing}
+              className="rounded-lg border border-brand-300 bg-brand-50/70 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-300 transition flex items-center gap-1.5 shadow-2xs"
+              title="Sincronizar prospectos de Signal Radar y Secuencias con el Pipeline"
+            >
+              <RefreshCw className={`size-3.5 text-brand-600 ${isSyncing ? "animate-spin" : ""}`} />
+              <span>Sincronizar Campañas</span>
+            </button>
             <Link
               href="/pipeline/calendar"
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition flex items-center gap-1.5 shadow-2xs"
@@ -209,7 +254,7 @@ export default function PipelinePage() {
             ${totalPipelineMRR.toLocaleString()} <span className="text-xs font-normal text-gray-400">MRR</span>
           </p>
           <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
-            +18.4% vs mes anterior
+            Valor Comercial Acumulado
           </span>
         </div>
 
@@ -248,7 +293,7 @@ export default function PipelinePage() {
             {wonDealsCount} <span className="text-xs font-normal text-gray-400">{t("closed")}</span>
           </p>
           <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
-            {t("conversionRate")}
+            {conversionRate}% {t("conversionRate")}
           </span>
         </div>
       </div>
@@ -269,17 +314,19 @@ export default function PipelinePage() {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Filter className="size-3.5" />
-            <span className="hidden sm:inline">Campana:</span>
+            <span className="hidden sm:inline">Campaña:</span>
           </div>
           <select
             value={campaignFilter}
             onChange={(e) => setCampaignFilter(e.target.value)}
             className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
           >
-            <option value="all">Todas las campanas</option>
-            <option value="Nivel 1">Nivel 1 (Mis Posts)</option>
-            <option value="Nivel 2">Nivel 2 (Competencia)</option>
-            <option value="Nivel 3">Nivel 3 (LinkedIn Global)</option>
+            <option value="all">{t("allCampaigns")}</option>
+            {uniqueCampaigns.map((camp) => (
+              <option key={camp} value={camp}>
+                {camp}
+              </option>
+            ))}
           </select>
 
           <select
@@ -359,10 +406,14 @@ export default function PipelinePage() {
                         <div className="size-6 rounded-full bg-brand-500 text-white font-bold text-xs flex items-center justify-center shrink-0">
                           {deal.avatarInitials}
                         </div>
-                        <div className="min-w-0">
-                          <h5 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/leads?search=${encodeURIComponent(deal.leadName)}`}
+                            className="text-xs font-semibold text-gray-900 dark:text-white truncate block hover:text-brand-600 dark:hover:text-brand-400"
+                            title="Ver ficha 360 del prospecto"
+                          >
                             {deal.leadName}
-                          </h5>
+                          </Link>
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {deal.leadTitle}
                           </p>
@@ -374,16 +425,28 @@ export default function PipelinePage() {
                         <span className="truncate">{deal.company}</span>
                       </div>
 
+                      {deal.leadMagnetUsed && (
+                        <div className="mb-2">
+                          <span className="rounded-lg bg-brand-50 text-brand-700 border border-brand-200 px-1.5 py-0.5 text-xs font-mono dark:bg-brand-950/50 dark:border-brand-800 dark:text-brand-300">
+                            Lead Magnet: {deal.leadMagnetUsed}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Deal Value */}
                       <div className="flex items-center justify-between pt-2 border-t border-gray-300 text-xs dark:border-gray-700/60">
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {deal.dealValue}
                         </span>
                         {deal.meetingDate && (
-                          <span className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1">
+                          <Link
+                            href="/pipeline/calendar"
+                            className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1 hover:underline"
+                            title="Ver cita en Calendario Comercial"
+                          >
                             <Calendar className="size-2.5" />
                             {deal.meetingDate}
-                          </span>
+                          </Link>
                         )}
                       </div>
 
@@ -393,7 +456,7 @@ export default function PipelinePage() {
                         {deal.nextAction}
                       </div>
 
-                      {/* Barra de Acciones Rapidas */}
+                      {/* Barra de Acciones Rápidas */}
                       <div className="mt-2.5 pt-1.5 border-t border-gray-300 flex items-center justify-between dark:border-gray-700/60">
                         <div className="flex items-center gap-1">
                           <button
@@ -414,13 +477,16 @@ export default function PipelinePage() {
                           </button>
                         </div>
 
-                        <Link
-                          href="/inbox"
-                          className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
-                        >
-                          <MessageSquare className="size-3" />
-                          <span>Inbox</span>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/inbox?leadId=${deal.leadId}`}
+                            className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
+                            title="Abrir chat en Inbox"
+                          >
+                            <MessageSquare className="size-3" />
+                            <span>Inbox</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -443,7 +509,7 @@ export default function PipelinePage() {
           <div className="w-full max-w-md rounded-lg border border-gray-300 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between pb-3 border-b border-gray-300 dark:border-gray-800">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                Nueva Oportunidad Comercial
+                {t("newOpportunityModal")}
               </h3>
               <button
                 type="button"
@@ -536,9 +602,9 @@ export default function PipelinePage() {
                     onChange={(e) => setNewDealPriority(e.target.value as "Alta" | "Media" | "Baja")}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
-                    <option value="Alta">Alta</option>
-                    <option value="Media">Media</option>
-                    <option value="Baja">Baja</option>
+                    <option value="Alta">{t("priorityHigh")}</option>
+                    <option value="Media">{t("priorityMedium")}</option>
+                    <option value="Baja">{t("priorityLow")}</option>
                   </select>
                 </div>
               </div>
@@ -553,8 +619,8 @@ export default function PipelinePage() {
                   className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="Nivel 1 - Post Lead Magnet SISTEMA">Nivel 1 - Post Lead Magnet SISTEMA</option>
-                  <option value="Nivel 2 - Prospectos Adapta IA">Nivel 2 - Prospectos Adapta IA</option>
-                  <option value="Nivel 3 - Social Selling Global">Nivel 3 - Social Selling Global</option>
+                  <option value="01. Secuencia: Listas de Leads">01. Secuencia: Listas de Leads</option>
+                  <option value="02. Secuencia: Lead Magnet">02. Secuencia: Lead Magnet</option>
                 </select>
               </div>
 
@@ -564,13 +630,13 @@ export default function PipelinePage() {
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
-                  Guardar Oportunidad
+                  {t("saveOpportunity")}
                 </button>
               </div>
             </form>

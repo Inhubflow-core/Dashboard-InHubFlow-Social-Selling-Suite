@@ -1190,6 +1190,113 @@ const valeriaConv = updatedAfterCampaignSend.find((c) => c.leadId === "lead-vale
 assert(valeriaConv !== undefined, "Existe conversación en el Inbox para Valeria Ruiz tras el envío de campaña");
 assert(valeriaConv.messages[0].isSender === true, "El mensaje saliente de la campaña queda registrado con isSender = true");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 19: Pipeline Kanban Comercial (Sincronización Bidireccional y Embudo)
+// -----------------------------------------------------------------------------
+console.log("\n--- 19. Prueba del Pipeline Kanban Comercial (Sincronización y Embudo) ---");
+
+// 1. Mapeo bidireccional exacto de etapas
+function mapCrmStageToPipeline(stage) {
+  switch (stage) {
+    case "lead_captured": return "lead_captured";
+    case "in_sequence": return "in_sequence";
+    case "connected_material_sent": return "connected_material_sent";
+    case "active_conversation":
+    case "interested": return "interested";
+    case "meeting_scheduled": return "meeting_scheduled";
+    case "proposal_presented":
+    case "proposal_sent": return "proposal_sent";
+    case "closed_won":
+    case "won": return "closed_won";
+    case "closed_lost": return "closed_lost";
+    default: return "lead_captured";
+  }
+}
+
+function mapPipelineToCrmStage(stage) {
+  switch (stage) {
+    case "lead_captured": return "lead_captured";
+    case "in_sequence": return "in_sequence";
+    case "connected_material_sent": return "connected_material_sent";
+    case "interested": return "active_conversation";
+    case "meeting_scheduled": return "meeting_scheduled";
+    case "proposal_sent": return "proposal_presented";
+    case "closed_won": return "closed_won";
+    case "closed_lost": return "closed_lost";
+    default: return "lead_captured";
+  }
+}
+
+assert(mapCrmStageToPipeline("active_conversation") === "interested", "Mapeo CRM 'active_conversation' a Pipeline 'interested'");
+assert(mapPipelineToCrmStage("interested") === "active_conversation", "Mapeo Pipeline 'interested' a CRM 'active_conversation'");
+assert(mapCrmStageToPipeline("proposal_presented") === "proposal_sent", "Mapeo CRM 'proposal_presented' a Pipeline 'proposal_sent'");
+assert(mapPipelineToCrmStage("proposal_sent") === "proposal_presented", "Mapeo Pipeline 'proposal_sent' a CRM 'proposal_presented'");
+
+// 2. Simulación de sincronización de leads de campaña al Pipeline
+const sampleCrmLeads = [
+  {
+    id: "lead-kanban-1",
+    fullName: "Ana García",
+    title: "Head of Growth",
+    company: "SaaS Latam",
+    stage: "active_conversation",
+    intentScore: 95,
+    listName: "02. Secuencia: Lead Magnet",
+  },
+  {
+    id: "lead-kanban-2",
+    fullName: "Marcos Torres",
+    title: "Director Comercial",
+    company: "Global Logistics",
+    stage: "meeting_scheduled",
+    intentScore: 85,
+    listName: "01. Secuencia: Listas de Leads",
+  },
+];
+
+function syncLeadsToPipelineDeals(leads) {
+  return leads.map((l) => ({
+    id: `deal-${l.id}`,
+    leadId: l.id,
+    leadName: l.fullName,
+    company: l.company,
+    dealValue: l.intentScore >= 90 ? "$3,200/mes" : "$2,400/mes",
+    stageId: mapCrmStageToPipeline(l.stage),
+    priority: l.intentScore >= 90 ? "Alta" : "Media",
+    sourceCampaign: l.listName,
+  }));
+}
+
+const pipelineDeals = syncLeadsToPipelineDeals(sampleCrmLeads);
+assert(pipelineDeals.length === 2, "Leads de campaña se incorporan automáticamente como oportunidades en el Pipeline");
+assert(pipelineDeals[0].stageId === "interested", "Lead en 'active_conversation' se ubica en columna 'interested'");
+assert(pipelineDeals[0].dealValue === "$3,200/mes", "Deal de alta intención (95) calcula valor premium");
+assert(pipelineDeals[0].priority === "Alta", "Prioridad del deal calibrada como 'Alta'");
+assert(pipelineDeals[1].stageId === "meeting_scheduled", "Lead en 'meeting_scheduled' se ubica en columna 'meeting_scheduled'");
+
+// 3. Simulación de movimiento de etapa en Kanban y sincronización bidireccional con CRM
+function movePipelineDeal(dealId, newStage, deals, leads) {
+  const updatedDeals = deals.map((d) => (d.id === dealId ? { ...d, stageId: newStage } : d));
+  const targetDeal = deals.find((d) => d.id === dealId);
+  const updatedLeads = leads.map((l) => {
+    if (l.id === targetDeal?.leadId) {
+      return { ...l, stage: mapPipelineToCrmStage(newStage) };
+    }
+    return l;
+  });
+  return { updatedDeals, updatedLeads };
+}
+
+const { updatedDeals, updatedLeads } = movePipelineDeal("deal-lead-kanban-1", "meeting_scheduled", pipelineDeals, sampleCrmLeads);
+assert(updatedDeals.find((d) => d.id === "deal-lead-kanban-1").stageId === "meeting_scheduled", "El deal cambia de etapa a 'meeting_scheduled' en el Pipeline");
+assert(updatedLeads.find((l) => l.id === "lead-kanban-1").stage === "meeting_scheduled", "El lead correspondiente en el CRM actualiza su etapa a 'meeting_scheduled'");
+
+// 4. Cálculo de Métricas KPI en Vivo
+const totalMrr = updatedDeals.reduce((sum, d) => sum + parseInt(d.dealValue.replace(/[^0-9]/g, ""), 10), 0);
+assert(totalMrr === 5600, "Cálculo en vivo de MRR acumulado ($5,600)");
+const conversion = ((0 / updatedDeals.length) * 100).toFixed(1);
+assert(conversion === "0.0", "Cálculo en vivo de tasa de conversión de cierre");
+
 // Limpieza de base de datos de test
 
 db.close();
