@@ -1424,6 +1424,45 @@ const meetingDecision = simulateSdrDecision(inboundMeeting, "Roberto Orse", auto
 assert(meetingDecision.intent === "meeting_request", "Detecta solicitud de reunión");
 assert(meetingDecision.replyDraft.includes("https://cal.inhubflow.com/demo-20min"), "La respuesta incluye el enlace de agendamiento oficial");
 
+
+// 5. Atribución de Señal en Notas de Conexión: Diferenciación Like vs Comentario
+function simulateConnectionNote(lead) {
+  const firstName = lead.leadName.split(" ")[0];
+  const postAuthor = lead.sourceAuthorName || "un referente";
+  const topic = lead.topic || "prospección B2B";
+
+  if (lead.signalType === "comment" && lead.leadCommentText) {
+    return `Hola ${firstName}, vi tu comentario en el post de ${postAuthor} sobre ${topic}; muy buen punto. Me gustó una de tus publicaciones, paso a conectar para seguir en contacto!`;
+  } else {
+    return `Hola ${firstName}, vi que le diste like al post de ${postAuthor} sobre ${topic}. Me gustó una de tus publicaciones, paso a conectar para intercambiar ideas!`;
+  }
+}
+
+// Caso 5.1: Lead que COMENTÓ en el post monitoreado
+const leadCommenter = {
+  leadName: "Valentina Morales",
+  signalType: "comment",
+  sourceAuthorName: "Vilma Núñez",
+  topic: "automatización de prospección",
+  leadCommentText: "Excelente análisis, nosotros batallamos con la tasa de respuesta en frío",
+};
+const commentNote = simulateConnectionNote(leadCommenter);
+assert(commentNote.includes("vi tu comentario en el post de Vilma Núñez"), "La nota identifica correctamente que el lead comentó");
+assert(commentNote.includes("Me gustó una de tus publicaciones"), "Conecta con el paso previo donde se interactuó con su perfil");
+assert(commentNote.length <= 280, "La nota respeta el límite estricto de caracteres de LinkedIn (<= 280 chars)");
+
+// Caso 5.2: Lead que dio LIKE en el post monitoreado
+const leadLiker = {
+  leadName: "Gonzalo Ramos",
+  signalType: "reaction",
+  sourceAuthorName: "Vilma Núñez",
+  topic: "automatización de prospección",
+};
+const likeNote = simulateConnectionNote(leadLiker);
+assert(likeNote.includes("vi que le diste like al post de Vilma Núñez"), "La nota identifica que el lead solo reaccionó/dio like");
+assert(!likeNote.includes("vi tu comentario"), "No confunde un like con un comentario");
+assert(likeNote.length <= 280, "La nota respeta el límite estricto de caracteres de LinkedIn (<= 280 chars)");
+
 // Limpieza de base de datos de test
 
 db.close();

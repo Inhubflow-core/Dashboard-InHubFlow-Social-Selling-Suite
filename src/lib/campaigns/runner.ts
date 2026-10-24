@@ -4,6 +4,7 @@ import type { NodeConfigData, CampaignWorkflow, LinearSequenceCampaign, Sequence
 import { getStoredWorkflow, saveStoredWorkflow } from "./store";
 import { translateOutreachMessage } from "@/lib/ai/outreach-translator";
 import { generateSmartPostComment } from "@/lib/ai/post-comment-generator";
+import { generateSmartConnectionNote } from "@/lib/ai/connection-note-generator";
 import { getActiveAccountId } from "@/lib/unipile/store";
 
 export interface CampaignExecutionLog {
@@ -37,6 +38,9 @@ export interface LeadCampaignState {
   nextStepAt?: string | null;
   history: string[];
   language?: "en" | "es" | "pt";
+  signalType?: "reaction" | "like" | "comment" | "keyword" | "repost";
+  sourceAuthorName?: string;
+  leadCommentText?: string;
 }
 
 // Almacén de logs de ejecución en memoria
@@ -437,18 +441,42 @@ export async function executeCampaignStepForLead(params: {
         console.warn("[Runner] Advertencia al seguir perfil (followUser):", error);
       }
 
-      // 2. Conectar (Send Invitation) con adaptacion multilingue inteligente
+      // 2. Conectar (Send Invitation) con Atribución de Señal e IA Gemini
       let note: string | undefined = undefined;
-      if (nodeData.hasNote !== false && nodeData.noteText) {
-        let noteTemplate = nodeData.noteText;
-        if (leadState.language && leadState.language !== "es") {
+      if (nodeData.hasNote !== false) {
+        const postAuthorVal = leadState.sourceAuthorName || "un referente en LinkedIn";
+        const isCommentSignal = leadState.signalType === "comment";
+        const interactionVerb = isCommentSignal ? "comentaste" : "le diste like";
+        const interactionPhrase = isCommentSignal ? "vi tu comentario en" : "vi que le diste like a";
+
+        if (nodeData.noteText) {
+          let noteTemplate = nodeData.noteText;
+          if (leadState.language && leadState.language !== "es") {
+            try {
+              noteTemplate = await translateOutreachMessage(noteTemplate, leadState.language);
+            } catch (e) {
+              console.warn("[Runner] Fallback en traducción de nota:", e);
+            }
+          }
+          note = noteTemplate
+            .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
+            .replace(/{{post_author}}/gi, postAuthorVal)
+            .replace(/{{interaction_verb}}/gi, interactionVerb)
+            .replace(/{{interaction_phrase}}/gi, interactionPhrase);
+        } else {
+          // Generación inteligente contextual con IA según signalType (Like vs Comentario)
           try {
-            noteTemplate = await translateOutreachMessage(noteTemplate, leadState.language);
-          } catch (e) {
-            console.warn("[Runner] Fallback en traduccion de nota:", e);
+            note = await generateSmartConnectionNote({
+              leadName: leadState.leadName,
+              signalType: leadState.signalType,
+              postAuthorName: postAuthorVal,
+              leadCommentText: leadState.leadCommentText,
+              language: leadState.language,
+            });
+          } catch (err) {
+            console.warn("[Runner] Fallback en nota de conexión con IA:", err);
           }
         }
-        note = noteTemplate.replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0]);
       }
 
       try {
@@ -1285,18 +1313,46 @@ export async function executeLinearSequenceStepForLead(params: {
       }
 
       let noteText = currentStep.connectNote || currentStep.messageTemplate;
-      if (noteText && leadState.language && leadState.language !== "es") {
+      const postAuthorVal = leadState.sourceAuthorName || "un referente del sector";
+      const isCommentSignal = leadState.signalType === "comment";
+      const interactionVerb = isCommentSignal ? "comentaste" : "le diste like";
+      const interactionPhrase = isCommentSignal ? "vi tu comentario en" : "vi que le diste like a";
+
+      let note: string | undefined = undefined;
+
+      // Si la nota incluye {{ai_note}} o no hay plantilla fija y la señal proviene del radar:
+      if (!noteText || noteText.includes("{{ai_note}}") || currentStep.useAiComment) {
         try {
-          noteText = await translateOutreachMessage(noteText, leadState.language);
-        } catch {}
+          note = await generateSmartConnectionNote({
+            leadName: leadState.leadName,
+            signalType: leadState.signalType,
+            postAuthorName: postAuthorVal,
+            topic: topicVal,
+            keyword: keywordVal,
+            leadCommentText: leadState.leadCommentText,
+            company: companyVal,
+            language: leadState.language,
+          });
+        } catch (aiErr) {
+          console.warn("[Runner] Fallback en generateSmartConnectionNote:", aiErr);
+        }
       }
-      const note = noteText
-        ? noteText
-            .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
-            .replace(/{{topic}}/gi, topicVal)
-            .replace(/{{company}}/gi, companyVal)
-            .replace(/{{keyword}}/gi, keywordVal)
-        : undefined;
+
+      if (!note && noteText) {
+        if (leadState.language && leadState.language !== "es") {
+          try {
+            noteText = await translateOutreachMessage(noteText, leadState.language);
+          } catch {}
+        }
+        note = noteText
+          .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
+          .replace(/{{topic}}/gi, topicVal)
+          .replace(/{{company}}/gi, companyVal)
+          .replace(/{{keyword}}/gi, keywordVal)
+          .replace(/{{post_author}}/gi, postAuthorVal)
+          .replace(/{{interaction_verb}}/gi, interactionVerb)
+          .replace(/{{interaction_phrase}}/gi, interactionPhrase);
+      }
 
       if (!isDry) {
         const maxConnections = campaign.dailyLimits?.maxConnectionsPerDay ?? 20;
