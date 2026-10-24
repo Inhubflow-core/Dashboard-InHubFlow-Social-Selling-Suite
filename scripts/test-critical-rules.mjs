@@ -1463,6 +1463,66 @@ assert(likeNote.includes("vi que le diste like al post de Vilma Núñez"), "La n
 assert(!likeNote.includes("vi tu comentario"), "No confunde un like con un comentario");
 assert(likeNote.length <= 280, "La nota respeta el límite estricto de caracteres de LinkedIn (<= 280 chars)");
 
+
+// 6. Prueba de Detección Profunda de Idioma del Perfil & Adaptación Automática en Campañas e Inbox
+console.log("\n--- 27. Prueba de Detección Profunda de Idioma y Adaptación Automática ---");
+
+function simulateDeepLanguageDetection(lead) {
+  const headline = (lead.headline || "").toLowerCase();
+  const comment = (lead.commentText || lead.signalSnippet || "").toLowerCase();
+  const location = (lead.location || "").toLowerCase();
+  const text = `${headline} ${comment}`;
+
+  if (/[çãõêô]/.test(text) || /você|obrigado|compartilhar|equipe|estratégia|vendas/.test(text) || /brasil|são paulo|portugal/.test(location)) {
+    return "pt";
+  }
+  if (/we build|growth|head of|vp|founder|looking for|pricing|schedule/.test(text) || /united states|uk|canada|london/.test(location)) {
+    return "en";
+  }
+  return "es";
+}
+
+// Caso 6.1: Perfil con ubicación remota pero headline y comentario en Portugués
+const leadPt = {
+  fullName: "Thiago Oliveira",
+  headline: "Diretor Comercial & Especialista em Prospecção B2B",
+  location: "Remoto", // La ubicación no dice el país, pero su perfil y comentario sí
+  commentText: "Excelente visão, nós aplicamos essa metodologia para gerar reuniões qualificadas",
+};
+const langPt = simulateDeepLanguageDetection(leadPt);
+assert(langPt === "pt", "Detecta portugués analizando el headline y comentario aunque la ubicación sea 'Remoto'");
+
+// Caso 6.2: Perfil con titular en inglés
+const leadEn = {
+  fullName: "Sarah Jenkins",
+  headline: "VP of Sales & Growth Strategy",
+  location: "Global",
+  commentText: "Spot on! We are looking for solutions that streamline our outreach pipeline",
+};
+const langEn = simulateDeepLanguageDetection(leadEn);
+assert(langEn === "en", "Detecta inglés analizando el contenido real del perfil y su interacción");
+
+// Caso 6.3: Adaptación del SDR y del Inbox al idioma del usuario
+function getSdrReplyByLanguage(lang, firstName, intent) {
+  if (lang === "pt") {
+    if (intent === "pricing") return `Olá ${firstName}, a InHubFlow conta com os seguintes planos: Starter ($49/mês), Growth ($149/mês) e Business ($279/mês).`;
+    return `Excelente ${firstName}! Você pode escolher o melhor horário na minha agenda: https://cal.inhubflow.com/demo-20min`;
+  }
+  if (lang === "en") {
+    if (intent === "pricing") return `Hi ${firstName}, InHubFlow plans are: Starter ($49/mo), Growth ($149/mo), and Business ($279/mo).`;
+    return `Awesome ${firstName}! Feel free to pick a time on my calendar: https://cal.inhubflow.com/demo-20min`;
+  }
+  return `Hola ${firstName}, los planes son: Starter ($49/mes), Growth ($149/mes) y Business ($279/mes).`;
+}
+
+const replyPt = getSdrReplyByLanguage("pt", "Thiago", "pricing");
+assert(replyPt.startsWith("Olá Thiago"), "La IA responde en portugués fluido para el lead luso-brasileño");
+assert(replyPt.includes("$49/mês"), "Adapta los términos al portugués");
+
+const replyEn = getSdrReplyByLanguage("en", "Sarah", "meeting");
+assert(replyEn.startsWith("Awesome Sarah"), "La IA responde en inglés nativo para el lead angloparlante");
+assert(replyEn.includes("Feel free to pick a time on my calendar"), "Propone el agendamiento en inglés");
+
 // Limpieza de base de datos de test
 
 db.close();

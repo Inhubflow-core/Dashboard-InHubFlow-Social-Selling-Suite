@@ -406,6 +406,8 @@ export function addIncomingMessageToConversation(
       inboundText: text,
       senderName: existing.leadName,
       senderCompany: existing.company,
+      senderHeadline: existing.leadTitle,
+      senderLocation: existing.location,
       config: sdrConfig,
       knowledgeSources,
     });
@@ -461,11 +463,27 @@ export function addIncomingMessageToConversation(
       });
     }
 
-    const defaultSuggestions = [
-      sdrDecision.replyDraft || `Hola ${leadFirstName}, gracias por responder. Con gusto te comparto los detalles solicitados.`,
-      `¡Excelente ${leadFirstName}! Puedes elegir el mejor horario directamente en mi calendario de 20 min: https://cal.inhubflow.com/demo-20min`,
-      `Hola ${leadFirstName}, te comparto este breve documento para que revises con tu equipo comercial.`,
-    ];
+    const detectedLang = sdrDecision.detectedLanguage || "es";
+    let defaultSuggestions: string[];
+    if (detectedLang === "pt") {
+      defaultSuggestions = [
+        sdrDecision.replyDraft || `Olá ${leadFirstName}, obrigado pelo retorno! Com prazer te compartilho os detalhes solicitados.`,
+        `Excelente ${leadFirstName}! Você pode escolher o melhor horário na minha agenda de 20 min: https://cal.inhubflow.com/demo-20min`,
+        `Olá ${leadFirstName}, te envio este breve documento para você avaliar com seu time comercial.`,
+      ];
+    } else if (detectedLang === "en") {
+      defaultSuggestions = [
+        sdrDecision.replyDraft || `Hi ${leadFirstName}, thanks for replying! Happy to share the details you requested.`,
+        `Awesome ${leadFirstName}! Feel free to pick a time on my 20-min calendar: https://cal.inhubflow.com/demo-20min`,
+        `Hi ${leadFirstName}, sharing this quick overview document for you and your team to review.`,
+      ];
+    } else {
+      defaultSuggestions = [
+        sdrDecision.replyDraft || `Hola ${leadFirstName}, gracias por responder. Con gusto te comparto los detalles solicitados.`,
+        `¡Excelente ${leadFirstName}! Puedes elegir el mejor horario directamente en mi calendario de 20 min: https://cal.inhubflow.com/demo-20min`,
+        `Hola ${leadFirstName}, te comparto este breve documento para que revises con tu equipo comercial.`,
+      ];
+    }
 
     const updatedConv: ChatConversation = {
       ...existing,
