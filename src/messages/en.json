@@ -45,7 +45,7 @@
       "leads": "Leads & CRM",
       "leadsDirectory": "Leads Directory",
       "leadsLists": "Signal Lists",
-      "inbox": "Unified Inbox",
+      "inbox": "Inbox",
       "sdrAgent": "AI SDR Assistant",
       "pipeline": "CRM Pipeline",
       "pipelineKanban": "Sales Kanban",
@@ -982,7 +982,7 @@
       "leadsName": "4. Leads & CRM",
       "leadsDesc": "360 directory of captured contacts, dynamic lists by signal, and interaction history.",
       "leadsAction": "View Directory",
-      "inboxName": "5. Unified Inbox",
+      "inboxName": "5. Inbox",
       "inboxDesc": "Noise-free commercial inbox with AI-assisted SDR Co-Pilot to schedule meetings.",
       "inboxAction": "Open Inbox",
       "pipelineName": "6. Pipeline CRM",
@@ -1429,7 +1429,7 @@
     "deleteListAction": "Delete list and all its prospects"
   },
   "inbox": {
-    "pageTitle": "Unified Inbox (Sales-Focused)",
+    "pageTitle": "Inbox",
     "searchPlaceholder": "Search prospect, company or message...",
     "filterAll": "All",
     "filterUnread": "Unread",
