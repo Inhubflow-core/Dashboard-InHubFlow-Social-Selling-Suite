@@ -6,7 +6,7 @@ import type { CreatedPost } from "@/lib/viral-posts/types";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 
 export default function EditorialCalendarView({
@@ -17,6 +17,7 @@ export default function EditorialCalendarView({
   hideBreadcrumb?: boolean;
 } = {}) {
   const t = useTranslations("viralPosts.calendar");
+  const locale = useLocale();
   const WEEKDAYS = [t("mon"), t("tue"), t("wed"), t("thu"), t("fri"), t("sat"), t("sun")];
   const { posts, updatePost } = useCreatedPosts();
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
@@ -58,15 +59,12 @@ export default function EditorialCalendarView({
 
   // Título del periodo actual (ej. "Octubre De 2026")
   const periodTitle = useMemo(() => {
-    const months = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
     const year = currentDate.getFullYear();
-    const monthName = months[currentDate.getMonth()];
+    const monthName = currentDate.toLocaleDateString(locale, { month: "long" });
+    const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     if (viewMode === "month") {
-      return `${monthName} De ${year}`;
+      return `${capitalizedMonth} ${year}`;
     }
 
     const day = currentDate.getDay();
@@ -77,14 +75,14 @@ export default function EditorialCalendarView({
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    const mondayMonth = months[monday.getMonth()].slice(0, 3);
-    const sundayMonth = months[sunday.getMonth()].slice(0, 3);
+    const mondayMonth = monday.toLocaleDateString(locale, { month: "short" });
+    const sundayMonth = sunday.toLocaleDateString(locale, { month: "short" });
 
     if (monday.getMonth() === sunday.getMonth()) {
-      return `${monday.getDate()} - ${sunday.getDate()} de ${monthName} ${year}`;
+      return `${monday.getDate()} - ${sunday.getDate()} ${capitalizedMonth} ${year}`;
     }
     return `${monday.getDate()} ${mondayMonth} - ${sunday.getDate()} ${sundayMonth} ${year}`;
-  }, [currentDate, viewMode]);
+  }, [currentDate, viewMode, locale]);
 
   // Cuadrícula Mensual de 7 columnas estilo #b2b con padding de días anterior/siguiente
   const calendarMonthDays = useMemo(() => {
@@ -282,9 +280,7 @@ export default function EditorialCalendarView({
                     ? "bg-brand-500 text-white shadow-xs"
                     : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 }`}
-              >
-                Mes
-              </button>
+              >{t("viewMonth")}</button>
               <button
                 type="button"
                 onClick={() => setViewMode("week")}
@@ -293,9 +289,7 @@ export default function EditorialCalendarView({
                     ? "bg-brand-500 text-white shadow-xs"
                     : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 }`}
-              >
-                Semana
-              </button>
+              >{t("viewWeek")}</button>
             </div>
 
             {/* Botón de Acción Principal */}
@@ -328,9 +322,7 @@ export default function EditorialCalendarView({
                 type="button"
                 onClick={handleToday}
                 className="px-3 py-1 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Hoy
-              </button>
+              >{t("btnToday")}</button>
               <button
                 type="button"
                 onClick={handleNext}

@@ -468,13 +468,13 @@ export default function ViralRadarView({
   const getFormatLabel = (fmt: PostFormat) => {
     switch (fmt) {
       case "text":
-        return "Texto";
+        return t("formatText");
       case "image":
-        return "Texto + Imagen";
+        return t("formatImage");
       case "video":
-        return "Texto + Video";
+        return t("formatVideo");
       case "carousel":
-        return "Carrusel";
+        return t("formatCarousel");
     }
   };
 
@@ -616,7 +616,7 @@ export default function ViralRadarView({
                   >
                     {availableAccounts.map((a) => (
                       <option key={a.id} value={a.id}>
-                        {a.name} ({a.status === "OK" ? "Conectada" : "Reconexión"})
+                        {a.name} ({a.status === "OK" ? t("statusConnected") : t("statusReconnect")})
                       </option>
                     ))}
                   </select>
@@ -711,14 +711,12 @@ export default function ViralRadarView({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-300 dark:border-gray-800">
             {/* Nivel de Viralidad */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">
-                Nivel de Viralidad:
-              </span>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">{t("viralityLevelLabel")}</span>
               {[
-                { id: "all", label: "Todos (Top 12)" },
-                { id: "mega", label: "Mega Viral 🔥🔥🔥" },
-                { id: "high", label: "Alta Tracción 🔥🔥" },
-                { id: "trending", label: "En Tendencia 🔥" },
+                { id: "all", label: t("tierAllTop") },
+                { id: "mega", label: t("tierMegaBadge") },
+                { id: "high", label: t("tierHighBadge") },
+                { id: "trending", label: t("tierTrendingBadge") },
               ].map((tier) => (
                 <button
                   key={tier.id}
@@ -737,15 +735,13 @@ export default function ViralRadarView({
 
             {/* Formato */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">
-                Formato:
-              </span>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">{t("formatLabel")}</span>
               {[
-                { id: "all", label: `Todos (${filteredPosts.length})` },
-                { id: "text", label: "Texto" },
-                { id: "image", label: "Texto + Imagen" },
-                { id: "video", label: "Texto + Video" },
-                { id: "carousel", label: "Carrusel" },
+                { id: "all", label: t("formatAllCount", { count: filteredPosts.length }) },
+                { id: "text", label: t("formatText") },
+                { id: "image", label: t("formatImage") },
+                { id: "video", label: t("formatVideo") },
+                { id: "carousel", label: t("formatCarousel") },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -771,9 +767,7 @@ export default function ViralRadarView({
                   type="button"
                   onClick={() => handleLiveSearch(searchKeyword)}
                   className="font-semibold text-brand-600 hover:underline"
-                >
-                  Reintentar
-                </button>
+                >{t("retryBtn")}</button>
               </div>
             </div>
           )}
@@ -785,7 +779,7 @@ export default function ViralRadarView({
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              {`Publicaciones Reales en LinkedIn (Top ${filteredPosts.length} virales)`}
+              {t("sectionTitle", { count: filteredPosts.length })}
             </h3>
             {livePosts.length > 0 && (
               <button
@@ -793,7 +787,7 @@ export default function ViralRadarView({
                 onClick={() => handleLiveSearch(lastSuccessfulKeyword || searchKeyword)}
                 disabled={isSearchingLive}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition"
-                title="Volver a escanear LinkedIn con esta palabra clave"
+                title={t("refreshTooltip")}
               >
                 <svg
                   className={`w-3.5 h-3.5 ${isSearchingLive ? "animate-spin text-brand-500" : ""}`}
@@ -808,14 +802,14 @@ export default function ViralRadarView({
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                {isSearchingLive ? "Actualizando..." : "Actualizar"}
+                {isSearchingLive ? t("refreshing") : t("refreshBtn")}
               </button>
             )}
           </div>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {searchError && lastSuccessfulKeyword !== searchKeyword
-              ? `Mostrando resultados de "${lastSuccessfulKeyword}" • Reintento pendiente para "${searchKeyword}"`
-              : `Palabra clave: "${lastSuccessfulKeyword || searchKeyword}" • Top 12 ordenados por Score de Impacto`}
+    ? t("showingRetryPending", { last: lastSuccessfulKeyword, current: searchKeyword })
+    : t("showingKeyword", { kw: lastSuccessfulKeyword || searchKeyword })}
           </span>
         </div>
 
@@ -823,20 +817,20 @@ export default function ViralRadarView({
           <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Escaneando publicaciones en vivo en LinkedIn...
+              {t("scanningFull")}
             </p>
             <p className="text-xs text-gray-400">
-              Extrayendo el Top 12 con mayor impacto, descartando ofertas laborales (#Hiring), solicitudes (#OpenToWork) y publicaciones sin tracción.
+              {t("scanningFullDesc")}
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800 p-6">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              No se encontraron publicaciones virales para los filtros aplicados.
+              {t("noPostsFound")}
             </p>
             <div className="space-y-2">
               <p className="text-xs text-gray-400">
-                Prueba buscando otra palabra clave o ampliando la ventana temporal.
+                {t("noPostsFoundHelp")}
               </p>
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
@@ -848,9 +842,7 @@ export default function ViralRadarView({
                     handleLiveSearch(searchKeyword, undefined, "PAST_MONTH");
                   }}
                   className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
-                >
-                  Restablecer Filtros (Top 12)
-                </button>
+                >{t("resetFiltersBtn")}</button>
               </div>
             </div>
           </div>
@@ -936,7 +928,7 @@ export default function ViralRadarView({
                       </span>
                       {post.viralityScore !== undefined && (
                         <span className="rounded-lg bg-gray-100 px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                          Score: {post.viralityScore} pts
+                          {t("scorePts", { score: post.viralityScore })}
                         </span>
                       )}
                       {post.marketOrigin && (
@@ -975,7 +967,7 @@ export default function ViralRadarView({
                         }
                         className="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 mt-1 cursor-pointer"
                       >
-                        {expandedPosts[post.id] ? "ver menos" : "...ver más"}
+                        {expandedPosts[post.id] ? t("seeLess") : t("seeMore")}
                       </button>
                     )}
 
@@ -1096,25 +1088,19 @@ export default function ViralRadarView({
                   {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-300 py-2.5 text-center dark:border-gray-800">
                     <div>
-                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                        Likes
-                      </span>
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("likes")}</span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.likes.toLocaleString()}
                       </span>
                     </div>
                     <div className="rounded-lg bg-brand-50/50 py-0.5 dark:bg-brand-950/20">
-                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                        Comentarios
-                      </span>
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("comments")}</span>
                       <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
                         {post.comments.toLocaleString()}
                       </span>
                     </div>
                     <div>
-                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                        Reposts
-                      </span>
+                      <span className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("reposts")}</span>
                       <span className="text-xs font-bold text-gray-800 dark:text-white">
                         {post.shares.toLocaleString()}
                       </span>
@@ -1127,9 +1113,7 @@ export default function ViralRadarView({
                     type="button"
                     onClick={() => handleOpenPostModal(post)}
                     className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
-                  >
-                    Lectura Completa
-                  </button>
+                  >{t("fullReading")}</button>
                   <button
                     type="button"
                     onClick={() => {
@@ -1181,7 +1165,7 @@ export default function ViralRadarView({
                 )}
                 {selectedPostForModal.viralityScore !== undefined && (
                   <span className="rounded-lg bg-gray-200/70 dark:bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Score: {selectedPostForModal.viralityScore} pts
+                    {t("scorePts", { score: selectedPostForModal.viralityScore })}
                   </span>
                 )}
                 {selectedPostForModal.marketOrigin && (
@@ -1195,7 +1179,7 @@ export default function ViralRadarView({
                 )}
                 {selectedPostForModal.isLive && (
                   <span className="rounded-lg bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
-                    LinkedIn en Vivo
+                    {t("liveBadge")}
                   </span>
                 )}
               </div>
@@ -1204,13 +1188,13 @@ export default function ViralRadarView({
                 onClick={handleClosePostModal}
                 className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition shrink-0"
               >
-                ✕ Cerrar
+                {t("closeModal")}
               </button>
             </div>
 
             {/* Tarjeta con Estructura Fiel a una Publicación de LinkedIn */}
             <div className="rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden mb-4">
-              {/* Encabezado del Autor (Avatar + Nombre + Seguir + Titular + Tiempo) */}
+              {/* Encabezado del Autor (Avatar + Nombre {t("followAuthor")} + Titular + Tiempo) */}
               <div className="p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
                   {selectedPostForModal.authorAvatar ? (
@@ -1359,9 +1343,9 @@ export default function ViralRadarView({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span>{selectedPostForModal.comments.toLocaleString()} comentarios</span>
+                  <span>{t("commentsCount", { count: selectedPostForModal.comments.toLocaleString() })}</span>
                   <span>•</span>
-                  <span>{selectedPostForModal.shares.toLocaleString()} compartidos</span>
+                  <span>{t("sharesCount", { count: selectedPostForModal.shares.toLocaleString() })}</span>
                 </div>
               </div>
 
@@ -1371,25 +1355,25 @@ export default function ViralRadarView({
                   <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017a2 2 0 01-1.789-1.106l-3.5-7A2 2 0 017.747 10H10V4a2 2 0 012-2h1a2 2 0 012 2v6z" />
                   </svg>
-                  <span className="hidden sm:inline">Reaccionar</span>
+                  <span className="hidden sm:inline">{t("reactAction")}</span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
                   <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
-                  <span className="hidden sm:inline">Comentar</span>
+                  <span className="hidden sm:inline">{t("commentAction")}</span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
                   <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <span className="hidden sm:inline">Compartir</span>
+                  <span className="hidden sm:inline">{t("shareAction")}</span>
                 </div>
                 <div className="flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition">
                   <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
-                  <span className="hidden sm:inline">Enviar</span>
+                  <span className="hidden sm:inline">{t("sendAction")}</span>
                 </div>
               </div>
             </div>
@@ -1397,7 +1381,7 @@ export default function ViralRadarView({
             {/* Enlace a publicación original en LinkedIn */}
             {selectedPostForModal.linkedinUrl && (
               <div className="mb-4 flex items-center justify-between p-3 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900 text-xs">
-                <span className="text-gray-600 dark:text-gray-400 font-medium">Publicación original en la red:</span>
+                <span className="text-gray-600 dark:text-gray-400 font-medium">{t("originalPostLink")}</span>
                 <a
                   href={selectedPostForModal.linkedinUrl}
                   target="_blank"
@@ -1413,13 +1397,13 @@ export default function ViralRadarView({
             {selectedPostForModal.format === "carousel" && selectedPostForModal.carouselSlides && (
               <div className="mb-4 rounded-lg border border-gray-300 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-2">
-                  Estructura de Diapositivas ({selectedPostForModal.carouselSlides.length} diapositivas):
+                  {t("carouselStructure", { count: selectedPostForModal.carouselSlides.length })}
                 </h4>
                 <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
                   {selectedPostForModal.carouselSlides.map((s) => (
                     <div key={s.slideNumber} className="flex gap-2">
                       <span className="font-semibold text-gray-900 dark:text-white shrink-0">
-                        Slide {s.slideNumber}:
+                        {t("slideNumber", { num: s.slideNumber })}
                       </span>
                       <span>{s.title}</span>
                     </div>
@@ -1432,7 +1416,7 @@ export default function ViralRadarView({
             {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
               <div className="mb-4 rounded-lg border border-gray-300 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Prompt Visual para IA:
+                  {t("visualPromptAi")}
                 </h4>
                 <p className="text-xs font-mono text-gray-700 dark:text-gray-300">
                   {selectedPostForModal.imagePrompt}
@@ -1446,9 +1430,7 @@ export default function ViralRadarView({
                 type="button"
                 onClick={handleClosePostModal}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-              >
-                Regresar
-              </button>
+              >{t("backBtn")}</button>
               <button
                 type="button"
                 onClick={() => {
@@ -1464,9 +1446,7 @@ export default function ViralRadarView({
                   handleModelWithAi(contentToModel);
                 }}
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
-              >
-                Modelar esta Publicación con IA
-              </button>
+              >{t("modelThisPostBtn")}</button>
             </div>
           </div>
         </div>

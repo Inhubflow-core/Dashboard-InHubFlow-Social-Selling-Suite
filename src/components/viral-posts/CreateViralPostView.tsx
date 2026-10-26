@@ -354,17 +354,17 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Modelador de Contenido con IA" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageTitle")} />}
 
       {/* Banner de Referencia si viene de Radar Viral */}
       {referenceAuthor && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
           <div className="space-y-0.5">
             <span className="text-xs uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
-              Modelando desde Post Finder:
+              {t("modelingFromRadar")}
             </span>
             <p className="text-xs font-semibold text-gray-800 dark:text-white">
-              Publicación original de {referenceAuthor}: &quot;{referenceHook.slice(0, 80)}...&quot;
+              {t("originalPostBy", { author: referenceAuthor, hook: referenceHook.slice(0, 80) })}
             </p>
           </div>
           <button
@@ -376,10 +376,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
             {isGeneratingAi ? (
               <>
                 <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                Reescribiendo con Gemini...
+                {t("rewritingWithAi")}
               </>
             ) : (
-              "Reescribir con IA (Gemini 3.6 Flash)"
+              t("rewriteWithAiBtn")
             )}
           </button>
         </div>
@@ -401,14 +401,14 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
         {/* Panel Izquierdo: Editor y Controles */}
         <div className="col-span-12 xl:col-span-7 space-y-6">
           <ComponentCard
-            title="Configurador de Publicación"
-            desc="Personaliza la estructura y utiliza la IA para generar el copy perfecto antes de publicar en LinkedIn."
+            title={t("cardTitle")}
+            desc={t("cardDesc")}
           >
             <div className="space-y-5">
               {/* Selector de 3 Formatos */}
               <div>
                 <label className="mb-2 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                  Formato de Salida
+                  {t("outputFormat")}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
@@ -421,10 +421,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     }`}
                   >
                     <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      1. Solo Texto
+                      {t("format1Text")}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Storytelling & Gancho Viral
+                      {t("format1Desc")}
                     </p>
                   </button>
 
@@ -438,10 +438,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     }`}
                   >
                     <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      2. Texto + Imagen
+                      {t("format2Image")}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Copy + Prompt para IA
+                      {t("format2Desc")}
                     </p>
                   </button>
 
@@ -455,7 +455,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     }`}
                   >
                     <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      3. Carrusel PDF
+                      {t("format3Carousel")}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Diapositivas Vectoriales

@@ -373,7 +373,7 @@ export default function PostsListView({
               title="Sincronizar métricas reales de publicaciones emitidas con LinkedIn"
             >
               <RefreshCw className={`size-3.5 ${isSyncingMetrics ? "animate-spin text-brand-500" : ""}`} />
-              <span>{isSyncingMetrics ? "Sincronizando..." : "Sincronizar Métricas"}</span>
+              <span>{isSyncingMetrics ? t("syncingMetrics") : t("syncMetricsBtn")}</span>
             </button>
             <a
               href="/viral-posts?tab=create" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("create"); } }}
