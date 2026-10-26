@@ -1,5 +1,6 @@
 export interface ChatMessage {
   id: string;
+  unipileChatId?: string;
   senderId: string;
   senderName: string;
   isSender: boolean;
@@ -14,6 +15,7 @@ export interface ChatMessage {
 
 export interface ChatConversation {
   id: string;
+  unipileChatId?: string;
   leadId: string;
   leadName: string;
   leadTitle: string;

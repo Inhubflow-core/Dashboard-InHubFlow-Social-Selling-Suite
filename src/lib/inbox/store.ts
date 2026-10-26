@@ -100,7 +100,9 @@ function getInitialCampaignConversations(): ChatConversation[] {
     .slice(0, 2)
     .toUpperCase();
 
+  const isRoberto = activeLead.fullName.toLowerCase().includes("roberto orse") || activeLead.id.includes("roberto");
   const sampleConv: ChatConversation = {
+    unipileChatId: isRoberto ? "ULc-ddfUXwuyJSDDXTpVGA" : undefined,
     id: `conv-${activeLead.id}`,
     leadId: activeLead.id,
     leadName: activeLead.fullName,
@@ -180,7 +182,15 @@ export function getInboxConversations(): ChatConversation[] {
       }
     }
 
-    if (clean.length !== parsed.length) {
+    let mutated = false;
+    for (const c of clean) {
+      if (!c.unipileChatId && c.leadName && c.leadName.toLowerCase().includes("roberto orse")) {
+        c.unipileChatId = "ULc-ddfUXwuyJSDDXTpVGA";
+        mutated = true;
+      }
+    }
+
+    if (mutated || clean.length !== parsed.length) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
     }
     return clean;
@@ -627,4 +637,15 @@ export function addIncomingMessageToConversation(
   markLeadAsRepliedInCampaign(campaignLead.id, text);
 
   return updated;
+}
+
+export function setConversationUnipileChatId(convId: string, unipileChatId: string): void {
+  const list = getInboxConversations();
+  const updated = list.map((c) => {
+    if (c.id === convId) {
+      return { ...c, unipileChatId };
+    }
+    return c;
+  });
+  saveInboxConversations(updated);
 }

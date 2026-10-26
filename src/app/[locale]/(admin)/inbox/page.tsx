@@ -8,6 +8,7 @@ import {
   saveInboxConversations,
   sendMessageToConversation,
   updateConversationStage,
+  setConversationUnipileChatId,
 } from "@/lib/inbox/store";
 import type { ChatConversation } from "@/lib/inbox/types";
 import {
@@ -113,10 +114,25 @@ export default function InboxPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chatId: activeConversation.id,
+        chatId: activeConversation.unipileChatId || activeConversation.id,
+        leadName: activeConversation.leadName,
+        leadId: activeConversation.leadId,
         text: text.trim(),
       }),
-    }).catch((err) => console.warn("[Inbox] Error enviando a Unipile:", err));
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn("[Inbox] Error enviando a Unipile:", errData);
+        } else {
+          const data = await res.json();
+          if (data.chatId && data.chatId !== activeConversation.unipileChatId) {
+            setConversationUnipileChatId(activeConversation.id, data.chatId);
+            activeConversation.unipileChatId = data.chatId;
+          }
+        }
+      })
+      .catch((err) => console.warn("[Inbox] Error enviando a Unipile:", err));
   };
 
   const handleSelectAiSuggestion = (suggestion: string) => {
@@ -132,8 +148,7 @@ export default function InboxPage() {
     if (!activeConversation) return;
     const meetingText =
       "Puedes elegir el horario que mejor te convenga directamente en mi calendario de reuniones: https://cal.inhubflow.com/sdr-meeting";
-    const updated = sendMessageToConversation(activeConversation.id, meetingText);
-    setConversations(updated);
+    handleSendMessage(meetingText);
     showNotice("Enlace de agendamiento enviado exitosamente");
   };
 
