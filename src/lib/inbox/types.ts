@@ -22,6 +22,7 @@ export interface ChatConversation {
   company: string;
   location: string;
   avatarInitials: string;
+  avatarUrl?: string;
   campaignSource: string;
   leadMagnetUsed?: string;
   crmStage: string;

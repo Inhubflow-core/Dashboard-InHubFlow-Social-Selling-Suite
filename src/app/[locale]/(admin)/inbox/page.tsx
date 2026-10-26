@@ -1,6 +1,7 @@
 "use client";
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import {
   addIncomingMessageToConversation,
   getInboxConversations,
@@ -333,9 +334,12 @@ export default function InboxPage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-brand-100 text-brand-700 font-bold text-xs flex items-center justify-center dark:bg-brand-950 dark:text-brand-300">
-                          {conv.avatarInitials}
-                        </div>
+                        <ProspectAvatar
+                          imageUrl={conv.avatarUrl}
+                          name={conv.leadName}
+                          size="sm"
+                          className="size-8 shrink-0 rounded-full overflow-hidden"
+                        />
                         <div>
                           <div className="flex items-center gap-1.5">
                             <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
@@ -388,9 +392,12 @@ export default function InboxPage() {
             {/* Header del Chat */}
             <div className="p-3.5 border-b border-gray-300 bg-white flex flex-wrap items-center justify-between gap-3 dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-brand-500 text-white font-bold text-sm flex items-center justify-center">
-                  {activeConversation.avatarInitials}
-                </div>
+                <ProspectAvatar
+                  imageUrl={activeConversation.avatarUrl}
+                  name={activeConversation.leadName}
+                  size="md"
+                  className="size-10 shrink-0 rounded-full overflow-hidden"
+                />
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -470,8 +477,16 @@ export default function InboxPage() {
               {activeConversation.messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.isSender ? "justify-end" : "justify-start"}`}
+                  className={`flex items-end gap-2 ${msg.isSender ? "justify-end" : "justify-start"}`}
                 >
+                  {!msg.isSender && (
+                    <ProspectAvatar
+                      imageUrl={activeConversation.avatarUrl}
+                      name={activeConversation.leadName}
+                      size="xs"
+                      className="size-7 shrink-0 rounded-full mb-1"
+                    />
+                  )}
                   <div
                     className={`max-w-lg rounded-lg p-3.5 text-sm leading-relaxed shadow-xs ${
                       msg.isSender

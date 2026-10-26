@@ -2,6 +2,9 @@
 import { PencilIcon } from "@/icons";
 import Image from "next/image";
 import { useModal } from "../../hooks/useModal";
+import { getCurrentUser } from "@/lib/saas/store";
+import { getStoredAccounts } from "@/lib/unipile/store";
+import { useEffect, useState } from "react";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
@@ -9,6 +12,43 @@ import { Modal } from "../ui/modal";
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const [userProfile, setUserProfile] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    headline: string;
+    location: string;
+    photoUrl: string;
+  }>({
+    name: "Roberto OrSe",
+    email: "robertoorse.agencia@gmail.com",
+    role: "Super Admin",
+    headline: "CEO na RobertoOrSe | InHubFlow Social Selling Suite",
+    location: "Madrid / Remoto",
+    photoUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY",
+  });
+
+  useEffect(() => {
+    try {
+      const user = getCurrentUser();
+      const accounts = getStoredAccounts();
+      const liAcc = accounts.find((a) => (a.name || "").toLowerCase().includes("roberto")) || accounts[0];
+      const photo = (liAcc && liAcc.profilePictureUrl && !liAcc.profilePictureUrl.includes("owner.png") && !liAcc.profilePictureUrl.includes("ti_Vff5L"))
+        ? liAcc.profilePictureUrl
+        : "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY";
+
+      setUserProfile({
+        name: user.name || "Roberto OrSe",
+        email: user.email || "robertoorse.agencia@gmail.com",
+        role: user.role === "super_admin" ? "Super Admin" : "Workspace Admin",
+        headline: liAcc?.headline || "CEO na RobertoOrSe | InHubFlow Social Selling Suite",
+        location: "Madrid / Remoto",
+        photoUrl: photo,
+      });
+    } catch {
+      // fallback a perfil institucional
+    }
+  }, []);
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");

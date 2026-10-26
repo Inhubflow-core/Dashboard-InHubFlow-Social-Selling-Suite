@@ -121,7 +121,7 @@ export default function UserDropdown() {
       if (linkedInPhoto && !linkedInPhoto.includes("owner.png")) {
         photo = linkedInPhoto;
       } else if (isRoberto && (!photo || photo.includes("owner.png"))) {
-        photo = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+        photo = "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY";
       }
     }
 
