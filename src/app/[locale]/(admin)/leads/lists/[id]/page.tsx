@@ -4,6 +4,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import LeadScoreBadge from "@/components/leads/LeadScoreBadge";
+import LeadLanguageBadge from "@/components/leads/LeadLanguageBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
@@ -469,20 +470,7 @@ export default function DynamicListDetailPage() {
                               <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                                 {lead.fullName}
                               </h4>
-                              {lead.language && (
-                                <span
-                                  className={`rounded-lg px-1.5 py-0.2 text-xs font-bold border shrink-0 ${
-                                    lead.language === "en"
-                                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
-                                      : lead.language === "pt"
-                                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
-                                      : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                                  }`}
-                                  title={`Idioma: ${lead.language.toUpperCase()}`}
-                                >
-                                  {lead.language.toUpperCase()}
-                                </span>
-                              )}
+                              <LeadLanguageBadge language={lead.language} />
                             </div>
                             <p className="text-xs text-gray-400 truncate mt-0.5">
                               {lead.location && !/no especificado/i.test(lead.location)
