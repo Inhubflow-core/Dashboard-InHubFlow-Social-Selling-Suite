@@ -228,7 +228,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "No se pudo generar el contenido con IA.");
+        throw new Error(data.error || t("feedbackAiFail"));
       }
 
       const generated = data.result;
@@ -247,14 +247,14 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
       setPublishFeedback({
         type: "success",
-        message: "Publicación modelada con éxito integrando tu Base de Conocimiento Aprobada (RAG).",
+        message: t("feedbackAiSuccess"),
       });
       setTimeout(() => setPublishFeedback(null), 5000);
     } catch (err: any) {
       console.error("[Generate AI Error]:", err);
       setPublishFeedback({
         type: "error",
-        message: err.message || "Error al conectar con el motor de Inteligencia Artificial.",
+        message: err.message || t("feedbackAiError"),
       });
     } finally {
       setIsGeneratingAi(false);
@@ -468,41 +468,41 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    Tema del Post
+                    {t("topicLabel")}
                   </label>
                   <input
                     type="text"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Tema principal..."
+                    placeholder={t("topicPlaceholder")}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    Palabra Clave (Lead Magnet)
+                    {t("leadMagnetLabel")}
                   </label>
                   <input
                     type="text"
                     value={leadMagnetKeyword}
                     onChange={(e) => setLeadMagnetKeyword(e.target.value.toUpperCase())}
-                    placeholder="SISTEMA, GUIA, AUDITORIA..."
+                    placeholder={t("leadMagnetPlaceholder")}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-mono font-semibold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                   />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    Tono del Copy
+                    {t("toneLabel")}
                   </label>
                   <select
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   >
-                    <option value="Autoridad B2B con llamada a la acción">Autoridad B2B</option>
-                    <option value="Storytelling personal y de aprendizaje">Storytelling</option>
-                    <option value="Educativo directo paso a paso">Educativo Paso a Paso</option>
-                    <option value="Provocador y debate constructivo">Provocador / Debate</option>
+                    <option value="Autoridad B2B con llamada a la acción">{t("toneB2BAuthority")}</option>
+                    <option value="Storytelling personal y de aprendizaje">{t("toneStorytelling")}</option>
+                    <option value="Educativo directo paso a paso">{t("toneStepByStep")}</option>
+                    <option value="Provocador y debate constructivo">{t("toneProvocative")}</option>
                   </select>
                 </div>
               </div>
@@ -512,11 +512,11 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-base font-medium text-gray-800 dark:text-white/90">
-                      Modelador de Copy B2B con IA & RAG
+                      {t("aiModelerTitle")}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Modela el post integrando automáticamente la propuesta de valor y documentos aprobados del Asistente SDR IA.
+                    {t("aiModelerDesc")}
                   </p>
                 </div>
                 <button
@@ -528,10 +528,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   {isGeneratingAi ? (
                     <>
                       <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                      Modelando con IA & RAG...
+                      {t("modelingAi")}
                     </>
                   ) : (
-                    "Generar con IA"
+                    t("generateAiBtn")
                   )}
                 </button>
               </div>
@@ -737,8 +737,8 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
         {/* Panel Derecho: Previsualización Fiel a LinkedIn */}
         <div className="col-span-12 xl:col-span-5 space-y-6">
           <ComponentCard
-            title="Previsualización Exacta en LinkedIn"
-            desc="Visualización exacta con formato de escritorio y encuadre del contenido."
+            title={t("exactPreviewTitle")}
+            desc={t("exactPreviewDesc")}
           >
             <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               {/* Cabecera de perfil */}
@@ -756,9 +756,9 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     {activeAccObj ? activeAccObj.name : currentUser.name}
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {activeAccObj ? "Perfil de LinkedIn Conectado • 1er" : "B2B Growth & Lead Gen Specialist • 1er"}
+                    {activeAccObj ? t("connectedProfileBadge") : t("defaultProfileBadge")}
                   </p>
-                  <p className="text-xs text-gray-400">Ahora • Público</p>
+                  <p className="text-xs text-gray-400">{t("nowPublic")}</p>
                 </div>
               </div>
 
@@ -774,7 +774,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={previewImage}
-                      alt="Preview del Post"
+                      alt={t("previewImageAlt")}
                       className="w-full h-56 object-cover"
                     />
                   ) : (
@@ -923,10 +923,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
               {/* Barra de interacción de LinkedIn */}
               <div className="pt-3 border-t border-gray-300 flex items-center justify-between text-xs text-gray-500 dark:border-gray-800">
-                <span className="hover:text-gray-900 cursor-pointer">Reaccionar</span>
-                <span className="hover:text-gray-900 cursor-pointer">Comentar</span>
-                <span className="hover:text-gray-900 cursor-pointer">Compartir</span>
-                <span className="hover:text-gray-900 cursor-pointer">Enviar</span>
+                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinLike")}</span>
+                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinComment")}</span>
+                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinShare")}</span>
+                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinSend")}</span>
               </div>
             </div>
           </ComponentCard>

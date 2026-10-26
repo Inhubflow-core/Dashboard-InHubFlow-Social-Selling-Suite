@@ -295,11 +295,11 @@ export default function PostsListView({
   const getStatusBadge = (status: PostStatus) => {
     switch (status) {
       case "published":
-        return { label: "Publicado", color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
+        return { label: t("statusPublished"), color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
       case "scheduled":
-        return { label: "Programado", color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
+        return { label: t("statusScheduled"), color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
       case "draft":
-        return { label: "Borrador", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
+        return { label: t("statusDraft"), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
       case "failed":
         return { label: "Error", color: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400" };
     }
@@ -370,7 +370,7 @@ export default function PostsListView({
               disabled={isSyncingMetrics}
               onClick={() => syncAllPublishedPostsMetrics()}
               className="rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition shadow-xs flex items-center gap-1.5 disabled:opacity-50"
-              title="Sincronizar métricas reales de publicaciones emitidas con LinkedIn"
+              title={t("syncMetricsTooltip")}
             >
               <RefreshCw className={`size-3.5 ${isSyncingMetrics ? "animate-spin text-brand-500" : ""}`} />
               <span>{isSyncingMetrics ? t("syncingMetrics") : t("syncMetricsBtn")}</span>
@@ -388,12 +388,12 @@ export default function PostsListView({
         <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 mr-2">Estado:</span>
+              <span className="text-xs font-medium text-gray-500 mr-2">{t("statusFilterLabel")}</span>
               {[
                 { id: "all", label: "Todos" },
-                { id: "scheduled", label: "Programados" },
-                { id: "published", label: "Publicados" },
-                { id: "draft", label: "Borradores" },
+                { id: "scheduled", label: t("filterScheduled") },
+                { id: "published", label: t("filterPublished") },
+                { id: "draft", label: t("filterDraft") },
               ].map((s) => (
                 <button
                   key={s.id}
@@ -411,7 +411,7 @@ export default function PostsListView({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 mr-2">Formato:</span>
+              <span className="text-xs font-medium text-gray-500 mr-2">{t("formatFilterLabel")}</span>
               {[
                 { id: "all", label: "Todos" },
                 { id: "text", label: "Texto" },
@@ -438,10 +438,10 @@ export default function PostsListView({
 
       <ComponentCard
         title={`Publicaciones (${filteredPosts.length})`}
-        desc="Listado detallado de publicaciones programadas, emitidas en LinkedIn y borradores activos."
+        desc={t("cardDesc")}
       >
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando publicaciones...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingPosts")}</p>
         ) : filteredPosts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -576,7 +576,7 @@ export default function PostsListView({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand-600 font-mono transition"
-                                title="Ver publicación original en LinkedIn"
+                                title={t("viewOriginalOnLinkedIn")}
                               >
                                 <span>ID: {post.linkedinPostId.replace(/^urn:li:activity:/, "")}</span>
                                 <ExternalLink className="size-3" />
@@ -599,9 +599,9 @@ export default function PostsListView({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="rounded-lg bg-brand-500 px-3 py-1.5 text-white hover:bg-brand-600 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-2xs shrink-0"
-                          title="Ver en LinkedIn"
+                          title={t("viewOnLinkedIn")}
                         >
-                          <span>Ver en LinkedIn</span>
+                          <span>{t("viewOnLinkedIn")}</span>
                           <ExternalLink className="size-3.5" />
                         </a>
                       ) : post.status !== "published" ? (
@@ -610,15 +610,15 @@ export default function PostsListView({
                           disabled={isCurrentlyPublishing}
                           onClick={() => handlePublishNow(post)}
                           className="rounded-lg bg-brand-500 px-3 py-1.5 text-white hover:bg-brand-600 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-2xs shrink-0 disabled:opacity-50"
-                          title="Publicar ahora en LinkedIn"
+                          title={t("publishNowOnLinkedIn")}
                         >
                           {isCurrentlyPublishing ? (
                             <>
                               <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                              <span>Publicando...</span>
+                              <span>{t("publishing")}</span>
                             </>
                           ) : (
-                            <span>Publicar ahora</span>
+                            <span>{t("actionPublishNow")}</span>
                           )}
                         </button>
                       ) : null}
@@ -626,16 +626,16 @@ export default function PostsListView({
                       <a
                         href="/viral-posts?tab=calendar" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("calendar"); } }}
                         className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 transition inline-flex items-center shrink-0"
-                        title="Ver en Calendario"
+                        title={t("viewInCalendar")}
                       >
-                        <span>Ver en Calendario</span>
+                        <span>{t("viewInCalendar")}</span>
                       </a>
 
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(post)}
                         className="h-[30px] w-[30px] rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition shrink-0"
-                        title="Editar publicación"
+                        title={t("editPostTooltip")}
                       >
                         <Pencil className="size-3.5" />
                       </button>
@@ -648,7 +648,7 @@ export default function PostsListView({
                           }
                         }}
                         className="h-[30px] w-[30px] rounded-lg border border-red-200 bg-red-50/50 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                        title="Eliminar publicación"
+                        title={t("deletePostTooltip")}
                       >
                         <X className="size-3.5" />
                       </button>
@@ -699,7 +699,7 @@ export default function PostsListView({
                   type="text"
                   value={editKeyword}
                   onChange={(e) => setEditKeyword(e.target.value.toUpperCase())}
-                  placeholder="Ej: SISTEMA"
+                  placeholder={t("editKeywordPlaceholder")}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-mono font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>

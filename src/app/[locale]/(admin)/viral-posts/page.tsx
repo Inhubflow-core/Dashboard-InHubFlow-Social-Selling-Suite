@@ -153,7 +153,7 @@ export default function ViralPostsPage() {
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center text-sm text-gray-500">
-          Cargando Viral Post Engine...
+          
         </div>
       }
     >

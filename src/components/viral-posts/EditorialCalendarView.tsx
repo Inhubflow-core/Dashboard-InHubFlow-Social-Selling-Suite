@@ -314,7 +314,7 @@ export default function EditorialCalendarView({
                 type="button"
                 onClick={handlePrev}
                 className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Anterior"
+                title={t("prevMonthTooltip")}
               >
                 <ChevronLeft size={16} />
               </button>
@@ -327,7 +327,7 @@ export default function EditorialCalendarView({
                 type="button"
                 onClick={handleNext}
                 className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Siguiente"
+                title={t("nextMonthTooltip")}
               >
                 <ChevronRight size={16} />
               </button>
@@ -373,11 +373,11 @@ export default function EditorialCalendarView({
           </div>
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-            <span>Publicado</span>
+            <span>{t("statusPublished")}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-brand-400"></span>
-            <span>Programado</span>
+            <span>{t("statusScheduled")}</span>
           </div>
         </div>
 
@@ -449,7 +449,7 @@ export default function EditorialCalendarView({
                         {cell.isPeak && (
                           <span
                             className="h-1.5 w-1.5 rounded-full bg-brand-500"
-                            title="Franja Óptima B2B (Mar - Jue)"
+                            title={t("optimalB2BSlot")}
                           ></span>
                         )}
                         {dayPosts.length > 0 && (
@@ -522,7 +522,7 @@ export default function EditorialCalendarView({
                     {/* Footer de la celda */}
                     <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5">
                       {cell.isPeak && dayPosts.length === 0 && (
-                        <span className="text-brand-500 font-medium text-xs">Pico B2B</span>
+                        <span className="text-brand-500 font-medium text-xs">{t("b2bPeakBadge")}</span>
                       )}
                     </div>
                   </div>
