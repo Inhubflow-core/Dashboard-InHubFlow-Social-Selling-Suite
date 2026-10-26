@@ -445,14 +445,12 @@ export default function DynamicListDetailPage() {
                   <th className="pb-3 min-w-[210px] max-w-[270px]">{t("colJob")}</th>
                   <th className="pb-3 min-w-[140px] whitespace-nowrap">{t("colSignalSource")}</th>
                   <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">{t("colScore")}</th>
-                  <th className="pb-3 min-w-[130px] whitespace-nowrap">{t("colCrmStage")}</th>
                   <th className="pb-3 min-w-[110px] whitespace-nowrap">{t("colSequenceStatus")}</th>
                   <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
                 {listLeads.map((lead) => {
-                  const stageBadge = getStageLabel(lead.stage);
                   const sequenceBadge = getSequenceBadge(lead.sequenceStatus);
 
                   return (
@@ -504,13 +502,6 @@ export default function DynamicListDetailPage() {
                       {/* Columna: Puntuación */}
                       <td className="py-3.5 px-2 whitespace-nowrap text-center">
                         <LeadScoreBadge score={lead.intentScore} />
-                      </td>
-
-                      {/* Columna: Etapa CRM */}
-                      <td className="py-3.5 pr-2 whitespace-nowrap">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold inline-block ${stageBadge.color}`}>
-                          {stageBadge.label}
-                        </span>
                       </td>
 
                       {/* Columna: Estado Secuencia */}
