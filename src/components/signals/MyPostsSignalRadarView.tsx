@@ -132,6 +132,8 @@ export default function MyPostsSignalRadarView({
   hideBreadcrumb?: boolean;
 } = {}) {
   const { currentUser } = useAuth();
+  const t = useTranslations("signals.myPosts");
+  const tCommon = useTranslations("signals.common");
   const {
     l1Monitors,
     leads,
@@ -305,7 +307,7 @@ export default function MyPostsSignalRadarView({
       attachedPdfName: newAttachedPdf,
       scannedCommentsCount: 0,
       leadsCapturedCount: 0,
-      lastScanAt: isPending ? "En espera de publicación" : "Recién creado",
+      lastScanAt: isPending ? t("badgePendingPublication") : "Recién creado",
       lastScanAtIso: isPending ? undefined : new Date().toISOString(),
       scanFrequency: "daily",
       createdAt: new Date().toISOString(),
@@ -529,7 +531,7 @@ export default function MyPostsSignalRadarView({
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Signal Radar - Nivel 01: Mis Posts (Lead Magnet)" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageBreadcrumb")} />}
 
       {/* Métricas del Nivel 1 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -538,7 +540,7 @@ export default function MyPostsSignalRadarView({
             Monitores Nivel 1
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {activeMonitorsCount} Activos
+            {t("kpiMonitorsCount", { count: activeMonitorsCount })}
           </p>
           <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
             {pendingMonitorsCount > 0
@@ -552,7 +554,7 @@ export default function MyPostsSignalRadarView({
             Comentarios Analizados
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {totalComments} Comentarios
+            {t("kpiCommentsCount", { count: totalComments })}
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             Filtrados por palabra clave activadora
@@ -564,7 +566,7 @@ export default function MyPostsSignalRadarView({
             Leads Captados & DMs Enviados
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
-            {totalLeadsCaptured} Prospectos
+            {t("kpiLeadsCount", { count: totalLeadsCaptured })}
           </p>
           <span className="text-xs font-semibold text-green-600 dark:text-green-400">
             Intención Muy Alta (Lead Magnet)
@@ -602,7 +604,7 @@ export default function MyPostsSignalRadarView({
           }}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isCreatingMonitor ? "Cerrar Configurador" : "+ Agregar nuevo Monitor"}
+          {isCreatingMonitor ? t("toggleCloseForm") : t("toggleAddMonitor")}
         </button>
       </div>
 
@@ -619,7 +621,7 @@ export default function MyPostsSignalRadarView({
               <div className="relative">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    Título Descriptivo del Post
+                    {t("labelPostTitle")}
                   </label>
                   {createdPosts.length > 0 && (
                     <span className="text-xs text-brand-600 dark:text-brand-400 font-medium">
@@ -641,7 +643,7 @@ export default function MyPostsSignalRadarView({
                         setSelectedCreatedPost(null);
                       }
                     }}
-                    placeholder="Escribe o selecciona una publicación de tu lista..."
+                    placeholder={t("placeholderPostTitle")}
                     className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white pr-7"
                   />
                   {selectedCreatedPost && (
@@ -653,7 +655,7 @@ export default function MyPostsSignalRadarView({
                         setNewPostUrl("");
                       }}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                      title="Desvincular post seleccionado"
+                      title={t("clearPostSelection")}
                     >
                       ✕
                     </button>
@@ -745,7 +747,7 @@ export default function MyPostsSignalRadarView({
 
                 {selectedCreatedPost ? (
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-xs text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300 font-medium">
-                    <span className="font-bold">✓ Publicación vinculada:</span>
+                    <span className="font-bold">{t("linkedPostBadge")}</span>
                     <span className="font-semibold underline truncate max-w-[200px]">{selectedCreatedPost.title}</span>
                     <span className="ml-1.5 inline-block text-xs font-bold px-1.5 py-0.2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 capitalize">
                       {selectedCreatedPost.status === "published" ? "Publicada" : selectedCreatedPost.status === "scheduled" ? "Programada" : "Borrador"}
@@ -753,7 +755,7 @@ export default function MyPostsSignalRadarView({
                   </div>
                 ) : (
                   <span className="text-xs text-gray-400 mt-1 block">
-                    Selecciona una publicación creada o escribe un título personalizado.
+                    {t("postTitleHelper")}
                   </span>
                 )}
               </div>
@@ -789,7 +791,7 @@ export default function MyPostsSignalRadarView({
                       type="url"
                       value={newPostUrl}
                       onChange={(e) => setNewPostUrl(e.target.value)}
-                      placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                      placeholder={t("placeholderLinkedInUrl")}
                       className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     />
                     <span className="text-xs text-gray-400 mt-1 block">
@@ -811,7 +813,7 @@ export default function MyPostsSignalRadarView({
                   required
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value.toUpperCase())}
-                  placeholder="SISTEMA, GUIA, PLANTILLA..."
+                  placeholder={t("placeholderKeyword")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs font-mono font-bold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
@@ -827,7 +829,7 @@ export default function MyPostsSignalRadarView({
                   type="text"
                   value={newAttachedPdf}
                   onChange={(e) => setNewAttachedPdf(e.target.value)}
-                  placeholder="Ej. /downloads/guia-prospeccion.pdf o enlace externo..."
+                  placeholder={t("placeholderResourceName")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
@@ -980,12 +982,12 @@ export default function MyPostsSignalRadarView({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 dark:border-gray-800 [&_th]:font-normal">
                 <tr>
-                  <th className="px-4 py-3 min-w-[260px]">Cuenta / Publicación</th>
-                  <th className="px-4 py-3 min-w-[140px]">Palabra Clave</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Leads Captados</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
+                  <th className="px-4 py-3 min-w-[260px]">{t("thPost")}</th>
+                  <th className="px-4 py-3 min-w-[140px]">{t("thKeyword")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("extractedLeads")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("lastScan")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("status")}</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">{tCommon("actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
@@ -1151,7 +1153,7 @@ export default function MyPostsSignalRadarView({
                                   setManualLinkedInUrlInput("");
                                 }}
                                 className="rounded-lg bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
-                                title="Vincular URL oficial de LinkedIn para activar este monitor"
+                                title={t("linkUrlTooltip")}
                               >
                                 🔗 Vincular URL
                               </button>
@@ -1170,7 +1172,7 @@ export default function MyPostsSignalRadarView({
                                   </>
                                 ) : (
                                   <>
-                                    <span>Escanear</span>
+                                    <span>{tCommon("scanBtn")}</span>
                                     <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                       {activeBatch}
                                     </span>
@@ -1185,7 +1187,7 @@ export default function MyPostsSignalRadarView({
                               className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
                               title={`Abrir lista inteligente de "${mon.postTitle}"`}
                             >
-                              <span>Ver Leads ({effectiveCount})</span>
+                              <span>{tCommon("viewLeads", { count: effectiveCount })}</span>
                               <span aria-hidden="true">&rarr;</span>
                             </Link>
 
@@ -1194,7 +1196,7 @@ export default function MyPostsSignalRadarView({
                               type="button"
                               onClick={() => setEditingMonitor(mon)}
                               className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                              title="Editar monitor"
+                              title={t("editMonitorTooltip")}
                             >
                               <Pencil className="size-3.5" />
                             </button>
@@ -1225,7 +1227,7 @@ export default function MyPostsSignalRadarView({
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                              title="Eliminar monitor"
+                              title={t("deleteMonitorTooltip")}
                             >
                               <X className="size-3.5" />
                             </button>
@@ -1241,10 +1243,10 @@ export default function MyPostsSignalRadarView({
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-gray-800 dark:text-blue-200 flex items-center gap-1.5">
                                   <Link2 className="size-3.5 text-brand-600 dark:text-brand-400" />
-                                  <span>Publicación(es) de LinkedIn Monitoreada(s): Mis propios Posts (1)</span>
+                                  <span>{tCommon("postsMonitoredCount", { count: 1 })}</span>
                                 </span>
                                 <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
-                                  Publicado por {currentDisplayName}
+                                  {tCommon("publishedBy", { name: currentDisplayName })}
                                 </span>
                               </div>
 
@@ -1276,7 +1278,7 @@ export default function MyPostsSignalRadarView({
                                     rel="noopener noreferrer"
                                     className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
                                   >
-                                    <span>Ver Post</span>
+                                    <span>{tCommon("viewPost")}</span>
                                     <ExternalLink className="size-3" />
                                   </a>
                                 ) : (
@@ -1288,7 +1290,7 @@ export default function MyPostsSignalRadarView({
                                     }}
                                     className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition shadow-xs"
                                   >
-                                    <span>Vincular URL</span>
+                                    <span>{t("linkUrlBtn")}</span>
                                     <Link2 className="size-3" />
                                   </button>
                                 )}
@@ -1411,7 +1413,7 @@ export default function MyPostsSignalRadarView({
                       href={`/leads/lists?listId=${encodeURIComponent(targetListId)}`}
                       className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition inline-flex items-center gap-1.5"
                     >
-                      <span>Abrir Lista Dinámica en CRM</span>
+                      <span>{tCommon("openCrmList")}</span>
                       <span aria-hidden="true">&rarr;</span>
                     </Link>
                   );
@@ -1481,7 +1483,7 @@ export default function MyPostsSignalRadarView({
                   type="submit"
                   className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
-                  Guardar y Activar Monitor
+                  {t("submitBtn")}
                 </button>
               </div>
             </form>

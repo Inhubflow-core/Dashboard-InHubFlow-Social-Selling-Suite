@@ -131,11 +131,12 @@ function SignalsContent() {
 }
 
 export default function SignalsPage() {
+  const tCommon = useTranslations("signals.common");
   return (
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center text-sm text-gray-500">
-          Cargando Signal Radar...
+          {tCommon("loadingRadar")}
         </div>
       }
     >

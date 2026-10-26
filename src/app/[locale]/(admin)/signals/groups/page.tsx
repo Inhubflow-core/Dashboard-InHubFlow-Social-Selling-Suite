@@ -2,9 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function LinkedInGroupsSignalRadarRedirect() {
   const router = useRouter();
+  const t = useTranslations("signals.common");
 
   useEffect(() => {
     router.replace("/signals?tab=groups");
@@ -12,7 +14,7 @@ export default function LinkedInGroupsSignalRadarRedirect() {
 
   return (
     <div className="flex h-64 items-center justify-center text-xs text-gray-500">
-      Redirigiendo a Signal Radar (Grupos de LinkedIn)...
+      {t("redirectingGroups")}
     </div>
   );
 }

@@ -426,6 +426,7 @@ export default function GlobalSignalsView({
   hideBreadcrumb?: boolean;
 } = {}) {
   const t = useTranslations("signals.global");
+  const tCommon = useTranslations("signals.common");
   const {
     l3Monitors,
     leads,
@@ -774,10 +775,10 @@ export default function GlobalSignalsView({
             Temáticas Virales en Escucha
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {l3Monitors.length} Radares Activos
+            {t("kpiRadarCount", { count: l3Monitors.length })}
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            {totalViralPostsCount} publicaciones de alto debate escaneadas
+            {t("kpiRadarSub", { count: totalViralPostsCount })}
           </span>
         </div>
 
@@ -786,7 +787,7 @@ export default function GlobalSignalsView({
             Decisores en Debate Calificado
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
-            {totalGlobalLeads} Prospectos
+            {t("kpiLeadsCount", { count: totalGlobalLeads })}
           </p>
           <span className="text-xs text-emerald-600 font-semibold dark:text-emerald-400">
             Intención Alta: Comentaristas (90 pts) y Reposts (80 pts)
@@ -821,7 +822,7 @@ export default function GlobalSignalsView({
           onClick={() => setIsAddingRule(!isAddingRule)}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isAddingRule ? "Cerrar Configurador" : "+ Agregar nuevo Monitor"}
+          {isAddingRule ? t("toggleCloseForm") : t("toggleAddMonitor")}
         </button>
       </div>
 
@@ -837,14 +838,14 @@ export default function GlobalSignalsView({
               {/* Campo 1: Temática o Dolor a Rastrear */}
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Temática o Dolor de Negocio a Rastrear
+                  {t("labelTopic")}
                 </label>
                 <input
                   type="text"
                   required
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Ej. Prospección B2B, Inteligencia Artificial para Ventas, Cold Outreach..."
+                  placeholder={t("placeholderTopic")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
@@ -920,7 +921,7 @@ export default function GlobalSignalsView({
               {/* Filtro de Tracción Mínima */}
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                  {t("labelTractionFilter")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
@@ -1110,12 +1111,12 @@ export default function GlobalSignalsView({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
-                  <th className="px-4 py-3 min-w-[260px]">Temática / Problema en LinkedIn</th>
-                  <th className="px-4 py-3 min-w-[140px]">Filtro de Debate & Región</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Leads Extraídos</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Último Escaneo</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
+                  <th className="px-4 py-3 min-w-[260px]">{t("thTopic")}</th>
+                  <th className="px-4 py-3 min-w-[140px]">{t("thCountry")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("extractedLeads")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("lastScan")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("status")}</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">{tCommon("actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
@@ -1277,7 +1278,7 @@ export default function GlobalSignalsView({
                                 </>
                               ) : (
                                 <>
-                                  <span>Escanear</span>
+                                  <span>{tCommon("scanBtn")}</span>
                                   <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                     {activeBatch}
                                   </span>
@@ -1292,7 +1293,7 @@ export default function GlobalSignalsView({
                               className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition shrink-0"
                               title={`Abrir decisores captados de ${rule.searchQuery}`}
                             >
-                              <span>Ver Leads ({leadsCount})</span>
+                              <span>{tCommon("viewLeads", { count: leadsCount })}</span>
                               <span aria-hidden="true">&rarr;</span>
                             </button>
 
@@ -1382,7 +1383,7 @@ export default function GlobalSignalsView({
                                       rel="noopener noreferrer"
                                       className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
                                     >
-                                      <span>Ver Post</span>
+                                      <span>{tCommon("viewPost")}</span>
                                       <span>↗</span>
                                     </a>
                                   </div>
@@ -1478,8 +1479,8 @@ export default function GlobalSignalsView({
             <div className="mt-4 divide-y divide-gray-300 dark:divide-gray-800">
               {getRuleLeads(selectedRuleForLeads.id).length === 0 ? (
                 <div className="py-8 text-center text-xs text-gray-400">
-                  <p>Aún no se han capturado leads en este radar.</p>
-                  <p className="mt-1">Pulsa &quot;Escanear&quot; en la tabla para extraer comentarios y participantes en vivo.</p>
+                  <p>{tCommon("noCapturedLeads")}</p>
+                  <p className="mt-1">{tCommon("scanToExtract")}</p>
                 </div>
               ) : (
                 getRuleLeads(selectedRuleForLeads.id).map((lead) => (

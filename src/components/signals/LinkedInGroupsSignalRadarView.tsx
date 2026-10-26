@@ -23,6 +23,8 @@ export default function LinkedInGroupsSignalRadarView({
   hideBreadcrumb?: boolean;
 } = {}) {
   const { currentUser } = useAuth();
+  const t = useTranslations("signals.groups");
+  const tCommon = useTranslations("signals.common");
   const { lists: leadLists, deleteList, markListMonitorAsDeleted } = useLeadsStore();
   const {
     l3GroupMonitors,
@@ -197,7 +199,7 @@ export default function LinkedInGroupsSignalRadarView({
     setGroupUrl("");
     setScanFeedback({
       type: "success",
-      text: `Monitor para el grupo "${newMonitor.groupName}" activado exitosamente.`,
+      text: t("feedbackActivated", { name: newMonitor.groupName }),
       listId: `list-sig-n3-group-${newMonitor.id}`,
     });
   };
@@ -258,14 +260,14 @@ export default function LinkedInGroupsSignalRadarView({
 
       setScanFeedback({
         type: "success",
-        text: `Escaneo completado: se extrajeron ${mappedSignals.length} decisores calificados del grupo "${group.groupName}".`,
+        text: t("feedbackScanSuccess", { count: mappedSignals.length, name: group.groupName }),
         listId: targetList.id,
       });
     } catch (err: any) {
       console.error("Error escaneando grupo:", err);
       setScanFeedback({
         type: "error",
-        text: err?.message || "Ocurrio un problema al conectar con LinkedIn para auditar el grupo.",
+        text: err?.message || t("feedbackScanError"),
       });
     } finally {
       setIsScanningId(null);
@@ -276,7 +278,7 @@ export default function LinkedInGroupsSignalRadarView({
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Signal Radar - Nivel 03: Grupos de LinkedIn (Debates y Actividad)" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageBreadcrumb")} />}
 
       {/* Métricas del Nivel 3 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -285,7 +287,7 @@ export default function LinkedInGroupsSignalRadarView({
             Grupos de LinkedIn Monitoreados
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {l3GroupMonitors.length} Comunidades
+            {t("kpiGroupsCount", { count: l3GroupMonitors.length })}
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
             Rastreo de Debates y Comentarios Activos
@@ -297,7 +299,7 @@ export default function LinkedInGroupsSignalRadarView({
             Decisores Calificados Extraidos
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
-            {totalGroupLeads} Decisores
+            {t("kpiLeadsCount", { count: totalGroupLeads })}
           </p>
           <span className="text-xs text-green-600 font-semibold dark:text-green-400">
             Intencion de Compra Alta (Dolores Sectoriales Reales)
@@ -332,7 +334,7 @@ export default function LinkedInGroupsSignalRadarView({
           onClick={() => setIsAddingGroup(!isAddingGroup)}
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
         >
-          {isAddingGroup ? "Cerrar Formulario" : "+ Agregar nuevo Monitor"}
+          {isAddingGroup ? t("toggleCloseForm") : t("toggleAddMonitor")}
         </button>
       </div>
 
@@ -347,14 +349,14 @@ export default function LinkedInGroupsSignalRadarView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Nombre de la Comunidad o Grupo de LinkedIn
+                  {t("labelGroupName")}
                 </label>
                 <input
                   type="text"
                   required
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Ej. B2B Sales & Prospeccion Outbound..."
+                  placeholder={t("placeholderGroupName")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
@@ -367,7 +369,7 @@ export default function LinkedInGroupsSignalRadarView({
                   type="url"
                   value={groupUrl}
                   onChange={(e) => setGroupUrl(e.target.value)}
-                  placeholder="https://www.linkedin.com/groups/1234567/"
+                  placeholder={t("placeholderGroupUrl")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
@@ -383,7 +385,7 @@ export default function LinkedInGroupsSignalRadarView({
                   type="text"
                   value={topicsInput}
                   onChange={(e) => setTopicsInput(e.target.value)}
-                  placeholder="Prospeccion en frio, Outbound B2B, Pipeline..."
+                  placeholder={t("placeholderKeywords")}
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
@@ -441,7 +443,7 @@ export default function LinkedInGroupsSignalRadarView({
                       onChange={(e) => setTrackComments(e.target.checked)}
                       className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
-                    <span>Comentarios (Mayor intencion)</span>
+                    <span>{t("optComments")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
                     <input
@@ -450,7 +452,7 @@ export default function LinkedInGroupsSignalRadarView({
                       onChange={(e) => setTrackLikes(e.target.checked)}
                       className="rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
-                    <span>Likes / Reacciones</span>
+                    <span>{t("optLikes")}</span>
                   </label>
                 </div>
               </div>
@@ -471,7 +473,7 @@ export default function LinkedInGroupsSignalRadarView({
                           : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
                       }`}
                     >
-                      {val === 0 ? "Sin filtro" : `+${val} comentarios`}
+                      {val === 0 ? t("noFilter") : t("minCommentsVal", { val })}
                     </button>
                   ))}
                 </div>
@@ -507,7 +509,7 @@ export default function LinkedInGroupsSignalRadarView({
                 type="submit"
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
               >
-                <span>Activar Monitor en LinkedIn</span>
+                <span>{t("submitBtn")}</span>
               </button>
             </div>
           </form>
@@ -548,9 +550,9 @@ export default function LinkedInGroupsSignalRadarView({
       )}
 
       {/* Lista de Monitores de Grupos */}
-      <ComponentCard title={`Monitores de Senales: Grupos de LinkedIn (${l3GroupMonitors.length})`}>
+      <ComponentCard title={t("tableTitle", { count: l3GroupMonitors.length })}>
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando comunidades...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingCommunities")}</p>
         ) : l3GroupMonitors.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -572,12 +574,12 @@ export default function LinkedInGroupsSignalRadarView({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:text-gray-400">
                 <tr>
-                  <th className="px-4 py-3 min-w-[260px]">Comunidad / Grupo</th>
-                  <th className="px-4 py-3 min-w-[160px]">Tematicas / Dolores</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Leads Extraidos</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Ultimo Escaneo</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">Acciones</th>
+                  <th className="px-4 py-3 min-w-[260px]">{t("thCommunity")}</th>
+                  <th className="px-4 py-3 min-w-[160px]">{t("thKeywords")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("extractedLeads")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("lastScan")}</th>
+                  <th className="px-4 py-3 whitespace-nowrap">{tCommon("status")}</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap min-w-[350px]">{tCommon("actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
@@ -668,14 +670,14 @@ export default function LinkedInGroupsSignalRadarView({
                           <span className="font-bold text-gray-900 dark:text-white">
                             {leadCount}
                           </span>
-                          <span className="text-xs text-gray-400 block">decisores</span>
+                          <span className="text-xs text-gray-400 block">{t("decisorsUnit")}</span>
                         </td>
 
                         <td className="px-4 py-3.5 align-top whitespace-nowrap">
                           <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {group.lastScanAt || "Pendiente"}
                           </span>
-                          <span className="text-xs text-gray-400 block">Frecuencia Diaria</span>
+                          <span className="text-xs text-gray-400 block">{tCommon("dailyFrequency")}</span>
                         </td>
 
                         <td className="px-4 py-3.5 align-top whitespace-nowrap">
@@ -697,7 +699,7 @@ export default function LinkedInGroupsSignalRadarView({
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
                               className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
-                              title="Seleccionar tamano de lote para la proxima auditoria"
+                              title={t("selectBatchTooltip")}
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
                                 const currentBatch = selectedBatchSize[group.id] || group.batchLeadLimit || 50;
@@ -734,7 +736,7 @@ export default function LinkedInGroupsSignalRadarView({
                                   disabled={isScanningId === group.id}
                                   onClick={() => handleScanGroup(group, activeBatch)}
                                   className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                                  title={`Escanear debates y extraer lote de hasta ${activeBatch} decisores`}
+                                  title={t("scanBtnTooltip", { count: activeBatch })}
                                 >
                                   {isScanningId === group.id ? (
                                     <>
@@ -743,7 +745,7 @@ export default function LinkedInGroupsSignalRadarView({
                                     </>
                                   ) : (
                                     <>
-                                      <span>Escanear</span>
+                                      <span>{tCommon("scanBtn")}</span>
                                       <span className="rounded-lg bg-brand-600/80 px-1 py-0.2 text-xs font-bold">
                                         {activeBatch}
                                       </span>
@@ -757,9 +759,9 @@ export default function LinkedInGroupsSignalRadarView({
                             <Link
                               href={`/leads/lists?listId=${encodeURIComponent(targetListId)}&group=${encodeURIComponent(group.groupName)}`}
                               className="rounded-lg border border-brand-500 px-2.5 py-1 text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 font-medium text-xs inline-flex items-center gap-1.5 transition"
-                              title={`Abrir lista inteligente de ${group.groupName}`}
+                              title={t("openSmartListTooltip", { name: group.groupName })}
                             >
-                              <span>Ver Leads ({leadCount})</span>
+                              <span>{tCommon("viewLeads", { count: leadCount })}</span>
                               <span aria-hidden="true">&rarr;</span>
                             </Link>
 
@@ -768,7 +770,7 @@ export default function LinkedInGroupsSignalRadarView({
                               type="button"
                               onClick={() => setEditingMonitor(group)}
                               className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                              title="Editar monitor de grupo"
+                              title={t("editMonitorTooltip")}
                             >
                               <Pencil className="size-3.5" />
                             </button>
@@ -780,7 +782,7 @@ export default function LinkedInGroupsSignalRadarView({
                                 if (leadCount === 0) {
                                   if (
                                     confirm(
-                                      `¿Eliminar auditoría del grupo "${group.groupName}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                      t("deleteConfirmNoLeads", { name: group.groupName })
                                     )
                                   ) {
                                     deleteLevel3GroupMonitor(group.id);
@@ -789,7 +791,7 @@ export default function LinkedInGroupsSignalRadarView({
                                 } else {
                                   if (
                                     confirm(
-                                      `¿Eliminar auditoría del grupo "${group.groupName}"?\n\nLos ${leadCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
+                                      t("deleteConfirmWithLeads", { name: group.groupName, count: leadCount })
                                     )
                                   ) {
                                     deleteLevel3GroupMonitor(group.id);
@@ -799,7 +801,7 @@ export default function LinkedInGroupsSignalRadarView({
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                              title="Eliminar grupo"
+                              title={t("deleteMonitorTooltip")}
                             >
                               <X className="size-3.5" />
                             </button>
@@ -815,7 +817,7 @@ export default function LinkedInGroupsSignalRadarView({
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
                                   <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
-                                  <span>Debates de la Comunidad Analizados ({scannedPosts.length})</span>
+                                  <span>{t("debatesAnalyzedHeader", { count: scannedPosts.length })}</span>
                                 </span>
                                 <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                                   Actividad en {group.groupName}
@@ -841,8 +843,8 @@ export default function LinkedInGroupsSignalRadarView({
                                         {post.text}
                                       </p>
                                       <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 font-medium">
-                                        <span>{post.commentsCount || 0} comentarios</span>
-                                        <span>{post.reactionsCount || 0} reacciones</span>
+                                        <span>{t("postCommentsCount", { count: post.commentsCount || 0 })}</span>
+                                        <span>{t("postReactionsCount", { count: post.reactionsCount || 0 })}</span>
                                       </div>
                                     </div>
 
@@ -853,7 +855,7 @@ export default function LinkedInGroupsSignalRadarView({
                                         rel="noreferrer"
                                         className="shrink-0 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400 flex items-center gap-1 mt-1"
                                       >
-                                        <span>Ver en LinkedIn</span>
+                                        <span>{tCommon("viewOnLinkedIn")}</span>
                                         <ExternalLink className="h-3 w-3" />
                                       </a>
                                     )}
@@ -893,7 +895,7 @@ export default function LinkedInGroupsSignalRadarView({
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  Tematicas o Dolores a Rastrear (separadas por coma)
+                  {t("editKeywords")} (separadas por coma)
                 </label>
                 <input
                   type="text"
