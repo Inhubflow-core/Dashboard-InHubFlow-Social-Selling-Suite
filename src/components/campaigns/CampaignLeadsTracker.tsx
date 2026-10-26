@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Search,
   Eye,
@@ -22,6 +23,7 @@ import {
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
 import type {
   LinearSequenceCampaign,
+  SequenceStepItem,
   SocialStepType,
 } from "@/lib/campaigns/types";
 import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
@@ -108,7 +110,21 @@ export function CampaignLeadsTracker({
   activeAccount,
   onLogGenerated,
 }: CampaignLeadsTrackerProps) {
+  const t = useTranslations("campaigns");
   const [leadsTracker, setLeadsTracker] = useState<LeadCampaignTrackerItem[]>([]);
+
+  const getStepMiniLabel = (step: SequenceStepItem) => {
+    switch (step.type) {
+      case "visit": return t("palette.visitTitle").split(" ")[0];
+      case "like_comment": return t("palette.likeCommentTitle").split(" ")[0];
+      case "connect":
+      case "connect_message": return t("palette.connectTitle").split(" ")[0];
+      case "message_icebreaker":
+      case "message_followup":
+      case "message_value_prop": return t("palette.icebreakerTitle").split(" ")[0];
+      default: return (step.title || "").split(" ")[0];
+    }
+  };
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
@@ -539,11 +555,11 @@ export function CampaignLeadsTracker({
               <div>
                 <div className="flex items-center gap-2.5">
                   <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                    Prospectos en Campaña: Seguimiento y Avance de Secuencias
+                    {t("tracker.title")}
                   </h3>
                 </div>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Monitorea por qué estación va cada contacto en tiempo real, su lista de asignación y el monitor de origen de Signal Radar.
+                  {t("tracker.desc")}
                 </p>
               </div>
             </div>
@@ -556,27 +572,27 @@ export function CampaignLeadsTracker({
                 type="button"
                 onClick={handleSyncLeadsFromRadar}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 dark:hover:bg-brand-900 border border-brand-200 dark:border-brand-800 text-xs font-semibold transition"
-                title="Sincronizar nuevos prospectos desde Signal Radar"
+                title={t("tracker.syncRadarTitle")}
               >
                 <RefreshCw className="size-3 text-brand-600" />
-                <span>Sincronizar Radar</span>
+                <span>{t("tracker.syncRadar")}</span>
               </button>
             )}
             <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold border border-gray-300 dark:border-gray-700">
-              Total: <strong className="text-gray-900 dark:text-white">{kpiStats.total}</strong>
+              {t("tracker.total")} <strong className="text-gray-900 dark:text-white">{kpiStats.total}</strong>
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-800">
-              En Progreso: <strong>{kpiStats.inProgress}</strong>
+              {t("tracker.inProgress")} <strong>{kpiStats.inProgress}</strong>
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-semibold border border-amber-200 dark:border-amber-800">
-              Esperando Retardo: <strong>{kpiStats.waiting}</strong>
+              {t("tracker.waitingDelay")} <strong>{kpiStats.waiting}</strong>
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800">
-              Completados: <strong>{kpiStats.completed}</strong>
+              {t("tracker.completed")} <strong>{kpiStats.completed}</strong>
             </span>
             {kpiStats.replied > 0 && (
               <span className="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800">
-                Respondieron: <strong>{kpiStats.replied}</strong>
+                {t("tracker.replied")} <strong>{kpiStats.replied}</strong>
               </span>
             )}
           </div>
@@ -591,7 +607,7 @@ export function CampaignLeadsTracker({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por contacto, cargo o monitor..."
+              placeholder={t("tracker.searchPlaceholder")}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 pl-8 pr-3.5 py-2 text-xs text-gray-800 dark:text-white focus:outline-hidden focus:border-brand-500"
             />
           </div>
@@ -603,7 +619,7 @@ export function CampaignLeadsTracker({
               onChange={(e) => setSelectedListFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-xs text-gray-800 dark:text-white focus:border-brand-500 focus:outline-hidden"
             >
-              <option value="all">Todas las Listas ({uniqueLists.length})</option>
+              <option value="all">{t("tracker.allLists", { count: uniqueLists.length })}</option>
               {uniqueLists.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
@@ -619,7 +635,7 @@ export function CampaignLeadsTracker({
               onChange={(e) => setSelectedMonitorFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-xs text-gray-800 dark:text-white focus:border-brand-500 focus:outline-hidden"
             >
-              <option value="all">Todos los Monitores ({uniqueMonitors.length})</option>
+              <option value="all">{t("tracker.allMonitors", { count: uniqueMonitors.length })}</option>
               {uniqueMonitors.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -667,10 +683,10 @@ export function CampaignLeadsTracker({
               <Users className="size-6" />
             </div>
             <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-              No hay prospectos en esta campaña
+              {t("tracker.noLeadsTitle")}
             </h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mt-1 mb-4">
-              Los prospectos reales aparecerán aquí al ser captados por Signal Radar o al sincronizarse desde tus listas de leads.
+              {t("tracker.noLeadsDesc")}
             </p>
             {allLeads.length > 0 ? (
               <button
@@ -679,7 +695,7 @@ export function CampaignLeadsTracker({
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 shadow-sm transition"
               >
                 <RefreshCw className="size-3.5" />
-                <span>Sincronizar {allLeads.length} Prospectos de Signal Radar</span>
+                <span>{t("tracker.syncLeadsBtn", { count: allLeads.length })}</span>
               </button>
             ) : (
               <button
@@ -690,13 +706,13 @@ export function CampaignLeadsTracker({
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold hover:border-brand-500 hover:text-brand-600 transition"
               >
-                <span>Añadir Roberto OrSe para Pruebas</span>
+                <span>{t("tracker.addTestLeadBtn")}</span>
               </button>
             )}
           </div>
         ) : filteredLeads.length === 0 ? (
           <div className="p-8 text-center text-xs text-gray-400">
-            No se encontraron prospectos que coincidan con los filtros seleccionados.
+            {t("tracker.noFilteredLeads")}
           </div>
         ) : (
           <div className="overflow-x-auto px-5 pt-4 pb-2">
@@ -859,7 +875,7 @@ export function CampaignLeadsTracker({
                                       : "text-gray-400"
                                   }`}
                                 >
-                                  {step.title.split(" ")[0]}
+                                  {getStepMiniLabel(step)}
                                 </span>
                               </div>
                             );
@@ -903,7 +919,7 @@ export function CampaignLeadsTracker({
                               type="button"
                               onClick={() => handleResetLeadProgress(lead.id)}
                               className="h-[28px] w-[28px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 inline-flex items-center justify-center transition"
-                              title="Reiniciar secuencia al Paso 1 para este lead"
+                              title={t("tracker.resetProgressTooltip")}
                             >
                               <RotateCcw className="size-3.5" />
                             </button>
