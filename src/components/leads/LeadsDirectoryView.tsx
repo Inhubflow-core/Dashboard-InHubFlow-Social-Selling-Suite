@@ -132,6 +132,19 @@ export default function LeadsDirectoryView({
     }
   };
 
+  const getLocalizedSignalSource = (source?: string) => {
+    if (!source) return t("notAvailable");
+    if (source.includes("Mis Posts") || source.includes("My Posts")) return t("sourceMyPosts");
+    if (source.includes("Competitor") || source.includes("Competencia")) return t("sourceCompetitor");
+    if (source.includes("Grupos") || source.includes("Groups")) return t("sourceGroups");
+    if (source.startsWith("Interacciones Globales") || source.startsWith("Global Interactions")) {
+      const match = source.match(/\((.*?)\)/);
+      const topic = match ? match[1] : "";
+      return t("sourceGlobal", { topic });
+    }
+    return source;
+  };
+
   return (
     <div className="w-full space-y-6">
       {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageTitle")} />}
@@ -294,9 +307,9 @@ export default function LeadsDirectoryView({
                       <td className="py-3.5 pr-2 whitespace-nowrap">
                         <span
                           className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
-                          title={lead.signalSource}
+                          title={getLocalizedSignalSource(lead.signalSource)}
                         >
-                          {truncateText(lead.signalSource, 26)}
+                          {truncateText(getLocalizedSignalSource(lead.signalSource), 26)}
                         </span>
                       </td>
 

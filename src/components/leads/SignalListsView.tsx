@@ -151,6 +151,31 @@ export default function SignalListsView({
     [l1Monitors, l2Monitors, l3GroupMonitors, l4GlobalMonitors]
   );
 
+  const getLocalizedSignalSource = (source?: string) => {
+    if (!source) return t("notAvailable");
+    if (source.includes("Mis Posts") || source.includes("My Posts")) return t("sourceMyPosts");
+    if (source.includes("Competitor") || source.includes("Competencia")) return t("sourceCompetitor");
+    if (source.includes("Grupos") || source.includes("Groups")) return t("sourceGroups");
+    if (source.startsWith("Interacciones Globales") || source.startsWith("Global Interactions")) {
+      const match = source.match(/\((.*?)\)/);
+      const topic = match ? match[1] : "";
+      return t("sourceGlobal", { topic });
+    }
+    return source;
+  };
+
+  const getLocalizedDescription = (desc?: string, list?: LeadListGroup) => {
+    if (!desc) return "";
+    if (desc.includes("Lista inteligente auto-alimentada por publicaciones") || desc.includes("Smart list auto-fed by global")) {
+      const topic = list?.name?.replace(/^\[signal\s*n[1-4]\]\s*/i, "").split(" • ")[0].trim() || "";
+      return t("autoDescGlobal", { topic });
+    }
+    if (desc.includes("alimentada por monitores de señales") || desc.includes("powered by buying intent monitors")) {
+      return t("listDescFallback");
+    }
+    return desc;
+  };
+
   return (
     <div className="w-full space-y-6">
       {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("listsPageTitle")} />}
@@ -245,10 +270,10 @@ export default function SignalListsView({
                   onChange={(e) => setNewSignalLevel(e.target.value as "level_1" | "level_2" | "level_3" | "level_4")}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 >
-                  <option value="level_1">Nivel 1: Mis Posts (Lead Magnet)</option>
-                  <option value="level_2">Nivel 2: Posts de la Competencia</option>
-                  <option value="level_3">Nivel 3: Grupos de LinkedIn</option>
-                  <option value="level_4">Nivel 4: LinkedIn Global</option>
+                  <option value="level_1">{t("optionLevel1")}</option>
+                  <option value="level_2">{t("optionLevel2")}</option>
+                  <option value="level_3">{t("optionLevel3")}</option>
+                  <option value="level_4">{t("optionLevel4")}</option>
                 </select>
               </div>
             </div>
@@ -324,12 +349,12 @@ export default function SignalListsView({
                         }`}
                       >
                         {list.signalLevel === "level_1"
-                          ? "Nivel 1: Mis Posts"
+                          ? t("badgeLevel1")
                           : list.signalLevel === "level_2"
-                          ? "Nivel 2: Competencia"
+                          ? t("badgeLevel2")
                           : list.signalLevel === "level_3"
-                          ? "Nivel 3: Grupos"
-                          : "Nivel 4: Global"}
+                          ? t("badgeLevel3")
+                          : t("badgeLevel4")}
                       </span>
 
                       {isMonDeleted && (
@@ -354,7 +379,7 @@ export default function SignalListsView({
 
                     {list.description && (
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                        {list.description}
+                        {getLocalizedDescription(list.description, list)}
                       </p>
                     )}
 
@@ -363,7 +388,7 @@ export default function SignalListsView({
                       <div className="flex items-center gap-1.5">
                         <span className="text-gray-400 text-xs">{t("origin")}</span>
                         <span className="font-semibold text-gray-700 dark:text-gray-300">
-                          {list.signalSource}
+                          {getLocalizedSignalSource(list.signalSource)}
                         </span>
                       </div>
 

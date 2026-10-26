@@ -235,6 +235,31 @@ export default function DynamicListDetailPage() {
     );
   }
 
+  const getLocalizedSignalSource = (source?: string) => {
+    if (!source) return t("notAvailable");
+    if (source.includes("Mis Posts") || source.includes("My Posts")) return t("sourceMyPosts");
+    if (source.includes("Competitor") || source.includes("Competencia")) return t("sourceCompetitor");
+    if (source.includes("Grupos") || source.includes("Groups")) return t("sourceGroups");
+    if (source.startsWith("Interacciones Globales") || source.startsWith("Global Interactions")) {
+      const match = source.match(/\((.*?)\)/);
+      const topic = match ? match[1] : "";
+      return t("sourceGlobal", { topic });
+    }
+    return source;
+  };
+
+  const getLocalizedDescription = (desc?: string, list?: any) => {
+    if (!desc) return "";
+    if (desc.includes("Lista inteligente auto-alimentada por publicaciones") || desc.includes("Smart list auto-fed by global")) {
+      const topic = list?.name?.replace(/^\[signal\s*n[1-4]\]\s*/i, "").split(" • ")[0].trim() || "";
+      return t("autoDescGlobal", { topic });
+    }
+    if (desc.includes("alimentada por monitores de señales") || desc.includes("powered by buying intent monitors")) {
+      return t("listDescFallback");
+    }
+    return desc;
+  };
+
   const cleanListName =
     currentList?.competitorName?.trim() ||
     currentList?.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim() ||
@@ -297,19 +322,19 @@ export default function DynamicListDetailPage() {
               {cleanListName}
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {currentList.description || t("listDescFallback")}
+              {getLocalizedDescription(currentList.description, currentList) || t("listDescFallback")}
             </p>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-xs text-gray-500 dark:text-gray-400">
               <div>
                 <span className="text-gray-400">{t("originLabel")}</span>{" "}
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
-                  {currentList.signalSource}
+                  {getLocalizedSignalSource(currentList.signalSource)}
                 </span>
               </div>
               {currentList.competitorName && (
                 <div>
-                  <span className="text-gray-400">Competidor:</span>{" "}
+                  <span className="text-gray-400">{t("competitor")}</span>{" "}
                   <span className="font-semibold text-purple-700 dark:text-purple-300">
                     {currentList.competitorName}
                   </span>
@@ -317,7 +342,7 @@ export default function DynamicListDetailPage() {
               )}
               {currentList.keywords && currentList.keywords.length > 0 && (
                 <div className="flex items-center gap-1">
-                  <span className="text-gray-400">Filtros:</span>
+                  <span className="text-gray-400">{t("filters")}</span>
                   {currentList.keywords.map((kw, i) => (
                     <span
                       key={i}
