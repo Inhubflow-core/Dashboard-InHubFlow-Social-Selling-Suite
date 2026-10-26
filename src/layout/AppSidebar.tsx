@@ -64,14 +64,14 @@ const navItems: NavItem[] = [
     path: "/signals",
   },
   {
-    icon: <BoxCubeIcon />,
-    key: "campaigns",
-    path: "/campaigns",
-  },
-  {
     icon: <UserCircleIcon />,
     key: "leads",
     path: "/leads",
+  },
+  {
+    icon: <BoxCubeIcon />,
+    key: "campaigns",
+    path: "/campaigns",
   },
   {
     icon: <ListIcon />,
