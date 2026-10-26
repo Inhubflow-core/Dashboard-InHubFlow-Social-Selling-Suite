@@ -71,10 +71,7 @@ const navItems: NavItem[] = [
   {
     icon: <UserCircleIcon />,
     key: "leads",
-    subItems: [
-      { key: "leadsDirectory", path: "/leads" },
-      { key: "leadsLists", path: "/leads/lists" },
-    ],
+    path: "/leads",
   },
   {
     icon: <ListIcon />,
