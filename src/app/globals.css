@@ -1212,3 +1212,37 @@ pre[class*="language-"].line-numbers {
   animation: fadeOutBackdrop 0.22s ease-in forwards;
   will-change: opacity;
 }
+
+
+/* Animaciones de Carrusel Deslizable para Calendario Editorial */
+@keyframes carouselSlideInRight {
+  0% {
+    transform: translate3d(140px, 0, 0);
+    opacity: 0.15;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes carouselSlideInLeft {
+  0% {
+    transform: translate3d(-140px, 0, 0);
+    opacity: 0.15;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.animate-carousel-slide-right {
+  animation: carouselSlideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-carousel-slide-left {
+  animation: carouselSlideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}

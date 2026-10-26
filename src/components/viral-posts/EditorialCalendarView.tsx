@@ -30,6 +30,7 @@ export default function EditorialCalendarView({
   const [scheduleEditTime, setScheduleEditTime] = useState("09:30");
   const [scheduleSaveSuccess, setScheduleSaveSuccess] = useState(false);
   const [justRescheduledInfo, setJustRescheduledInfo] = useState<{ title: string; date: string } | null>(null);
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev" | null>(null);
 
     // Sincronizar fecha y hora al abrir el modal de detalle del post
   const openPostDetails = (post: CreatedPost) => {
@@ -65,6 +66,7 @@ export default function EditorialCalendarView({
 
   // Navegación de periodos (Anterior, Siguiente, Hoy): en vista semanal avanza o retrocede 1 día exacto
   const handlePrev = () => {
+    setSlideDirection("prev");
     setCurrentDate((prev) => {
       const d = new Date(prev);
       if (viewMode === "month") {
@@ -77,6 +79,7 @@ export default function EditorialCalendarView({
   };
 
   const handleNext = () => {
+    setSlideDirection("next");
     setCurrentDate((prev) => {
       const d = new Date(prev);
       if (viewMode === "month") {
@@ -89,6 +92,7 @@ export default function EditorialCalendarView({
   };
 
   const handleToday = () => {
+    setSlideDirection(null);
     const now = new Date();
     if (viewMode === "week") {
       const day = now.getDay();
@@ -560,7 +564,17 @@ export default function EditorialCalendarView({
             </button>
 
             {/* Contenedor de 7 Días Siempre Visibles */}
-            <div className="w-full grid grid-cols-1 md:grid-cols-7 gap-3 px-2 transition-all duration-200 ease-out">
+            <div className="w-full overflow-hidden px-3 py-1">
+              <div
+                key={`${currentWeekDays[0]?.dateKey}-${slideDirection}`}
+                className={`w-full grid grid-cols-1 md:grid-cols-7 gap-3 ${
+                  slideDirection === "next"
+                    ? "animate-carousel-slide-right"
+                    : slideDirection === "prev"
+                    ? "animate-carousel-slide-left"
+                    : ""
+                }`}
+              >
             {currentWeekDays.map((day) => {
               const dayPosts = filteredPosts.filter((p) => {
                 if (!p.scheduledAt) return false;
@@ -692,6 +706,7 @@ export default function EditorialCalendarView({
                 </div>
               );
             })}
+              </div>
             </div>
 
             {/* Flecha Derecha de Navegación de Semana (Carrusel) */}
