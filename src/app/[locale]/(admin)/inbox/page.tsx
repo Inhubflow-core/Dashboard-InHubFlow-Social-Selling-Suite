@@ -54,7 +54,7 @@ export default function InboxPage() {
   const [activeConvId, setActiveConvId] = useState<string>("conv-1");
   const [filterCampaign, setFilterCampaign] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [tabFilter, setTabFilter] = useState<"all" | "unread" | "interested" | "meeting">("all");
+  const [tabFilter, setTabFilter] = useState<"all" | "unread">("all");
   const [messageInput, setMessageInput] = useState<string>("");
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
@@ -81,14 +81,15 @@ export default function InboxPage() {
 
       const matchCampaign = filterCampaign === "all" || c.campaignSource === filterCampaign;
 
-      let matchTab = true;
-      if (tabFilter === "unread") matchTab = c.unread;
-      if (tabFilter === "interested") matchTab = c.crmStageId === "interested";
-      if (tabFilter === "meeting") matchTab = c.crmStageId === "meeting_scheduled";
+      const matchTab = tabFilter === "all" ? true : c.unread;
 
       return matchSearch && matchCampaign && matchTab;
     });
   }, [conversations, searchQuery, filterCampaign, tabFilter]);
+
+  const unreadCount = useMemo(() => {
+    return conversations.filter((c) => c.unread).length;
+  }, [conversations]);
 
   const uniqueCampaigns = useMemo(() => {
     return Array.from(new Set(conversations.map((c) => c.campaignSource)));
@@ -235,8 +236,42 @@ export default function InboxPage() {
       <div className="w-full min-h-[680px] grid grid-cols-12 gap-0 rounded-lg border border-gray-300 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         {/* Panel Izquierdo: Lista de Conversaciones */}
         <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r border-gray-300 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
-          {/* Filtros superiores */}
-          <div className="p-3 border-b border-gray-300 dark:border-gray-800 space-y-2 bg-white dark:bg-gray-900">
+          {/* Pestañas superiores estilo HeyReach / LinkedIn (Todas y No leídas) */}
+          <div className="flex border-b border-gray-200 dark:border-gray-800 px-4 pt-3 bg-white dark:bg-gray-900 gap-6">
+            <button
+              type="button"
+              onClick={() => setTabFilter("all")}
+              className={`pb-2.5 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
+                tabFilter === "all"
+                  ? "border-brand-500 text-brand-600 dark:text-brand-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              <span>{t("filterAll")}</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-medium">
+                {conversations.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabFilter("unread")}
+              className={`pb-2.5 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
+                tabFilter === "unread"
+                  ? "border-brand-500 text-brand-600 dark:text-brand-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              <span>{t("filterUnread")}</span>
+              {unreadCount > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-brand-500 text-white font-bold">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Filtros de búsqueda */}
+          <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-2 bg-white dark:bg-gray-900">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 size-3.5 text-gray-400" />
               <input
@@ -262,54 +297,6 @@ export default function InboxPage() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Pestañas rápidas */}
-            <div className="flex gap-1 pt-1">
-              <button
-                type="button"
-                onClick={() => setTabFilter("all")}
-                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
-                  tabFilter === "all"
-                    ? "bg-brand-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
-                }`}
-              >
-                Todas
-              </button>
-              <button
-                type="button"
-                onClick={() => setTabFilter("unread")}
-                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
-                  tabFilter === "unread"
-                    ? "bg-brand-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
-                }`}
-              >
-                No leidas
-              </button>
-              <button
-                type="button"
-                onClick={() => setTabFilter("interested")}
-                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
-                  tabFilter === "interested"
-                    ? "bg-brand-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
-                }`}
-              >
-                Interesados
-              </button>
-              <button
-                type="button"
-                onClick={() => setTabFilter("meeting")}
-                className={`flex-1 rounded-lg py-1 text-xs font-medium transition ${
-                  tabFilter === "meeting"
-                    ? "bg-brand-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400"
-                }`}
-              >
-                Reuniones
-              </button>
             </div>
           </div>
 
@@ -358,7 +345,7 @@ export default function InboxPage() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mt-2 leading-relaxed">
+                    <p className={`text-xs mt-1.5 line-clamp-2 leading-relaxed ${conv.unread ? "font-medium text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>
                       {conv.lastMessage}
                     </p>
                   </div>
