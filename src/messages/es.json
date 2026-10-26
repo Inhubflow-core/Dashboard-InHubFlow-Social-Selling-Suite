@@ -23,7 +23,7 @@
     },
     "items": {
       "settings": "Configuración",
-      "workspaceSettings": "Ajustes del Workspace",
+      "workspaceSettings": "API y Workspace",
       "securitySettings": "API Keys & Seguridad",
       "support": "Soporte & Ayuda",
       "helpCenter": "Centro de Ayuda & Guías",
@@ -51,7 +51,7 @@
       "pipelineKanban": "Kanban Comercial",
       "pipelineCalendar": "Calendario de Citas",
       "linkedinAccounts": "Cuentas de LinkedIn",
-      "plans": "Planes & Slots",
+      "plans": "Planes y Slots",
       "team": "Equipo & Miembros",
       "saasAdmin": "Administración SaaS",
       "saasSubscribers": "Suscriptores & Multislots",

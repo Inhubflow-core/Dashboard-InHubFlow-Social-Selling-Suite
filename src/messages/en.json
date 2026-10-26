@@ -23,7 +23,7 @@
     },
     "items": {
       "settings": "Settings",
-      "workspaceSettings": "Workspace Settings",
+      "workspaceSettings": "API & Workspace",
       "securitySettings": "API Keys & Security",
       "support": "Support & Help",
       "helpCenter": "Help Center & Guides",

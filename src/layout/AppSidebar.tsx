@@ -108,10 +108,9 @@ const settingsItems: NavItem[] = [
     icon: <Settings className="size-5" />,
     key: "settings",
     subItems: [
-      { key: "workspaceSettings", path: "/settings" },
       { key: "linkedinAccounts", path: "/linkedin-accounts" },
+      { key: "workspaceSettings", path: "/settings" },
       { key: "plans", path: "/plans" },
-      { key: "securitySettings", path: "/settings/security" },
     ],
   },
 ];
