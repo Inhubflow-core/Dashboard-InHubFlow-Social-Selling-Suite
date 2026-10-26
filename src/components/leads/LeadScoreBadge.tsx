@@ -54,16 +54,16 @@ export function LeadScoreBadge({
   return (
     <span
       className={`inline-flex items-center gap-1 font-semibold border rounded-lg cursor-help transition select-none ${badgeConfig.badgeClass} ${
-        isSmall ? "px-1.5 py-0.5 text-xs" : "px-2 py-0.5 text-xs"
+        isSmall ? "px-1.5 py-0.5 text-xs" : "px-2.5 py-1 text-xs"
       } ${className}`}
       title={badgeConfig.title}
     >
-      <span className="text-xs">{badgeConfig.medal}</span>
-      <span className="font-bold">{normalizedScore}</span>
+      <span className={isSmall ? "text-xs" : "text-sm"}>{badgeConfig.medal}</span>
+      <span className={`font-bold ${isSmall ? "text-xs" : "text-sm"}`}>{normalizedScore}</span>
       {showDetail && (
         <>
           <span className="opacity-40">•</span>
-          <span className="font-medium text-xs tracking-tight">{badgeConfig.label}</span>
+          <span className={`font-medium ${isSmall ? "text-[10px]" : "text-xs"} tracking-tight`}>{badgeConfig.label}</span>
         </>
       )}
     </span>
