@@ -333,52 +333,34 @@ export default function InboxPage() {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <ProspectAvatar
                           imageUrl={conv.avatarUrl}
                           name={conv.leadName}
-                          size="sm"
-                          className="size-8 shrink-0 rounded-full overflow-hidden"
+                          size="md"
                         />
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
-                            <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                               {conv.leadName}
                             </h4>
                             {conv.unread && (
-                              <span className="size-2 rounded-full bg-brand-500" />
+                              <span className="size-2 rounded-full bg-brand-500 shrink-0" />
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[170px]">
-                            {conv.leadTitle} - {conv.company}
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                            {conv.leadTitle}{conv.company ? ` · ${conv.company}` : ""}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                      <span className="text-xs text-gray-400 whitespace-nowrap shrink-0 mt-0.5">
                         {conv.lastMessageTime}
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1 mt-2">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mt-2 leading-relaxed">
                       {conv.lastMessage}
                     </p>
-
-                    <div className="mt-2.5 flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-lg">
-                        {conv.campaignSource.replace("Nivel ", "N")}
-                      </span>
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          conv.crmStageId === "meeting_scheduled"
-                            ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
-                            : conv.crmStageId === "interested"
-                            ? "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
-                            : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        }`}
-                      >
-                        {conv.crmStage}
-                      </span>
-                    </div>
                   </div>
                 );
               })
