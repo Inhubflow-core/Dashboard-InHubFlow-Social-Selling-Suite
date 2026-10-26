@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   X,
   Check,
@@ -26,6 +27,7 @@ export default function PlanUpgradeModal({
   onClose,
   reason = "capacity_reached",
 }: PlanUpgradeModalProps) {
+  const t = useTranslations("planUpgradeModal");
   const { currentUser, updateUserPlan, capacity } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export default function PlanUpgradeModal({
 
   const handleSelectPlan = (tier: PlanTier) => {
     updateUserPlan(tier);
-    setSuccessNotice(`Plan actualizado exitosamente a ${tier.toUpperCase()}. Tus nuevos slots ya estan activos.`);
+    setSuccessNotice(t("successNotice", { tier: tier.toUpperCase() }));
     setTimeout(() => {
       setSuccessNotice(null);
       onClose();
@@ -48,7 +50,7 @@ export default function PlanUpgradeModal({
         <button
           onClick={onClose}
           className="absolute top-5 right-5 rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-          aria-label="Cerrar modal"
+          aria-label={t("closeModal")}
         >
           <X className="size-5" />
         </button>
@@ -58,22 +60,22 @@ export default function PlanUpgradeModal({
           {reason === "capacity_reached" ? (
             <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-500">
               <ShieldAlert className="size-4" />
-              <span>Limite de slots alcanzado ({capacity.usedSlots} de {capacity.totalSlots} cuentas)</span>
+              <span>{t("quotaReached", { used: capacity.usedSlots, total: capacity.totalSlots })}</span>
             </div>
           ) : (
             <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-[#0099ff]/30 bg-[#0099ff]/10 px-3 py-1 text-xs font-semibold text-[#0099ff]">
               <Layers className="size-4" />
-              <span>Escala la capacidad de tu equipo</span>
+              <span>{t("scaleCapacity")}</span>
             </div>
           )}
 
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
             {reason === "capacity_reached"
-              ? "Amplia tus Slots de Cuentas de LinkedIn"
-              : "Selecciona el Plan Adecuado para tu Empresa"}
+              ? t("titleCapacity")
+              : t("titleUpgrade")}
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Cada slot te permite conectar, automatizar y prospectar con un perfil activo de LinkedIn.
+            {t("subtitle")}
           </p>
 
           {/* Toggle Mensual / Anual */}
@@ -86,7 +88,7 @@ export default function PlanUpgradeModal({
                   : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               }`}
             >
-              Facturacion Mensual
+              {t("monthlyBilling")}
             </button>
             <button
               onClick={() => setBillingCycle("annual")}
@@ -96,9 +98,9 @@ export default function PlanUpgradeModal({
                   : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               }`}
             >
-              <span>Facturacion Anual</span>
+              <span>{t("annualBilling")}</span>
               <span className="rounded-lg bg-white/20 px-1 py-0.5 text-xs font-bold text-white">
-                -20%
+                {t("save20")}
               </span>
             </button>
           </div>
@@ -129,7 +131,7 @@ export default function PlanUpgradeModal({
                 {/* Badge Popular */}
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0099ff] px-3 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
-                    Recomendado
+                    {t("recommended")}
                   </div>
                 )}
 
@@ -147,10 +149,12 @@ export default function PlanUpgradeModal({
                   {/* Destacado de Slots */}
                   <div className="mt-3 rounded-lg border border-gray-300 bg-gray-50 p-3 text-center dark:border-gray-800 dark:bg-gray-900/60">
                     <div className="text-2xl font-extrabold text-[#0099ff]">
-                      {plan.slots} {plan.slots === 1 ? "Cuenta" : "Cuentas"}
+                      {plan.slots === 1 ? t("singleAccount") : t("multipleAccounts", { count: plan.slots })}
                     </div>
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      {plan.slots === 1 ? "1 Slot simultaneo" : `${plan.slots} Slots simultaneos`}
+                      {plan.slots === 1
+                        ? t("singleSlotSimultaneous")
+                        : t("multipleSlotsSimultaneous", { count: plan.slots })}
                     </div>
                   </div>
 
@@ -163,7 +167,7 @@ export default function PlanUpgradeModal({
                       ${price}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      / mes
+                      {t("perMonth")}
                     </span>
                   </div>
                 </div>
@@ -211,10 +215,10 @@ export default function PlanUpgradeModal({
                   }`}
                 >
                   {isCurrent ? (
-                    "Plan Actual"
+                    t("currentPlan")
                   ) : (
                     <>
-                      <span>Seleccionar {plan.name}</span>
+                      <span>{t("selectPlan", { name: plan.name })}</span>
                       <ArrowRight className="size-3.5" />
                     </>
                   )}
@@ -227,10 +231,10 @@ export default function PlanUpgradeModal({
         {/* Pie informativo */}
         <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-gray-300 pt-4 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400 sm:flex-row">
           <div>
-            Proteccion contra suspensiones con pacing humano y descansos aleatorios en todos los planes.
+            {t("footerProtection")}
           </div>
           <div>
-            Necesitas mas de 10 cuentas? Contacta con soporte para una licencia Enterprise personalizada.
+            {t("footerEnterprise")}
           </div>
         </div>
       </div>

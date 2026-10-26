@@ -415,7 +415,7 @@ const AppSidebar: React.FC = () => {
               {isSuperAdmin && (
                 <Link
                   href="/admin/subscribers"
-                  title={!isExpanded && !isHovered ? "SuperAdmin" : undefined}
+                  title={!isExpanded && !isHovered ? t("items.superAdmin") : undefined}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all mb-2",
                     isActive("/admin/subscribers")
@@ -436,7 +436,7 @@ const AppSidebar: React.FC = () => {
                   </div>
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
-                      <span className="truncate font-semibold">SuperAdmin</span>
+                      <span className="truncate font-semibold">{t("items.superAdmin")}</span>
                       <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300">
                         MASTER
                       </span>
@@ -449,7 +449,7 @@ const AppSidebar: React.FC = () => {
               {!isMember && (
                 <Link
                   href="/team"
-                  title={!isExpanded && !isHovered ? "Admin" : undefined}
+                  title={!isExpanded && !isHovered ? t("items.teamAdmin") : undefined}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all mb-2",
                     isActive("/team")
@@ -470,7 +470,7 @@ const AppSidebar: React.FC = () => {
                   </div>
                   {(isExpanded || isHovered || isMobileOpen) && (
                     <>
-                      <span className="truncate font-semibold">Admin</span>
+                      <span className="truncate font-semibold">{t("items.teamAdmin")}</span>
                       <span className="ms-auto text-xs font-extrabold uppercase px-1.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                         TEAM
                       </span>

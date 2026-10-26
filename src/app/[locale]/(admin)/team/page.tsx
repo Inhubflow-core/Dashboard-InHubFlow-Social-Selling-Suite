@@ -81,17 +81,17 @@ export default function TeamManagementPage() {
     setFormError("");
 
     if (isStarterPlan) {
-      setFormError("El Plan Starter no permite invitar miembros adicionales. Actualiza al Plan Growth.");
+      setFormError(t("errorStarter"));
       return;
     }
 
     if (isTeamCapacityReached) {
-      setFormError(`Has alcanzado el límite de ${maxTeamAllowed} miembros de equipo permitidos en tu suscripción.`);
+      setFormError(t("errorCapacity", { max: maxTeamAllowed }));
       return;
     }
 
     if (!inviteEmail) {
-      setFormError("El correo electronico es obligatorio.");
+      setFormError(t("errorEmailRequired"));
       return;
     }
 
@@ -118,18 +118,18 @@ export default function TeamManagementPage() {
       setInviteEmail("");
       setInviteAccountId("");
       setInviteRole("member");
-      setNotice(`Invitacion generada exitosamente para ${inviteEmail}.`);
+      setNotice(t("noticeInviteCreated", { email: inviteEmail }));
       setTimeout(() => setNotice(null), 3500);
     } catch (err: any) {
-      setFormError(err.message || "Error al generar la invitacion.");
+      setFormError(err.message || t("errorInviteGeneric"));
     }
   };
 
   const handleRemoveMember = (id: string, name: string) => {
-    if (confirm(`Confirmas la baja del operador ${name}?`)) {
+    if (confirm(t("confirmRemoveMember", { name }))) {
       removeTeamMember(id);
       loadTeamData();
-      setNotice(`Miembro ${name} removido del equipo.`);
+      setNotice(t("noticeMemberRemoved", { name }));
       setTimeout(() => setNotice(null), 3000);
     }
   };
@@ -149,10 +149,10 @@ export default function TeamManagementPage() {
             <ShieldAlert className="size-7" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Modulo Exclusivo para Administradores
+            {t("exclusiveAdminTitle")}
           </h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-gray-500 dark:text-gray-400">
-            Tu rol es Operador Team. La administracion de colaboradores y asignacion de cupos de cuentas de LinkedIn solo esta disponible para el Administrador del espacio de trabajo.
+            {t("exclusiveAdminDesc")}
           </p>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default function TeamManagementPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Equipo & Operadores" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Capacidad del Plan */}
       <SlotsCapacityCard onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
@@ -176,10 +176,10 @@ export default function TeamManagementPage() {
               </div>
               <div>
                 <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                  Plan Starter Monousuario (1 Cuenta de Administrador · 0 Cupos de Equipo)
+                  {t("starterAlertTitle")}
                 </h4>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Tu suscripción actual incluye 1 slot exclusivo para tu cuenta de Administrador. Para invitar a colaboradores de equipo (1 Admin + hasta 4 miembros Team) y asignarles perfiles de LinkedIn independientes, actualiza al Plan Growth.
+                  {t("starterAlertDesc")}
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function TeamManagementPage() {
               onClick={() => setIsUpgradeModalOpen(true)}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition"
             >
-              <span>Actualizar a Plan Growth</span>
+              <span>{t("upgradeToGrowth")}</span>
               <ExternalLink className="size-3.5" />
             </button>
           </div>
@@ -207,15 +207,15 @@ export default function TeamManagementPage() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Gestion de Equipo & Asignacion de Cuentas
+              {t("headerTitle")}
             </h2>
           </div>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {isSuperAdmin
-              ? "Panel maestro de Super Administrador con invitaciones ilimitadas para todo el equipo."
+              ? t("headerDescSuper")
               : isStarterPlan
-              ? "Plan Starter monousuario: 1 cuenta para el Administrador. Actualiza a Growth para sumar colaboradores."
-              : `Invita hasta a ${maxTeamAllowed} miembros Team para operar perfiles de LinkedIn dentro de tus slots.`}
+              ? t("headerDescStarter")
+              : t("headerDescRegular", { max: maxTeamAllowed })}
           </p>
         </div>
 
@@ -231,9 +231,9 @@ export default function TeamManagementPage() {
             <UserPlus className="size-4" />
             <span>
               {isStarterPlan
-                ? "Habilitar Equipo (Growth)"
+                ? t("btnEnableTeam")
                 : isTeamCapacityReached
-                ? "Ampliar Cupos de Equipo"
+                ? t("btnExpandSlots")
                 : t("inviteBtn")}
             </span>
           </button>
@@ -245,63 +245,67 @@ export default function TeamManagementPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Slots Totales del Plan
+              {t("kpiTotalSlots")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Layers className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {isSuperAdmin ? "999 (Ilimitado)" : `${currentUser.slotsLimit} ${currentUser.slotsLimit === 1 ? "Slot" : "Slots"}`}
+            {isSuperAdmin
+              ? t("kpiUnlimited")
+              : currentUser.slotsLimit === 1
+              ? t("kpiSingleSlot")
+              : t("kpiTotalSlotsCount", { count: currentUser.slotsLimit })}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {isSuperAdmin
-              ? "Slots y perfiles ilimitados para Super Admin"
+              ? t("kpiDescSuper")
               : isStarterPlan
-              ? "1 Slot exclusivo de Administrador (Monousuario)"
+              ? t("kpiDescStarter")
               : currentUser.slotsLimit === 5
-              ? "1 Admin + hasta 4 miembros Team (5 slots)"
-              : "1 Admin + hasta 9 miembros Team (10 slots)"}
+              ? t("kpiDescGrowth")
+              : t("kpiDescBusiness")}
           </p>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Miembros de Equipo (Team)
+              {t("kpiTeamMembers")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
               <Users className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {members.length} / {isSuperAdmin ? "∞" : maxTeamAllowed}
+            {t("kpiMembersRatio", { members: members.length, max: isSuperAdmin ? "∞" : maxTeamAllowed })}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {isStarterPlan
-              ? "0 colaboradores permitidos en Plan Starter"
-              : `1 Admin principal + ${members.length} miembros activos (${pendingInvites.length} pendientes)`}
+              ? t("kpiDescMembersStarter")
+              : t("kpiDescMembersRegular", { members: members.length, pending: pendingInvites.length })}
           </p>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Cupos de Equipo Disponibles
+              {t("kpiAvailableQuota")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
               <ShieldCheck className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {isSuperAdmin ? "Ilimitados" : availableTeamSlots}
+            {isSuperAdmin ? t("kpiUnlimitedQuota") : availableTeamSlots}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {isStarterPlan
-              ? "Actualiza al Plan Growth para 4 cupos"
+              ? t("kpiDescQuotaStarter")
               : availableTeamSlots === 0
-              ? "Límite del plan alcanzado"
-              : `${availableTeamSlots} vacantes para nuevos operadores`}
+              ? t("kpiDescQuotaFull")
+              : t("kpiDescQuotaAvailable", { count: availableTeamSlots })}
           </p>
         </div>
       </div>
@@ -317,7 +321,7 @@ export default function TeamManagementPage() {
                 : "text-gray-400 hover:text-gray-700 dark:text-gray-400"
             }`}
           >
-            Miembros del Equipo ({members.length + 1})
+            {t("tabMembers", { count: members.length + 1 })}
           </button>
           <button
             onClick={() => setActiveTab("invitations")}
@@ -327,7 +331,7 @@ export default function TeamManagementPage() {
                 : "text-gray-400 hover:text-gray-700 dark:text-gray-400"
             }`}
           >
-            Invitaciones Pendientes ({invitations.length})
+            {t("tabInvitaciones", { count: invitations.length })}
           </button>
         </div>
       </div>
@@ -338,11 +342,11 @@ export default function TeamManagementPage() {
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
-                <th className="px-5 py-3.5">Colaborador</th>
-                <th className="px-5 py-3.5">Rol en Organizacion</th>
-                <th className="px-5 py-3.5">Cuenta LinkedIn Asignada</th>
-                <th className="px-5 py-3.5">Estado</th>
-                <th className="px-5 py-3.5 text-right">Acciones</th>
+                <th className="px-5 py-3.5">{t("colMember")}</th>
+                <th className="px-5 py-3.5">{t("colRoleOrg")}</th>
+                <th className="px-5 py-3.5">{t("colAccount")}</th>
+                <th className="px-5 py-3.5">{t("colStatus")}</th>
+                <th className="px-5 py-3.5 text-right">{t("colActions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
@@ -369,21 +373,21 @@ export default function TeamManagementPage() {
                       ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                       : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
                   }`}>
-                    {isSuperAdmin ? "Super Admin (Maestro)" : "Admin (Propietario · 1 Slot)"}
+                    {isSuperAdmin ? t("roleSuperAdminMaster") : t("roleAdminOwner")}
                   </span>
                 </td>
                 <td className="px-5 py-4">
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {isSuperAdmin ? "Todas las cuentas (Acceso Maestro Global)" : "Cuenta de Administrador (Slot #1)"}
+                    {isSuperAdmin ? t("accountAllMaster") : t("accountAdminSlot")}
                   </span>
                 </td>
                 <td className="px-5 py-4">
                   <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
-                    Activo
+                    {t("statusActive")}
                   </span>
                 </td>
                 <td className="px-5 py-4 text-right text-gray-400">
-                  <span className="text-xs">Cuenta Principal</span>
+                  <span className="text-xs">{t("labelPrimaryAccount")}</span>
                 </td>
               </tr>
 
@@ -407,7 +411,7 @@ export default function TeamManagementPage() {
                   </td>
                   <td className="px-5 py-4">
                     <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      Team · {m.role === "admin" ? "Co-Admin" : "Operador SDR"}
+                      {m.role === "admin" ? t("roleCoAdmin") : t("roleSdr")}
                     </span>
                   </td>
                   <td className="px-5 py-4">
@@ -417,19 +421,19 @@ export default function TeamManagementPage() {
                         {m.accountName}
                       </span>
                     ) : (
-                      <span className="text-gray-400">Sin cuenta asignada (Slot libre)</span>
+                      <span className="text-gray-400">{t("unassignedSlot")}</span>
                     )}
                   </td>
                   <td className="px-5 py-4">
                     <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
-                      Activo
+                      {t("statusActive")}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <button
                       onClick={() => handleRemoveMember(m.id, m.name)}
                       className="rounded-lg p-1.5 text-gray-400 hover:bg-rose-500/10 hover:text-rose-600"
-                      title="Dar de baja"
+                      title={t("tooltipRemove")}
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -447,18 +451,18 @@ export default function TeamManagementPage() {
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
-                <th className="px-5 py-3.5">Correo Destinatario</th>
-                <th className="px-5 py-3.5">Rol Propuesto</th>
-                <th className="px-5 py-3.5">Codigo / Enlace de Invitacion</th>
-                <th className="px-5 py-3.5">Expiracion</th>
-                <th className="px-5 py-3.5 text-right">Accion</th>
+                <th className="px-5 py-3.5">{t("colInviteEmail")}</th>
+                <th className="px-5 py-3.5">{t("colInviteRole")}</th>
+                <th className="px-5 py-3.5">{t("colInviteCode")}</th>
+                <th className="px-5 py-3.5">{t("colInviteExp")}</th>
+                <th className="px-5 py-3.5 text-right">{t("colInviteAction")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
               {invitations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-gray-500">
-                    No hay invitaciones pendientes.
+                    {t("emptyInvitations")}
                   </td>
                 </tr>
               ) : (
@@ -469,7 +473,7 @@ export default function TeamManagementPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
-                        Team · {inv.role === "admin" ? "Co-Admin" : "Operador"}
+                        {inv.role === "admin" ? t("roleCoAdmin") : t("roleOperator")}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -482,7 +486,7 @@ export default function TeamManagementPage() {
                           className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700"
                         >
                           <Copy className="size-3" />
-                          <span>{copiedId === inv.id ? "Copiado!" : "Copiar Enlace"}</span>
+                          <span>{copiedId === inv.id ? t("btnCopied") : t("btnCopyLink")}</span>
                         </button>
                       </div>
                     </td>
@@ -491,7 +495,7 @@ export default function TeamManagementPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
-                        Pendiente
+                        {t("statusPending")}
                       </span>
                     </td>
                   </tr>
@@ -515,17 +519,19 @@ export default function TeamManagementPage() {
 
             <div className="flex items-center justify-between pr-8">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Invitar Miembro al Equipo (Team)
+                {t("modalInviteTitle")}
               </h3>
             </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Asigna a un colaborador para operar tus cuentas de LinkedIn dentro de tu cuota contratada.
+              {t("modalInviteDesc")}
             </p>
 
             <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 p-2.5 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Cupos libres de equipo:</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t("freeQuotaLabel")}</span>
               <span className="text-xs font-bold text-[#0099ff]">
-                {isSuperAdmin ? "Ilimitados" : `${availableTeamSlots} de ${maxTeamAllowed} disponibles`}
+                {isSuperAdmin
+                  ? t("freeQuotaUnlimited")
+                  : t("freeQuotaAvailable", { available: availableTeamSlots, max: maxTeamAllowed })}
               </span>
             </div>
 
@@ -538,12 +544,12 @@ export default function TeamManagementPage() {
             <form onSubmit={handleCreateInviteSubmit} className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Correo Electrónico del Colaborador
+                  {t("formEmailLabel")}
                 </label>
                 <input
                   type="email"
                   required
-                  placeholder="operador@tuempresa.com"
+                  placeholder={t("formEmailPlaceholder")}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -552,28 +558,28 @@ export default function TeamManagementPage() {
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Rol en el Equipo
+                  {t("formRoleLabel")}
                 </label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="member">Team · Operador SDR (Acceso a su bandeja asignada)</option>
-                  <option value="admin">Team · Co-Administrador (Gestion de campanas y equipo)</option>
+                  <option value="member">{t("formRoleMember")}</option>
+                  <option value="admin">{t("formRoleAdmin")}</option>
                 </select>
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Cuenta de LinkedIn Asignada (Slot)
+                  {t("formAccountLabel")}
                 </label>
                 <select
                   value={inviteAccountId}
                   onChange={(e) => setInviteAccountId(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="">-- Sin asignar por ahora --</option>
+                  <option value="">{t("formAccountNone")}</option>
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
                       {acc.name} ({acc.status})
@@ -588,13 +594,13 @@ export default function TeamManagementPage() {
                   onClick={() => setIsInviteModalOpen(false)}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
-                  Cancelar
+                  {t("btnCancel")}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
-                  Enviar Invitacion
+                  {t("btnSendInvite")}
                 </button>
               </div>
             </form>

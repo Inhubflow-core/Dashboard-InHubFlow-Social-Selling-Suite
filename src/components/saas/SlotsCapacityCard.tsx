@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Layers,
   Sparkles,
@@ -22,6 +23,7 @@ export default function SlotsCapacityCard({
   onUpgradeClick,
   compact = false,
 }: SlotsCapacityCardProps) {
+  const t = useTranslations("slotsCapacity");
   const { currentUser, capacity, isSuperAdmin } = useAuth();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const plan = getPlanConfig(currentUser.planTier);
@@ -45,19 +47,19 @@ export default function SlotsCapacityCard({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-base font-medium text-gray-800 dark:text-white/90">
-                  Super Administrador · SuperAdmin
+                  {t("superAdminTitle")}
                 </span>
                 <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
-                  Slots Ilimitados
+                  {t("unlimitedSlots")}
                 </span>
               </div>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400" suppressHydrationWarning>
-                Cuentas activas en el entorno: {capacity.usedSlots} perfiles vinculados
+                {t("activeAccountsSuper", { count: capacity.usedSlots })}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs font-semibold text-[#0099ff]">
-            <span>Modo Maestro Global</span>
+            <span>{t("globalMasterMode")}</span>
           </div>
         </div>
       </div>
@@ -86,7 +88,7 @@ export default function SlotsCapacityCard({
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-base font-medium text-gray-800 dark:text-white/90">
-                  {currentUser.companyName || "Mi Organizacion"}
+                  {currentUser.companyName || t("defaultOrg")}
                 </span>
                 <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
                   {plan.name} ({plan.slots} {plan.slots === 1 ? "Slot" : "Slots"})
@@ -94,17 +96,17 @@ export default function SlotsCapacityCard({
                 {capacity.isAtCapacity && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
                     <ShieldAlert className="size-3" />
-                    Cupo Completo
+                    {t("fullQuota")}
                   </span>
                 )}
               </div>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {plan.slots === 1
-                  ? `${capacity.usedSlots} de 1 cuenta activa (1 Slot para Admin · Monousuario)`
+                  ? t("singleSlotText", { count: capacity.usedSlots })
                   : plan.slots === 5
-                  ? `${capacity.usedSlots} de 5 cuentas activas (1 Admin + hasta 4 miembros Team)`
-                  : `${capacity.usedSlots} de 10 cuentas activas (1 Admin + hasta 9 miembros Team)`}
-                {capacity.availableSlots > 0 ? ` · ${capacity.availableSlots} slots libres` : ""}
+                  ? t("growthSlotsText", { count: capacity.usedSlots })
+                  : t("businessSlotsText", { count: capacity.usedSlots })}
+                {capacity.availableSlots > 0 ? t("freeSlots", { count: capacity.availableSlots }) : ""}
               </p>
             </div>
           </div>
@@ -114,7 +116,7 @@ export default function SlotsCapacityCard({
             {/* Barra de Progreso */}
             <div className="w-full flex-1">
               <div className="mb-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>Capacidad de Cuentas</span>
+                <span>{t("accountCapacity")}</span>
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
                   {capacity.usagePercentage}%
                 </span>
@@ -138,7 +140,7 @@ export default function SlotsCapacityCard({
                   : "border border-[#0099ff]/40 bg-[#0099ff]/10 text-[#0099ff] hover:bg-[#0099ff] hover:text-white"
               }`}
             >
-              <span>{capacity.isAtCapacity ? "Ampliar Slots" : "Cambiar Plan"}</span>
+              <span>{capacity.isAtCapacity ? t("expandSlots") : t("changePlan")}</span>
               <ArrowUpRight className="size-3.5" />
             </button>
           </div>
