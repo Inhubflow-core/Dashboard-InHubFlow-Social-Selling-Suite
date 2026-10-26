@@ -82,7 +82,7 @@ const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
     company: "InHubFlow / Agencia OrSe",
     location: "Brasil",
     linkedinUrl: "https://www.linkedin.com/in/robertoorse",
-    avatarUrl: "https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo",
+    avatarUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY",
     listId: "list-l1-sistema",
     listName: "Leads Captados por Signal Radar",
     monitorName: "Signal Radar N1: Lead Magnet SISTEMA",
