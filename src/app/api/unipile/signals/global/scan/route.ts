@@ -1297,7 +1297,7 @@ export async function POST(req: NextRequest) {
             signalSnippet: `Reaccionó al post sobre ${primaryTerm}: “${(post.text || cleanQuery).slice(0, 80)}...”`,
             signalType: "reaction",
             intentLevel: "medium",
-            intentScore: 70,
+            intentScore: 80,
             connectionDegree: (author as any).network_distance || "2nd",
             sourcePostId: post.social_id || post.id,
             sourcePostUrl: postShareUrl,

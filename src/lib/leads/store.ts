@@ -94,21 +94,19 @@ export function getStoredLeads(): Lead360Item[] {
           hadFixes = true;
         }
 
-        // Calibrar puntuación hacia la escala oficial (100: Lead Magnet, 90: Comentó, 80: Reposteó, 70: Reaccionó)
+        // Calibrar puntuación hacia la escala oficial (100: Lead Magnet, 90: Comentó, 80: Reacción / Like)
         let normalizedScore = l.intentScore;
         if (l.signalLevel === "level_1" || l.intentScore === 95 || l.signalSource?.toLowerCase().includes("mis posts")) {
           normalizedScore = 100;
         } else if (
           l.intentScore === 85 ||
+          l.intentScore === 90 ||
           l.timeline?.some((t) => t.detail?.toLowerCase().includes("comentó") || t.detail?.toLowerCase().includes("comento"))
         ) {
           normalizedScore = 90;
-        } else if (
-          l.timeline?.some((t) => t.detail?.toLowerCase().includes("reposteó") || t.detail?.toLowerCase().includes("compartió"))
-        ) {
+        } else {
+          // Reacción / Like pasa oficialmente a 80 (migración automática de scores 70)
           normalizedScore = 80;
-        } else if (!normalizedScore || normalizedScore < 70) {
-          normalizedScore = 70;
         }
 
         if (normalizedScore !== l.intentScore) {

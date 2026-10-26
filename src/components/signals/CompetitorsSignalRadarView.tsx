@@ -391,7 +391,7 @@ export default function CompetitorsSignalRadarView({
         avatarUrl: lead.avatarUrl,
         connectionDegree: "2nd",
         intentLevel: lead.signalType === "comment" ? "medium_high" : "medium",
-        intentScore: lead.intentScore || (lead.signalType === "comment" ? 90 : 70),
+        intentScore: lead.intentScore || (lead.signalType === "comment" ? 90 : 80),
         signalType: lead.signalType || "reaction",
         signalLevel: "level_2",
         signalSnippet: lead.signalSnippet,

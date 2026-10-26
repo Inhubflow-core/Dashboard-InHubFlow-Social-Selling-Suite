@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
           signalSnippet: `Reaccionó al post de ${competitorName || "la cuenta monitorizada"}`,
           signalType: "reaction",
           intentLevel: "medium",
-          intentScore: 70,
+          intentScore: 80,
           sourcePostId: interaction.post.id,
           language: detectedReactionLang,
         });

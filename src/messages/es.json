@@ -2002,7 +2002,7 @@
     "pipelineStageHeader": "Etapa en el Pipeline Comercial",
     "sequenceStatusHeader": "Estado de la Secuencia",
     "badgeReactionLabel": "Reacción",
-    "badgeReactionTooltip": "70/100 • Dio Like o Reacción en el post (Señal de Intención)",
+    "badgeReactionTooltip": "80/100 • Dio Like o Reacción en el post (Señal de Intención)",
     "badgeKeywordTooltip": "100/100 • Comentó la palabra clave solicitada en tu post (Máxima Intención)",
     "badgeCommentLabel": "Comentó",
     "badgeCommentTooltip": "90/100 • Comentó activamente en la publicación (Alta Intención)",

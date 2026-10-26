@@ -17,17 +17,18 @@ export function LeadScoreBadge({
   className = "",
 }: LeadScoreBadgeProps) {
   const t = useTranslations("leads");
-  const normalizedScore = Number(score) || 70;
+  const rawScore = Number(score) || 80;
+  // Migración automática de scores históricos (70 -> 80)
+  const normalizedScore = rawScore === 70 ? 80 : rawScore;
 
-  // Clasificación oficial de Social Selling B2B acordada:
-  // 100: Palabra Clave en Lead Magnet (Full Intención)
+  // Clasificación oficial de Social Selling B2B:
+  // 100: Palabra Clave en Lead Magnet (Full Intención 🔥)
   // 90: Quien COMENTÓ (Medalla de Oro 🥇)
-  // 80: Quien REPOSTEÓ / COMPARTIÓ (Medalla de Plata 🥈)
-  // 70: Quien DIO LIKE / REACCIÓN (Medalla de Bronce 🥉)
+  // 80: Quien DIO LIKE / REACCIÓN (Medalla de Plata 🥈)
 
   let badgeConfig = {
-    badgeClass: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
-    medal: "🥉",
+    badgeClass: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60 shadow-2xs",
+    medal: "🥈",
     label: t("badgeReactionLabel"),
     title: t("badgeReactionTooltip"),
   };
@@ -45,13 +46,6 @@ export function LeadScoreBadge({
       medal: "🥇",
       label: t("badgeCommentLabel"),
       title: t("badgeCommentTooltip"),
-    };
-  } else if (normalizedScore >= 80) {
-    badgeConfig = {
-      badgeClass: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60",
-      medal: "🥈",
-      label: t("badgeRepostLabel"),
-      title: t("badgeRepostTooltip"),
     };
   }
 
