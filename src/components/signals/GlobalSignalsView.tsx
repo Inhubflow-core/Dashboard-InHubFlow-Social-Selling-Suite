@@ -766,13 +766,13 @@ export default function GlobalSignalsView({
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Signal Radar - Nivel 04: Posts Globales en LinkedIn (Top Voices & Tendencias)" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageBreadcrumb")} />}
 
       {/* Métricas del Nivel 4 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Temáticas Virales en Escucha
+            {t("kpiRadarTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {t("kpiRadarCount", { count: l3Monitors.length })}
@@ -784,25 +784,25 @@ export default function GlobalSignalsView({
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Decisores en Debate Calificado
+            {t("kpiLeadsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {t("kpiLeadsCount", { count: totalGlobalLeads })}
           </p>
           <span className="text-xs text-emerald-600 font-semibold dark:text-emerald-400">
-            Intención Alta: Comentaristas (90 pts) y Reposts (80 pts)
+            {t("kpiLeadsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Tasa de Respuesta en Debate
+            {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             56.4%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Respuestas al conectar sobre publicaciones donde ya opinaron
+            {t("kpiRateSub")}
           </span>
         </div>
       </div>
@@ -811,10 +811,10 @@ export default function GlobalSignalsView({
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Mecánica de Prospección por Tendencias y Debate Viral (Nivel 4)
+            {t("strategyTitle")}
           </h4>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            Rastrea las publicaciones con mayor tracción, debate y volumen de comentarios de todo LinkedIn sobre los problemas que tu solución resuelve. Filtra solo publicaciones con alto debate para prospectar decisores calientes que participan activamente en tu mercado.
+            {t("strategyDesc")}
           </p>
         </div>
         <button
@@ -1072,7 +1072,7 @@ export default function GlobalSignalsView({
                 href={`/leads/lists?listId=${encodeURIComponent(scanFeedback.listId)}`}
                 className="inline-flex items-center gap-1 font-bold underline hover:opacity-80 ml-2"
               >
-                Ver Lista Inteligente →
+                {t("viewSmartList")}
               </Link>
             )}
           </div>
@@ -1087,23 +1087,23 @@ export default function GlobalSignalsView({
       )}
 
       {/* Tabla Principal: Feed de Oportunidades & Radares Virales */}
-      <ComponentCard title={`Monitores de Señales: Publicaciones Globales LinkedIn (${l3Monitors.length})`}>
+      <ComponentCard title={t("tableTitle", { count: l3Monitors.length })}>
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando radares de tendencias...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingRadars")}</p>
         ) : l3Monitors.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              No tienes radares de publicaciones virales activos en Signal Radar Nivel 3.
+              {t("noMonitorsTitle")}
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Configura una temática o dolor de negocio (ej. Prospección B2B, Inteligencia Artificial) y el sistema escaneará las publicaciones con mayor debate de LinkedIn.
+              {t("noMonitorsDesc")}
             </p>
             <button
               type="button"
               onClick={() => setIsAddingRule(true)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              + Agregar Primer Radar Viral
+              {t("addFirstRadarBtn")}
             </button>
           </div>
         ) : (
@@ -1145,13 +1145,11 @@ export default function GlobalSignalsView({
                                 <p className="font-semibold text-gray-900 dark:text-white">
                                   {rule.searchQuery}
                                 </p>
-                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-                                  Feed Viral
-                                </span>
+                                <span className="rounded-full px-1.5 py-0.2 text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800">{t("viralFeedBadge")}</span>
                               </div>
 
                               <p className="text-xs text-gray-500 dark:text-gray-400 truncate block max-w-xs mt-0.5">
-                                Escaneo de publicaciones virales con debate activo en {countryName}
+                                {t("scanningDesc", { country: countryName })}
                               </p>
 
                               {/* Botón para desplegar / ocultar publicaciones virales cazadas */}
@@ -1168,15 +1166,13 @@ export default function GlobalSignalsView({
                                   title={isExpanded ? "Ocultar las publicaciones" : "Ver todas las publicaciones escaneadas"}
                                 >
                                   <span>
-                                    {isExpanded
-                                      ? "Ocultar Publicaciones"
-                                      : `Ver Publicaciones Virales (${scannedPosts.length})`}
+                                    {isExpanded ? t("btnHidePosts") : t("btnShowPosts", { count: scannedPosts.length })}
                                   </span>
                                   <span className="text-xs">{isExpanded ? "▴" : "▾"}</span>
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Escanear&quot; para escanear publicaciones en vivo.
+                                  {t("noPostsScannedNotice")}
                                 </span>
                               )}
                             </div>
@@ -1187,7 +1183,7 @@ export default function GlobalSignalsView({
                         <td className="px-4 py-3.5 align-top">
                           <div className="flex flex-wrap gap-1 max-w-[150px]">
                             <span className="rounded-lg bg-brand-50 border border-brand-200/60 px-2 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-950/60 dark:border-brand-900 dark:text-brand-300">
-                              Mín. {rule.minPostReactions || 15} comentarios
+                              {t("minCommentsBadge", { count: rule.minPostReactions || 15 })}
                             </span>
                             <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                               {countryFlag} {countryName}
@@ -1226,7 +1222,7 @@ export default function GlobalSignalsView({
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                             }`}
                           >
-                            {rule.status === "active" ? "Activo" : "Pausado"}
+                            {rule.status === "active" ? tCommon("statusActive") : tCommon("statusPaused")}
                           </button>
                         </td>
 
@@ -1349,10 +1345,10 @@ export default function GlobalSignalsView({
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <TrendingUp className="size-3.5 text-blue-600 dark:text-blue-400" />
-                                  <span>Publicación(es) de LinkedIn Monitoreada(s): Post Globales ({scannedPosts.length})</span>
+                                  <span>{t("scannedPostsHeader", { count: scannedPosts.length })}</span>
                                 </span>
                                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                                  Tracción real en {countryName} • {rule.searchQuery}
+                                  {t("realTractionIn", { country: countryName, topic: rule.searchQuery })}
                                 </span>
                               </div>
 
@@ -1371,7 +1367,7 @@ export default function GlobalSignalsView({
                                       </p>
                                       <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                                         <span>
-                                          {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
+                                          {t("postStats", { reactions: post.reactionsCount ?? 0, comments: post.commentsCount ?? 0, reposts: post.repostsCount ?? 0 })}
                                         </span>
                                         {post.scannedAt && <span>• {post.scannedAt}</span>}
                                       </div>

@@ -1627,7 +1627,15 @@
       "deleteConfirm": "Are you sure you want to delete the radar for \"{topic}\"? This action cannot be undone.",
       "feedbackSuccess": "Viral radar created for \"{topic}\" ({flag} {country}) with min. threshold of {threshold} comments. Linked smart list: \"{list}\".",
       "feedbackAuditSuccess": "Viral scan completed for \"{topic}\": Analyzed {total} high-debate posts in {country} and extracted a batch of {count} active leads.",
-      "feedbackAuditError": "Error scanning viral posts: {error}"
+      "feedbackAuditError": "Error scanning viral posts: {error}",
+      "scanningDesc": "Scanning viral posts with active debate in {country}",
+      "minCommentsBadge": "Min. {count} comments",
+      "viralFeedBadge": "Viral Feed",
+      "realTractionIn": "Real traction in {country} • {topic}",
+      "postStats": "{reactions} reactions • {comments} comments • {reposts} reposts",
+      "viewSmartList": "View Smart List →",
+      "addFirstRadarBtn": "+ Add First Viral Radar",
+      "noPostsScannedNotice": "No posts scanned. Click \"Scan\" to scan live posts."
     },
     "common": {
       "loadingRadar": "Loading Signal Radar...",

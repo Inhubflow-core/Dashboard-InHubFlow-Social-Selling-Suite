@@ -1627,7 +1627,15 @@
       "deleteConfirm": "Tem certeza de que deseja excluir o radar de \"{topic}\"? Esta ação não pode ser desfeita.",
       "feedbackSuccess": "Radar viral criado para \"{topic}\" ({flag} {country}) com limite mín. de {threshold} comentários. Lista dinâmica vinculada: \"{list}\".",
       "feedbackAuditSuccess": "Varredura viral concluída para \"{topic}\": Foram analisadas {total} publicações de alto debate em {country} e extraído um lote de {count} leads ativos.",
-      "feedbackAuditError": "Erro ao escanear publicações virais: {error}"
+      "feedbackAuditError": "Erro ao escanear publicações virais: {error}",
+      "scanningDesc": "Varredura de posts virais com debate ativo em {country}",
+      "minCommentsBadge": "Mín. {count} comentários",
+      "viralFeedBadge": "Feed Viral",
+      "realTractionIn": "Tração real em {country} • {topic}",
+      "postStats": "{reactions} reações • {comments} comentários • {reposts} reposts",
+      "viewSmartList": "Ver Lista Inteligente →",
+      "addFirstRadarBtn": "+ Adicionar Primeiro Radar Viral",
+      "noPostsScannedNotice": "Sem posts escaneados. Clique em \"Escanear\" para varrer publicações ao vivo."
     },
     "common": {
       "loadingRadar": "Carregando Signal Radar...",

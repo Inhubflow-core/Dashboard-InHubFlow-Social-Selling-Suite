@@ -1627,7 +1627,15 @@
       "deleteConfirm": "¿Estás seguro de eliminar el radar de \"{topic}\"? Esta acción no se puede deshacer.",
       "feedbackSuccess": "Radar viral creado para \"{topic}\" ({flag} {country}) con umbral mín. de {threshold} comentarios. Lista dinámica vinculada: \"{list}\".",
       "feedbackAuditSuccess": "Escaneo viral completado para \"{topic}\": Se analizaron {total} publicaciones de alto debate en {country} y se extrajo un lote de {count} leads activos.",
-      "feedbackAuditError": "Error al escanear publicaciones virales: {error}"
+      "feedbackAuditError": "Error al escanear publicaciones virales: {error}",
+      "scanningDesc": "Escaneo de publicaciones virales con debate activo en {country}",
+      "minCommentsBadge": "Mín. {count} comentarios",
+      "viralFeedBadge": "Feed Viral",
+      "realTractionIn": "Tracción real en {country} • {topic}",
+      "postStats": "{reactions} reacciones • {comments} comentarios • {reposts} reposts",
+      "viewSmartList": "Ver Lista Inteligente →",
+      "addFirstRadarBtn": "+ Agregar Primer Radar Viral",
+      "noPostsScannedNotice": "Sin posts escaneados. Pulsa \"Escanear\" para escanear publicaciones en vivo."
     },
     "common": {
       "loadingRadar": "Cargando Signal Radar...",
