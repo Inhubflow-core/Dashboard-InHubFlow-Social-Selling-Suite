@@ -720,10 +720,10 @@ export function CampaignLeadsTracker({
             <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
               <thead className="border-b border-gray-200 text-xs leading-5 font-medium tracking-wider uppercase text-gray-400 [&_th]:font-semibold dark:border-gray-800">
                 <tr>
-                  <th className="w-[23%] pb-3 pr-5">{t("tracker.colProspect")}</th>
-                  <th className="w-[26%] pb-3 pr-6">{t("tracker.colTitle")}</th>
-                  <th className="w-[18%] pb-3 pr-6 whitespace-nowrap">{t("tracker.colSignalSource")}</th>
-                  <th className="w-[24%] pb-3 pr-6">{t("tracker.colProgress")}</th>
+                  <th className="w-[18%] pb-3 pr-5">{t("tracker.colProspect")}</th>
+                  <th className="w-[20%] pb-3 pr-6">{t("tracker.colTitle")}</th>
+                  <th className="w-[15%] pb-3 pr-6 whitespace-nowrap">{t("tracker.colSignalSource")}</th>
+                  <th className="w-[38%] pb-3 pr-6">{t("tracker.colProgress")}</th>
                   <th className="w-[9%] pb-3 whitespace-nowrap text-right pr-1">{t("tracker.colActions")}</th>
                 </tr>
               </thead>
@@ -787,7 +787,7 @@ export function CampaignLeadsTracker({
                       {/* 3. Columna: Origen de Señal */}
                       <td className="py-4 pr-6 whitespace-nowrap">
                         <span
-                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[145px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={`${lead.monitorName} (${lead.listName})`}
                         >
                           {lead.monitorName}
@@ -857,7 +857,7 @@ export function CampaignLeadsTracker({
 
                                 {/* Etiqueta compacta debajo de la estación */}
                                 <span
-                                  className={`text-xs mt-1 text-center whitespace-nowrap truncate max-w-[65px] ${
+                                  className={`text-xs mt-1 text-center whitespace-nowrap truncate max-w-[75px] ${
                                     isCurrentStep
                                       ? "font-bold text-brand-600 dark:text-brand-400 scale-105"
                                       : isStepCompleted
