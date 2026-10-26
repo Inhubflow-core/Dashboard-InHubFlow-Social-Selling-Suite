@@ -441,12 +441,12 @@ export default function DynamicListDetailPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-200 text-xs leading-5 font-medium tracking-wider uppercase text-gray-400 [&_th]:font-semibold dark:border-gray-800">
                 <tr>
-                  <th className="pb-3 w-[260px] min-w-[240px] max-w-[280px]">{t("colProspect")}</th>
-                  <th className="pb-3 min-w-[280px]">{t("colJob")}</th>
-                  <th className="pb-3 min-w-[190px] whitespace-nowrap">{t("colSignalSource")}</th>
-                  <th className="pb-3 w-[120px] whitespace-nowrap text-center">{t("colScore")}</th>
-                  <th className="pb-3 w-[130px] whitespace-nowrap text-center">{t("colSequenceStatus")}</th>
-                  <th className="pb-3 w-[150px] whitespace-nowrap text-right pr-1">{t("colActions")}</th>
+                  <th className="pb-3 w-[270px] min-w-[250px]">{t("colProspect")}</th>
+                  <th className="pb-3 w-[220px] min-w-[190px] max-w-[240px]">{t("colJob")}</th>
+                  <th className="pb-3 w-[165px] min-w-[150px] whitespace-nowrap">{t("colSignalSource")}</th>
+                  <th className="pb-3 w-[105px] min-w-[100px] whitespace-nowrap text-center">{t("colScore")}</th>
+                  <th className="pb-3 w-[110px] min-w-[105px] whitespace-nowrap text-center">{t("colSequenceStatus")}</th>
+                  <th className="pb-3 w-[145px] min-w-[140px] whitespace-nowrap text-right pr-1">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-sm dark:divide-gray-800">
@@ -456,7 +456,7 @@ export default function DynamicListDetailPage() {
                   return (
                     <tr key={lead.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
                       {/* Columna: Prospecto con Foto de Perfil */}
-                      <td className="py-4 pr-4 w-[260px] min-w-[240px] max-w-[280px]">
+                      <td className="py-3.5 pr-3 w-[270px] min-w-[250px]">
                         <div className="flex items-center gap-3">
                           <ProspectAvatar
                             imageUrl={lead.avatarUrl}
@@ -480,50 +480,50 @@ export default function DynamicListDetailPage() {
                       </td>
 
                       {/* Columna: Cargo (Truncado estético con ... y tooltip nativo) */}
-                      <td className="py-4 pr-4 min-w-[280px]">
+                      <td className="py-3.5 pr-3 w-[220px] min-w-[190px] max-w-[240px]">
                         <p
                           className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate leading-snug cursor-help"
                           title={lead.title}
                         >
-                          {truncateText(lead.title, 85)}
+                          {truncateText(lead.title, 55)}
                         </p>
                       </td>
 
                       {/* Columna: Origen de Señal */}
-                      <td className="py-4 pr-3 min-w-[190px] whitespace-nowrap">
+                      <td className="py-3.5 pr-2 w-[165px] min-w-[150px] whitespace-nowrap">
                         <span
-                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[250px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[160px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={lead.signalSource}
                         >
-                          {truncateText(lead.signalSource, 40)}
+                          {truncateText(lead.signalSource, 26)}
                         </span>
                       </td>
 
                       {/* Columna: Puntuación */}
-                      <td className="py-4 px-2 w-[120px] whitespace-nowrap text-center">
+                      <td className="py-3.5 px-1.5 w-[105px] min-w-[100px] whitespace-nowrap text-center">
                         <LeadScoreBadge score={lead.intentScore} />
                       </td>
 
                       {/* Columna: Estado Secuencia */}
-                      <td className="py-4 px-2 w-[130px] whitespace-nowrap text-center">
+                      <td className="py-3.5 px-1.5 w-[110px] min-w-[105px] whitespace-nowrap text-center">
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold inline-flex items-center justify-center ${sequenceBadge.color}`}>
                           {sequenceBadge.label}
                         </span>
                       </td>
 
                       {/* Columna: Acciones */}
-                      <td className="py-4 pl-2 pr-1 w-[150px] text-right whitespace-nowrap space-x-2">
+                      <td className="py-3.5 pl-1 pr-1 w-[145px] min-w-[140px] text-right whitespace-nowrap space-x-1.5">
                         <button
                           type="button"
                           onClick={() => setSelectedLeadFor360(lead)}
-                          className="rounded-lg border border-brand-500 px-3 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
+                          className="rounded-lg border border-brand-500 px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
                           title={t("viewDetails")}
                         >
                           {t("actionRecord")}
                         </button>
                         <a
                           href="/inbox"
-                          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
+                          className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                           title={t("openChatInInbox")}
                         >
                           {t("actionChat")}
