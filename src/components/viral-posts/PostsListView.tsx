@@ -121,7 +121,7 @@ export default function PostsListView({
     setFeedback({
       id: editingPost.id,
       type: "success",
-      message: "Publicación actualizada correctamente.",
+      message: t("updatedSuccess"),
     });
   };
 
@@ -280,13 +280,13 @@ export default function PostsListView({
   const getFormatBadge = (fmt: PostFormat) => {
     switch (fmt) {
       case "text":
-        return { label: "Solo Texto", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
+        return { label: t("formatText"), color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
       case "image":
-        return { label: "Texto + Imagen", color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
+        return { label: t("formatImage"), color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
       case "carousel":
-        return { label: "Carrusel PDF", color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
+        return { label: t("formatCarousel"), color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
       case "video":
-        return { label: "Video", color: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" };
+        return { label: t("formatVideo"), color: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" };
       default:
         return { label: "Solo Texto", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
     }
@@ -335,7 +335,7 @@ export default function PostsListView({
       setFeedback({
         id: post.id,
         type: "success",
-        message: "¡Publicado en LinkedIn con éxito!",
+        message: t("publishSuccess"),
       });
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
@@ -343,7 +343,7 @@ export default function PostsListView({
       setFeedback({
         id: post.id,
         type: "error",
-        message: err.message || "Error al conectar con la red de LinkedIn.",
+        message: err.message || t("publishError"),
       });
     } finally {
       setPublishingId(null);
@@ -352,16 +352,16 @@ export default function PostsListView({
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Gestión de Publicaciones" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageTitle")} />}
 
       <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Cola Editorial y Contenido Emitido
+              {t("headerTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Control central de publicaciones programadas, borradores y métricas de impacto en LinkedIn.
+              {t("headerDesc")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -379,7 +379,7 @@ export default function PostsListView({
               href="/viral-posts?tab=create" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("create"); } }}
               className="rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-theme-xs"
             >
-              + Crear Nueva Publicación
+              {t("createPostBtn")}
             </a>
           </div>
         </div>
@@ -390,7 +390,7 @@ export default function PostsListView({
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-gray-500 mr-2">{t("statusFilterLabel")}</span>
               {[
-                { id: "all", label: "Todos" },
+                { id: "all", label: t("filterAll") },
                 { id: "scheduled", label: t("filterScheduled") },
                 { id: "published", label: t("filterPublished") },
                 { id: "draft", label: t("filterDraft") },
@@ -413,10 +413,10 @@ export default function PostsListView({
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-gray-500 mr-2">{t("formatFilterLabel")}</span>
               {[
-                { id: "all", label: "Todos" },
-                { id: "text", label: "Texto" },
-                { id: "image", label: "Imagen" },
-                { id: "carousel", label: "Carrusel" },
+                { id: "all", label: t("filterAll") },
+                { id: "text", label: t("formatFilterText") },
+                { id: "image", label: t("formatFilterImage") },
+                { id: "carousel", label: t("formatFilterCarousel") },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -437,7 +437,7 @@ export default function PostsListView({
       </div>
 
       <ComponentCard
-        title={`Publicaciones (${filteredPosts.length})`}
+        title={t("postsCountTitle", { count: filteredPosts.length })}
         desc={t("cardDesc")}
       >
         {!isLoaded ? (
@@ -445,23 +445,23 @@ export default function PostsListView({
         ) : filteredPosts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              No hay publicaciones que coincidan con los filtros seleccionados.
+              {t("noFilteredPosts")}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Modela una publicación viral desde Post Finder o redacta una nueva con IA.
+              {t("noFilteredPostsDesc")}
             </p>
             <div className="mt-4 flex items-center justify-center gap-3">
               <a
                 href="/viral-posts?tab=radar" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("radar"); } }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Explorar Post Finder
+                {t("exploreRadar")}
               </a>
               <a
                 href="/viral-posts?tab=create" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("create"); } }}
                 className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
               >
-                Crear con IA
+                {t("createWithAi")}
               </a>
             </div>
           </div>
@@ -523,10 +523,10 @@ export default function PostsListView({
                         )}
                         <span className="text-xs text-gray-400">
                           {post.scheduledAt
-                            ? `Programado: ${new Date(post.scheduledAt).toLocaleDateString()} ${new Date(post.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                            ? `${t("scheduledPrefix")}: ${new Date(post.scheduledAt).toLocaleDateString()} ${new Date(post.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                             : post.publishedAt
-                            ? `Publicado: ${new Date(post.publishedAt).toLocaleDateString()}`
-                            : `Creado: ${new Date(post.createdAt).toLocaleDateString()}`}
+                            ? `${t("publishedPrefix")}: ${new Date(post.publishedAt).toLocaleDateString()}`
+                            : `${t("createdPrefix")}: ${new Date(post.createdAt).toLocaleDateString()}`}
                         </span>
                       </div>
 
@@ -549,24 +549,24 @@ export default function PostsListView({
                       {post.status === "published" && (
                         <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-gray-500">
                           <span>
-                            <strong className="text-gray-900 dark:text-white">{effectiveLikes}</strong> Likes
+                            <strong className="text-gray-900 dark:text-white">{effectiveLikes}</strong> {t("likesLabel")}
                           </span>
                           <span>
-                            <strong className="text-gray-900 dark:text-white">{effectiveComments}</strong> {effectiveComments === 1 ? "Comentario" : "Comentarios"}
+                            <strong className="text-gray-900 dark:text-white">{effectiveComments}</strong> {effectiveComments === 1 ? t("commentsLabelSingle") : t("commentsLabelPlural")}
                           </span>
                           <span>
-                            <strong className="text-gray-900 dark:text-white">{effectiveImpressions}</strong> Impresiones
+                            <strong className="text-gray-900 dark:text-white">{effectiveImpressions}</strong> {t("impressionsLabel")}
                           </span>
                           {effectiveLeadsCaptured > 0 ? (
                             <Link
                               href={targetList ? `/leads?list=${targetList.id}` : "/leads"}
                               className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 underline"
                             >
-                              <span><strong className="text-brand-700 dark:text-brand-300">{effectiveLeadsCaptured}</strong> {effectiveLeadsCaptured === 1 ? "Lead Captado" : "Leads Captados"}</span>
+                              <span><strong className="text-brand-700 dark:text-brand-300">{effectiveLeadsCaptured}</strong> {effectiveLeadsCaptured === 1 ? t("leadCapturedSingle", { count: effectiveLeadsCaptured }) : t("leadCapturedPlural", { count: effectiveLeadsCaptured })}</span>
                             </Link>
                           ) : (
                             <span className="text-brand-600 font-semibold dark:text-brand-400">
-                              <strong>{effectiveLeadsCaptured}</strong> Leads Captados
+                              <strong>{effectiveLeadsCaptured}</strong> {t("leadCapturedPlural", { count: effectiveLeadsCaptured })}
                             </span>
                           )}
                           {post.linkedinPostId && (
@@ -643,7 +643,7 @@ export default function PostsListView({
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm(`¿Eliminar publicación "${post.title}"?`)) {
+                          if (confirm(t("confirmDeleteNamed", { title: post.title }))) {
                             deletePost(post.id);
                           }
                         }}
@@ -661,13 +661,13 @@ export default function PostsListView({
         )}
       </ComponentCard>
 
-      {/* Modal para Editar Publicación */}
+      {/* Modal para {t("editModalTitle")} */}
       {editingPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                Editar Publicación
+                {t("editModalTitle")}
               </h3>
               <button
                 type="button"
@@ -681,7 +681,7 @@ export default function PostsListView({
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Título
+                  {t("editTitleLabel")}
                 </label>
                 <input
                   type="text"
@@ -693,7 +693,7 @@ export default function PostsListView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Palabra Clave Lead Magnet
+                  {t("editKeywordLabel")}
                 </label>
                 <input
                   type="text"
@@ -706,7 +706,7 @@ export default function PostsListView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Contenido
+                  {t("editContentLabel")}
                 </label>
                 <textarea
                   rows={5}
