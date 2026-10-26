@@ -541,14 +541,14 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                 <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                      Generador de Prompt Visual para Midjourney / Flux
+                      {t("visualPromptTitle")}
                     </span>
                     <button
                       type="button"
                       onClick={handleCopyPrompt}
                       className="rounded-lg bg-white border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
                     >
-                      {copiedPrompt ? "Copiado al Portapapeles" : "Copiar Prompt"}
+                      {copiedPrompt ? t("copiedToClipboard") : t("copyPromptBtn")}
                     </button>
                   </div>
                   <textarea
@@ -559,7 +559,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   />
                   <div className="pt-2">
                     <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                      Subir Imagen Generada (Opcional)
+                      {t("uploadImageLabel")}
                     </label>
                     <input
                       type="file"
@@ -584,14 +584,14 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                        Editor de Diapositiva ({currentSlideIndex + 1} de {slides.length})
+                        {t("slideEditorTitle", { current: currentSlideIndex + 1, total: slides.length })}
                       </span>
                       <p className="text-xs text-gray-500">
                         {currentSlide.isCover
-                          ? "Portada del Carrusel"
+                          ? t("slideCover")
                           : currentSlide.isCta
-                          ? "Diapositiva Final de CTA"
-                          : "Diapositiva de Contenido"}
+                          ? t("slideCta")
+                          : t("slideContent")}
                       </p>
                     </div>
 
@@ -627,7 +627,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   <div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
                     <div>
                       <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                        Titular de Diapositiva
+                        {t("slideTitleLabel")}
                       </label>
                       <input
                         type="text"
@@ -644,7 +644,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                     {currentSlide.subtitle !== undefined && (
                       <div>
                         <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                          Subtítulo
+                          {t("slideSubtitleLabel")}
                         </label>
                         <input
                           type="text"
@@ -661,7 +661,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
 
                     <div>
                       <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                        Puntos de Contenido (1 por línea)
+                        {t("slideBulletsLabel")}
                       </label>
                       <textarea
                         rows={3}
@@ -682,10 +682,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    Cuerpo del Post (Copy de LinkedIn)
+                    {t("postBodyLabel")}
                   </label>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {content.length} caracteres (Recomendado: 500 - 1,200)
+                    {t("charCountRecommendation", { count: content.length })}
                   </span>
                 </div>
                 <textarea
@@ -780,10 +780,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   ) : (
                     <div className="h-56 flex flex-col items-center justify-center p-6 text-center text-gray-400">
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        Espacio de Imagen Adjunta
+                        {t("attachedImagePlaceholder")}
                       </p>
                       <p className="text-xs mt-1 max-w-xs font-mono">
-                        Prompt configurado para Midjourney
+                        {t("midjourneyConfiguredPrompt")}
                       </p>
                     </div>
                   )}
@@ -815,10 +815,10 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                           }}
                         >
                           {currentSlide.isCover
-                            ? "Portada"
+                            ? t("badgeCover")
                             : currentSlide.isCta
-                            ? "Llamado a la Acción"
-                            : `Slide ${currentSlide.slideNumber}`}
+                            ? t("badgeCta")
+                            : t("badgeSlide", { number: currentSlide.slideNumber })}
                         </span>
                         <span
                           className="text-xs"
@@ -897,7 +897,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   {/* Barra de navegación de carrusel */}
                   <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-700">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Documento PDF de LinkedIn
+                      {t("linkedinPdfDocument")}
                     </span>
                     <div className="flex gap-1.5">
                       <button
