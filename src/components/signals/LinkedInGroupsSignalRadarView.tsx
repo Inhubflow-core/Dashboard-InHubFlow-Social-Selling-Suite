@@ -284,37 +284,37 @@ export default function LinkedInGroupsSignalRadarView({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Grupos de LinkedIn Monitoreados
+            {t("kpiGroupsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {t("kpiGroupsCount", { count: l3GroupMonitors.length })}
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            Rastreo de Debates y Comentarios Activos
+            {t("kpiGroupsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Decisores Calificados Extraidos
+            {t("kpiLeadsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {t("kpiLeadsCount", { count: totalGroupLeads })}
           </p>
           <span className="text-xs text-green-600 font-semibold dark:text-green-400">
-            Intencion de Compra Alta (Dolores Sectoriales Reales)
+            {t("kpiLeadsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Tasa de Aceptacion Relacional
+            {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             56.4%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Respuestas al referenciar la pertenencia al mismo grupo
+            {t("kpiRateSub")}
           </span>
         </div>
       </div>
@@ -323,10 +323,10 @@ export default function LinkedInGroupsSignalRadarView({
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Mecanica de Prospeccion en Grupos de LinkedIn (Nivel 3)
+            {t("strategyTitle")}
           </h4>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            Los miembros de una misma comunidad profesional comparten inquietudes y prioridades operativas. El monitor escanea debates calientes sobre tus tematicas objetivo y extrae a los autores de los comentarios para conectar con el pretexto natural de pertenecer al mismo grupo.
+            {t("strategyDesc")}
           </p>
         </div>
         <button
@@ -341,8 +341,8 @@ export default function LinkedInGroupsSignalRadarView({
       {/* Formulario para Agregar Grupo */}
       {isAddingGroup && (
         <ComponentCard
-          title="Configurador de Auditoria de Grupos de LinkedIn"
-          desc="Define la comunidad y las tematicas o preguntas clave para identificar decisores interesados."
+          title={t("formTitle")}
+          desc={t("formDesc")}
         >
           <form onSubmit={handleAddGroup} className="space-y-4">
             {/* Fila 1: Nombre del Grupo y URL */}
@@ -379,7 +379,7 @@ export default function LinkedInGroupsSignalRadarView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Tematicas o Dolores a Monitorear (separadas por coma)
+                  {t("labelKeywords")}
                 </label>
                 <input
                   type="text"
@@ -392,13 +392,13 @@ export default function LinkedInGroupsSignalRadarView({
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Limite Seguro de Prospectos por Auditoria
+                  {t("labelBatchSize")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 25, label: "25 Leads", tag: "Conservador" },
-                    { value: 50, label: "50 Leads", tag: "Recomendado", recommended: true },
-                    { value: 100, label: "100 Leads", tag: "Volumen" },
+                    { value: 25, label: "25 Leads", tag: t("tagConservative") },
+                    { value: 50, label: "50 Leads", tag: t("tagRecommended"), recommended: true },
+                    { value: 100, label: "100 Leads", tag: t("tagVolume") },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -416,7 +416,7 @@ export default function LinkedInGroupsSignalRadarView({
                         </span>
                         {opt.recommended && (
                           <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
-                            Optimo
+                            {t("tractionOptimal")}
                           </span>
                         )}
                       </div>
@@ -433,7 +433,7 @@ export default function LinkedInGroupsSignalRadarView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
-                  Tipo de Interacciones a Capturar
+                  {t("labelInteractions")}
                 </span>
                 <div className="flex items-center gap-5">
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -459,7 +459,7 @@ export default function LinkedInGroupsSignalRadarView({
 
               <div className="flex flex-col justify-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1.5">
-                  Filtro de Traccion Minima en Debates
+                  {t("labelTractionFilter")}
                 </span>
                 <div className="flex items-center gap-2">
                   {[0, 5, 10, 20].map((val) => (
@@ -503,7 +503,7 @@ export default function LinkedInGroupsSignalRadarView({
                 onClick={() => setIsAddingGroup(false)}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="submit"
@@ -556,17 +556,17 @@ export default function LinkedInGroupsSignalRadarView({
         ) : l3GroupMonitors.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              No tienes grupos registrados en Signal Radar Nivel 3.
+              {t("noMonitorsTitle")}
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Agrega una comunidad de LinkedIn relevante para tu nicho para auditar debates y extraer prospectos calificados.
+              {t("noMonitorsDesc")}
             </p>
             <button
               type="button"
               onClick={() => setIsAddingGroup(true)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              + Agregar Primer Grupo
+              {t("addGroup")}
             </button>
           </div>
         ) : (
@@ -630,8 +630,8 @@ export default function LinkedInGroupsSignalRadarView({
                                   <MessageSquare className="h-3 w-3" />
                                   <span>
                                     {isExpanded
-                                      ? "Ocultar Debates"
-                                      : `Ver Debates Analizados (${scannedPosts.length})`}
+                                      ? t("btnHideDebates")
+                                      : t("btnShowDebates", { count: scannedPosts.length })}
                                   </span>
                                   {isExpanded ? (
                                     <ChevronUp className="h-3 w-3" />
@@ -641,7 +641,7 @@ export default function LinkedInGroupsSignalRadarView({
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
-                                  Sin debates analizados. Pulsa &quot;Escanear&quot; para auditar el grupo.
+                                  {t("noPostsScannedNotice")}
                                 </span>
                               )}
                             </div>
@@ -690,7 +690,7 @@ export default function LinkedInGroupsSignalRadarView({
                                 : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                             }`}
                           >
-                            {group.status === "active" ? "Activo" : "Pausado"}
+                            {group.status === "active" ? tCommon("statusActive") : tCommon("statusPaused")}
                           </button>
                         </td>
 
@@ -881,7 +881,7 @@ export default function LinkedInGroupsSignalRadarView({
           <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-300 dark:border-gray-800">
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                Editar Monitor: {editingMonitor.groupName}
+                {t("editModalTitle")}: {editingMonitor.groupName}
               </h3>
               <button
                 type="button"
@@ -912,7 +912,7 @@ export default function LinkedInGroupsSignalRadarView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  Filtro de Traccion Minima en Debates (comentarios)
+                  {t("labelTractionFilter")}
                 </label>
                 <input
                   type="number"
@@ -930,7 +930,7 @@ export default function LinkedInGroupsSignalRadarView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  Plantilla Relacional Contextual
+                  {t("labelOutreachTemplate")}
                 </label>
                 <textarea
                   rows={3}
@@ -952,7 +952,7 @@ export default function LinkedInGroupsSignalRadarView({
                 onClick={() => setEditingMonitor(null)}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="button"
@@ -962,7 +962,7 @@ export default function LinkedInGroupsSignalRadarView({
                 }}
                 className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
               >
-                Guardar Cambios
+                {tCommon("saveBtn")}
               </button>
             </div>
           </div>

@@ -1426,7 +1426,14 @@
       "feedbackScanSuccess": "Auditoria bem-sucedida! Foram detectados {count} comentários com a palavra-chave \"{keyword}\" ({leads} leads captados e adicionados ao CRM).",
       "feedbackScanError": "Erro ao escanear publicação: {error}",
       "simulateCommentBtn": "Simular Comentário de Teste",
-      "simulatedCommentSuccess": "Comentário simulado com sucesso: {name} ativou a entrega automatizada de \"{resource}\"."
+      "simulatedCommentSuccess": "Comentário simulado com sucesso: {name} ativou a entrega automatizada de \"{resource}\".",
+      "autoLikeHelp": "Impulsiona o algoritmo orgânico da sua publicação e confirma ao usuário que o comentário foi recebido.",
+      "publicReplyHelp": "Resposta automática visível na conversa do comentário no LinkedIn.",
+      "pendingPublishAutoNotice": "Será ativado automaticamente no LinkedIn assim que a publicação for ao ar.",
+      "preConfigurePending": "Pré-configurar Monitor (Em Espera)",
+      "connectFirstPost": "+ Conectar Primeiro Post",
+      "connectFirstPostDesc": "Conecte uma publicação do LinkedIn onde você oferece um guia, modelo ou recurso em troca de uma palavra-chave (ex. \"SISTEMA\").",
+      "deleteConfirmWithLeads": "Excluir monitor de \"{title}\"?\n\nOs {count} leads já capturados serão mantidos na sua lista de leads com a tag \"Monitor de Sinais excluído\"."
     },
     "competitors": {
       "pageTitle": "Nível 2: Monitoramento de Concorrentes",
@@ -1507,7 +1514,16 @@
       "deleteConfirm": "Tem certeza de que deseja excluir o monitor de \"{name}\"? Esta ação não pode ser desfeita.",
       "feedbackSuccess": "Concorrente \"{name}\" adicionado com varredura diária ativa e lista inteligente \"{list}\" criada automaticamente.",
       "feedbackAuditSuccess": "Auditoria concluída para {name}: lote seguro de {count} perfis processado (limite: {limit}) e incorporado à lista \"{list}\" ({newCount} novos leads adicionados).",
-      "feedbackError": "Erro ao auditar concorrente: {error}"
+      "feedbackError": "Erro ao auditar concorrente: {error}",
+      "tagModerate": "Moderado",
+      "tagRecommended": "Recomendado",
+      "tagViral": "Viral Massivo",
+      "tagUltraSafe": "Ultra Seguro",
+      "tagStandard": "Padrão",
+      "tagIntense": "Intenso",
+      "deleteConfirmWithLeads": "Excluir monitor de \"{name}\"?\n\nOs {count} leads já capturados serão mantidos na sua lista de leads com a tag \"Monitor de Sinais excluído\".",
+      "noPostsScannedNotice": "Nenhuma publicação escaneada ainda. Clique em \"Escanear\" para extrair publicações reais.",
+      "outreachTemplateHelp": "Mensagem base para abordagem relacional aos decisores que interagem com o conteúdo do concorrente."
     },
     "groups": {
       "pageTitle": "Nível 3: Monitoramento de Grupos & Comunidades",
@@ -1576,7 +1592,12 @@
       "editOutreachMsg": "Mensagem de Conexão",
       "feedbackActivated": "Monitor para o grupo \"{name}\" ativado com sucesso.",
       "feedbackScanSuccess": "Varredura concluída: foram extraídos {count} decisores qualificados do grupo \"{name}\".",
-      "feedbackScanError": "Ocorreu um problema ao conectar com o LinkedIn para auditar o grupo."
+      "feedbackScanError": "Ocorreu um problema ao conectar com o LinkedIn para auditar o grupo.",
+      "noPostsScannedNotice": "Sem discussões analisadas ainda. Clique em \"Escanear\" para rastrear conversas ao vivo.",
+      "tagConservative": "Conservador",
+      "tagRecommended": "Recomendado",
+      "tagVolume": "Volume",
+      "tractionOptimal": "Ótimo"
     },
     "global": {
       "pageTitle": "Nível 4: Radar Global de Tendências",
@@ -1635,7 +1656,20 @@
       "postStats": "{reactions} reações • {comments} comentários • {reposts} reposts",
       "viewSmartList": "Ver Lista Inteligente →",
       "addFirstRadarBtn": "+ Adicionar Primeiro Radar Viral",
-      "noPostsScannedNotice": "Sem posts escaneados. Clique em \"Escanear\" para varrer publicações ao vivo."
+      "noPostsScannedNotice": "Sem posts escaneados. Clique em \"Escanear\" para varrer publicações ao vivo.",
+      "tagModerate": "Moderado",
+      "tagRecommended": "Recomendado",
+      "tagViral": "Viral Massivo",
+      "tagUltraSafe": "Ultra Seguro",
+      "tagStandard": "Padrão",
+      "tagIntense": "Intenso",
+      "modalExtractedLeadsTitle": "Leads Extraídos de Publicações Virais",
+      "modalExtractedLeadsDesc": "Pessoas que comentaram e participaram ativamente dos debates quentes sobre este tema.",
+      "tractionRegion": "Tração em {region}",
+      "defaultRegion": "a região",
+      "deleteConfirmWithLeads": "Excluir radar de \"{topic}\"?\n\nOs {count} leads já capturados serão mantidos na sua lista de leads com a tag \"Monitor de Sinais excluído\".",
+      "marketHelper": "Prioriza publicações e comentaristas localizados nesta região.",
+      "scanBatchTooltip": "Escanear publicações virais e coletar lote seguro de até {count} leads"
     },
     "common": {
       "loadingRadar": "Carregando Signal Radar...",
@@ -1667,7 +1701,9 @@
       "postsMonitoredCount": "Publicação(ões) do LinkedIn Monitorada(s): Meus Posts ({count})",
       "publishedBy": "Publicado por {name}",
       "freqDailyDesc": "Diária (A cada 24 horas - Padrão da Plataforma)",
-      "freqManualDesc": "Apenas Manual (Ao clicar em \"Escanear\")"
+      "freqManualDesc": "Apenas Manual (Ao clicar em \"Escanear\")",
+      "readyToScan": "Pronto para escanear",
+      "newlyCreated": "Recém-criado"
     }
   },
   "campaigns": {

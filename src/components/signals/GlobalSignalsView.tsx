@@ -586,7 +586,13 @@ export default function GlobalSignalsView({
     setSearchQuery("");
     setScanFeedback({
       type: "success",
-      text: `Radar viral creado para "${newMonitor.searchQuery}" (${selectedCountry.flag} ${selectedCountry.name}) con umbral mín. de ${newMonitor.minPostReactions} comentarios. Lista dinámica vinculada: "${targetList.name}".`,
+      text: t("feedbackSuccess", {
+        topic: newMonitor.searchQuery,
+        flag: selectedCountry.flag,
+        country: selectedCountry.name,
+        threshold: newMonitor.minPostReactions ?? 10,
+        list: targetList.name
+      }),
       listId: targetList.id,
     });
   };
@@ -681,13 +687,18 @@ export default function GlobalSignalsView({
 
       setScanFeedback({
         type: "success",
-        text: `Escaneo viral completado para "${rule.searchQuery}": Se analizaron ${data.totalPostsAnalyzed || updatedPosts.length} publicaciones de alto debate en ${rule.targetCountryName || "la región"} y se extrajo un lote de ${added.length} leads activos.`,
+        text: t("feedbackAuditSuccess", {
+        topic: rule.searchQuery,
+        total: data.totalPostsAnalyzed || updatedPosts.length,
+        country: rule.targetCountryName || t("defaultRegion"),
+        count: added.length
+      }),
         listId: targetList.id,
       });
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al escanear publicaciones virales: ${err.message || "Error al conectar con LinkedIn"}`,
+        text: t("feedbackAuditError", { error: err.message || "" }),
       });
     } finally {
       setIsScanningId(null);
@@ -829,8 +840,8 @@ export default function GlobalSignalsView({
       {/* Formulario para Agregar Radar de Publicaciones Virales */}
       {isAddingRule && (
         <ComponentCard
-          title="Configurador de Radar de Publicaciones Virales"
-          desc="Define la temática o dolor de negocio y el umbral mínimo de comentarios para escanear las publicaciones con mayor debate de LinkedIn."
+          title={t("formTitle")}
+          desc={t("formDesc")}
         >
           <form onSubmit={handleAddRule} className="space-y-4">
             {/* Fila 1: Temática a Rastrear y Mercado / País Objetivo */}
@@ -849,14 +860,14 @@ export default function GlobalSignalsView({
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
-                  El radar buscará publicaciones en LinkedIn que aborden esta problemática.
+                  {t("topicHelper")}
                 </span>
               </div>
 
               {/* Campo 2: País / Mercado Objetivo */}
               <div className="relative" ref={countryDropdownRef}>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Mercado / País Objetivo
+                  {t("labelMarket")}
                 </label>
                 <button
                   type="button"
@@ -875,7 +886,7 @@ export default function GlobalSignalsView({
                     <div className="p-1.5 border-b border-gray-300 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
                       <input
                         type="text"
-                        placeholder="Buscar país..."
+                        placeholder={t("searchCountryPlaceholder")}
                         value={countrySearch}
                         onChange={(e) => setCountrySearch(e.target.value)}
                         className="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -911,12 +922,12 @@ export default function GlobalSignalsView({
                   </div>
                 )}
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Prioriza publicaciones y comentaristas ubicados en esta región.
+                  {t("marketHelper")}
                 </span>
               </div>
             </div>
 
-            {/* Fila 2: Filtro de Tracción Mínima y Lote de Cosecha (Diseño Gemelo Lado a Lado) */}
+            {/* Fila 2: {t("labelTractionFilter")} y Lote de Cosecha (Diseño Gemelo Lado a Lado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Filtro de Tracción Mínima */}
               <div>
@@ -925,9 +936,9 @@ export default function GlobalSignalsView({
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 10, label: "+10 comentarios", tag: "Moderado" },
-                    { value: 20, label: "+20 comentarios", tag: "Recomendado", recommended: true },
-                    { value: 50, label: "+50 comentarios", tag: "Viral Masivo" },
+                    { value: 10, label: "+10", tag: t("tagModerate") },
+                    { value: 20, label: "+20", tag: t("tagRecommended"), recommended: true },
+                    { value: 50, label: "+50", tag: t("tagViral") },
                   ].map((thresh) => (
                     <button
                       key={thresh.value}
@@ -945,7 +956,7 @@ export default function GlobalSignalsView({
                         </span>
                         {thresh.recommended && (
                           <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
-                            Óptimo
+                            {t("tagRecommended")}
                           </span>
                         )}
                       </div>
@@ -956,20 +967,20 @@ export default function GlobalSignalsView({
                   ))}
                 </div>
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Descarta publicaciones con poco debate y selecciona solo posts con masa crítica de decisores.
+                  {t("topicHelper")}
                 </span>
               </div>
 
               {/* Lote de Cosecha por Publicación (Mismo diseño exacto) */}
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Lote de Cosecha por Publicación (Protección LinkedIn)
+                  {t("labelBatchLimit")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
-                    { value: 50, label: "50 perfiles", tag: "Recomendado", recommended: true },
-                    { value: 100, label: "100 perfiles", tag: "Intensivo" },
+                    { value: 25, label: "25", tag: t("tagUltraSafe") },
+                    { value: 50, label: "50", tag: t("tagRecommended"), recommended: true },
+                    { value: 100, label: "100", tag: t("tagIntense") },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -987,7 +998,7 @@ export default function GlobalSignalsView({
                         </span>
                         {opt.recommended && (
                           <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
-                            Óptimo
+                            {t("tagRecommended")}
                           </span>
                         )}
                       </div>
@@ -998,12 +1009,12 @@ export default function GlobalSignalsView({
                   ))}
                 </div>
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
+                  {t("topicHelper")}
                 </span>
               </div>
             </div>
 
-            {/* Fila 3: Filtro Anti-Colaboradores */}
+            {/* Fila 3: {t("labelExcludeInternal")} */}
             <div className="flex items-center p-3.5 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
@@ -1017,7 +1028,7 @@ export default function GlobalSignalsView({
                     Descartar engagement de colaboradores del autor
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
-                    Filtra comentarios y reacciones de empleados de la misma empresa para extraer únicamente clientes potenciales externos.
+                    {t("labelExcludeInternal")}
                   </span>
                 </div>
               </label>
@@ -1042,13 +1053,13 @@ export default function GlobalSignalsView({
                 onClick={() => setIsAddingRule(false)}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="submit"
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs flex items-center gap-1.5"
               >
-                <span>Activar Monitor en LinkedIn</span>
+                <span>{t("submitBtn")}</span>
               </button>
             </div>
           </form>
@@ -1232,7 +1243,7 @@ export default function GlobalSignalsView({
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
                               className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold shrink-0"
-                              title="Seleccionar tamaño de lote para la cosecha"
+                              title={tCommon("batchSizePill", { count: activeBatch })}
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
                                 const isSelected = activeBatch === batchVal;
@@ -1265,7 +1276,7 @@ export default function GlobalSignalsView({
                               disabled={isScanningId === rule.id}
                               onClick={() => handleScanGlobalRule(rule, activeBatch)}
                               className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs shrink-0"
-                              title={`Escanear publicaciones virales y cosechar lote seguro de hasta ${activeBatch} leads`}
+                              title={t("scanBatchTooltip", { count: activeBatch })}
                             >
                               {isScanningId === rule.id ? (
                                 <>
@@ -1298,7 +1309,7 @@ export default function GlobalSignalsView({
                               type="button"
                               onClick={() => setEditingRule(rule)}
                               className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                              title="Editar radar de tendencias"
+                              title={t("editModalTitle")}
                             >
                               <Pencil className="size-3.5" />
                             </button>
@@ -1309,18 +1320,14 @@ export default function GlobalSignalsView({
                               onClick={() => {
                                 if (leadsCount === 0) {
                                   if (
-                                    confirm(
-                                      `¿Eliminar radar de "${rule.searchQuery}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
-                                    )
+                                    confirm(t("deleteConfirm", { topic: rule.searchQuery }))
                                   ) {
                                     deleteLevel3Monitor(rule.id);
                                     if (targetList) deleteList(targetList.id);
                                   }
                                 } else {
                                   if (
-                                    confirm(
-                                      `¿Eliminar radar de "${rule.searchQuery}"?\n\nLos ${leadsCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
-                                    )
+                                    confirm(t("deleteConfirmWithLeads", { topic: rule.searchQuery, count: leadsCount }))
                                   ) {
                                     deleteLevel3Monitor(rule.id);
                                     markListMonitorAsDeleted(rule.id);
@@ -1329,7 +1336,7 @@ export default function GlobalSignalsView({
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                              title="Eliminar radar"
+                              title={t("deleteConfirm", { topic: rule.searchQuery })}
                             >
                               <X className="size-3.5" />
                             </button>
@@ -1409,10 +1416,10 @@ export default function GlobalSignalsView({
                   <span>Tendencia Viral: {selectedRuleForLeads.searchQuery}</span>
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Leads Extraídos de Publicaciones Virales
+                  {t("modalExtractedLeadsTitle")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Personas que comentaron y participaron activamente en los debates calientes de esta temática.
+                  {t("modalExtractedLeadsDesc")}
                 </p>
               </div>
               <button
@@ -1420,7 +1427,7 @@ export default function GlobalSignalsView({
                 onClick={() => setSelectedRuleForLeads(null)}
                 className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
               >
-                Cerrar
+                {tCommon("closeModal")}
               </button>
             </div>
 
@@ -1433,7 +1440,7 @@ export default function GlobalSignalsView({
                     <span>Publicaciones de LinkedIn Analizadas ({selectedRuleForLeads.lastScannedPosts.length})</span>
                   </span>
                   <span className="text-xs text-blue-700 dark:text-blue-400">
-                    Tracción en {selectedRuleForLeads.targetCountryName || "la región"}
+                    {t("tractionRegion", { region: selectedRuleForLeads.targetCountryName || t("defaultRegion") })}
                   </span>
                 </div>
                 <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
@@ -1451,7 +1458,7 @@ export default function GlobalSignalsView({
                         </p>
                         <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                           <span>
-                            {post.reactionsCount ?? 0} reacciones • {post.commentsCount ?? 0} comentarios • {post.repostsCount ?? 0} reposts
+                            {t("postStats", { reactions: post.reactionsCount ?? 0, comments: post.commentsCount ?? 0, reposts: post.repostsCount ?? 0 })}
                           </span>
                           {post.scannedAt && <span>• {post.scannedAt}</span>}
                         </div>
@@ -1462,7 +1469,7 @@ export default function GlobalSignalsView({
                         rel="noopener noreferrer"
                         className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
                       >
-                        <span>Ver Post</span>
+                        <span>{tCommon("viewPost")}</span>
                         <span>↗</span>
                       </a>
                     </div>
@@ -1534,7 +1541,7 @@ export default function GlobalSignalsView({
               <div className="flex items-center gap-2">
                 <Pencil className="size-5 text-brand-500" />
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Editar Radar de Tendencias Virales
+                  {t("editModalTitle")}
                 </h3>
               </div>
               <button
@@ -1549,7 +1556,7 @@ export default function GlobalSignalsView({
             <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Temática o Problema en LinkedIn
+                  {t("labelTopic")}
                 </label>
                 <input
                   type="text"
@@ -1558,13 +1565,13 @@ export default function GlobalSignalsView({
                     setEditingRule({ ...editingRule, searchQuery: e.target.value })
                   }
                   className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  placeholder="Ej: Prospección B2B, Inteligencia Artificial"
+                  placeholder={t("placeholderTopic")}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Umbral Mínimo de Comentarios
+                  {t("labelTractionFilter")}
                 </label>
                 <input
                   type="number"
@@ -1583,7 +1590,7 @@ export default function GlobalSignalsView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  País o Región Objetivo
+                  {t("labelMarket")}
                 </label>
                 <select
                   value={editingRule.targetCountry || "all"}
@@ -1613,7 +1620,7 @@ export default function GlobalSignalsView({
                 onClick={() => setEditingRule(null)}
                 className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="button"
@@ -1632,7 +1639,7 @@ export default function GlobalSignalsView({
                 }}
                 className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
               >
-                Guardar Cambios
+                {tCommon("saveBtn")}
               </button>
             </div>
           </div>

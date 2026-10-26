@@ -307,7 +307,7 @@ export default function MyPostsSignalRadarView({
       attachedPdfName: newAttachedPdf,
       scannedCommentsCount: 0,
       leadsCapturedCount: 0,
-      lastScanAt: isPending ? t("badgePendingPublication") : "Recién creado",
+      lastScanAt: isPending ? t("badgePendingPublication") : tCommon("newlyCreated"),
       lastScanAtIso: isPending ? undefined : new Date().toISOString(),
       scanFrequency: "daily",
       createdAt: new Date().toISOString(),
@@ -324,7 +324,7 @@ export default function MyPostsSignalRadarView({
     setScanFeedback({
       type: "success",
       text: isPending
-        ? `Monitor pre-configurado para "${newMonitor.postTitle}". Se activará automáticamente cuando la publicación salga en LinkedIn.`
+        ? t("feedbackPendingSuccess", { title: newMonitor.postTitle })
         : `Monitor para "${newMonitor.postTitle}" creado y escuchando la palabra clave "${newMonitor.keyword}".`,
     });
   };
@@ -336,12 +336,12 @@ export default function MyPostsSignalRadarView({
     updateLevel1Monitor(linkingUrlModalMonitor.id, {
       postUrl: manualLinkedInUrlInput.trim(),
       status: "active",
-      lastScanAt: "Listo para escanear",
+      lastScanAt: tCommon("readyToScan"),
     });
 
     setScanFeedback({
       type: "success",
-      text: `URL de LinkedIn vinculada con éxito. Monitor activado para "${linkingUrlModalMonitor.postTitle}".`,
+      text: t("feedbackUrlLinked", { title: linkingUrlModalMonitor.postTitle }),
     });
     setLinkingUrlModalMonitor(null);
     setManualLinkedInUrlInput("");
@@ -413,26 +413,26 @@ export default function MyPostsSignalRadarView({
       if (rawComments.length === 0) {
         setScanFeedback({
           type: "success",
-          text: `Auditoría en LinkedIn completada. El post aún no refleja comentarios indexados en la API de LinkedIn. (Nota: LinkedIn demora de 2 a 5 minutos en sincronizar comentarios nuevos hacia la API).`,
+          text: t("feedbackScanNoComments"),
           listId: targetList.id,
         });
       } else if (matchingComments.length === 0) {
         setScanFeedback({
           type: "success",
-          text: `Auditoría completada: Se analizaron ${rawComments.length} comentarios en LinkedIn, pero ninguno contiene aún la palabra clave exacta "${mon.keyword}".`,
+          text: t("feedbackScanNoKeyword", { total: rawComments.length, keyword: mon.keyword }),
           listId: targetList.id,
         });
       } else {
         setScanFeedback({
           type: "success",
-          text: `¡Auditoría exitosa! Se detectaron ${matchingComments.length} comentarios con la palabra clave "${mon.keyword}" (${newLeadsToAdd.length} leads captados e incorporados al CRM).`,
+          text: t("feedbackScanSuccess", { count: matchingComments.length, keyword: mon.keyword, leads: newLeadsToAdd.length }),
           listId: targetList.id,
         });
       }
     } catch (err: any) {
       setScanFeedback({
         type: "error",
-        text: `Error al escanear publicación: ${err.message || "Verifica la conexión con LinkedIn"}`,
+        text: t("feedbackScanError", { error: err.message || "" }),
       });
     } finally {
       setIsScanningId(null);
@@ -510,7 +510,7 @@ export default function MyPostsSignalRadarView({
       });
       setScanFeedback({
         type: "success",
-        text: `Comentario simulado con éxito: ${simulatedLead.fullName} activó la entrega automática del recurso "${mon.attachedPdfName}".`,
+        text: t("simulatedCommentSuccess", { name: simulatedLead.fullName, resource: mon.attachedPdfName }),
         listId: targetList.id,
       });
     }
@@ -537,51 +537,49 @@ export default function MyPostsSignalRadarView({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Monitores Nivel 1
+            {t("kpiMonitorsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {t("kpiMonitorsCount", { count: activeMonitorsCount })}
           </p>
           <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">
-            {pendingMonitorsCount > 0
-              ? `${pendingMonitorsCount} en espera de publicación`
-              : "Escaneo diario automático (cada 24h)"}
+            {pendingMonitorsCount > 0 ? t("kpiMonitorsPending", { count: pendingMonitorsCount }) : t("kpiMonitorsDaily")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Comentarios Analizados
+            {t("kpiCommentsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {t("kpiCommentsCount", { count: totalComments })}
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Filtrados por palabra clave activadora
+            {t("kpiCommentsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Leads Captados & DMs Enviados
+            {t("kpiLeadsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {t("kpiLeadsCount", { count: totalLeadsCaptured })}
           </p>
           <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-            Intención Muy Alta (Lead Magnet)
+            {t("kpiLeadsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Tasa de Conversion de Post
+            {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {totalComments > 0 ? ((totalLeadsCaptured / totalComments) * 100).toFixed(1) : 0}%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            De comentario a conversacion directa
+            {t("kpiRateSub")}
           </span>
         </div>
       </div>
@@ -590,10 +588,10 @@ export default function MyPostsSignalRadarView({
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Mecánica de Automatización de Lead Magnet en LinkedIn (Nivel 1)
+            {t("strategyTitle")}
           </h4>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            Al detectar la palabra clave en tu post: (1) Da Like al comentario, (2) Responde un mensaje público de confirmación, y (3) Valida conexión para enviar el PDF adjunto de forma instantánea por mensaje privado.
+            {t("strategyDesc")}
           </p>
         </div>
         <button
@@ -612,7 +610,7 @@ export default function MyPostsSignalRadarView({
       {isCreatingMonitor && (
         <ComponentCard
           title="Configurador de Monitor de Publicaciones Propias"
-          desc="Ingresa los datos de tu publicación o selecciona un post creado en la plataforma para autocompletar título, palabra clave y recurso descargable."
+          desc={t("formDesc")}
         >
           <form onSubmit={handleCreateMonitor} className="space-y-4">
             {/* Fila 1: Título de la Publicación y URL o URN */}
@@ -738,7 +736,7 @@ export default function MyPostsSignalRadarView({
                         p.title.toLowerCase().includes(newPostTitle.toLowerCase().trim())
                       ).length === 0 && (
                         <p className="p-2 text-center text-gray-400 text-xs">
-                          No hay publicaciones que coincidan con &quot;{newPostTitle}&quot;. Puedes ingresar un título libre.
+                          {t("noMatchingPosts", { title: newPostTitle })}
                         </p>
                       )}
                     </div>
@@ -782,7 +780,7 @@ export default function MyPostsSignalRadarView({
                       </span>
                     </div>
                     <span className="text-xs text-amber-600 dark:text-amber-400 mt-1 block">
-                      Se activará automáticamente en LinkedIn cuando la publicación sea lanzada.
+                      {t("pendingPublishAutoNotice")}
                     </span>
                   </>
                 ) : (
@@ -795,7 +793,7 @@ export default function MyPostsSignalRadarView({
                       className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     />
                     <span className="text-xs text-gray-400 mt-1 block">
-                      Enlace directo a la publicación para escuchar comentarios en vivo.
+                      {t("urlHelper")}
                     </span>
                   </>
                 )}
@@ -817,7 +815,7 @@ export default function MyPostsSignalRadarView({
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs font-mono font-bold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Palabra que el usuario debe comentar en el post para activar la automatización.
+                  {t("keywordHelper")}
                 </span>
               </div>
 
@@ -833,7 +831,7 @@ export default function MyPostsSignalRadarView({
                   className="h-10 w-full rounded-lg border border-gray-300 px-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Enlace descargable o recurso de valor que se entregará al lead.
+                  {t("resourceHelper")}
                 </span>
               </div>
             </div>
@@ -849,10 +847,10 @@ export default function MyPostsSignalRadarView({
                 />
                 <div>
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 block">
-                    Dar Like automático al comentario del lead
+                    {t("labelAutoLike")}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
-                    Aumenta el algoritmo orgánico de tu post y confirma al usuario que su comentario ha sido recibido.
+                    {t("autoLikeHelp")}
                   </span>
                 </div>
               </label>
@@ -862,29 +860,29 @@ export default function MyPostsSignalRadarView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Paso A: Respuesta Pública en el Post
+                  {t("labelPublicReply")}
                 </label>
                 <textarea
                   rows={3}
                   value={newPublicReply}
                   onChange={(e) => setNewPublicReply(e.target.value)}
-                  placeholder="¡Hola {name}, te lo acabo de enviar por mensaje privado! Revisa tu bandeja"
+                  placeholder={t("placeholderPublicReply")}
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Respuesta automática visible en el hilo del comentario en LinkedIn.
+                  {t("publicReplyHelp")}
                 </span>
               </div>
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Paso B: Nota de Invitación si no están conectados
+                  {t("labelPrivateDm")}
                 </label>
                 <textarea
                   rows={3}
                   value={newConnectionNote}
                   onChange={(e) => setNewConnectionNote(e.target.value)}
-                  placeholder="Hola {name}, aquí tienes el acceso a {pdf_url} que comentaste en mi publicación..."
+                  placeholder={t("placeholderPrivateDm")}
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <span className="text-xs text-gray-400 mt-1 block">
@@ -903,7 +901,7 @@ export default function MyPostsSignalRadarView({
                 }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="submit"
@@ -915,7 +913,7 @@ export default function MyPostsSignalRadarView({
               >
                 <span>
                   {isPostPendingPublish
-                    ? "Pre-Configurar Monitor (En Espera)"
+                    ? t("preConfigurePending")
                     : "Activar Monitor en LinkedIn"}
                 </span>
               </button>
@@ -958,23 +956,23 @@ export default function MyPostsSignalRadarView({
       )}
 
       {/* Listado de Monitores Activos */}
-      <ComponentCard title={`Monitores de Señales: Publicaciones Propias (${l1Monitors.length})`}>
+      <ComponentCard title={t("tableTitle", { count: l1Monitors.length })}>
         {!isLoaded ? (
-          <p className="text-xs text-gray-400 py-4">Cargando monitores...</p>
+          <p className="text-xs text-gray-400 py-4">{t("loadingPosts")}</p>
         ) : l1Monitors.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              No tienes publicaciones conectadas en Signal Radar Nivel 1.
+              {t("noMonitorsTitle")}
             </p>
             <p className="text-xs text-gray-400 max-w-md mx-auto">
-              Conecta una publicación de LinkedIn donde ofrezcas una guía, plantilla o recurso a cambio de una palabra clave (ej. &quot;SISTEMA&quot;).
+              {t("connectFirstPostDesc")}
             </p>
             <button
               type="button"
               onClick={() => setIsCreatingMonitor(true)}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
             >
-              + Conectar Primer Post
+              {t("connectFirstPost")}
             </button>
           </div>
         ) : (
@@ -1059,11 +1057,11 @@ export default function MyPostsSignalRadarView({
                                   }))
                                 }
                                 className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline transition"
-                                title={isExpanded ? "Ocultar la publicación monitoreada" : "Ver detalles de la publicación"}
+                                title={isExpanded ? t("btnHidePosts") : t("btnShowPosts", { count: 1 })}
                               >
                                 <span>🔗</span>
                                 <span>
-                                  {isExpanded ? "Ocultar Publicación" : "Ver Publicación Monitoreada (1)"}
+                                  {isExpanded ? t("btnHidePosts") : t("btnShowPosts", { count: 1 })}
                                 </span>
                                 <span className="text-xs">{isExpanded ? "▴" : "▾"}</span>
                               </button>
@@ -1106,7 +1104,7 @@ export default function MyPostsSignalRadarView({
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                               }`}
                             >
-                              {mon.status === "active" ? "Activo" : "Pausado"}
+                              {mon.status === "active" ? tCommon("statusActive") : tCommon("statusPaused")}
                             </button>
                           )}
                         </td>
@@ -1117,7 +1115,7 @@ export default function MyPostsSignalRadarView({
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
                               className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
-                              title="Seleccionar tamaño de lote para la auditoría"
+                              title={t("labelBatchLimit")}
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
                                 const isSelected = activeBatch === batchVal;
@@ -1155,7 +1153,7 @@ export default function MyPostsSignalRadarView({
                                 className="rounded-lg bg-amber-500 hover:bg-amber-600 px-2.5 py-1 text-white font-medium text-xs transition inline-flex items-center gap-1 shadow-xs"
                                 title={t("linkUrlTooltip")}
                               >
-                                🔗 Vincular URL
+                                {t("linkUrlBtn")}
                               </button>
                             ) : (
                               <button
@@ -1163,7 +1161,7 @@ export default function MyPostsSignalRadarView({
                                 disabled={isScanningId === mon.id}
                                 onClick={() => handleScanMonitor(mon)}
                                 className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                                title={`Escanear comentarios con lote seguro de ${activeBatch}`}
+                                title={t("scanBtnTooltip", { count: activeBatch })}
                               >
                                 {isScanningId === mon.id ? (
                                   <>
@@ -1208,7 +1206,7 @@ export default function MyPostsSignalRadarView({
                                 if (effectiveCount === 0) {
                                   if (
                                     confirm(
-                                      `¿Eliminar monitor de "${mon.postTitle}"?\n\nLa lista asociada no tiene prospectos (0 leads) y también será limpiada automáticamente.`
+                                      t("deleteConfirm", { title: mon.postTitle })
                                     )
                                   ) {
                                     deleteLevel1Monitor(mon.id);
@@ -1216,9 +1214,7 @@ export default function MyPostsSignalRadarView({
                                   }
                                 } else {
                                   if (
-                                    confirm(
-                                      `¿Eliminar monitor de "${mon.postTitle}"?\n\nLos ${effectiveCount} prospectos ya captados se conservarán en tu lista de leads con la etiqueta "Monitor de Señales eliminado".`
-                                    )
+                                    confirm(t("deleteConfirmWithLeads", { title: mon.postTitle, count: effectiveCount }))
                                   ) {
                                     deleteLevel1Monitor(mon.id);
                                     markListMonitorAsDeleted(mon.id);
@@ -1265,7 +1261,7 @@ export default function MyPostsSignalRadarView({
                                     <span>•</span>
                                     <span>Recurso: {mon.attachedPdfName}</span>
                                     <span>•</span>
-                                    <span>{mon.scannedCommentsCount} comentarios analizados</span>
+                                    <span>{t("kpiCommentsCount", { count: mon.scannedCommentsCount })}</span>
                                     <span>•</span>
                                     <span className="text-emerald-600 font-semibold">{mon.leadsCapturedCount} leads calificados</span>
                                   </div>
@@ -1318,7 +1314,7 @@ export default function MyPostsSignalRadarView({
                   Palabra: {selectedMonitorForLeads.keyword}
                 </span>
                 <h3 className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                  Leads Captados: {selectedMonitorForLeads.postTitle}
+                  {tCommon("extractedLeads")}: {selectedMonitorForLeads.postTitle}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Prospectos que comentaron la palabra clave y activaron la entrega del recurso &quot;{selectedMonitorForLeads.attachedPdfName}&quot;.
@@ -1329,7 +1325,7 @@ export default function MyPostsSignalRadarView({
                 onClick={() => setSelectedMonitorForLeads(null)}
                 className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
               >
-                Cerrar
+                {tCommon("closeModal")}
               </button>
             </div>
 
@@ -1337,7 +1333,7 @@ export default function MyPostsSignalRadarView({
               {getMonitorLeads(selectedMonitorForLeads.id).length === 0 ? (
                 <div className="py-8 text-center space-y-3">
                   <p className="text-xs text-gray-500">
-                    Aún no hay comentarios detectados con la palabra clave &quot;{selectedMonitorForLeads.keyword}&quot; en esta publicación.
+                    {t("feedbackScanNoKeyword", { total: 0, keyword: selectedMonitorForLeads.keyword })}
                   </p>
                   <div className="flex items-center justify-center gap-3 pt-2">
                     <button
@@ -1346,14 +1342,14 @@ export default function MyPostsSignalRadarView({
                       onClick={() => handleScanMonitor(selectedMonitorForLeads)}
                       className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition"
                     >
-                      {isScanningId === selectedMonitorForLeads.id ? "Escaneando..." : "Escanear Publicación Ahora"}
+                      {isScanningId === selectedMonitorForLeads.id ? tCommon("scanningBtn") : tCommon("scanBtn")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSimulateCommentLead(selectedMonitorForLeads)}
                       className="rounded-lg border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                     >
-                      + Simular Comentario de Prueba
+                      {t("simulateCommentBtn")}
                     </button>
                   </div>
                 </div>
@@ -1365,9 +1361,7 @@ export default function MyPostsSignalRadarView({
                         <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                           {lead.fullName}
                         </h4>
-                        <span className="rounded-lg bg-green-50 px-1.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-400">
-                          Intencion Muy Alta
-                        </span>
+                        <span className="rounded-lg bg-green-50 px-1.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-400">{t("kpiLeadsSub")}</span>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {lead.headline} • {lead.location}
@@ -1403,7 +1397,7 @@ export default function MyPostsSignalRadarView({
                 onClick={() => handleSimulateCommentLead(selectedMonitorForLeads)}
                 className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
               >
-                + Simular Comentario de Prueba
+                {t("simulateCommentBtn")}
               </button>
               <div className="flex items-center gap-2">
                 {(() => {
@@ -1423,7 +1417,7 @@ export default function MyPostsSignalRadarView({
                   onClick={() => setSelectedMonitorForLeads(null)}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                 >
-                  Cerrar
+                  {tCommon("closeModal")}
                 </button>
               </div>
             </div>
@@ -1438,7 +1432,7 @@ export default function MyPostsSignalRadarView({
             <div className="flex items-start justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                  Vincular Publicación de LinkedIn
+                  {t("linkModalTitle")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-sm">
                   {linkingUrlModalMonitor.postTitle}
@@ -1456,7 +1450,7 @@ export default function MyPostsSignalRadarView({
             <form onSubmit={handleSaveManualUrl} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Pega la URL o URN del post publicado en LinkedIn
+                  {t("labelLinkedInUrl")}
                 </label>
                 <input
                   type="url"
@@ -1467,7 +1461,7 @@ export default function MyPostsSignalRadarView({
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-400">
-                  Al vincular la URL, el monitor pasará inmediatamente al estado Activo y comenzará a escanear los comentarios con la palabra clave &quot;{linkingUrlModalMonitor.keyword}&quot;.
+                  {t("linkModalDesc")}
                 </p>
               </div>
 
@@ -1477,7 +1471,7 @@ export default function MyPostsSignalRadarView({
                   onClick={() => setLinkingUrlModalMonitor(null)}
                   className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                 >
-                  Cancelar
+                  {tCommon("cancelBtn")}
                 </button>
                 <button
                   type="submit"
@@ -1502,10 +1496,10 @@ export default function MyPostsSignalRadarView({
                 </div>
                 <div>
                   <h3 className="font-bold text-base text-gray-900 dark:text-white leading-tight">
-                    Editar Monitor de Publicación (Nivel 1)
+                    {t("editModalTitle")}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Ajusta la palabra clave, enlaces o plantillas relacionales de este monitor.
+                    {t("editModalDesc")}
                   </p>
                 </div>
               </div>
@@ -1513,7 +1507,7 @@ export default function MyPostsSignalRadarView({
                 type="button"
                 onClick={() => setEditingMonitor(null)}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Cerrar"
+                title={tCommon("closeModal")}
               >
                 <X className="size-5" />
               </button>
@@ -1551,7 +1545,7 @@ export default function MyPostsSignalRadarView({
             >
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                  Título de la Publicación / Lead Magnet
+                  {t("labelPostTitle")}
                 </label>
                 <input
                   name="postTitle"
@@ -1564,7 +1558,7 @@ export default function MyPostsSignalRadarView({
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                  URL Oficial de LinkedIn
+                  {t("labelLinkedInUrl")}
                 </label>
                 <input
                   name="postUrl"
@@ -1578,7 +1572,7 @@ export default function MyPostsSignalRadarView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                    Palabra Clave de Activación
+                    {t("labelKeyword")}
                   </label>
                   <input
                     name="keyword"
@@ -1590,7 +1584,7 @@ export default function MyPostsSignalRadarView({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                    Recurso Adjunto (PDF / Guía)
+                    {t("labelResourceName")}
                   </label>
                   <input
                     name="attachedPdfName"
@@ -1604,7 +1598,7 @@ export default function MyPostsSignalRadarView({
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                  Respuesta Pública al Comentario
+                  {t("labelPublicReply")}
                 </label>
                 <textarea
                   name="publicReplyTemplate"
@@ -1616,7 +1610,7 @@ export default function MyPostsSignalRadarView({
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                  Plantilla de Mensaje Privado / Nota
+                  {t("labelPrivateDm")}
                 </label>
                 <textarea
                   name="nonConnectedNoteTemplate"
@@ -1635,7 +1629,7 @@ export default function MyPostsSignalRadarView({
                   className="h-4 w-4 rounded-lg border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
                 />
                 <label htmlFor="editAutoLike" className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer font-medium">
-                  Auto-dar like al comentario del prospecto
+                  {t("labelAutoLike")}
                 </label>
               </div>
 
@@ -1645,13 +1639,13 @@ export default function MyPostsSignalRadarView({
                   onClick={() => setEditingMonitor(null)}
                   className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                 >
-                  Cancelar
+                  {tCommon("cancelBtn")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-lg text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition cursor-pointer"
                 >
-                  Guardar Cambios
+                  {tCommon("saveBtn")}
                 </button>
               </div>
             </form>

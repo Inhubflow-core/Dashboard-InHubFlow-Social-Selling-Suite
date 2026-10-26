@@ -433,9 +433,13 @@ export default function CompetitorsSignalRadarView({
       if (!isSilent) {
         setScanFeedback({
           type: "success",
-          text: `Auditoría completada para ${comp.competitorName}: lote seguro de ${data.leadsExtractedCount || added.length} perfiles procesado (tope: ${effectiveBatchLimit}) e incorporado a la lista "${targetList.name}" (${importRes.addedCount} nuevos leads añadidos)${
-            data.excludedEmployeesCount ? ` [${data.excludedEmployeesCount} colaboradores internos excluidos]` : ""
-          }.`,
+          text: t("feedbackAuditSuccess", {
+            name: comp.competitorName,
+            count: data.leadsExtractedCount || added.length,
+            limit: effectiveBatchLimit,
+            list: targetList.name,
+            newCount: importRes.addedCount
+          }),
           listId: targetList.id,
         });
       }
@@ -526,37 +530,37 @@ export default function CompetitorsSignalRadarView({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Cuentas Rivales Monitoreadas
+            {t("kpiRivalsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {t("kpiRivalsCount", { count: l2Monitors.length })}
           </p>
           <span className="text-xs text-brand-600 font-semibold dark:text-brand-400">
-            Escaneo de Likes y Comentarios
+            {t("kpiRivalsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Prospectos Calificados Extraidos
+            {t("kpiLeadsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
             {t("kpiLeadsCount", { count: totalCompetitorLeads })}
           </p>
           <span className="text-xs text-green-600 font-semibold dark:text-green-400">
-            Intención Media-Alta (Interesados en Soluciones Rivales)
+            {t("kpiLeadsSub")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Tasa de Aceptacion Relacional
+            {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             48.2%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Respuestas al referenciar contexto de la temática
+            {t("kpiRateSub")}
           </span>
         </div>
       </div>
@@ -565,10 +569,10 @@ export default function CompetitorsSignalRadarView({
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div>
           <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Mecánica de Prospección a Competidores (Nivel 2)
+            {t("strategyTitle")}
           </h4>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            Cuando un prospecto interactúa con un competidor directo (ej. Adapta IA), expresa necesidad activa. El monitor extrae su perfil y dispara una secuencia relacional suave reconociendo el tema sin hacer un pitch agresivo.
+            {t("strategyDesc")}
           </p>
         </div>
         <button
@@ -583,8 +587,8 @@ export default function CompetitorsSignalRadarView({
       {/* Formulario para Agregar Competidor */}
       {isAddingCompetitor && (
         <ComponentCard
-          title="Configurador de Auditoría de Competidor"
-          desc="Define la cuenta objetivo y los criterios para extraer a quienes comentan o reaccionan a sus posts."
+          title={t("formTitle")}
+          desc={t("formDesc")}
         >
           <form onSubmit={handleAddCompetitor} className="space-y-4">
             {/* Fila 1: Nombre de la Cuenta y Palabras Clave */}
@@ -706,8 +710,8 @@ export default function CompetitorsSignalRadarView({
                       {filteredSearchResults.length === 0 ? (
                         <div className="py-6 text-center text-gray-500 dark:text-gray-400 text-xs">
                           {searchResults.length === 0
-                            ? "LinkedIn no devolvió resultados para esta búsqueda. Prueba otro nombre o verifica que la cuenta esté conectada."
-                            : "No se encontraron coincidencias en esta categoría."}
+                            ? t("noResultsFound")
+                            : t("noCategoryResults")}
                         </div>
                       ) : (
                         filteredSearchResults.map((item) => {
@@ -847,13 +851,13 @@ export default function CompetitorsSignalRadarView({
               {/* {t("labelTractionFilter")} */}
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                  {t("labelTractionFilter")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 10, label: "+10 comentarios", tag: "Moderado" },
-                    { value: 20, label: "+20 comentarios", tag: "Recomendado", recommended: true },
-                    { value: 50, label: "+50 comentarios", tag: "Viral Masivo" },
+                    { value: 10, label: "+10", tag: t("tagModerate") },
+                    { value: 20, label: "+20", tag: t("tagRecommended"), recommended: true },
+                    { value: 50, label: "+50", tag: t("tagViral") },
                   ].map((thresh) => (
                     <button
                       key={thresh.value}
@@ -871,7 +875,7 @@ export default function CompetitorsSignalRadarView({
                         </span>
                         {thresh.recommended && (
                           <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
-                            Óptimo
+                            {t("tractionOptimal")}
                           </span>
                         )}
                       </div>
@@ -889,13 +893,13 @@ export default function CompetitorsSignalRadarView({
               {/* {t("labelBatchSize")} */}
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Lote de Absorción por Auditoría (Protección LinkedIn)
+                  {t("labelBatchSize")}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 25, label: "25 perfiles", tag: "Ultra Seguro" },
-                    { value: 50, label: "50 perfiles", tag: "Recomendado", recommended: true },
-                    { value: 100, label: "100 perfiles", tag: "Intensivo" },
+                    { value: 25, label: "25", tag: t("tagUltraSafe") },
+                    { value: 50, label: "50", tag: t("tagRecommended"), recommended: true },
+                    { value: 100, label: "100", tag: t("tagIntense") },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -913,7 +917,7 @@ export default function CompetitorsSignalRadarView({
                         </span>
                         {opt.recommended && (
                           <span className="text-xs font-bold text-brand-700 bg-brand-100 dark:bg-brand-900/60 dark:text-brand-300 px-1 rounded-lg">
-                            Óptimo
+                            {t("tractionOptimal")}
                           </span>
                         )}
                       </div>
@@ -924,7 +928,7 @@ export default function CompetitorsSignalRadarView({
                   ))}
                 </div>
                 <span className="text-xs text-gray-400 mt-1 block">
-                  Límite seguro de perfiles extraídos por post para proteger tu cuenta de LinkedIn.
+                  {t("batchHelper")}
                 </span>
               </div>
             </div>
@@ -991,7 +995,7 @@ export default function CompetitorsSignalRadarView({
                 className="w-full rounded-lg border border-gray-300 p-2.5 text-xs text-gray-800 font-mono focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
               <span className="text-xs text-gray-400 mt-1 block">
-                Mensaje base para la secuencia de contacto relacional hacia quienes interactúen con el contenido del competidor.
+                {t("outreachTemplateHelp")}
               </span>
             </div>
 
@@ -1002,7 +1006,7 @@ export default function CompetitorsSignalRadarView({
                 onClick={() => setIsAddingCompetitor(false)}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="submit"
@@ -1163,7 +1167,7 @@ export default function CompetitorsSignalRadarView({
                                 </button>
                               ) : (
                                 <span className="block mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
-                                  Sin posts escaneados. Pulsa &quot;Escanear&quot; para extraer posts reales.
+                                  {t("noPostsScannedNotice")}
                                 </span>
                               )}
                             </div>
@@ -1206,7 +1210,7 @@ export default function CompetitorsSignalRadarView({
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
                             }`}
                           >
-                            {comp.status === "active" ? "Activo" : "Pausado"}
+                            {comp.status === "active" ? tCommon("statusActive") : tCommon("statusPaused")}
                           </button>
                         </td>
 
@@ -1215,7 +1219,7 @@ export default function CompetitorsSignalRadarView({
                             {/* Selector rápido de pastillas de lote [ 25 | 50 | 100 ] */}
                             <div
                               className="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 p-0.5 text-xs font-semibold"
-                              title="Seleccionar tamaño de lote para la próxima auditoría"
+                              title={t("labelBatchSize")}
                             >
                               {([25, 50, 100] as const).map((batchVal) => {
                                 const currentBatch = selectedBatchSize[comp.id] || comp.batchLeadLimit || 50;
@@ -1252,7 +1256,7 @@ export default function CompetitorsSignalRadarView({
                                   disabled={isScanningId === comp.id}
                                   onClick={() => handleScanCompetitor(comp, false, activeBatch)}
                                   className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
-                                  title={`Escanear publicaciones y extraer lote seguro de hasta ${activeBatch} decisores`}
+                                  title={t("batchHelper")}
                                 >
                                   {isScanningId === comp.id ? (
                                     <>
@@ -1286,7 +1290,7 @@ export default function CompetitorsSignalRadarView({
                               type="button"
                               onClick={() => setEditingMonitor(comp)}
                               className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
-                              title="Editar monitor de competidor"
+                              title={t("editModalTitle")}
                             >
                               <Pencil className="size-3.5" />
                             </button>
@@ -1317,7 +1321,7 @@ export default function CompetitorsSignalRadarView({
                                 }
                               }}
                               className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
-                              title="Eliminar competidor"
+                              title={tCommon("cancelBtn")}
                             >
                               <X className="size-3.5" />
                             </button>
@@ -1333,10 +1337,10 @@ export default function CompetitorsSignalRadarView({
                               <div className="flex items-center justify-between mb-2.5">
                                 <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
                                   <span>🔗</span>
-                                  <span>Publicación(es) de LinkedIn Monitoreada(s): Post de la Competencia ({scannedPosts.length})</span>
+                                  <span>{t("scannedPostsHeader", { count: scannedPosts.length })}</span>
                                 </span>
                                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                                  Tracción en {comp.competitorName}
+                                  {comp.competitorName}
                                 </span>
                               </div>
 
@@ -1423,7 +1427,7 @@ export default function CompetitorsSignalRadarView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  URL del Perfil o Página de LinkedIn
+                  {t("labelAccountName")}
                 </label>
                 <input
                   type="text"
@@ -1437,7 +1441,7 @@ export default function CompetitorsSignalRadarView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Filtro de Palabras Clave (separadas por comas)
+                  {t("labelKeywords")}
                 </label>
                 <input
                   type="text"
@@ -1451,17 +1455,17 @@ export default function CompetitorsSignalRadarView({
                         .filter(Boolean),
                     })
                   }
-                  placeholder="Ej: Agentes IA, Prospección, Automatización"
+                  placeholder={t("placeholderKeywords")}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Deja vacío para auditar todos los posts del competidor sin filtro de temáticas.
+                  {t("keywordsHelper")}
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Filtro de Tracción Mínima (Volumen de Comentarios)
+                  {t("labelTractionFilter")}
                 </label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
                   {[
@@ -1492,7 +1496,7 @@ export default function CompetitorsSignalRadarView({
 
               <div className="flex flex-col gap-2 rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/50">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Tipos de Interacciones a Monitorear
+                  {t("labelInteractionTypes")}
                 </span>
                 <div className="flex items-center gap-4 text-xs text-gray-700 dark:text-gray-300">
                   <label className="inline-flex items-center gap-2 cursor-pointer">
@@ -1507,7 +1511,7 @@ export default function CompetitorsSignalRadarView({
                       }}
                       className="rounded-lg border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    Comentarios (Alta intención)
+                    {t("optComments")}
                   </label>
                   <label className="inline-flex items-center gap-2 cursor-pointer">
                     <input
@@ -1521,7 +1525,7 @@ export default function CompetitorsSignalRadarView({
                       }}
                       className="rounded-lg border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    Reacciones / Likes
+                    {t("optLikes")}
                   </label>
                 </div>
               </div>
@@ -1547,7 +1551,7 @@ export default function CompetitorsSignalRadarView({
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Plantilla de Mensaje de Prospección / Conexión
+                  {t("labelOutreachTemplate")}
                 </label>
                 <textarea
                   rows={3}
@@ -1566,7 +1570,7 @@ export default function CompetitorsSignalRadarView({
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Frecuencia de Auditoría Automática
+                  {tCommon("dailyFrequency")}
                 </label>
                 <select
                   value={editingMonitor.scanFrequency || "daily"}
@@ -1582,13 +1586,13 @@ export default function CompetitorsSignalRadarView({
                   <option value="manual">{tCommon("freqManualDesc")}</option>
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
-                  En modo diario, el sistema consulta 1 vez al día de forma segura y añade nuevos prospectos sin duplicados.
+                  {tCommon("freqDailyDesc")}
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Lote de Absorción por Auditoría (Protección Anti-Bloqueo)
+                  {t("labelBatchSize")}
                 </label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
                   {([25, 50, 100] as const).map((val) => (
@@ -1604,12 +1608,12 @@ export default function CompetitorsSignalRadarView({
                           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300"
                       }`}
                     >
-                      {val} leads {val === 50 ? "(Recomendado)" : ""}
+                      {val} {val === 50 ? `(${t("tagRecommended")})` : ""}
                     </button>
                   ))}
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  Limita la cantidad de perfiles extraídos por escaneo para prevenir restricciones de LinkedIn.
+                  {t("batchHelper")}
                 </p>
               </div>
             </div>
@@ -1620,7 +1624,7 @@ export default function CompetitorsSignalRadarView({
                 onClick={() => setEditingMonitor(null)}
                 className="rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
-                Cancelar
+                {tCommon("cancelBtn")}
               </button>
               <button
                 type="button"
@@ -1639,7 +1643,7 @@ export default function CompetitorsSignalRadarView({
                 }}
                 className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition shadow-xs"
               >
-                Guardar Cambios
+                {tCommon("saveBtn")}
               </button>
             </div>
           </div>
