@@ -56,12 +56,7 @@ const navItems: NavItem[] = [
   {
     icon: <PageIcon />,
     key: "viralPosts",
-    subItems: [
-      { key: "viralRadar", path: "/viral-posts/radar" },
-      { key: "createPost", path: "/viral-posts/create" },
-      { key: "postList", path: "/viral-posts/list" },
-      { key: "editorialCalendar", path: "/viral-posts/calendar" },
-    ],
+    path: "/viral-posts",
   },
   {
     icon: <PieChartIcon />,
