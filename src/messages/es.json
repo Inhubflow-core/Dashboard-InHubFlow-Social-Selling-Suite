@@ -1308,7 +1308,13 @@
       "followupSub": "Seguimiento consultivo y profundización en el reto comercial o dolor inicial.",
       "valuePropTitle": "Mensaje DM 'Value Prop'",
       "valuePropSub": "Mensaje final con la Propuesta de valor y llamada a la acción."
-    }
+    },
+    "tabLeadLists": "01. Secuencia: Listas de Leads",
+    "tabLeadMagnet": "02. Secuencia: Lead Magnet",
+    "triggerTitle": "Activador: Entrar en la lista",
+    "triggerDesc": "Se dispara cuando un prospecto entra a una lista inteligente de Signal Radar.",
+    "dayUnit": "día",
+    "daysUnit": "días"
   },
   "leads": {
     "pageTitle": "Directorio de Leads (Ficha del Contacto)",

@@ -1308,7 +1308,13 @@
       "followupSub": "Consultative follow-up diving into commercial challenge or pain point.",
       "valuePropTitle": "DM Message 'Value Prop'",
       "valuePropSub": "Final message with Value Proposition and call to action."
-    }
+    },
+    "tabLeadLists": "01. Sequence: Lead Lists",
+    "tabLeadMagnet": "02. Sequence: Lead Magnet",
+    "triggerTitle": "Trigger: Enter the list",
+    "triggerDesc": "Fires when a prospect enters a Signal Radar smart list.",
+    "dayUnit": "day",
+    "daysUnit": "days"
   },
   "leads": {
     "pageTitle": "Leads Directory (Contact Record)",

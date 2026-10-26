@@ -130,12 +130,34 @@ export default function CampaignsPage() {
     switch (idKey) {
       case "visit": return { title: t("palette.visitTitle"), subtitle: t("palette.visitSub") };
       case "like_comment": return { title: t("palette.likeCommentTitle"), subtitle: t("palette.likeCommentSub") };
-      case "connect": return { title: t("palette.connectTitle"), subtitle: t("palette.connectSub") };
+      case "connect":
+      case "connect_message": return { title: t("palette.connectTitle"), subtitle: t("palette.connectSub") };
       case "message_icebreaker": return { title: t("palette.icebreakerTitle"), subtitle: t("palette.icebreakerSub") };
       case "message_followup": return { title: t("palette.followupTitle"), subtitle: t("palette.followupSub") };
       case "message_value_prop": return { title: t("palette.valuePropTitle"), subtitle: t("palette.valuePropSub") };
       default: return { title: "", subtitle: "" };
     }
+  };
+
+  const getStepLocalizedText = (step: SequenceStepItem) => {
+    const palette = getPaletteText(step.type);
+    if (palette.title) {
+      return {
+        title: palette.title,
+        description: palette.subtitle || step.description,
+      };
+    }
+    const norm = (step.title || "").toLowerCase();
+    if (norm.includes("visit")) return { title: t("palette.visitTitle"), description: t("palette.visitSub") };
+    if (norm.includes("like") || norm.includes("curtir") || norm.includes("coment")) return { title: t("palette.likeCommentTitle"), description: t("palette.likeCommentSub") };
+    if (norm.includes("conectar") || norm.includes("connect") || norm.includes("seguir")) return { title: t("palette.connectTitle"), description: t("palette.connectSub") };
+    if (norm.includes("icebreaker")) return { title: t("palette.icebreakerTitle"), description: t("palette.icebreakerSub") };
+    if (norm.includes("followup") || norm.includes("follow-up")) return { title: t("palette.followupTitle"), description: t("palette.followupSub") };
+    if (norm.includes("value prop") || norm.includes("propuesta")) return { title: t("palette.valuePropTitle"), description: t("palette.valuePropSub") };
+    return {
+      title: sanitizeUnipileText(step.title),
+      description: sanitizeUnipileText(step.description),
+    };
   };
   const { currentUser } = useAuth();
   const [campaigns, setCampaigns] = useState<LinearSequenceCampaign[]>([]);
@@ -642,7 +664,7 @@ export default function CampaignsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
         <div>
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Motor de Outreach Relacional en LinkedIn
+            {t("cardTitle")}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
             {t("cardDesc")}
@@ -690,7 +712,7 @@ export default function CampaignsPage() {
                 <>
                   <Play className="size-3.5" />
                   <span>
-                    Simular Paso {Math.min(simulatedStepIndex + 1, activeCampaign.steps.length)}/{activeCampaign.steps.length}
+                    {t("simulateStep", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
                   </span>
                 </>
               )}
@@ -743,7 +765,7 @@ export default function CampaignsPage() {
                 ) : (
                   <Layers className="size-4 shrink-0" />
                 )}
-                <span>{camp.name.replace(/\s*\(Palabra Clave SISTEMA\)/gi, "")}</span>
+                <span>{camp.id.includes("magnet") ? t("tabLeadMagnet") : t("tabLeadLists")}</span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                     isSelected
@@ -874,10 +896,10 @@ export default function CampaignsPage() {
             </div>
             <div className="min-w-0 flex-1">
               <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {sanitizeUnipileText(activeCampaign.triggerTitle)}
+                {t("triggerTitle")}
               </h4>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {sanitizeUnipileText(activeCampaign.triggerDescription).replace(/\s*\(Competencia,\s*Grupos\s*o\s*Globales\)/gi, "")}
+                {t("triggerDesc")}
               </p>
             </div>
           </div>
@@ -903,7 +925,7 @@ export default function CampaignsPage() {
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
                     <Clock className="h-3 w-3 text-brand-500 shrink-0" />
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 px-1 py-0.5">
-                      Inmediato (0 días)
+                      {t("immediate")}
                     </span>
                   </div>
                 </div>
@@ -951,8 +973,11 @@ export default function CampaignsPage() {
                       >
                         <span>
                           {step.delayDaysBefore > 0
-                            ? `Esperar ${step.delayDaysBefore} ${step.delayDaysBefore === 1 ? "día" : "días"}`
-                            : "Inmediato (0 días)"}
+                            ? t("waitDays", {
+                                count: step.delayDaysBefore,
+                                unit: step.delayDaysBefore === 1 ? t("dayUnit") : t("daysUnit"),
+                              })
+                            : t("immediate")}
                         </span>
                         <ChevronDown className="h-2.5 w-2.5 text-gray-400" />
                       </button>
@@ -1056,20 +1081,25 @@ export default function CampaignsPage() {
                     </div>
 
                     {/* Contenido del Paso: Título y Descripción (Limpio, sin badges ni vista previa de mensajes) */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
-                          {String(idx + 1).padStart(2, "0")}.
-                        </span>
-                        <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                          {sanitizeUnipileText(step.title)}
-                        </h4>
-                      </div>
+                    {(() => {
+                      const loc = getStepLocalizedText(step);
+                      return (
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
+                              {String(idx + 1).padStart(2, "0")}.
+                            </span>
+                            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
+                              {loc.title}
+                            </h4>
+                          </div>
 
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {sanitizeUnipileText(step.description)}
-                      </p>
-                    </div>
+                          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            {loc.description}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Los 2 botones cuadraditos exactos de la imagen */}
@@ -1215,7 +1245,7 @@ export default function CampaignsPage() {
                   {editingStep.index === 0 ? (
                     <div className="flex items-center gap-2">
                       <div className="h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800/60 text-gray-500 flex items-center justify-center text-xs font-semibold select-none cursor-not-allowed">
-                        Inmediato (0 días)
+                        {t("immediate")}
                       </div>
                       <span className="text-xs text-gray-400">
                         {t("autoTrigger")}
