@@ -945,7 +945,7 @@ export default function ViralRadarView({
 
                   {/* Cuerpo del Post con formato fiel a LinkedIn y Enlace Traducir */}
                   <div className="mb-3">
-                    <div className="text-[13px] leading-relaxed text-gray-800 dark:text-gray-200 font-sans whitespace-pre-wrap select-text">
+                    <div className="text-sm leading-relaxed text-gray-800 dark:text-gray-200 font-sans whitespace-pre-wrap select-text">
                       {translations[post.id]?.isShowing && translations[post.id]?.translatedText
                         ? (expandedPosts[post.id]
                             ? translations[post.id].translatedText

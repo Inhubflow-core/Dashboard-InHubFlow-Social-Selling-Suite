@@ -692,7 +692,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                   rows={8}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white p-4 font-mono text-xs text-gray-800 leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  className="w-full rounded-lg border border-gray-300 bg-white p-4 font-sans text-sm text-gray-800 leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
 
@@ -763,7 +763,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
               </div>
 
               {/* Texto del post */}
-              <div className="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap dark:text-gray-200 mb-4 font-sans">
+              <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap dark:text-gray-200 mb-4 font-sans">
                 {content}
               </div>
 
