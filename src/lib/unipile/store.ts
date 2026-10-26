@@ -15,7 +15,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     email: "robertoorse.agencia@gmail.com",
     headline: "Roberto OrSe | InHubFlow Social Selling Suite",
     publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-    profilePictureUrl: "https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo",
+    profilePictureUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY",
     status: "OK",
     authMode: "cookie",
     connectedAt: "2026-10-13T11:38:09.032Z",
@@ -204,7 +204,7 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
           unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
           profilePictureUrl:
             resolvedName.toLowerCase().includes("agencia")
-              ? "https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo"
+              ? "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY"
               : (deduplicated[existsIdx].profilePictureUrl &&
                  !deduplicated[existsIdx].profilePictureUrl.includes("owner.png") &&
                  deduplicated[existsIdx].profilePictureUrl.startsWith("http"))
