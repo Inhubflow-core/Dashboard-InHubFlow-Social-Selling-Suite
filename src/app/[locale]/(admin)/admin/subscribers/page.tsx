@@ -100,7 +100,7 @@ export default function AdminSubscribersPage() {
     setFormError("");
 
     if (!newEmail || !newCompany) {
-      setFormError("El correo electronico y el nombre de empresa son obligatorios.");
+      setFormError(t("errorRequiredFields"));
       return;
     }
 
@@ -121,10 +121,10 @@ export default function AdminSubscribersPage() {
       setNewCompany("");
       setNewPlan("starter");
       setNewSlots(1);
-      setNotice(`Cliente ${newCompany} creado con éxito con ${newSlots} slots.`);
+      setNotice(t("noticeCreated", { company: newCompany, slots: newSlots }));
       setTimeout(() => setNotice(null), 3500);
     } catch (err: any) {
-      setFormError(err.message || "Error al crear el suscriptor.");
+      setFormError(err.message || t("errorGeneric"));
     }
   };
 
@@ -151,33 +151,33 @@ export default function AdminSubscribersPage() {
     loadData();
     refreshUserData();
     setIsEditModalOpen(false);
-    setNotice(`Suscriptor ${selectedUser.email} actualizado exitosamente.`);
+    setNotice(t("noticeUpdated", { email: selectedUser.email }));
     setTimeout(() => setNotice(null), 3500);
   };
 
   const handleDelete = (id: string, email: string) => {
-    if (confirm(`Confirmas la eliminacion del suscriptor ${email}? Esta accion revocara todos sus slots.`)) {
+    if (confirm(t("confirmDelete", { email }))) {
       const ok = deleteSubscriber(id);
       if (ok) {
         loadData();
         refreshUserData();
-        setNotice(`Suscriptor ${email} eliminado.`);
+        setNotice(t("noticeDeleted", { email }));
         setTimeout(() => setNotice(null), 3000);
       } else {
-        alert("No se puede eliminar la cuenta principal de Super Administrador.");
+        alert(t("alertCannotDeleteSuperAdmin"));
       }
     }
   };
 
   const handleSwitchToClient = (userId: string, email: string) => {
     switchUser(userId);
-    setNotice(`Sesion conmutada al workspace de: ${email}`);
+    setNotice(t("noticeSwitched", { email }));
     setTimeout(() => setNotice(null), 3000);
   };
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Administracion SaaS / Suscriptores & Slots" />
+      <PageBreadcrumb pageTitle={t("breadcrumb")} />
 
       {/* Notificación temporal */}
       {notice && (
@@ -193,14 +193,14 @@ export default function AdminSubscribersPage() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Gestion de Suscriptores & Multislots SaaS
+                {t("headerTitle")}
               </h3>
               <span className="rounded-full bg-[#0099ff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0099ff]">
-                Panel Super Admin
+                {t("badgeSuperAdmin")}
               </span>
             </div>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Administra clientes, asignacion de cupos de LinkedIn (1, 5 o 10 cuentas) y estados de facturacion.
+              {t("headerDesc")}
             </p>
           </div>
 
@@ -210,7 +210,7 @@ export default function AdminSubscribersPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
             >
               <Plus className="size-4" />
-              <span>Nuevo Suscriptor</span>
+              <span>{t("newSubscriberBtn")}</span>
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function AdminSubscribersPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Clientes Suscritos
+              {t("kpiSubscribedClients")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
               <Users className="size-4.5" />
@@ -232,7 +232,7 @@ export default function AdminSubscribersPage() {
             {stats.totalSubscribers}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Empresas y organizaciones registradas
+            {t("kpiSubscribedClientsDesc")}
           </p>
         </div>
 
@@ -240,7 +240,7 @@ export default function AdminSubscribersPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Suscripciones Activas
+              {t("kpiActiveSubscriptions")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
               <CheckCircle2 className="size-4.5" />
@@ -250,7 +250,7 @@ export default function AdminSubscribersPage() {
             {stats.activeSubscriptions}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            En ciclo de cobro regular
+            {t("kpiActiveSubscriptionsDesc")}
           </p>
         </div>
 
@@ -258,17 +258,17 @@ export default function AdminSubscribersPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Slots Contratados
+              {t("kpiContractedSlots")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
               <Layers className="size-4.5" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {stats.totalSlotsAllocated} Slots
+            {t("kpiContractedSlotsCount", { count: stats.totalSlotsAllocated })}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Capacidad total distribuida entre clientes
+            {t("kpiContractedSlotsDesc")}
           </p>
         </div>
 
@@ -276,7 +276,7 @@ export default function AdminSubscribersPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-              Perfiles Vinculados
+              {t("kpiLinkedProfiles")}
             </span>
             <div className="flex size-9 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-500">
               <Zap className="size-4.5" />
@@ -286,7 +286,7 @@ export default function AdminSubscribersPage() {
             {stats.totalConnectedAccounts}
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Cuentas LinkedIn activas sincronizadas
+            {t("kpiLinkedProfilesDesc")}
           </p>
         </div>
       </div>
@@ -296,42 +296,42 @@ export default function AdminSubscribersPage() {
         <div className="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-              Plan Starter (1 Slot)
+              {t("planStarterLabel")}
             </span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
               {stats.starterCount}
             </span>
           </div>
           <div className="mt-1 text-xs text-gray-500">
-            {stats.starterCount * 1} slots contratados
+            {t("slotsContracted", { count: stats.starterCount * 1 })}
           </div>
         </div>
 
         <div className="rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 dark:border-[#0099ff]/20">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#0099ff]">
-              Plan Growth (5 Slots)
+              {t("planGrowthLabel")}
             </span>
             <span className="rounded-full bg-[#0099ff] px-2 py-0.5 text-xs font-bold text-white">
               {stats.growthCount}
             </span>
           </div>
           <div className="mt-1 text-xs text-gray-500">
-            {stats.growthCount * 5} slots contratados
+            {t("slotsContracted", { count: stats.growthCount * 5 })}
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-              Plan Business (10 Slots)
+              {t("planBusinessLabel")}
             </span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
               {stats.businessCount}
             </span>
           </div>
           <div className="mt-1 text-xs text-gray-500">
-            {stats.businessCount * 10} slots contratados
+            {t("slotsContracted", { count: stats.businessCount * 10 })}
           </div>
         </div>
       </div>
@@ -343,7 +343,7 @@ export default function AdminSubscribersPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar por cliente, email o empresa..."
+              placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-xs text-gray-900 outline-none transition focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -356,11 +356,11 @@ export default function AdminSubscribersPage() {
               onChange={(e) => setPlanFilter(e.target.value)}
               className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >
-              <option value="all">Todos los Planes</option>
-              <option value="starter">Plan Starter (1 Slot)</option>
-              <option value="growth">Plan Growth (5 Slots)</option>
-              <option value="business">Plan Business (10 Slots)</option>
-              <option value="custom">Super Admin / Custom</option>
+              <option value="all">{t("filterAllPlans")}</option>
+              <option value="starter">{t("planStarterLabel")}</option>
+              <option value="growth">{t("planGrowthLabel")}</option>
+              <option value="business">{t("planBusinessLabel")}</option>
+              <option value="custom">{t("planCustomLabel")}</option>
             </select>
 
             <select
@@ -368,11 +368,11 @@ export default function AdminSubscribersPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             >
-              <option value="all">Todos los Estados</option>
-              <option value="active">Activo</option>
-              <option value="trial">Trial</option>
-              <option value="past_due">Pago Pendiente</option>
-              <option value="canceled">Cancelado</option>
+              <option value="all">{t("filterAllStatuses")}</option>
+              <option value="active">{t("statusActive")}</option>
+              <option value="trial">{t("statusTrial")}</option>
+              <option value="past_due">{t("statusPastDue")}</option>
+              <option value="canceled">{t("statusCanceled")}</option>
             </select>
           </div>
         </div>
@@ -384,20 +384,20 @@ export default function AdminSubscribersPage() {
           <table className="w-full text-left text-xs">
             <thead className="border-b border-gray-300 bg-gray-50/60 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-400">
               <tr>
-                <th className="px-5 py-3.5">Cliente / Empresa</th>
-                <th className="px-5 py-3.5">Rol SaaS</th>
-                <th className="px-5 py-3.5">Plan Contratado</th>
-                <th className="px-5 py-3.5">Slots Asignados</th>
-                <th className="px-5 py-3.5">Estado</th>
-                <th className="px-5 py-3.5">Fecha Registro</th>
-                <th className="px-5 py-3.5 text-right">Acciones</th>
+                <th className="px-5 py-3.5">{t("colSubscriber")}</th>
+                <th className="px-5 py-3.5">{t("colRole")}</th>
+                <th className="px-5 py-3.5">{t("colPlan")}</th>
+                <th className="px-5 py-3.5">{t("colSlots")}</th>
+                <th className="px-5 py-3.5">{t("colStatus")}</th>
+                <th className="px-5 py-3.5">{t("colRegistered")}</th>
+                <th className="px-5 py-3.5 text-right">{t("colActions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-gray-400">
-                    No se encontraron suscriptores con los filtros seleccionados.
+                    {t("emptyState")}
                   </td>
                 </tr>
               ) : (
@@ -438,12 +438,12 @@ export default function AdminSubscribersPage() {
                         {isSuper ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-semibold text-purple-600 dark:text-purple-400">
                             <ShieldCheck className="size-3" />
-                            Super Admin
+                            {t("roleSuperAdmin")}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
                             <UserCheck className="size-3" />
-                            Admin Cliente
+                            {t("roleClientAdmin")}
                           </span>
                         )}
                       </td>
@@ -468,10 +468,14 @@ export default function AdminSubscribersPage() {
                       {/* Slots */}
                       <td className="px-5 py-4">
                         <div className="font-bold text-gray-900 dark:text-white">
-                          {isSuper ? "999 (Ilimitado)" : `${u.slotsLimit} ${u.slotsLimit === 1 ? "Slot" : "Slots"}`}
+                          {isSuper
+                            ? t("unlimitedSlots")
+                            : u.slotsLimit === 1
+                            ? t("singleSlot")
+                            : t("multipleSlots", { count: u.slotsLimit })}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {capacity.usedSlots} cuentas en uso
+                          {t("accountsInUse", { count: capacity.usedSlots })}
                         </div>
                       </td>
 
@@ -486,7 +490,13 @@ export default function AdminSubscribersPage() {
                               : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                           }`}
                         >
-                          {u.subscriptionStatus}
+                          {u.subscriptionStatus === "active"
+                            ? t("statusActive")
+                            : u.subscriptionStatus === "trial"
+                            ? t("statusTrial")
+                            : u.subscriptionStatus === "past_due"
+                            ? t("statusPastDue")
+                            : t("statusCanceled")}
                         </span>
                       </td>
 
@@ -501,7 +511,7 @@ export default function AdminSubscribersPage() {
                           {/* Conmutar sesión a cliente */}
                           <button
                             onClick={() => handleSwitchToClient(u.id, u.email)}
-                            title="Ver dashboard como este cliente"
+                            title={t("actionSwitchTooltip")}
                             className="rounded-lg p-1.5 text-gray-500 hover:bg-[#0099ff]/10 hover:text-[#0099ff] dark:text-gray-400"
                           >
                             <ExternalLink className="size-4" />
@@ -510,7 +520,7 @@ export default function AdminSubscribersPage() {
                           {/* Editar */}
                           <button
                             onClick={() => handleOpenEdit(u)}
-                            title="Editar suscriptor y slots"
+                            title={t("actionEditTooltip")}
                             className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
                           >
                             <Edit3 className="size-4" />
@@ -520,7 +530,7 @@ export default function AdminSubscribersPage() {
                           {!isSuper && (
                             <button
                               onClick={() => handleDelete(u.id, u.email)}
-                              title="Eliminar suscriptor"
+                              title={t("actionDeleteTooltip")}
                               className="rounded-lg p-1.5 text-gray-500 hover:bg-rose-500/10 hover:text-rose-600 dark:text-gray-400"
                             >
                               <Trash2 className="size-4" />
@@ -549,10 +559,10 @@ export default function AdminSubscribersPage() {
             </button>
 
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Nuevo Suscriptor / Cliente SaaS
+              {t("modalCreateTitle")}
             </h3>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Registra un nuevo cliente y asigna sus slots de cuentas de LinkedIn.
+              {t("modalCreateDesc")}
             </p>
 
             {formError && (
@@ -564,7 +574,7 @@ export default function AdminSubscribersPage() {
             <form onSubmit={handleCreateSubmit} className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Correo Electrónico
+                  {t("formEmail")}
                 </label>
                 <input
                   type="email"
@@ -578,11 +588,11 @@ export default function AdminSubscribersPage() {
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Nombre del Contacto
+                  {t("formContactName")}
                 </label>
                 <input
                   type="text"
-                  placeholder="Ej. Juan Perez"
+                  placeholder={t("formContactPlaceholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -591,12 +601,12 @@ export default function AdminSubscribersPage() {
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Nombre de la Empresa / Organización
+                  {t("formCompany")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ej. Alpha Sales Agency"
+                  placeholder={t("formCompanyPlaceholder")}
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -606,23 +616,23 @@ export default function AdminSubscribersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Plan Inicial
+                    {t("formInitialPlan")}
                   </label>
                   <select
                     value={newPlan}
                     onChange={(e) => setNewPlan(e.target.value as PlanTier)}
                     className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
-                    <option value="starter">Plan Starter (1 Slot)</option>
-                    <option value="growth">Plan Growth (5 Slots)</option>
-                    <option value="business">Plan Business (10 Slots)</option>
-                    <option value="custom">Custom / Personalizado</option>
+                    <option value="starter">{t("planStarterLabel")}</option>
+                    <option value="growth">{t("planGrowthLabel")}</option>
+                    <option value="business">{t("planBusinessLabel")}</option>
+                    <option value="custom">{t("planCustomOption")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Limite de Slots Asignados
+                    {t("formSlotsLimit")}
                   </label>
                   <input
                     type="number"
@@ -641,13 +651,13 @@ export default function AdminSubscribersPage() {
                   onClick={() => setIsCreateModalOpen(false)}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
-                  Cancelar
+                  {t("btnCancel")}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
-                  Crear Suscriptor
+                  {t("btnCreateSubscriber")}
                 </button>
               </div>
             </form>
@@ -667,16 +677,16 @@ export default function AdminSubscribersPage() {
             </button>
 
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Editar Suscriptor: {selectedUser.email}
+              {t("modalEditTitle", { email: selectedUser.email })}
             </h3>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Modifica la empresa, el plan y los slots disponibles.
+              {t("modalEditDesc")}
             </p>
 
             <form onSubmit={handleEditSubmit} className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Empresa
+                  {t("formCompanyShort")}
                 </label>
                 <input
                   type="text"
@@ -690,7 +700,7 @@ export default function AdminSubscribersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Plan
+                    {t("formPlan")}
                   </label>
                   <select
                     value={editPlan}
@@ -701,16 +711,16 @@ export default function AdminSubscribersPage() {
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   >
-                    <option value="starter">Plan Starter (1 Slot)</option>
-                    <option value="growth">Plan Growth (5 Slots)</option>
-                    <option value="business">Plan Business (10 Slots)</option>
-                    <option value="custom">Custom / Enterprise</option>
+                    <option value="starter">{t("planStarterLabel")}</option>
+                    <option value="growth">{t("planGrowthLabel")}</option>
+                    <option value="business">{t("planBusinessLabel")}</option>
+                    <option value="custom">{t("planEnterpriseOption")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Slots de Cuentas
+                    {t("formAccountSlots")}
                   </label>
                   <input
                     type="number"
@@ -725,17 +735,17 @@ export default function AdminSubscribersPage() {
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Estado de Suscripción
+                  {t("formSubscriptionStatus")}
                 </label>
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value as SubscriptionStatus)}
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#0099ff] focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="active">Activo</option>
-                  <option value="trial">Trial de Prueba</option>
-                  <option value="past_due">Pago Pendiente</option>
-                  <option value="canceled">Cancelado / Suspendido</option>
+                  <option value="active">{t("statusActive")}</option>
+                  <option value="trial">{t("statusTrialOption")}</option>
+                  <option value="past_due">{t("statusPastDue")}</option>
+                  <option value="canceled">{t("statusCanceledOption")}</option>
                 </select>
               </div>
 
@@ -745,13 +755,13 @@ export default function AdminSubscribersPage() {
                   onClick={() => setIsEditModalOpen(false)}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
                 >
-                  Cancelar
+                  {t("btnCancel")}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#0088e6]"
                 >
-                  Guardar Cambios
+                  {t("btnSaveChanges")}
                 </button>
               </div>
             </form>
