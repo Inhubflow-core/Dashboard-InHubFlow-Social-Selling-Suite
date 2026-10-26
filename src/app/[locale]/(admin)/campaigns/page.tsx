@@ -895,10 +895,10 @@ export default function CampaignsPage() {
               <Zap className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
+              <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">
                 {t("triggerTitle")}
               </h4>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                 {t("triggerDesc")}
               </p>
             </div>
@@ -1089,12 +1089,12 @@ export default function CampaignsPage() {
                             <span className="text-xs font-bold text-gray-400 dark:text-gray-500">
                               {String(idx + 1).padStart(2, "0")}.
                             </span>
-                            <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
+                            <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">
                               {loc.title}
                             </h4>
                           </div>
 
-                          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                             {loc.description}
                           </p>
                         </div>
