@@ -106,11 +106,11 @@ function getInitialCampaignConversations(): ChatConversation[] {
     id: `conv-${activeLead.id}`,
     leadId: activeLead.id,
     leadName: activeLead.fullName,
-    leadTitle: activeLead.title,
-    company: activeLead.company,
-    location: activeLead.location || "Brasil",
+    leadTitle: isRoberto ? "Empreendedor" : activeLead.title,
+    company: isRoberto ? "Roberto OrSe" : activeLead.company,
+    location: isRoberto ? "Vila Velha, Espírito Santo, Brazil" : (activeLead.location || "Brasil"),
     avatarInitials: initials,
-    avatarUrl: activeLead.avatarUrl || (isRoberto ? 'https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY' : undefined),
+    avatarUrl: 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo',
     campaignSource: activeLead.listName || "02. Secuencia: Lead Magnet",
     leadMagnetUsed: "SISTEMA",
     crmStage: "4. Conversacion Activa / Interesado",
@@ -127,7 +127,7 @@ function getInitialCampaignConversations(): ChatConversation[] {
       {
         id: "msg-init-1",
         senderId: "user",
-        senderName: "Roberto",
+        senderName: "RobertoOrse Agencia",
         isSender: true,
         text: `Hola ${activeLead.fullName.split(" ")[0]}, vi tu comentario en mi post sobre prospección con IA. Aquí tienes el framework SISTEMA que me pediste.`,
         timestamp: "Ayer 18:30",
@@ -191,7 +191,7 @@ export function getInboxConversations(): ChatConversation[] {
       }
       if (c.leadName && c.leadName.toLowerCase().includes("roberto orse")) {
         if (!c.avatarUrl || c.avatarUrl.includes("ti_Vff5L") || c.avatarUrl.includes("owner.png")) {
-          c.avatarUrl = 'https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY';
+          c.avatarUrl = 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo';
           mutated = true;
         }
       }
@@ -275,7 +275,7 @@ export function recordOutgoingCampaignMessage(params: {
   const newMsg: ChatMessage = {
     id: "msg-camp-" + Date.now(),
     senderId: "user",
-    senderName: "Roberto",
+    senderName: "RobertoOrse Agencia",
     isSender: true,
     text: params.messageText,
     timestamp: "Ahora",
@@ -310,7 +310,7 @@ export function recordOutgoingCampaignMessage(params: {
     company: params.company || "Empresa",
     location: params.location || "Global",
     avatarInitials: initials,
-    avatarUrl: params.leadName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY' : undefined,
+    avatarUrl: params.leadName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo' : undefined,
     campaignSource: params.campaignName,
     leadMagnetUsed: params.leadMagnetUsed,
     crmStage: "2. En Secuencia",
@@ -627,7 +627,7 @@ export function addIncomingMessageToConversation(
     company: campaignLead.company || "Empresa B2B",
     location: campaignLead.location || "Global",
     avatarInitials: initials,
-    avatarUrl: campaignLead.avatarUrl || (campaignLead.fullName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY' : undefined),
+    avatarUrl: campaignLead.avatarUrl || (campaignLead.fullName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo' : undefined),
     campaignSource,
     leadMagnetUsed: campaignLead.signalLevel === "level_1" ? "SISTEMA" : undefined,
     crmStage: sdrDecision.intent === "meeting_request" ? "5. Reunion Agendada" : "4. Conversacion Activa / Interesado",
