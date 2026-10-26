@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 
 interface LeadScoreBadgeProps {
   score: number;
@@ -15,6 +16,7 @@ export function LeadScoreBadge({
   size = "md",
   className = "",
 }: LeadScoreBadgeProps) {
+  const t = useTranslations("leads");
   const normalizedScore = Number(score) || 70;
 
   // Clasificación oficial de Social Selling B2B acordada:
@@ -26,8 +28,8 @@ export function LeadScoreBadge({
   let badgeConfig = {
     badgeClass: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
     medal: "🥉",
-    label: "Reacción",
-    title: "70/100 • Dio Like o Reacción en el post (Medalla de Bronce)",
+    label: t("badgeReactionLabel"),
+    title: t("badgeReactionTooltip"),
   };
 
   if (normalizedScore >= 100) {
@@ -35,21 +37,21 @@ export function LeadScoreBadge({
       badgeClass: "bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60 shadow-2xs",
       medal: "🔥",
       label: "Lead Magnet",
-      title: "100/100 • Escribió la palabra clave solicitada en tu post (Full Intención)",
+      title: t("badgeKeywordTooltip"),
     };
   } else if (normalizedScore >= 90) {
     badgeConfig = {
       badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 shadow-2xs",
       medal: "🥇",
-      label: "Comentó",
-      title: "90/100 • Comentó activamente en la publicación (Medalla de Oro)",
+      label: t("badgeCommentLabel"),
+      title: t("badgeCommentTooltip"),
     };
   } else if (normalizedScore >= 80) {
     badgeConfig = {
       badgeClass: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60",
       medal: "🥈",
-      label: "Reposteó",
-      title: "80/100 • Compartió o reposteó el post a su red (Medalla de Plata)",
+      label: t("badgeRepostLabel"),
+      title: t("badgeRepostTooltip"),
     };
   }
 

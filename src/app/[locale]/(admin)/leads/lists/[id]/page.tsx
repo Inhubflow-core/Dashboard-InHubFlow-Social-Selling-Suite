@@ -10,6 +10,7 @@ import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const truncateText = (text?: string, maxLength: number = 48): string => {
   if (!text) return "";
@@ -19,6 +20,7 @@ const truncateText = (text?: string, maxLength: number = 48): string => {
 };
 
 export default function DynamicListDetailPage() {
+  const t = useTranslations("leads");
   const params = useParams();
   const router = useRouter();
   const listId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string) || "";
@@ -164,7 +166,7 @@ export default function DynamicListDetailPage() {
     if (!currentList) return;
     const count = listLeads.length;
     const confirmed = window.confirm(
-      `¿Eliminar la lista "${currentList.name}"?\n\nEsta acción eliminará de forma permanente la lista dinámica y los ${count} contactos capturados asociados a ella.`
+      t("deleteListConfirm", { name: currentList.name, count })
     );
     if (confirmed) {
       deleteList(currentList.id);
@@ -175,41 +177,41 @@ export default function DynamicListDetailPage() {
   const getStageLabel = (stage: CrmStage) => {
     switch (stage) {
       case "lead_captured":
-        return { label: "1. Lead Captado", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
+        return { label: t("stageLeadCaptured"), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
       case "in_sequence":
-        return { label: "2. En Secuencia", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
+        return { label: t("stageInSequence"), color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
       case "connected_material_sent":
-        return { label: "3. Material Entregado", color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
+        return { label: t("stageMaterialSent"), color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
       case "active_conversation":
-        return { label: "4. Conversacion Activa", color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
+        return { label: t("stageActiveConversation"), color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
       case "meeting_scheduled":
-        return { label: "5. Reunion Agendada", color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
+        return { label: t("stageMeetingScheduled"), color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
       case "proposal_presented":
-        return { label: "6. Propuesta Presentada", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
+        return { label: t("stageProposalPresented"), color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
       case "closed_won":
-        return { label: "7. Ganado (Closed Won)", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" };
+        return { label: t("stageClosedWon"), color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" };
       case "closed_lost":
-        return { label: "Perdido (Closed Lost)", color: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400" };
+        return { label: t("stageClosedLost"), color: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400" };
     }
   };
 
   const getSequenceBadge = (status: SequenceStatus) => {
     switch (status) {
       case "in_progress":
-        return { label: "En Progreso", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
+        return { label: t("seqInProgress"), color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
       case "replied":
-        return { label: "Respondio DM", color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
+        return { label: t("seqReplied"), color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
       case "completed":
-        return { label: "Completado", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
+        return { label: t("seqCompleted"), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
       case "paused":
-        return { label: "Pausado", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
+        return { label: t("seqPaused"), color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
     }
   };
 
   if (!isLoaded) {
     return (
       <div className="py-12 text-center text-xs text-gray-400">
-        Cargando lista dinámica y prospectos...
+        {t("loadingListAndLeads")}
       </div>
     );
   }
@@ -217,7 +219,7 @@ export default function DynamicListDetailPage() {
   if (!currentList) {
     return (
       <div className="space-y-4">
-        <PageBreadcrumb pageTitle="Lista Dinámica no Encontrada" />
+        <PageBreadcrumb pageTitle={t("listNotFound")} />
         <div className="p-8 text-center rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 space-y-3">
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
             La lista solicitada no existe o fue eliminada.
@@ -226,7 +228,7 @@ export default function DynamicListDetailPage() {
             href="/leads/lists"
             className="inline-block rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
           >
-            &larr; Volver a Listas Dinámicas
+            {t("backToLists")}
           </Link>
         </div>
       </div>
@@ -236,7 +238,7 @@ export default function DynamicListDetailPage() {
   const cleanListName =
     currentList?.competitorName?.trim() ||
     currentList?.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim() ||
-    "Lista Dinámica";
+    t("dynamicListDefault");
 
   return (
     <div className="w-full space-y-6">
@@ -249,7 +251,7 @@ export default function DynamicListDetailPage() {
             href="/leads/lists"
             className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400 inline-flex items-center gap-1"
           >
-            &larr; Volver a Listas Dinámicas
+            {t("backToLists")}
           </Link>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -278,7 +280,7 @@ export default function DynamicListDetailPage() {
               {isMonitorDeleted ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
                   <span className="size-1.5 rounded-full bg-red-500"></span>
-                  Monitor de Señales eliminado
+                  {t("monitorDeletedBadge")}
                 </span>
               ) : (
                 <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
@@ -287,7 +289,7 @@ export default function DynamicListDetailPage() {
               )}
 
               <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
-                {listLeads.length} Prospectos
+                {t("prospectsCount", { count: listLeads.length })}
               </span>
             </div>
 
@@ -295,12 +297,12 @@ export default function DynamicListDetailPage() {
               {cleanListName}
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {currentList.description || "Segmento alimentado por monitores de señales en LinkedIn."}
+              {currentList.description || t("listDescFallback")}
             </p>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-xs text-gray-500 dark:text-gray-400">
               <div>
-                <span className="text-gray-400">Origen:</span>{" "}
+                <span className="text-gray-400">{t("originLabel")}</span>{" "}
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
                   {currentList.signalSource}
                 </span>
@@ -327,7 +329,7 @@ export default function DynamicListDetailPage() {
                 </div>
               )}
               <div>
-                <span className="text-gray-400">Campaña:</span>{" "}
+                <span className="text-gray-400">{t("campaignLabel")}</span>{" "}
                 <span className="font-semibold text-brand-600 dark:text-brand-400">
                   {currentList.assignedCampaign}
                 </span>
@@ -342,26 +344,26 @@ export default function DynamicListDetailPage() {
               onClick={() => exportLeadsToCsv(listLeads)}
               disabled={listLeads.length === 0}
               className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 disabled:opacity-40 transition"
-              title="Exportar prospectos de esta lista a CSV"
+              title={t("exportListCsvTooltip")}
             >
-              Exportar CSV ({listLeads.length})
+              {t("exportListCsv", { count: listLeads.length })}
             </button>
 
             <Link
               href={`/campaigns?listId=${currentList.id}${currentList.competitorName ? `&competitor=${encodeURIComponent(currentList.competitorName)}` : ""}`}
               className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-2xs"
             >
-              Lanzar Campaña
+              {t("launchCampaign")}
             </Link>
 
             <button
               type="button"
               onClick={handleDeleteThisList}
               className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 transition flex items-center gap-1"
-              title="Eliminar esta lista y todos sus contactos asociados"
+              title={t("deleteListTooltip")}
             >
               <span>🗑</span>
-              <span>Eliminar Lista</span>
+              <span>{t("deleteListAction")}</span>
             </button>
           </div>
         </div>
@@ -374,7 +376,7 @@ export default function DynamicListDetailPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar prospecto por nombre, cargo o ubicación..."
+            placeholder={t("searchLeadsPlaceholder")}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
@@ -385,27 +387,27 @@ export default function DynamicListDetailPage() {
             onChange={(e) => setSelectedStageFilter(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
-            <option value="all">Todas las Etapas del Embudo</option>
-            <option value="lead_captured">1. Lead Captado</option>
-            <option value="in_sequence">2. En Secuencia</option>
-            <option value="connected_material_sent">3. Material Entregado</option>
-            <option value="active_conversation">4. Conversacion Activa</option>
-            <option value="meeting_scheduled">5. Reunion Agendada</option>
-            <option value="proposal_presented">6. Propuesta Presentada</option>
-            <option value="closed_won">7. Ganado (Closed Won)</option>
+            <option value="all">{t("allFunnelStages")}</option>
+            <option value="lead_captured">{t("stageLeadCaptured")}</option>
+            <option value="in_sequence">{t("stageInSequence")}</option>
+            <option value="connected_material_sent">{t("stageMaterialSent")}</option>
+            <option value="active_conversation">{t("stageActiveConversation")}</option>
+            <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
+            <option value="proposal_presented">{t("stageProposalPresented")}</option>
+            <option value="closed_won">{t("stageClosedWon")}</option>
           </select>
         </div>
       </div>
 
       {/* Tabla Completa de Prospectos de la Lista (Estándar visual #b2b con fotos reales) */}
-      <ComponentCard title={`Prospectos en esta Lista (${listLeads.length})`}>
+      <ComponentCard title={t("leadsInThisList", { count: listLeads.length })}>
         {listLeads.length === 0 ? (
           <div className="py-12 text-center text-xs text-gray-400 space-y-2">
             <p className="font-semibold text-gray-600 dark:text-gray-300">
-              No se encontraron prospectos en esta lista con los filtros seleccionados.
+              {t("noLeadsFiltered")}
             </p>
             <p className="text-xs text-gray-400">
-              Cuando el radar audite o capture nuevas interacciones, aparecerán automáticamente en esta vista.
+              {t("noLeadsFilteredSub")}
             </p>
           </div>
         ) : (
@@ -413,13 +415,13 @@ export default function DynamicListDetailPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
                 <tr>
-                  <th className="pb-3 min-w-[190px]">Prospecto</th>
-                  <th className="pb-3 min-w-[210px] max-w-[270px]">Cargo</th>
-                  <th className="pb-3 min-w-[140px] whitespace-nowrap">Origen de Señal</th>
-                  <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">Puntuación</th>
-                  <th className="pb-3 min-w-[130px] whitespace-nowrap">Etapa CRM</th>
-                  <th className="pb-3 min-w-[110px] whitespace-nowrap">Estado Secuencia</th>
-                  <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">Acciones</th>
+                  <th className="pb-3 min-w-[190px]">{t("colProspect")}</th>
+                  <th className="pb-3 min-w-[210px] max-w-[270px]">{t("colJob")}</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap">{t("colSignalSource")}</th>
+                  <th className="pb-3 min-w-[90px] whitespace-nowrap text-center">{t("colScore")}</th>
+                  <th className="pb-3 min-w-[130px] whitespace-nowrap">{t("colCrmStage")}</th>
+                  <th className="pb-3 min-w-[110px] whitespace-nowrap">{t("colSequenceStatus")}</th>
+                  <th className="pb-3 min-w-[140px] whitespace-nowrap text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
@@ -511,16 +513,16 @@ export default function DynamicListDetailPage() {
                           type="button"
                           onClick={() => setSelectedLeadFor360(lead)}
                           className="rounded-lg border border-brand-500 px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
-                          title="Abrir expediente completo del contacto con todo el cargo y trazabilidad"
+                          title={t("viewDetails")}
                         >
-                          Ficha
+                          {t("actionRecord")}
                         </button>
                         <a
                           href="/inbox"
                           className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
-                          title="Abrir chat en Inbox"
+                          title={t("openChatInInbox")}
                         >
-                          Chat
+                          {t("actionChat")}
                         </a>
                       </td>
                     </tr>
@@ -588,16 +590,16 @@ export default function DynamicListDetailPage() {
                 type="button"
                 onClick={() => setSelectedLeadFor360(null)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold p-1 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
-                title="Cerrar Ficha"
+                title={t("closeRecord")}
               >
-                ✕ Cerrar
+                ✕ {t("close")}
               </button>
             </div>
 
             {/* Titular Profesional y Cargo Completo (LinkedIn Headline íntegro) */}
             <div className="rounded-lg border border-purple-200 bg-purple-25/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
               <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 block mb-1">
-                Cargo y Titular Completo en LinkedIn
+                {t("fullTitleLinkedIn")}
               </span>
               <p className="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
                 {selectedLeadFor360.title}
@@ -607,19 +609,19 @@ export default function DynamicListDetailPage() {
             {/* Datos de Contacto y Estado Rápido */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg dark:bg-gray-800/50 text-xs">
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Email Corporativo</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">{t("corporateEmail")}</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {selectedLeadFor360.email || "No disponible"}
+                  {selectedLeadFor360.email || t("notAvailable")}
                 </span>
               </div>
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">Telefono</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block">{t("phone")}</span>
                 <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {selectedLeadFor360.phone || "No disponible"}
+                  {selectedLeadFor360.phone || t("notAvailable")}
                 </span>
               </div>
               <div>
-                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block mb-1">Puntuación de Intención</span>
+                <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase block mb-1">{t("intentScore")}</span>
                 <LeadScoreBadge score={selectedLeadFor360.intentScore} size="md" />
               </div>
             </div>
@@ -628,7 +630,7 @@ export default function DynamicListDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-gray-300 rounded-lg dark:border-gray-800">
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Etapa en el Pipeline Comercial
+                  {t("pipelineStageHeader")}
                 </label>
                 <select
                   value={selectedLeadFor360.stage}
@@ -642,20 +644,20 @@ export default function DynamicListDetailPage() {
                   }}
                   className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="lead_captured">1. Lead Captado</option>
-                  <option value="in_sequence">2. En Secuencia</option>
-                  <option value="connected_material_sent">3. Conectado / Material Entregado</option>
-                  <option value="active_conversation">4. Conversacion Activa</option>
-                  <option value="meeting_scheduled">5. Reunion Agendada</option>
-                  <option value="proposal_presented">6. Propuesta Presentada</option>
-                  <option value="closed_won">7. Ganado (Closed Won)</option>
-                  <option value="closed_lost">Perdido (Closed Lost)</option>
+                  <option value="lead_captured">{t("stageLeadCaptured")}</option>
+                  <option value="in_sequence">{t("stageInSequence")}</option>
+                  <option value="connected_material_sent">{t("stageMaterialSent")}</option>
+                  <option value="active_conversation">{t("stageActiveConversation")}</option>
+                  <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
+                  <option value="proposal_presented">{t("stageProposalPresented")}</option>
+                  <option value="closed_won">{t("stageClosedWon")}</option>
+                  <option value="closed_lost">{t("stageClosedLost")}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                  Estado de la Secuencia
+                  {t("sequenceStatusHeader")}
                 </label>
                 <select
                   value={selectedLeadFor360.sequenceStatus}
@@ -669,10 +671,10 @@ export default function DynamicListDetailPage() {
                   }}
                   className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="in_progress">En Progreso</option>
-                  <option value="replied">Respondio (Detenido)</option>
-                  <option value="paused">Pausado Manualmente</option>
-                  <option value="completed">Completado</option>
+                  <option value="in_progress">{t("seqInProgress")}</option>
+                  <option value="replied">{t("seqReplied")}</option>
+                  <option value="paused">{t("seqPaused")}</option>
+                  <option value="completed">{t("seqCompleted")}</option>
                 </select>
               </div>
             </div>
@@ -680,7 +682,7 @@ export default function DynamicListDetailPage() {
             {/* Historial Cronológico de Flujo (Timeline) */}
             <div>
               <h4 className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-3">
-                Historial Cronologico del Flujo (Timeline de Automatizacion)
+                {t("flowTimeline")}
               </h4>
               <div className="space-y-3 border-l-2 border-brand-500/50 pl-4 ml-2">
                 {selectedLeadFor360.timeline?.map((event) => (
@@ -710,7 +712,7 @@ export default function DynamicListDetailPage() {
                 }}
                 className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400"
               >
-                Eliminar Prospecto
+                {t("deleteProspect")}
               </button>
 
               <div className="flex gap-2">
@@ -719,13 +721,13 @@ export default function DynamicListDetailPage() {
                   onClick={() => setSelectedLeadFor360(null)}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                 >
-                  Cerrar
+                  {t("close")}
                 </button>
                 <a
                   href="/inbox"
                   className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
-                  Abrir Conversacion en Inbox
+                  {t("openChatInInbox")}
                 </a>
               </div>
             </div>

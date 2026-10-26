@@ -101,34 +101,34 @@ export default function LeadsDirectoryView({
   const getStageLabel = (stage: CrmStage) => {
     switch (stage) {
       case "lead_captured":
-        return { label: "1. Lead Captado", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
+        return { label: t("stageLeadCaptured"), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
       case "in_sequence":
-        return { label: "2. En Secuencia", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
+        return { label: t("stageInSequence"), color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
       case "connected_material_sent":
-        return { label: "3. Material Entregado", color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
+        return { label: t("stageMaterialSent"), color: "bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300" };
       case "active_conversation":
-        return { label: "4. Conversacion Activa", color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
+        return { label: t("stageActiveConversation"), color: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" };
       case "meeting_scheduled":
-        return { label: "5. Reunion Agendada", color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
+        return { label: t("stageMeetingScheduled"), color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
       case "proposal_presented":
-        return { label: "6. Propuesta Presentada", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
+        return { label: t("stageProposalPresented"), color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
       case "closed_won":
-        return { label: "7. Ganado (Closed Won)", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" };
+        return { label: t("stageClosedWon"), color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" };
       case "closed_lost":
-        return { label: "Perdido (Closed Lost)", color: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400" };
+        return { label: t("stageClosedLost"), color: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400" };
     }
   };
 
   const getSequenceBadge = (status: SequenceStatus) => {
     switch (status) {
       case "in_progress":
-        return { label: "En Progreso", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
+        return { label: t("seqInProgress"), color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" };
       case "replied":
-        return { label: "Respondio DM", color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
+        return { label: t("seqReplied"), color: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400" };
       case "completed":
-        return { label: "Completado", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
+        return { label: t("seqCompleted"), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
       case "paused":
-        return { label: "Pausado", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
+        return { label: t("seqPaused"), color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" };
     }
   };
 
@@ -199,13 +199,13 @@ export default function LeadsDirectoryView({
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="all">{t("allFunnelStages")}</option>
-            <option value="lead_captured">Lead Captado</option>
-            <option value="in_sequence">En Secuencia</option>
-            <option value="connected_material_sent">Material Entregado</option>
-            <option value="active_conversation">Conversacion Activa</option>
-            <option value="meeting_scheduled">Reunion Agendada</option>
-            <option value="proposal_presented">Propuesta Presentada</option>
-            <option value="closed_won">Ganado (Closed Won)</option>
+            <option value="lead_captured">{t("stageLeadCaptured")}</option>
+            <option value="in_sequence">{t("stageInSequenceOption")}</option>
+            <option value="connected_material_sent">{t("stageMaterialSent")}</option>
+            <option value="active_conversation">{t("stageActiveConversation")}</option>
+            <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
+            <option value="proposal_presented">{t("stageProposalPresented")}</option>
+            <option value="closed_won">{t("stageClosedWon")}</option>
           </select>
         </div>
         </div>
@@ -325,16 +325,16 @@ export default function LeadsDirectoryView({
                           type="button"
                           onClick={() => setSelectedLeadFor360(lead)}
                           className="rounded-lg border border-brand-500 px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition shadow-2xs"
-                          title="Abrir expediente completo del contacto con todo el cargo y trazabilidad"
+                          title={t("viewDetails")}
                         >
-                          Ficha
+                          {t("actionRecord")}
                         </button>
                         <a
                           href="/inbox"
                           className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
-                          title="Abrir chat en Inbox"
+                          title={t("openChatInInbox")}
                         >
-                          Chat
+                          {t("actionChat")}
                         </a>
                       </td>
                     </tr>
@@ -402,9 +402,9 @@ export default function LeadsDirectoryView({
                 type="button"
                 onClick={() => setSelectedLeadFor360(null)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold p-1 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
-                title="Cerrar Ficha"
+                title={t("closeRecord")}
               >
-                ✕ Cerrar
+                ✕ {t("close")}
               </button>
             </div>
 
@@ -456,14 +456,14 @@ export default function LeadsDirectoryView({
                   }}
                   className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="lead_captured">1. Lead Captado</option>
-                  <option value="in_sequence">2. En Secuencia</option>
-                  <option value="connected_material_sent">3. Conectado / Material Entregado</option>
-                  <option value="active_conversation">4. Conversacion Activa</option>
-                  <option value="meeting_scheduled">5. Reunion Agendada</option>
-                  <option value="proposal_presented">6. Propuesta Presentada</option>
-                  <option value="closed_won">7. Ganado (Closed Won)</option>
-                  <option value="closed_lost">Perdido (Closed Lost)</option>
+                  <option value="lead_captured">{t("stageLeadCaptured")}</option>
+                  <option value="in_sequence">{t("stageInSequence")}</option>
+                  <option value="connected_material_sent">{t("stageMaterialSent")}</option>
+                  <option value="active_conversation">{t("stageActiveConversation")}</option>
+                  <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
+                  <option value="proposal_presented">{t("stageProposalPresented")}</option>
+                  <option value="closed_won">{t("stageClosedWon")}</option>
+                  <option value="closed_lost">{t("stageClosedLost")}</option>
                 </select>
               </div>
 
@@ -483,10 +483,10 @@ export default function LeadsDirectoryView({
                   }}
                   className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="in_progress">En Progreso</option>
-                  <option value="replied">Respondio (Detenido)</option>
-                  <option value="paused">Pausado Manualmente</option>
-                  <option value="completed">Completado</option>
+                  <option value="in_progress">{t("seqInProgress")}</option>
+                  <option value="replied">{t("seqReplied")}</option>
+                  <option value="paused">{t("seqPaused")}</option>
+                  <option value="completed">{t("seqCompleted")}</option>
                 </select>
               </div>
             </div>
@@ -524,7 +524,7 @@ export default function LeadsDirectoryView({
                 }}
                 className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400"
               >
-                Eliminar Prospecto
+                {t("deleteProspect")}
               </button>
 
               <div className="flex gap-2">
@@ -533,13 +533,13 @@ export default function LeadsDirectoryView({
                   onClick={() => setSelectedLeadFor360(null)}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
                 >
-                  Cerrar
+                  {t("close")}
                 </button>
                 <a
                   href="/inbox"
                   className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
-                  Abrir Conversacion en Inbox
+                  {t("openChatInInbox")}
                 </a>
               </div>
             </div>

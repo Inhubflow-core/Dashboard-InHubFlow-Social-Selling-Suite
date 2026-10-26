@@ -50,7 +50,7 @@ export default function SignalListsView({
   const handleDeleteList = (list: LeadListGroup) => {
     const count = getRealLeadsCount(list);
     const confirmed = window.confirm(
-      `¿Eliminar la lista "${list.name}"?\n\nEsta acción borrará de forma permanente la lista dinámica y los ${count} contactos/leads dentro de ella.`
+      t("deleteListConfirm", { name: list.name, count })
     );
     if (confirmed) {
       deleteList(list.id);
@@ -172,7 +172,7 @@ export default function SignalListsView({
               href="/leads?tab=directory" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("directory"); } }}
               className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
             >
-              Ver Directorio 360
+              {t("viewDirectory360")}
             </a>
             <button
               type="button"
@@ -261,7 +261,7 @@ export default function SignalListsView({
                 rows={2}
                 value={newListDesc}
                 onChange={(e) => setNewListDesc(e.target.value)}
-                placeholder="Descripcion opcional de los prospectos agrupados..."
+                placeholder={t("listDescPlaceholder")}
                 className="w-full rounded-lg border border-gray-300 p-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
@@ -272,13 +272,13 @@ export default function SignalListsView({
                 onClick={() => setIsCreatingList(false)}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
               >
-                Cancelar
+                {t("cancel")}
               </button>
               <button
                 type="submit"
                 className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
               >
-                Guardar Lista
+                {t("saveList")}
               </button>
             </div>
           </form>
@@ -335,7 +335,7 @@ export default function SignalListsView({
                       {isMonDeleted && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-200 dark:border-red-900/60 shadow-2xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                          Monitor de Señales eliminado
+                          {t("monitorDeletedBadge")}
                         </span>
                       )}
 
@@ -426,14 +426,14 @@ export default function SignalListsView({
                         href={`/leads/lists/${list.id}`}
                         className="rounded-lg border border-gray-300 px-3.5 py-2 text-center text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition whitespace-nowrap"
                       >
-                        Ver Prospectos ({count}) &rarr;
+                        {t("viewProspectsLink", { count })}
                       </Link>
 
                       <Link
                         href={`/campaigns?listId=${list.id}${list.competitorName ? `&competitor=${encodeURIComponent(list.competitorName)}` : ""}`}
                         className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition whitespace-nowrap shadow-xs"
                       >
-                        Lanzar Campaña
+                        {t("launchCampaign")}
                       </Link>
 
                       <button

@@ -101,11 +101,12 @@ function LeadsContent() {
 }
 
 export default function LeadsPage() {
+  const t = useTranslations("leads");
   return (
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center text-sm text-gray-500">
-          Cargando Leads & CRM...
+          {t("loadingLeadsModule")}
         </div>
       }
     >
