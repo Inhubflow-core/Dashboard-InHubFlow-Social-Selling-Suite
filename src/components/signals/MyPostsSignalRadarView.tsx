@@ -609,7 +609,7 @@ export default function MyPostsSignalRadarView({
       {/* Formulario de Creación de Monitor */}
       {isCreatingMonitor && (
         <ComponentCard
-          title="Configurador de Monitor de Publicaciones Propias"
+          title={t("formTitle")}
           desc={t("formDesc")}
         >
           <form onSubmit={handleCreateMonitor} className="space-y-4">
