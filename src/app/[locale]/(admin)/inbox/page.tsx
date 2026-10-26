@@ -473,7 +473,7 @@ export default function InboxPage() {
                   className={`flex ${msg.isSender ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-lg rounded-lg p-3.5 text-xs leading-relaxed shadow-xs ${
+                    className={`max-w-lg rounded-lg p-3.5 text-sm leading-relaxed shadow-xs ${
                       msg.isSender
                         ? "bg-brand-500 text-white rounded-tr-none"
                         : "bg-white border border-gray-300 text-gray-800 dark:border-gray-800 dark:bg-gray-800 dark:text-white rounded-tl-none"
@@ -496,7 +496,7 @@ export default function InboxPage() {
                       </span>
                     </div>
 
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</p>
 
                     {/* Adjuntos: PDF o Audio */}
                     {msg.attachment && msg.attachment.type === "pdf" && (
@@ -619,7 +619,7 @@ export default function InboxPage() {
                     key={idx}
                     className="group relative rounded-lg border border-brand-200 bg-white p-2.5 shadow-2xs hover:border-brand-500 hover:shadow-xs transition dark:border-gray-700 dark:bg-gray-800"
                   >
-                    <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
                       "{suggestion}"
                     </p>
                     <div className="mt-2 pt-2 border-t border-gray-300 flex items-center justify-between dark:border-gray-700/60">
@@ -683,7 +683,7 @@ export default function InboxPage() {
                     }
                   }}
                   placeholder={t("typeReplyPlaceholder")}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
 
                 <button
