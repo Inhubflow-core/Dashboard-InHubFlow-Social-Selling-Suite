@@ -718,16 +718,16 @@ export function CampaignLeadsTracker({
         ) : (
           <div className="overflow-x-auto px-5 pt-4 pb-2">
             <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
-              <thead className="border-b border-gray-300 text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 [&_th]:font-normal dark:border-gray-800">
+              <thead className="border-b border-gray-200 text-xs leading-5 font-medium tracking-wider uppercase text-gray-400 [&_th]:font-semibold dark:border-gray-800">
                 <tr>
-                  <th className="w-[22%] pb-3 pr-5">Prospecto</th>
-                  <th className="w-[24%] pb-3 px-4">Cargo</th>
-                  <th className="w-[19%] pb-3 px-4 whitespace-nowrap">Origen de Señal</th>
-                  <th className="w-[27%] pb-3 px-5">Avance de Secuencia</th>
-                  <th className="w-[8%] pb-3 pl-4 whitespace-nowrap text-right">Acciones</th>
+                  <th className="w-[23%] pb-3 pr-5">{t("tracker.colProspect")}</th>
+                  <th className="w-[26%] pb-3 pr-6">{t("tracker.colTitle")}</th>
+                  <th className="w-[18%] pb-3 pr-6 whitespace-nowrap">{t("tracker.colSignalSource")}</th>
+                  <th className="w-[24%] pb-3 pr-6">{t("tracker.colProgress")}</th>
+                  <th className="w-[9%] pb-3 whitespace-nowrap text-right pr-1">{t("tracker.colActions")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-300 text-xs dark:divide-gray-800">
+              <tbody className="divide-y divide-gray-200 text-sm dark:divide-gray-800">
                 {filteredLeads.map((lead) => {
                   const stepsCount = activeCampaign.steps.length;
                   const progressPercent = Math.round(
@@ -751,7 +751,7 @@ export function CampaignLeadsTracker({
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                              <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                 {lead.fullName}
                               </h4>
                               <LeadLanguageBadge language={lead.language} />
@@ -775,9 +775,9 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 2. Columna: Cargo */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 pr-6">
                         <p
-                          className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate leading-snug cursor-help"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate leading-snug cursor-help"
                           title={lead.headline}
                         >
                           {lead.headline || "No especificado"}
@@ -785,9 +785,9 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 3. Columna: Origen de Señal */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 pr-6 whitespace-nowrap">
                         <span
-                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-full truncate align-middle border border-brand-100 dark:border-brand-900/40"
+                          className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[170px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={`${lead.monitorName} (${lead.listName})`}
                         >
                           {lead.monitorName}
@@ -795,14 +795,16 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 4. Columna: Avance de Secuencia */}
-                      <td className="py-4 px-5">
+                      <td className="py-4 pr-6">
                         <div className="flex items-center justify-between text-xs mb-2 font-medium">
                           <span className="font-semibold text-gray-800 dark:text-gray-200 truncate pr-2">
                             {isCompleted
-                              ? "Secuencia Finalizada"
-                              : `Paso ${Math.min(lead.currentStepIndex + 1, stepsCount)} de ${stepsCount}: ${
-                                  activeCampaign.steps[lead.currentStepIndex]?.title || "En Proceso"
-                                }`}
+                              ? t("tracker.sequenceFinished")
+                              : t("tracker.stepOf", {
+                                  current: Math.min(lead.currentStepIndex + 1, stepsCount),
+                                  total: stepsCount,
+                                  title: activeCampaign.steps[lead.currentStepIndex]?.title || t("tracker.inProcess"),
+                                })}
                           </span>
                           <span className="font-bold text-brand-600 dark:text-brand-400 text-xs shrink-0">
                             {progressPercent}%
@@ -872,7 +874,7 @@ export function CampaignLeadsTracker({
                       </td>
 
                       {/* 5. Columna: Acciones */}
-                      <td className="py-4 pl-4 text-right whitespace-nowrap">
+                      <td className="py-4 whitespace-nowrap text-right pr-1">
                         <div className="inline-flex items-center justify-end gap-1.5">
                           {/* Botón Ejecutar Siguiente Paso */}
                           <button
