@@ -441,9 +441,9 @@ export default function DynamicListDetailPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-200 text-xs leading-5 font-medium tracking-wider uppercase text-gray-400 [&_th]:font-semibold dark:border-gray-800">
                 <tr>
-                  <th className="pb-3 w-[270px] min-w-[250px]">{t("colProspect")}</th>
-                  <th className="pb-3 w-[220px] min-w-[190px] max-w-[240px]">{t("colJob")}</th>
-                  <th className="pb-3 w-[165px] min-w-[150px] whitespace-nowrap">{t("colSignalSource")}</th>
+                  <th className="pb-3 w-[215px] min-w-[200px] max-w-[230px] pr-2">{t("colProspect")}</th>
+                  <th className="pb-3 w-[260px] min-w-[220px] max-w-[280px] pr-6">{t("colJob")}</th>
+                  <th className="pb-3 w-[170px] min-w-[155px] whitespace-nowrap">{t("colSignalSource")}</th>
                   <th className="pb-3 w-[105px] min-w-[100px] whitespace-nowrap text-center">{t("colScore")}</th>
                   <th className="pb-3 w-[110px] min-w-[105px] whitespace-nowrap text-center">{t("colSequenceStatus")}</th>
                   <th className="pb-3 w-[145px] min-w-[140px] whitespace-nowrap text-right pr-1">{t("colActions")}</th>
@@ -456,7 +456,7 @@ export default function DynamicListDetailPage() {
                   return (
                     <tr key={lead.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
                       {/* Columna: Prospecto con Foto de Perfil */}
-                      <td className="py-3.5 pr-3 w-[270px] min-w-[250px]">
+                      <td className="py-3.5 pr-2 w-[215px] min-w-[200px] max-w-[230px]">
                         <div className="flex items-center gap-3">
                           <ProspectAvatar
                             imageUrl={lead.avatarUrl}
@@ -480,17 +480,17 @@ export default function DynamicListDetailPage() {
                       </td>
 
                       {/* Columna: Cargo (Truncado estético con ... y tooltip nativo) */}
-                      <td className="py-3.5 pr-3 w-[220px] min-w-[190px] max-w-[240px]">
+                      <td className="py-3.5 pr-6 w-[260px] min-w-[220px] max-w-[280px]">
                         <p
                           className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate leading-snug cursor-help"
                           title={lead.title}
                         >
-                          {truncateText(lead.title, 55)}
+                          {truncateText(lead.title, 60)}
                         </p>
                       </td>
 
                       {/* Columna: Origen de Señal */}
-                      <td className="py-3.5 pr-2 w-[165px] min-w-[150px] whitespace-nowrap">
+                      <td className="py-3.5 pr-3 w-[170px] min-w-[155px] whitespace-nowrap">
                         <span
                           className="rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300 inline-block max-w-[160px] truncate align-middle border border-brand-100 dark:border-brand-900/40"
                           title={lead.signalSource}
