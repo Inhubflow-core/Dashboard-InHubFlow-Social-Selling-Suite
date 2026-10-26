@@ -1305,7 +1305,25 @@
       "statusPublished": "Publicado",
       "statusScheduled": "Programado",
       "optimalB2BSlot": "Janela Ideal B2B (Ter - Qui)",
-      "b2bPeakBadge": "Pico B2B"
+      "b2bPeakBadge": "Pico B2B",
+      "cardTitle": "Calendário Editorial e Agendamento",
+      "cardDesc": "Planejamento editorial, carrosséis de valor e melhores faixas de horário no LinkedIn.",
+      "postCountSingle": "{count} publicação",
+      "postCountPlural": "{count} publicações",
+      "filterAll": "Todas",
+      "filterScheduled": "Agendadas",
+      "filterPublished": "Publicadas",
+      "optimalB2BWindowLegend": "Janela Ideal B2B (Ter - Qui 08:30 às 10:30)",
+      "cellPostSingle": "{count} post",
+      "cellPostPlural": "{count} posts",
+      "dragTooltip": "Arraste para reagendar • Clique para ver: {title}",
+      "dragDetailsTooltip": "Arraste para reagendar • Clique para ver detalhes: {title}",
+      "dropHere": "Soltar aqui",
+      "dropPostHere": "Soltar publicação aqui",
+      "dragPostHere": "Arraste um post aqui",
+      "timeWindowLabel": "Horário",
+      "emissionScheduleLabel": "Horário de emissão",
+      "closeBtn": "Fechar"
     }
   },
   "signals": {

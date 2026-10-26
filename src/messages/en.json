@@ -1305,7 +1305,25 @@
       "statusPublished": "Published",
       "statusScheduled": "Scheduled",
       "optimalB2BSlot": "Optimal B2B Window (Tue - Thu)",
-      "b2bPeakBadge": "B2B Peak"
+      "b2bPeakBadge": "B2B Peak",
+      "cardTitle": "Editorial Calendar & Scheduling",
+      "cardDesc": "Editorial planning, value carousels, and peak time slots on LinkedIn.",
+      "postCountSingle": "{count} post",
+      "postCountPlural": "{count} posts",
+      "filterAll": "All",
+      "filterScheduled": "Scheduled",
+      "filterPublished": "Published",
+      "optimalB2BWindowLegend": "Optimal B2B Window (Tue - Thu 08:30 to 10:30 AM)",
+      "cellPostSingle": "{count} post",
+      "cellPostPlural": "{count} posts",
+      "dragTooltip": "Drag to reschedule • Click to view: {title}",
+      "dragDetailsTooltip": "Drag to reschedule • Click to view details: {title}",
+      "dropHere": "Drop here",
+      "dropPostHere": "Drop post here",
+      "dragPostHere": "Drag a post here",
+      "timeWindowLabel": "Time slot",
+      "emissionScheduleLabel": "Broadcast schedule",
+      "closeBtn": "Close"
     }
   },
   "signals": {

@@ -1305,7 +1305,25 @@
       "statusPublished": "Publicado",
       "statusScheduled": "Programado",
       "optimalB2BSlot": "Franja Óptima B2B (Mar - Jue)",
-      "b2bPeakBadge": "Pico B2B"
+      "b2bPeakBadge": "Pico B2B",
+      "cardTitle": "Calendario Editorial y Programación",
+      "cardDesc": "Planificación editorial, carruseles de valor y mejores franjas horarias en LinkedIn.",
+      "postCountSingle": "{count} publicación",
+      "postCountPlural": "{count} publicaciones",
+      "filterAll": "Todas",
+      "filterScheduled": "Programadas",
+      "filterPublished": "Publicadas",
+      "optimalB2BWindowLegend": "Franja Óptima B2B (Mar - Jue 08:30 a 10:30 AM)",
+      "cellPostSingle": "{count} post",
+      "cellPostPlural": "{count} posts",
+      "dragTooltip": "Arrastra para reprogramar • Clic para ver: {title}",
+      "dragDetailsTooltip": "Arrastra para reprogramar • Clic para ver detalles: {title}",
+      "dropHere": "Soltar aquí",
+      "dropPostHere": "Soltar publicación aquí",
+      "dragPostHere": "Arrastra un post aquí",
+      "timeWindowLabel": "Horario",
+      "emissionScheduleLabel": "Horario de emisión",
+      "closeBtn": "Cerrar"
     }
   },
   "signals": {

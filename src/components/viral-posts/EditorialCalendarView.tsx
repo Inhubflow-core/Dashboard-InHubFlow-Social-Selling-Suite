@@ -158,7 +158,6 @@ export default function EditorialCalendarView({
 
     const today = new Date();
     const days = [];
-    const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
@@ -170,11 +169,13 @@ export default function EditorialCalendarView({
       const dateKey = `${year}-${month}-${dayNum}`;
 
       const isPeak = i === 1 || i === 2 || i === 3;
+      const rawDayName = d.toLocaleDateString(locale, { weekday: "long" });
+      const capitalizedDayName = rawDayName.charAt(0).toUpperCase() + rawDayName.slice(1);
 
       days.push({
         dayNumber: d.getDate(),
-        monthName: d.toLocaleString("es-ES", { month: "short" }),
-        name: dayNames[i],
+        monthName: d.toLocaleDateString(locale, { month: "short" }),
+        name: capitalizedDayName,
         dateKey,
         isPeak,
         peakTime: "08:30 - 10:30",
@@ -237,8 +238,7 @@ export default function EditorialCalendarView({
           <div className="flex items-center gap-2.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>
-              Publicación <strong>"{justRescheduledInfo.title}"</strong> reprogramada exitosamente para el día{" "}
-              <strong>{justRescheduledInfo.date}</strong>.
+              {t("rescheduledNotice", { title: justRescheduledInfo.title, date: justRescheduledInfo.date })}
             </span>
           </div>
           <button
@@ -258,14 +258,14 @@ export default function EditorialCalendarView({
           <div>
             <div className="flex items-center gap-3">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Calendario Editorial y Programación
+                {t("cardTitle")}
               </h3>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-200/60 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-800/80">
-                {totalActiveCount} {totalActiveCount === 1 ? "publicación" : "publicaciones"}
+                {totalActiveCount === 1 ? t("postCountSingle", { count: totalActiveCount }) : t("postCountPlural", { count: totalActiveCount })}
               </span>
             </div>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Planificación editorial, carruseles de valor y mejores franjas horarias en LinkedIn.
+              {t("cardDesc")}
             </p>
           </div>
 
@@ -342,9 +342,9 @@ export default function EditorialCalendarView({
           <div className="flex items-center gap-3 flex-wrap">
             <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-800 p-1 bg-gray-50 dark:bg-gray-950/40 text-xs shadow-2xs">
               {[
-                { id: "all", label: "Todas" },
-                { id: "scheduled", label: "Programadas" },
-                { id: "published", label: "Publicadas" },
+                { id: "all", label: t("filterAll") },
+                { id: "scheduled", label: t("filterScheduled") },
+                { id: "published", label: t("filterPublished") },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -368,7 +368,7 @@ export default function EditorialCalendarView({
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-brand-500"></span>
             <span className="font-medium text-gray-700 dark:text-gray-300">
-              Franja Óptima B2B (Mar - Jue 08:30 a 10:30 AM)
+              {t("optimalB2BWindowLegend")}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -454,7 +454,7 @@ export default function EditorialCalendarView({
                         )}
                         {dayPosts.length > 0 && (
                           <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
-                            {dayPosts.length} {dayPosts.length === 1 ? "post" : "posts"}
+                            {dayPosts.length === 1 ? t("cellPostSingle", { count: dayPosts.length }) : t("cellPostPlural", { count: dayPosts.length })}
                           </span>
                         )}
                       </div>
@@ -491,7 +491,7 @@ export default function EditorialCalendarView({
                               ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60"
                               : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60"
                           }`}
-                          title={`Arrastra para reprogramar • Clic para ver: ${post.title}`}
+                          title={t("dragTooltip", { title: post.title })}
                         >
                           <div className="flex items-center gap-1.5 truncate">
                             <span
@@ -593,7 +593,7 @@ export default function EditorialCalendarView({
 
                   {day.isPeak && (
                     <div className="my-2 rounded-lg bg-white/90 p-1.5 text-center text-xs text-brand-700 font-semibold border border-brand-100 dark:bg-gray-800/80 dark:text-brand-300 dark:border-brand-900/60">
-                      Horario: {day.peakTime}
+                      {t("timeWindowLabel")}: {day.peakTime}
                     </div>
                   )}
 
@@ -616,7 +616,7 @@ export default function EditorialCalendarView({
                             ? "opacity-30 scale-95 border-dashed border-brand-500"
                             : ""
                         }`}
-                        title={`Arrastra para reprogramar • Clic para ver detalles: ${post.title}`}
+                        title={t("dragDetailsTooltip", { title: post.title })}
                       >
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span
@@ -667,7 +667,7 @@ export default function EditorialCalendarView({
                             : "border-gray-300 text-gray-400 dark:border-gray-800"
                         }`}
                       >
-                        <span>{isDropTarget ? "Soltar publicación aquí" : "Arrastra un post aquí"}</span>
+                        <span>{isDropTarget ? t("dropPostHere") : t("dragPostHere")}</span>
                       </div>
                     )}
                   </div>
@@ -707,9 +707,9 @@ export default function EditorialCalendarView({
 
             {selectedPostDetails.scheduledAt && (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Horario de emisión:{" "}
+                {t("emissionScheduleLabel")}:{" "}
                 <strong className="text-gray-800 dark:text-gray-200">
-                  {new Date(selectedPostDetails.scheduledAt).toLocaleString("es-ES")}
+                  {new Date(selectedPostDetails.scheduledAt).toLocaleString(locale)}
                 </strong>
               </p>
             )}
