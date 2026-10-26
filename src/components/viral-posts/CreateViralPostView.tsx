@@ -185,16 +185,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
         }
       }
     } else {
-      setContent(`Construir un embudo inbound en LinkedIn solía tomar semanas.
-
-Hoy, la combinación de contenido relevante y automatización relacional permite cerrar reuniones comerciales mientras duermes.
-
-A continuación te comparto los 3 pasos esenciales:
-1. Publica contenido con llamados a la acción basados en activos de alto valor.
-2. Monitorea los comentarios con palabras clave activadoras.
-3. Entrega el recurso de forma inmediata en mensaje privado.
-
-Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF sin costo.`);
+      setContent(t("samplePostContent", { keyword: leadMagnetKeyword }));
       setImagePrompt(
         "Modern corporate laptop showing analytics dashboard on glass desk, subtle blue backlighting, photorealistic style, 8k resolution."
       );
@@ -458,7 +449,7 @@ Comenta "${leadMagnetKeyword}" abajo y te envío el framework completo en PDF si
                       {t("format3Carousel")}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Diapositivas Vectoriales
+                      {t("format3Desc")}
                     </p>
                   </button>
                 </div>
