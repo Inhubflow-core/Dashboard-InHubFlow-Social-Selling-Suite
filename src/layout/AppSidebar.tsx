@@ -61,12 +61,7 @@ const navItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
     key: "signalRadar",
-    subItems: [
-      { key: "myPosts", path: "/signals/my-posts" },
-      { key: "competitorPosts", path: "/signals/competitors" },
-      { key: "groupPosts", path: "/signals/groups" },
-      { key: "globalPosts", path: "/signals/global" },
-    ],
+    path: "/signals",
   },
   {
     icon: <BoxCubeIcon />,
