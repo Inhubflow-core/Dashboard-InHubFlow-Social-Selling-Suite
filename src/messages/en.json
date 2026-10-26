@@ -1196,7 +1196,13 @@
       "defaultTopic": "B2B Social Selling",
       "defaultKeyword": "SYSTEM",
       "samplePostContent": "Building an inbound funnel on LinkedIn used to take weeks.\n\nToday, combining relevant content and relational automation lets you book sales meetings while you sleep.\n\nHere are the 3 essential steps:\n1. Publish content with calls to action based on high-value assets.\n2. Monitor comments for trigger keywords.\n3. Deliver the resource instantly via direct message.\n\nComment \"{keyword}\" below and I will send you the complete PDF framework at no cost.",
-      "previewImageAlt": "Post preview"
+      "previewImageAlt": "Post preview",
+      "scheduleModalTitle": "Schedule Publication Date & Time",
+      "scheduleModalDesc": "Choose the exact day and time your post will be published to LinkedIn.",
+      "confirmScheduleBtn": "Confirm & Schedule",
+      "cancelBtn": "Cancel",
+      "dateLabel": "Publish date",
+      "timeLabel": "Publish time"
     },
     "list": {
       "pageTitle": "Posts & Content",
@@ -1325,7 +1331,12 @@
       "emissionScheduleLabel": "Broadcast schedule",
       "closeBtn": "Close",
       "prevWeekTooltip": "Previous week",
-      "nextWeekTooltip": "Next week"
+      "nextWeekTooltip": "Next week",
+      "scheduleConfigTitle": "Publication Time",
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "saveScheduleBtn": "Save Schedule",
+      "scheduleUpdatedSuccess": "Publication time updated successfully!"
     }
   },
   "signals": {

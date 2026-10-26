@@ -26,16 +26,51 @@ export default function EditorialCalendarView({
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
   const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<CreatedPost | null>(null);
+  const [scheduleEditDate, setScheduleEditDate] = useState("");
+  const [scheduleEditTime, setScheduleEditTime] = useState("09:30");
+  const [scheduleSaveSuccess, setScheduleSaveSuccess] = useState(false);
   const [justRescheduledInfo, setJustRescheduledInfo] = useState<{ title: string; date: string } | null>(null);
 
-  // Navegación de periodos (Anterior, Siguiente, Hoy)
+    // Sincronizar fecha y hora al abrir el modal de detalle del post
+  const openPostDetails = (post: CreatedPost) => {
+    setSelectedPostDetails(post);
+    if (post.scheduledAt) {
+      const d = new Date(post.scheduledAt);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      setScheduleEditDate(`${year}-${month}-${day}`);
+      setScheduleEditTime(`${hours}:${minutes}`);
+    } else {
+      const tomorrow = new Date(Date.now() + 86400000);
+      setScheduleEditDate(tomorrow.toISOString().split("T")[0]);
+      setScheduleEditTime("09:30");
+    }
+    setScheduleSaveSuccess(false);
+  };
+
+  const handleSaveNewSchedule = () => {
+    if (!selectedPostDetails || !scheduleEditDate || !scheduleEditTime) return;
+    const newScheduledAt = new Date(`${scheduleEditDate}T${scheduleEditTime}:00`).toISOString();
+    updatePost(selectedPostDetails.id, {
+      scheduledAt: newScheduledAt,
+      status: "scheduled",
+    });
+    setSelectedPostDetails((prev) => prev ? { ...prev, scheduledAt: newScheduledAt, status: "scheduled" } : null);
+    setScheduleSaveSuccess(true);
+    setTimeout(() => setScheduleSaveSuccess(false), 3000);
+  };
+
+  // Navegación de periodos (Anterior, Siguiente, Hoy): en vista semanal avanza o retrocede 1 día exacto
   const handlePrev = () => {
     setCurrentDate((prev) => {
       const d = new Date(prev);
       if (viewMode === "month") {
         d.setMonth(d.getMonth() - 1);
       } else {
-        d.setDate(d.getDate() - 7);
+        d.setDate(d.getDate() - 1);
       }
       return d;
     });
@@ -47,14 +82,23 @@ export default function EditorialCalendarView({
       if (viewMode === "month") {
         d.setMonth(d.getMonth() + 1);
       } else {
-        d.setDate(d.getDate() + 7);
+        d.setDate(d.getDate() + 1);
       }
       return d;
     });
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    const now = new Date();
+    if (viewMode === "week") {
+      const day = now.getDay();
+      const diffToMonday = (day === 0 ? -6 : 1) - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMonday);
+      setCurrentDate(monday);
+    } else {
+      setCurrentDate(now);
+    }
   };
 
   // Título del periodo actual (ej. "Octubre De 2026")
@@ -67,21 +111,22 @@ export default function EditorialCalendarView({
       return `${capitalizedMonth} ${year}`;
     }
 
-    const day = currentDate.getDay();
-    const diffToMonday = (day === 0 ? -6 : 1) - day;
-    const monday = new Date(currentDate);
-    monday.setDate(currentDate.getDate() + diffToMonday);
+    const first = new Date(currentDate);
+    const last = new Date(currentDate);
+    last.setDate(currentDate.getDate() + 6);
 
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const firstMonth = first.toLocaleDateString(locale, { month: "short" });
+    const lastMonth = last.toLocaleDateString(locale, { month: "short" });
+    const firstYear = first.getFullYear();
+    const lastYear = last.getFullYear();
 
-    const mondayMonth = monday.toLocaleDateString(locale, { month: "short" });
-    const sundayMonth = sunday.toLocaleDateString(locale, { month: "short" });
-
-    if (monday.getMonth() === sunday.getMonth()) {
-      return `${monday.getDate()} - ${sunday.getDate()} ${capitalizedMonth} ${year}`;
+    if (first.getMonth() === last.getMonth() && firstYear === lastYear) {
+      return `${first.getDate()} - ${last.getDate()} ${firstMonth} ${firstYear}`;
     }
-    return `${monday.getDate()} ${mondayMonth} - ${sunday.getDate()} ${sundayMonth} ${year}`;
+    if (firstYear === lastYear) {
+      return `${first.getDate()} ${firstMonth} - ${last.getDate()} ${lastMonth} ${firstYear}`;
+    }
+    return `${first.getDate()} ${firstMonth} ${firstYear} - ${last.getDate()} ${lastMonth} ${lastYear}`;
   }, [currentDate, viewMode, locale]);
 
   // Cuadrícula Mensual de 7 columnas estilo #b2b con padding de días anterior/siguiente
@@ -105,7 +150,6 @@ export default function EditorialCalendarView({
       dayNumber: number;
       isCurrentMonth: boolean;
       isToday: boolean;
-      isPeak: boolean;
     }> = [];
 
     const createDay = (date: Date, isCurrentMonth: boolean) => {
@@ -114,16 +158,12 @@ export default function EditorialCalendarView({
       const d = String(date.getDate()).padStart(2, "0");
       const dateKey = `${y}-${m}-${d}`;
       const dayOfWeek = date.getDay();
-      // Martes (2), Miércoles (3), Jueves (4) picos B2B
-      const isPeak = dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4;
-
       return {
         date,
         dateKey,
         dayNumber: date.getDate(),
         isCurrentMonth,
         isToday: dateKey === todayStr,
-        isPeak,
       };
     };
 
@@ -148,27 +188,20 @@ export default function EditorialCalendarView({
     return days;
   }, [currentDate]);
 
-  // Calcular dinámicamente los días de la semana actual (Lunes a Domingo) para la vista semanal
+  // Calcular dinámicamente 7 días consecutivos a partir de currentDate (carrusel deslizable de a 1 día)
   const currentWeekDays = useMemo(() => {
-    const currentDay = currentDate.getDay();
-    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-
-    const monday = new Date(currentDate);
-    monday.setDate(currentDate.getDate() + distanceToMonday);
-
     const today = new Date();
     const days = [];
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
+      const d = new Date(currentDate);
+      d.setDate(currentDate.getDate() + i);
 
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, "0");
       const dayNum = String(d.getDate()).padStart(2, "0");
       const dateKey = `${year}-${month}-${dayNum}`;
 
-      const isPeak = i === 1 || i === 2 || i === 3;
       const rawDayName = d.toLocaleDateString(locale, { weekday: "long" });
       const capitalizedDayName = rawDayName.charAt(0).toUpperCase() + rawDayName.slice(1);
 
@@ -177,14 +210,12 @@ export default function EditorialCalendarView({
         monthName: d.toLocaleDateString(locale, { month: "short" }),
         name: capitalizedDayName,
         dateKey,
-        isPeak,
-        peakTime: "08:30 - 10:30",
         isToday: d.toDateString() === today.toDateString(),
       });
     }
 
     return days;
-  }, [currentDate]);
+  }, [currentDate, locale]);
 
   // Filtrado de publicaciones por estado
   const filteredPosts = useMemo(() => {
@@ -363,14 +394,8 @@ export default function EditorialCalendarView({
           </div>
         </div>
 
-        {/* Leyenda de Franjas y Estados */}
+        {/* Leyenda de Estados: Solo Publicado y Programado */}
         <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-gray-600 dark:text-gray-400">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-brand-500"></span>
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              {t("optimalB2BWindowLegend")}
-            </span>
-          </div>
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
             <span>{t("statusPublished")}</span>
@@ -446,12 +471,7 @@ export default function EditorialCalendarView({
                       </span>
 
                       <div className="flex items-center gap-1.5">
-                        {cell.isPeak && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-brand-500"
-                            title={t("optimalB2BSlot")}
-                          ></span>
-                        )}
+
                         {dayPosts.length > 0 && (
                           <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
                             {dayPosts.length === 1 ? t("cellPostSingle", { count: dayPosts.length }) : t("cellPostPlural", { count: dayPosts.length })}
@@ -476,7 +496,7 @@ export default function EditorialCalendarView({
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedPostDetails(post);
+                            openPostDetails(post);
                           }}
                           className={`px-2 py-1.5 rounded-lg text-xs font-medium border truncate transition-all cursor-grab active:cursor-grabbing hover:scale-[1.02] shadow-2xs flex items-center justify-between gap-1.5 select-none ${
                             draggedPostId === post.id
@@ -519,12 +539,7 @@ export default function EditorialCalendarView({
                       )}
                     </div>
 
-                    {/* Footer de la celda */}
-                    <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5">
-                      {cell.isPeak && dayPosts.length === 0 && (
-                        <span className="text-brand-500 font-medium text-xs">{t("b2bPeakBadge")}</span>
-                      )}
-                    </div>
+
                   </div>
                 );
               })}
@@ -576,8 +591,6 @@ export default function EditorialCalendarView({
                       ? "border-2 border-brand-500 bg-brand-100/70 dark:bg-brand-950/60 dark:border-brand-400 ring-4 ring-brand-500/20 scale-[1.01] shadow-md z-10"
                       : day.isToday
                       ? "border-brand-500 bg-brand-50/20 dark:border-brand-500/60 dark:bg-brand-950/30"
-                      : day.isPeak
-                      ? "border-brand-200 bg-brand-25/30 dark:border-brand-900/40 dark:bg-brand-950/10"
                       : "border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900"
                   }`}
                 >
@@ -597,18 +610,10 @@ export default function EditorialCalendarView({
                         {day.dayNumber} {day.monthName}
                       </h4>
                     </div>
-                    {day.isPeak && (
-                      <span className="rounded-lg bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
-                        {t("b2bPeakBadge")}
-                      </span>
-                    )}
+
                   </div>
 
-                  {day.isPeak && (
-                    <div className="my-2 rounded-lg bg-white/90 p-1.5 text-center text-xs text-brand-700 font-semibold border border-brand-100 dark:bg-gray-800/80 dark:text-brand-300 dark:border-brand-900/60">
-                      {t("timeWindowLabel")}: {day.peakTime}
-                    </div>
-                  )}
+
 
                   <div className="flex-1 space-y-2.5 pt-2">
                     {dayPosts.map((post: CreatedPost) => (
@@ -623,7 +628,7 @@ export default function EditorialCalendarView({
                           setDraggedPostId(null);
                           setDragOverDateKey(null);
                         }}
-                        onClick={() => setSelectedPostDetails(post)}
+                        onClick={() => openPostDetails(post)}
                         className={`cursor-grab active:cursor-grabbing rounded-lg border border-gray-300 bg-white p-3 shadow-theme-xs hover:border-brand-500 transition dark:border-gray-700 dark:bg-gray-800 select-none ${
                           draggedPostId === post.id
                             ? "opacity-30 scale-95 border-dashed border-brand-500"
@@ -730,11 +735,56 @@ export default function EditorialCalendarView({
               {selectedPostDetails.content}
             </div>
 
-            {selectedPostDetails.scheduledAt && (
+            {/* Configuración y selección de horario de publicación */}
+            {selectedPostDetails.status !== "published" ? (
+              <div className="rounded-lg border border-gray-300 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-800/50 space-y-3">
+                <span className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide block">
+                  {t("scheduleConfigTitle")}
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      {t("dateLabel")}
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduleEditDate}
+                      onChange={(e) => setScheduleEditDate(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      {t("timeLabel")}
+                    </label>
+                    <input
+                      type="time"
+                      value={scheduleEditTime}
+                      onChange={(e) => setScheduleEditTime(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  {scheduleSaveSuccess ? (
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      ✓ {t("scheduleUpdatedSuccess")}
+                    </span>
+                  ) : <span></span>}
+                  <button
+                    type="button"
+                    onClick={handleSaveNewSchedule}
+                    className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs cursor-pointer"
+                  >
+                    {t("saveScheduleBtn")}
+                  </button>
+                </div>
+              </div>
+            ) : (
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t("emissionScheduleLabel")}:{" "}
                 <strong className="text-gray-800 dark:text-gray-200">
-                  {new Date(selectedPostDetails.scheduledAt).toLocaleString(locale)}
+                  {new Date(selectedPostDetails.scheduledAt || selectedPostDetails.publishedAt || "").toLocaleString(locale)}
                 </strong>
               </p>
             )}

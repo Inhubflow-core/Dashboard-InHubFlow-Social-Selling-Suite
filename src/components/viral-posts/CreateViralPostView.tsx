@@ -54,6 +54,12 @@ export default function CreateViralPostView({
   // Estados de IA y Publicación
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    const tomorrow = new Date(Date.now() + 86400000);
+    return tomorrow.toISOString().split("T")[0];
+  });
+  const [scheduledTime, setScheduledTime] = useState("09:30");
   const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Carrusel slides state
@@ -270,7 +276,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
   };
 
   // Guardar post (Borrador, Programado o Publicación Real)
-  const handleSavePost = async (status: "draft" | "scheduled" | "published") => {
+  const handleSavePost = async (status: "draft" | "scheduled" | "published", customScheduledAt?: string) => {
     setPublishFeedback(null);
 
     let linkedinPostId: string | undefined = undefined;

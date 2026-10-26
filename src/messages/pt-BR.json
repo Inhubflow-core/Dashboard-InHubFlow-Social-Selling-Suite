@@ -1196,7 +1196,13 @@
       "defaultTopic": "Social Selling B2B",
       "defaultKeyword": "SISTEMA",
       "samplePostContent": "Construir um funil inbound no LinkedIn costumava levar semanas.\n\nHoje, a combinação de conteúdo relevante e automação relacional permite agendar reuniões comerciais enquanto você dorme.\n\nAbaixo compartilho os 3 passos essenciais:\n1. Publique conteúdo com chamadas para ação baseadas em ativos de alto valor.\n2. Monitore os comentários com palavras-chave ativadoras.\n3. Entregue o recurso imediatamente por mensagem privada.\n\nComente \"{keyword}\" abaixo e envio o framework completo em PDF sem custo.",
-      "previewImageAlt": "Pré-visualização da publicação"
+      "previewImageAlt": "Pré-visualização da publicação",
+      "scheduleModalTitle": "Agendar Data e Horário de Publicação",
+      "scheduleModalDesc": "Escolha o dia e o horário exato em que sua publicação será emitida no LinkedIn.",
+      "confirmScheduleBtn": "Confirmar e Agendar",
+      "cancelBtn": "Cancelar",
+      "dateLabel": "Data de publicação",
+      "timeLabel": "Hora de publicação"
     },
     "list": {
       "pageTitle": "Publicações & Conteúdo",
@@ -1325,7 +1331,12 @@
       "emissionScheduleLabel": "Horário de emissão",
       "closeBtn": "Fechar",
       "prevWeekTooltip": "Semana anterior",
-      "nextWeekTooltip": "Próxima semana"
+      "nextWeekTooltip": "Próxima semana",
+      "scheduleConfigTitle": "Horário de Publicação",
+      "dateLabel": "Data",
+      "timeLabel": "Hora",
+      "saveScheduleBtn": "Salvar Horário",
+      "scheduleUpdatedSuccess": "Horário de publicação atualizado com sucesso!"
     }
   },
   "signals": {

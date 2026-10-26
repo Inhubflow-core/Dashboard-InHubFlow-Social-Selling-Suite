@@ -1196,7 +1196,13 @@
       "defaultTopic": "Social Selling B2B",
       "defaultKeyword": "SISTEMA",
       "samplePostContent": "Construir un embudo inbound en LinkedIn solía tomar semanas.\n\nHoy, la combinación de contenido relevante y automatización relacional permite cerrar reuniones comerciales mientras duermes.\n\nA continuación te comparto los 3 pasos esenciales:\n1. Publica contenido con llamados a la acción basados en activos de alto valor.\n2. Monitorea los comentarios con palabras clave activadoras.\n3. Entrega el recurso de forma inmediata en mensaje privado.\n\nComenta \"{keyword}\" abajo y te envío el framework completo en PDF sin costo.",
-      "previewImageAlt": "Vista previa de la publicación"
+      "previewImageAlt": "Vista previa de la publicación",
+      "scheduleModalTitle": "Programar Fecha y Hora de Publicación",
+      "scheduleModalDesc": "Elige el día y la hora exacta en la que tu publicación será emitida en LinkedIn.",
+      "confirmScheduleBtn": "Confirmar y Programar",
+      "cancelBtn": "Cancelar",
+      "dateLabel": "Fecha de publicación",
+      "timeLabel": "Hora de publicación"
     },
     "list": {
       "pageTitle": "Publicaciones & Contenido",
@@ -1325,7 +1331,12 @@
       "emissionScheduleLabel": "Horario de emisión",
       "closeBtn": "Cerrar",
       "prevWeekTooltip": "Semana anterior",
-      "nextWeekTooltip": "Semana siguiente"
+      "nextWeekTooltip": "Semana siguiente",
+      "scheduleConfigTitle": "Horario de Publicación",
+      "dateLabel": "Fecha",
+      "timeLabel": "Hora",
+      "saveScheduleBtn": "Guardar Horario",
+      "scheduleUpdatedSuccess": "¡Horario de publicación actualizado con éxito!"
     }
   },
   "signals": {
