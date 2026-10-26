@@ -531,8 +531,21 @@ export default function EditorialCalendarView({
             </div>
           </div>
         ) : (
-          /* Vista Semanal con Drag & Drop */
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+          /* Vista Semanal con Formato Carrusel (Flechas a la izquierda y derecha) */
+          <div className="relative flex items-center">
+            {/* Flecha Izquierda de Navegación de Semana (Carrusel) */}
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="absolute -left-3.5 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 shadow-md transition-all hover:scale-110 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-brand-500 dark:hover:bg-brand-950 dark:hover:text-brand-400 cursor-pointer"
+              title={t("prevWeekTooltip")}
+              aria-label={t("prevWeekTooltip")}
+            >
+              <ChevronLeft size={22} />
+            </button>
+
+            {/* Contenedor de 7 Días Siempre Visibles */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-7 gap-3 px-2 transition-all duration-200 ease-out">
             {currentWeekDays.map((day) => {
               const dayPosts = filteredPosts.filter((p) => {
                 if (!p.scheduledAt) return false;
@@ -575,8 +588,8 @@ export default function EditorialCalendarView({
                           {day.name}
                         </p>
                         {day.isToday && (
-                          <span className="rounded-lg bg-brand-500 px-1 py-0.2 text-xs font-bold text-white uppercase">
-                            Hoy
+                          <span className="rounded-lg bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
+                            {t("today")}
                           </span>
                         )}
                       </div>
@@ -586,7 +599,7 @@ export default function EditorialCalendarView({
                     </div>
                     {day.isPeak && (
                       <span className="rounded-lg bg-brand-500 px-1.5 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
-                        Pico B2B
+                        {t("b2bPeakBadge")}
                       </span>
                     )}
                   </div>
@@ -674,6 +687,18 @@ export default function EditorialCalendarView({
                 </div>
               );
             })}
+            </div>
+
+            {/* Flecha Derecha de Navegación de Semana (Carrusel) */}
+            <button
+              type="button"
+              onClick={handleNext}
+              className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 shadow-md transition-all hover:scale-110 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-brand-500 dark:hover:bg-brand-950 dark:hover:text-brand-400 cursor-pointer"
+              title={t("nextWeekTooltip")}
+              aria-label={t("nextWeekTooltip")}
+            >
+              <ChevronRight size={22} />
+            </button>
           </div>
         )}
         </div>

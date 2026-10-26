@@ -1323,7 +1323,9 @@
       "dragPostHere": "Arraste um post aqui",
       "timeWindowLabel": "Horário",
       "emissionScheduleLabel": "Horário de emissão",
-      "closeBtn": "Fechar"
+      "closeBtn": "Fechar",
+      "prevWeekTooltip": "Semana anterior",
+      "nextWeekTooltip": "Próxima semana"
     }
   },
   "signals": {

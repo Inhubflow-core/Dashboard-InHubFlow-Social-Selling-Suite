@@ -1323,7 +1323,9 @@
       "dragPostHere": "Drag a post here",
       "timeWindowLabel": "Time slot",
       "emissionScheduleLabel": "Broadcast schedule",
-      "closeBtn": "Close"
+      "closeBtn": "Close",
+      "prevWeekTooltip": "Previous week",
+      "nextWeekTooltip": "Next week"
     }
   },
   "signals": {
