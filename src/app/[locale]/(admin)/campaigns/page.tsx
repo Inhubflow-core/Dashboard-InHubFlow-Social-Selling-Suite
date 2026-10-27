@@ -660,88 +660,8 @@ export default function CampaignsPage() {
     <div className="w-full space-y-6">
       <PageBreadcrumb pageTitle={t("pageTitle")} />
 
-      {/* Cabecera Principal */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-white border border-gray-300 dark:bg-gray-900 dark:border-gray-800 shadow-theme-xs">
-        <div>
-          <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            {t("cardTitle")}
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-            {t("cardDesc")}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {feedbackMessage && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
-              <CheckCircle2 className="size-3.5" />
-              {feedbackMessage}
-            </span>
-          )}
-
-          {runnerNotice && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-800">
-              <CheckCircle2 className="size-3.5" />
-              {runnerNotice}
-            </span>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setShowPacingModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          >
-            <Shield className="size-3.5 text-emerald-600" />
-            <span>{t("safetyLimits", { count: activeCampaign.dailyLimits.maxConnectionsPerDay })}</span>
-          </button>
-
-          <div className="inline-flex rounded-lg shadow-xs">
-            <button
-              type="button"
-              disabled={isExecutingRunner}
-              onClick={handleExecuteRunnerSim}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-l-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition disabled:opacity-50"
-              title={t("simulateStepTitle", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
-            >
-              {isExecutingRunner ? (
-                <>
-                  <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-                  <span>{t("executing")}</span>
-                </>
-              ) : (
-                <>
-                  <Play className="size-3.5" />
-                  <span>
-                    {t("simulateStep", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
-                  </span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              disabled={isExecutingRunner}
-              onClick={handleExecuteAllStepsSim}
-              className="px-2.5 py-2 rounded-r-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold border-l border-brand-400/40 transition disabled:opacity-50"
-              title={t("simulateAllTitle")}
-            >
-              <Sparkles className="size-3.5" />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpenLogs}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          >
-            <Terminal className="size-3.5 text-gray-500" />
-            <span>{t("logs")}</span>
-          </button>
-        </div>
-      </div>
-
-
       {/* Selector de Pestañas de Secuencias Maestras */}
-      <div className="flex flex-wrap items-center justify-between border-b border-gray-300 dark:border-gray-800">
+      <div className="flex border-b border-gray-300 dark:border-gray-800">
         <div className="flex gap-2 overflow-x-auto">
           {campaigns.map((camp) => {
             const isSelected = camp.id === selectedCampaignId;
@@ -754,7 +674,7 @@ export default function CampaignsPage() {
                   setSelectedCampaignId(camp.id);
                   setSimulatedStepIndex(0);
                 }}
-                className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
                   isSelected
                     ? "border-[#0099ff] text-[#0099ff]"
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -779,32 +699,194 @@ export default function CampaignsPage() {
             );
           })}
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 py-2">
-          <button
-            type="button"
-            onClick={() =>
-              updateActiveCampaign((c) => ({
-                ...c,
-                status: c.status === "active" ? "paused" : "active",
-              }))
-            }
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-              activeCampaign.status === "active"
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-            }`}
-          >
-            {activeCampaign.status === "active" ? t("statusActive") : t("statusPaused")}
-          </button>
+      {/* Card Principal: Configuración de Secuencia y Controles de Ejecución */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+        {/* Cabecera Superior: Título, Estado y Botones de Acción */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-3.5">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
+              {selectedCampaignId.includes("magnet") ? (
+                <Sparkles className="size-6" />
+              ) : (
+                <Layers className="size-6" />
+              )}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {selectedCampaignId.includes("magnet") ? t("tabLeadMagnet") : t("tabLeadLists")}
+                </h3>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                    activeCampaign.status === "active"
+                      ? "border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                      : "border-gray-300 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                  }`}
+                >
+                  <span
+                    className={`size-1.5 rounded-full ${
+                      activeCampaign.status === "active" ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
+                    }`}
+                  />
+                  {activeCampaign.status === "active" ? t("statusActive") : t("statusPaused")}
+                </span>
+                <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                  {t("stepsCount", { count: activeCampaign.steps.length })}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
+                {activeCampaign.triggerDescription || t("cardDesc")}
+              </p>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleResetSequence}
-            className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-medium px-2 py-1"
-          >
-            {t("resetTemplate")}
-          </button>
+          {/* Acciones principales a la derecha */}
+          <div className="flex flex-wrap items-center gap-2">
+            {feedbackMessage && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                <CheckCircle2 className="size-3.5" />
+                {feedbackMessage}
+              </span>
+            )}
+
+            {runnerNotice && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-800">
+                <CheckCircle2 className="size-3.5" />
+                {runnerNotice}
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={() =>
+                updateActiveCampaign((c) => ({
+                  ...c,
+                  status: c.status === "active" ? "paused" : "active",
+                }))
+              }
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition ${
+                activeCampaign.status === "active"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+            >
+              {activeCampaign.status === "active" ? "Pausar Secuencia" : "Activar Secuencia"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPacingModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              <Shield className="size-3.5 text-emerald-600" />
+              <span>{t("safetyLimits", { count: activeCampaign.dailyLimits.maxConnectionsPerDay })}</span>
+            </button>
+
+            <div className="inline-flex rounded-lg shadow-xs">
+              <button
+                type="button"
+                disabled={isExecutingRunner}
+                onClick={handleExecuteRunnerSim}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-l-lg bg-[#0099ff] hover:bg-[#0088e6] text-white text-xs font-semibold transition disabled:opacity-50"
+                title={t("simulateStepTitle", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
+              >
+                {isExecutingRunner ? (
+                  <>
+                    <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                    <span>{t("executing")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-3.5" />
+                    <span>
+                      {t("simulateStep", { current: Math.min(simulatedStepIndex + 1, activeCampaign.steps.length), total: activeCampaign.steps.length })}
+                    </span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                disabled={isExecutingRunner}
+                onClick={handleExecuteAllStepsSim}
+                className="px-2.5 py-1.5 rounded-r-lg bg-[#0088e6] hover:bg-[#0077cc] text-white text-xs font-semibold border-l border-white/20 transition disabled:opacity-50"
+                title={t("simulateAllTitle")}
+              >
+                <Sparkles className="size-3.5" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenLogs}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              <Terminal className="size-3.5 text-gray-500" />
+              <span>{t("logs")}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Barra inferior separada por border-t: Información contextual de la lista vinculada o resumen y botón Añadir Paso */}
+        <div className="border-t border-gray-300 px-6 py-3.5 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {linkedList ? (
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="inline-flex size-6 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400">
+                  <Zap className="size-3.5" />
+                </span>
+                <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                  {t("linkedList", { name: linkedList.name })}
+                </span>
+                <span className="text-xs bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
+                  {t("prospectsCount", { count: linkedList.leadsCount })}
+                </span>
+                <Link
+                  href={`/leads/lists/${linkedList.id}`}
+                  className="px-2 py-0.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline"
+                >
+                  Ver Prospectos
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setLinkedList(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1"
+                  title={t("unlinkView")}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Cadencia:
+                </span>
+                <span>
+                  {activeCampaign.steps.length} pasos lineales · Retardo total: {activeCampaign.steps.reduce((acc, s) => acc + (s.delayDaysBefore || 0), 0)} días · Regla Stop on Reply activa
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleOpenAddDrawer}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+            >
+              <Plus className="size-3.5" />
+              <span>{t("addStepToSequence")}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResetSequence}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 transition"
+            >
+              {t("resetTemplate")}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -848,47 +930,8 @@ export default function CampaignsPage() {
               <span>{t("dropHere")}</span>
             </div>
           )}
-            {/* Banner de Lista Inteligente Vinculada (si proviene de Signal Radar / Leads) */}
-        {linkedList && (
-          <div className="mb-3 rounded-lg border border-brand-200 dark:border-brand-900/60 bg-white dark:bg-gray-900 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 flex items-center justify-center shrink-0">
-                <Zap className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                    {t("linkedList", { name: linkedList.name })}
-                  </span>
-                  <span className="text-xs bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-semibold px-2 py-0.5 rounded-full">
-                    {t("prospectsCount", { count: linkedList.leadsCount })}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {linkedList.description || t("defaultListDesc")}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href={`/leads/lists/${linkedList.id}`}
-                className="px-2.5 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 rounded-lg transition"
-              >
-                Ver Prospectos
-              </Link>
-              <button
-                type="button"
-                onClick={() => setLinkedList(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1"
-                title={t("unlinkView")}
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* Card del Disparador / Activador con Contraste #E9F0F7 */}
+          {/* Card del Disparador / Activador con Contraste #E9F0F7 */}
         <div className="rounded-lg border-2 border-dashed border-brand-300 dark:border-brand-900/60 bg-[#E9F0F7] dark:bg-brand-950/20 p-4 shadow-2xs">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs">

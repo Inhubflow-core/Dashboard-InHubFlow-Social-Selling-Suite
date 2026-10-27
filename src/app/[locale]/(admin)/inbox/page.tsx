@@ -2,6 +2,7 @@
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ProspectAvatar from "@/components/leads/ProspectAvatar";
+import { Link } from "@/i18n/navigation";
 import {
   addIncomingMessageToConversation,
   getInboxConversations,
@@ -22,6 +23,7 @@ import {
   ExternalLink,
   FileText,
   MapPin,
+  MessageSquare,
   Mic,
   Paperclip,
   Play,
@@ -212,22 +214,115 @@ export default function InboxPage() {
         </div>
       )}
 
-      {/* Cabecera en formato estándar de Card */}
-      <div className="w-full rounded-lg border border-gray-300 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Bandeja de Entrada Comercial & SDR Co-Pilot
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t("cardDesc")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {t("cloudSync")}
+      {/* Card Principal: Bandeja de Entrada Comercial & Filtros */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-3.5">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
+              <MessageSquare className="size-6" />
             </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {t("pageTitle")}
+                </h3>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {t("cloudSync")}
+                </span>
+                <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                  LinkedIn Cloud API
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {t("cardDesc")}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/sdr"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 shadow-theme-xs transition"
+            >
+              <Bot className="size-3.5 text-[#0099ff]" />
+              <span>SDR Copilot</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Filtros de Búsqueda y Segmentación (exacto formato de Leads & CRM) */}
+        <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Col 1: Búsqueda */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+
+          {/* Col 2: Selector de Campaña */}
+          <div>
+            <select
+              value={filterCampaign}
+              onChange={(e) => setFilterCampaign(e.target.value)}
+              aria-label={t("filterCampaignAria")}
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            >
+              <option value="all">{t("allCampaigns")}</option>
+              {uniqueCampaigns.map((camp) => (
+                <option key={camp} value={camp}>
+                  {camp}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Col 3: Selector de Pestañas / Filtro de Estado (Todas / No Leídas) */}
+          <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60 w-full justify-center">
+            <button
+              type="button"
+              onClick={() => setTabFilter("all")}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-medium transition ${
+                tabFilter === "all"
+                  ? "bg-[#0099ff] text-white shadow-xs font-semibold"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              }`}
+            >
+              <span>{t("filterAll")}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                tabFilter === "all" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+              }`}>
+                {conversations.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTabFilter("unread")}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-medium transition ${
+                tabFilter === "unread"
+                  ? "bg-[#0099ff] text-white shadow-xs font-semibold"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              }`}
+            >
+              <span>{t("filterUnread")}</span>
+              {unreadCount > 0 ? (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  tabFilter === "unread" ? "bg-white text-[#0099ff]" : "bg-brand-500 text-white"
+                }`}>
+                  {unreadCount}
+                </span>
+              ) : (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                  0
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -236,68 +331,15 @@ export default function InboxPage() {
       <div className="w-full min-h-[680px] grid grid-cols-12 gap-0 rounded-lg border border-gray-300 bg-white overflow-hidden shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         {/* Panel Izquierdo: Lista de Conversaciones */}
         <div className="col-span-12 md:col-span-4 lg:col-span-4 border-r border-gray-300 dark:border-gray-800 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900">
-          {/* Pestañas superiores estilo HeyReach / LinkedIn (Todas y No leídas) */}
-          <div className="flex border-b border-gray-200 dark:border-gray-800 px-4 pt-3 bg-white dark:bg-gray-900 gap-6">
-            <button
-              type="button"
-              onClick={() => setTabFilter("all")}
-              className={`pb-2.5 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
-                tabFilter === "all"
-                  ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
-            >
-              <span>{t("filterAll")}</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-medium">
-                {conversations.length}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {filteredConversations.length} {filteredConversations.length === 1 ? "Conversación" : "Conversaciones"}
+            </span>
+            {unreadCount > 0 && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold">
+                {unreadCount} {t("filterUnread").toLowerCase()}
               </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTabFilter("unread")}
-              className={`pb-2.5 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 ${
-                tabFilter === "unread"
-                  ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
-            >
-              <span>{t("filterUnread")}</span>
-              {unreadCount > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-brand-500 text-white font-bold">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Filtros de búsqueda */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-2 bg-white dark:bg-gray-900">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 size-3.5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("searchPlaceholder")}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 pl-8 pr-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
-
-            <div className="flex gap-1.5">
-              <select
-                value={filterCampaign}
-                onChange={(e) => setFilterCampaign(e.target.value)}
-                aria-label={t("filterCampaignAria")}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-              >
-                <option value="all">{t("allCampaigns")}</option>
-                {uniqueCampaigns.map((camp) => (
-                  <option key={camp} value={camp}>
-                    {camp}
-                  </option>
-                ))}
-              </select>
-            </div>
+            )}
           </div>
 
           {/* Lista scrolleable */}
