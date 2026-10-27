@@ -387,6 +387,142 @@ export default function SdrAgentPage() {
         </div>
       )}
 
+      {/* Card Principal: Supervisión, Estado y KPIs */}
+      <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+        {/* Header del Card Principal */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                {config.name}
+              </h3>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${currentModeInfo.bg}`}
+              >
+                <span className="size-1.5 rounded-full bg-current" />
+                {currentModeInfo.label}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {t("headerDesc")}
+            </p>
+          </div>
+
+          {/* Botones de Acción */}
+          <div className="flex flex-wrap items-center gap-2">
+            {!isMember && (
+              <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("copilot")}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                    config.mode === "copilot" || config.mode === "approval"
+                      ? "bg-[#0099ff] text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  }`}
+                >
+                  <UserCheck className="size-3.5" />
+                  <span>{t("modeCopilot")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("auto")}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                    config.mode === "auto"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  }`}
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>{t("modeAuto")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("off")}
+                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                    config.mode === "off"
+                      ? "bg-gray-700 text-white shadow-xs"
+                      : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+                  }`}
+                  title={t("pauseAssistant")}
+                >
+                  {t("modePaused")}
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsSimulatorOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+            >
+              <Play className="size-3.5" />
+              <span>{t("btnTestAssistant")}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Barra inferior separada por border-t: 5 KPIs Integrados */}
+        <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <div>
+              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                {t("statAiDecisions")}
+              </div>
+              <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.totalDecisions}
+              </div>
+              <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
+                <CheckCircle2 className="size-3" />
+                <span>{t("statAudited")}</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                {t("statAvgConfidence")}
+              </div>
+              <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.averageConfidence}%
+              </div>
+              <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
+            </div>
+
+            <div>
+              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                {t("statToApprove")}
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-[#0099ff]">
+                  {pendingActions.filter((a) => a.status === "pending").length}
+                </span>
+                <span className="text-xs text-gray-500">{t("statInQueue")}</span>
+              </div>
+              <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
+            </div>
+
+            <div>
+              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                {t("statHandoffs")}
+              </div>
+              <div className="mt-1 text-2xl font-bold text-amber-600">
+                {stats.handoffCount}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
+            </div>
+
+            <div>
+              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                {t("statAutonomousReplies")}
+              </div>
+              <div className="mt-1 text-2xl font-bold text-emerald-600">
+                {stats.autonomousRepliesSent}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Selector de Pestañas Unificado: Supervisión & Aprobaciones | Base de Conocimiento | Configuración */}
       <div className="flex border-b border-gray-300 dark:border-gray-800">
         <div className="flex gap-2 overflow-x-auto">
@@ -434,141 +570,6 @@ export default function SdrAgentPage() {
       {/* ── TAB 1: SUPERVISIÓN & COLA DE APROBACIONES ── */}
       {activeTab === "approvals" && (
         <div className="space-y-6">
-          {/* Card Principal: Supervisión, Estado y KPIs */}
-          <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
-            {/* Header del Card Principal */}
-            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-                    {config.name}
-                  </h3>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${currentModeInfo.bg}`}
-                  >
-                    <span className="size-1.5 rounded-full bg-current" />
-                    {currentModeInfo.label}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {t("headerDesc")}
-                </p>
-              </div>
-
-              {/* Botones de Acción */}
-              <div className="flex flex-wrap items-center gap-2">
-                {!isMember && (
-                  <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange("copilot")}
-                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                        config.mode === "copilot" || config.mode === "approval"
-                          ? "bg-[#0099ff] text-white shadow-xs"
-                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                      }`}
-                    >
-                      <UserCheck className="size-3.5" />
-                      <span>{t("modeCopilot")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange("auto")}
-                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                        config.mode === "auto"
-                          ? "bg-emerald-600 text-white shadow-xs"
-                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                      }`}
-                    >
-                      <Sparkles className="size-3.5" />
-                      <span>{t("modeAuto")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange("off")}
-                      className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                        config.mode === "off"
-                          ? "bg-gray-700 text-white shadow-xs"
-                          : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
-                      }`}
-                      title={t("pauseAssistant")}
-                    >
-                      {t("modePaused")}
-                    </button>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsSimulatorOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
-                >
-                  <Play className="size-3.5" />
-                  <span>{t("btnTestAssistant")}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Barra inferior separada por border-t: 5 KPIs Integrados */}
-            <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-                <div>
-                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("statAiDecisions")}
-                  </div>
-                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.totalDecisions}
-                  </div>
-                  <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-                    <CheckCircle2 className="size-3" />
-                    <span>{t("statAudited")}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("statAvgConfidence")}
-                  </div>
-                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.averageConfidence}%
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
-                </div>
-
-                <div>
-                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("statToApprove")}
-                  </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#0099ff]">
-                      {pendingActions.filter((a) => a.status === "pending").length}
-                    </span>
-                    <span className="text-xs text-gray-500">{t("statInQueue")}</span>
-                  </div>
-                  <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
-                </div>
-
-                <div>
-                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("statHandoffs")}
-                  </div>
-                  <div className="mt-1 text-2xl font-bold text-amber-600">
-                    {stats.handoffCount}
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
-                </div>
-
-                <div>
-                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("statAutonomousReplies")}
-                  </div>
-                  <div className="mt-1 text-2xl font-bold text-emerald-600">
-                    {stats.autonomousRepliesSent}
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Card Secundario: Cola de Aprobaciones Human-in-the-Loop */}
           <div className="w-full rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/3">
