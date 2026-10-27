@@ -387,231 +387,214 @@ export default function SdrAgentPage() {
         </div>
       )}
 
-      {/* Header del Agente & Selector de Modo Operativo */}
-      <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
-              <Bot className="size-6" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {config.name}
-                </h2>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold ${currentModeInfo.bg}`}
-                >
-                  <span className="size-1.5 rounded-full bg-current" />
-                  {currentModeInfo.label}
-                </span>
-                <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                  {t("model", { model: config.model })}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("headerDesc")}
-              </p>
-            </div>
-          </div>
-
-          {/* Selector de Modo */}
-          {!isMember && (
-            <div className="flex flex-col gap-1.5 sm:items-end">
-              <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("operationMode")}
-              </span>
-              <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("copilot")}
-                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
-                    config.mode === "copilot" || config.mode === "approval"
-                      ? "bg-[#0099ff] text-white shadow-xs"
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                  }`}
-                >
-                  <UserCheck className="size-3.5" />
-                  <span>{t("modeCopilot")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("auto")}
-                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
-                    config.mode === "auto"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                  }`}
-                >
-                  <Sparkles className="size-3.5" />
-                  <span>{t("modeAuto")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("off")}
-                  className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all ${
-                    config.mode === "off"
-                      ? "bg-gray-700 text-white shadow-xs"
-                      : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
-                  }`}
-                  title={t("pauseAssistant")}
-                >
-                  {t("modePaused")}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Métricas Clave */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAiDecisions")}</div>
-          <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {stats.totalDecisions}
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-            <CheckCircle2 className="size-3" />
-            <span>{t("statAudited")}</span>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAvgConfidence")}</div>
-          <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            {stats.averageConfidence}%
-          </div>
-          <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
-        </div>
-
-        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statToApprove")}</div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#0099ff]">
-              {pendingActions.filter((a) => a.status === "pending").length}
-            </span>
-            <span className="text-xs text-gray-500">{t("statInQueue")}</span>
-          </div>
-          <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
-        </div>
-
-        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statHandoffs")}</div>
-          <div className="mt-2 text-2xl font-bold text-amber-600">
-            {stats.handoffCount}
-          </div>
-          <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
-        </div>
-
-        <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAutonomousReplies")}</div>
-          <div className="mt-2 text-2xl font-bold text-emerald-600">
-            {stats.autonomousRepliesSent}
-          </div>
-          <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
-        </div>
-      </div>
-
-      {/* Navegación por Pestañas (3 Pestañas Operativas) */}
-      <div className="flex items-center justify-between border-b border-gray-300 pb-px dark:border-gray-800">
+      {/* Selector de Pestañas Unificado: Supervisión & Aprobaciones | Base de Conocimiento | Configuración */}
+      <div className="flex border-b border-gray-300 dark:border-gray-800">
         <div className="flex gap-2 overflow-x-auto">
-          {[
-            {
-              key: "approvals",
-              label: t("tabApprovals", { count: pendingActions.filter((a) => a.status === "pending").length }),
-              icon: UserCheck,
-            },
-            { key: "knowledge", label: t("tabKnowledge"), icon: BookOpen },
-            { key: "policies", label: t("tabPolicies"), icon: Sliders },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as SdrTab)}
-                className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                  isActive
-                    ? "border-[#0099ff] text-[#0099ff]"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                }`}
-              >
-                <Icon className="size-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("approvals")}
+            className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === "approvals"
+                ? "border-[#0099ff] text-[#0099ff]"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <UserCheck className="size-4" />
+            <span>{t("tabApprovals", { count: pendingActions.filter((a) => a.status === "pending").length })}</span>
+          </button>
 
-        {/* Botón Probar Asistente (Acceso Rápido al Simulador) */}
-        <button
-          type="button"
-          onClick={() => setIsSimulatorOpen(true)}
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/10 px-3.5 py-1.5 text-sm font-medium text-[#0099ff] transition hover:bg-[#0099ff] hover:text-white mb-2"
-        >
-          <Play className="size-3.5" />
-          <span>{t("btnTestAssistant")}</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("knowledge")}
+            className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === "knowledge"
+                ? "border-[#0099ff] text-[#0099ff]"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <BookOpen className="size-4" />
+            <span>{t("tabKnowledge")}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("policies")}
+            className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === "policies"
+                ? "border-[#0099ff] text-[#0099ff]"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <Sliders className="size-4" />
+            <span>{t("tabPolicies")}</span>
+          </button>
+        </div>
       </div>
 
       {/* ── TAB 1: SUPERVISIÓN & COLA DE APROBACIONES ── */}
       {activeTab === "approvals" && (
         <div className="space-y-6">
-          {/* Banner de Modo Operativo y Estado */}
-          <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                  {t("currentModeLabel")}
-                </span>
-                <h4 className="text-base font-semibold text-gray-900 dark:text-white">
-                  {currentModeInfo.label}
-                </h4>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {currentModeInfo.desc}
-                </p>
+          {/* Card Principal: Supervisión, Estado y KPIs */}
+          <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+            {/* Header del Card Principal */}
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+              <div className="flex items-center gap-3.5">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
+                  <Bot className="size-6" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                      {config.name}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${currentModeInfo.bg}`}
+                    >
+                      <span className="size-1.5 rounded-full bg-current" />
+                      {currentModeInfo.label}
+                    </span>
+                    <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                      {t("model", { model: config.model })}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {t("headerDesc")}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${currentModeInfo.bg}`}>
-                  {config.mode.toUpperCase()}
-                </span>
+
+              {/* Botones de Acción */}
+              <div className="flex flex-wrap items-center gap-2">
                 {!isMember && (
-                  <button
-                    type="button"
-                    onClick={() => handleModeChange(config.mode === "auto" ? "copilot" : "auto")}
-                    className="rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                  >
-                    {config.mode === "auto" ? "Cambiar a Copiloto" : "Cambiar a Autónomo"}
-                  </button>
+                  <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+                    <button
+                      type="button"
+                      onClick={() => handleModeChange("copilot")}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                        config.mode === "copilot" || config.mode === "approval"
+                          ? "bg-[#0099ff] text-white shadow-xs"
+                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                    >
+                      <UserCheck className="size-3.5" />
+                      <span>{t("modeCopilot")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleModeChange("auto")}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                        config.mode === "auto"
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                    >
+                      <Sparkles className="size-3.5" />
+                      <span>{t("modeAuto")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleModeChange("off")}
+                      className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                        config.mode === "off"
+                          ? "bg-gray-700 text-white shadow-xs"
+                          : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+                      }`}
+                      title={t("pauseAssistant")}
+                    >
+                      {t("modePaused")}
+                    </button>
+                  </div>
                 )}
                 <button
                   type="button"
                   onClick={() => setIsSimulatorOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
                   <Play className="size-3.5" />
                   <span>{t("btnTestAssistant")}</span>
                 </button>
               </div>
             </div>
-          </div>
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {t("approvalsTitle")}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("approvalsDesc")}
-              </p>
-            </div>
-            <div className="text-sm font-medium text-gray-500">
-              {t("showingPendingActions", { count: pendingActions.filter((a) => a.status === "pending").length })}
+
+            {/* Barra inferior separada por border-t: 5 KPIs Integrados */}
+            <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                <div>
+                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("statAiDecisions")}
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {stats.totalDecisions}
+                  </div>
+                  <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
+                    <CheckCircle2 className="size-3" />
+                    <span>{t("statAudited")}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("statAvgConfidence")}
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {stats.averageConfidence}%
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("statToApprove")}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-[#0099ff]">
+                      {pendingActions.filter((a) => a.status === "pending").length}
+                    </span>
+                    <span className="text-xs text-gray-500">{t("statInQueue")}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("statHandoffs")}
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-amber-600">
+                    {stats.handoffCount}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("statAutonomousReplies")}
+                  </div>
+                  <div className="mt-1 text-2xl font-bold text-emerald-600">
+                    {stats.autonomousRepliesSent}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {pendingActions.filter((a) => a.status === "pending").length === 0 ? (
+          {/* Card Secundario: Cola de Aprobaciones Human-in-the-Loop */}
+          <div className="w-full rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-5">
+              <div>
+                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {t("approvalsTitle")}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {t("approvalsDesc")}
+                </p>
+              </div>
+              <div className="text-sm font-medium text-gray-500">
+                {t("showingPendingActions", { count: pendingActions.filter((a) => a.status === "pending").length })}
+              </div>
+            </div>
+
+            {pendingActions.filter((a) => a.status === "pending").length === 0 ? (
             <div className="space-y-6">
               <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
                 <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
@@ -841,60 +824,65 @@ export default function SdrAgentPage() {
 
       {/* ── TAB 3: KNOWLEDGE BASE ── */}
       {activeTab === "knowledge" && (
-        <div className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {t("knowledgeTitle")}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("knowledgeDesc")}
-              </p>
-            </div>
-            {!isMember && (
-              <button
-                onClick={() => setIsAddKnowledgeOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
-              >
-                <Plus className="size-3.5" />
-                <span>{t("btnAddDocument")}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Filtros de conocimiento */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t("searchKnowledgePlaceholder")}
-                value={knowledgeSearch}
-                onChange={(e) => setKnowledgeSearch(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-9 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
-              />
-            </div>
-
-            <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
-              {[
-                { key: "all", label: t("catAll") },
-                { key: "value_prop", label: t("catValueProp") },
-                { key: "pricing", label: t("catPricing") },
-                { key: "objections", label: t("catObjections") },
-                { key: "company", label: t("catCompany") },
-              ].map((cat) => (
+        <div className="space-y-6">
+          {/* Card Principal: Base de Conocimiento RAG */}
+          <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+              <div>
+                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {t("knowledgeTitle")}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {t("knowledgeDesc")}
+                </p>
+              </div>
+              {!isMember && (
                 <button
-                  key={cat.key}
-                  onClick={() => setKnowledgeCategoryFilter(cat.key)}
-                  className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                    knowledgeCategoryFilter === cat.key
-                      ? "bg-[#0099ff] text-white shadow-xs"
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400"
-                  }`}
+                  type="button"
+                  onClick={() => setIsAddKnowledgeOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
-                  {cat.label}
+                  <Plus className="size-3.5" />
+                  <span>{t("btnAddDocument")}</span>
                 </button>
-              ))}
+              )}
+            </div>
+
+            {/* Barra inferior separada por border-t: Búsqueda y Filtros de Categoría */}
+            <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t("searchKnowledgePlaceholder")}
+                  value={knowledgeSearch}
+                  onChange={(e) => setKnowledgeSearch(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-9 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
+                {[
+                  { key: "all", label: t("catAll") },
+                  { key: "value_prop", label: t("catValueProp") },
+                  { key: "pricing", label: t("catPricing") },
+                  { key: "objections", label: t("catObjections") },
+                  { key: "company", label: t("catCompany") },
+                ].map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => setKnowledgeCategoryFilter(cat.key)}
+                    className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                      knowledgeCategoryFilter === cat.key
+                        ? "bg-[#0099ff] text-white shadow-xs"
+                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1150,15 +1138,41 @@ export default function SdrAgentPage() {
       {/* ── TAB 4: POLICIES & CONFIG ── */}
       {activeTab === "policies" && (
         <form onSubmit={handleSaveConfig} className="space-y-6">
-          <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              {t("policiesTitle")}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t("policiesDesc")}
-            </p>
+          <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+              <div>
+                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {t("policiesTitle")}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {t("policiesDesc")}
+                </p>
+              </div>
 
-            <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSimulatorOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                >
+                  <Play className="size-3.5 text-[#0099ff]" />
+                  <span>{t("btnTestAssistant")}</span>
+                </button>
+
+                {!isMember && (
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                  >
+                    <Check className="size-3.5" />
+                    <span>{t("btnSavePolicies")}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-300 px-6 py-6 dark:border-gray-800">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("agentNameLabel")}
@@ -1287,7 +1301,7 @@ export default function SdrAgentPage() {
             </div>
 
             {!isMember && (
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => setIsSimulatorOpen(true)}
@@ -1306,6 +1320,7 @@ export default function SdrAgentPage() {
                 </button>
               </div>
             )}
+            </div>
           </div>
         </form>
       )}
