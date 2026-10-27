@@ -449,9 +449,6 @@ export default function SdrAgentPage() {
                     <span className="size-1.5 rounded-full bg-current" />
                     {currentModeInfo.label}
                   </span>
-                  <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                    {t("model", { model: config.model })}
-                  </span>
                 </div>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {t("headerDesc")}
