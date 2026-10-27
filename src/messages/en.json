@@ -2256,7 +2256,18 @@
     "toastDiscarded": "Action dismissed from the approval queue.",
     "toastHandoff": "Conversation with {name} transferred to human control.",
     "toastDocAdded": "Document \"{title}\" added to the knowledge base.",
-    "toastDocDeleted": "Document deleted from the knowledge base."
+    "toastDocDeleted": "Document deleted from the knowledge base.",
+    "btnEditDocument": "Edit document",
+    "btnDeleteDocument": "Delete document",
+    "modalEditTitle": "Edit Knowledge Document",
+    "modalEditDesc": "Update the content, category or title to calibrate the AI agent's behavior.",
+    "btnSaveChanges": "Save Changes",
+    "confirmDeleteDocument": "Delete the document \"{title}\" from the knowledge base?",
+    "toastDocUpdated": "Knowledge document updated successfully.",
+    "docStatusLabel": "Document Status",
+    "statusApproved": "Approved (Active in RAG)",
+    "statusDraft": "Draft (Inactive)",
+    "statusRetired": "Retired / Inactive"
   },
   "pipeline": {
     "pageTitle": "Sales CRM Pipeline (Kanban)",

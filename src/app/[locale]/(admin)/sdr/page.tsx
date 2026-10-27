@@ -32,6 +32,8 @@ import {
   User,
   Building,
   Info,
+  Pencil,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -100,6 +102,7 @@ export default function SdrAgentPage() {
   const [newKbTitle, setNewKbTitle] = useState("");
   const [newKbCategory, setNewKbCategory] = useState<KnowledgeCategory>("value_prop");
   const [newKbContent, setNewKbContent] = useState("");
+  const [editingKnowledge, setEditingKnowledge] = useState<KnowledgeSource | null>(null);
 
   // Simulator state
   const [simText, setSimText] = useState("");
@@ -256,16 +259,45 @@ export default function SdrAgentPage() {
     setNewKbTitle("");
     setNewKbContent("");
     refreshData();
-    showToast("Documento de conocimiento guardado y aprobado.");
+    showToast(t("toastDocAdded", { title: newSource.title }));
   };
 
   // Delete knowledge source
-  const handleDeleteKnowledge = (id: string) => {
+  // Start editing knowledge source
+  const handleStartEditKnowledge = (item: KnowledgeSource) => {
+    setEditingKnowledge({ ...item });
+  };
+
+  // Save edited knowledge source
+  const handleSaveEditKnowledge = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingKnowledge || !editingKnowledge.title.trim() || !editingKnowledge.content.trim()) return;
+
+    const updatedSource: KnowledgeSource = {
+      ...editingKnowledge,
+      title: editingKnowledge.title.trim(),
+      content: editingKnowledge.content.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updated = knowledge.map((k) => (k.id === updatedSource.id ? updatedSource : k));
+    saveStoredKnowledgeSources(updated);
+    setKnowledge(updated);
+    setEditingKnowledge(null);
+    refreshData();
+    showToast(t("toastDocUpdated"));
+  };
+
+  // Delete knowledge source
+  const handleDeleteKnowledge = (id: string, title?: string) => {
+    const docTitle = title || "";
+    if (confirm(t("confirmDeleteDocument", { title: docTitle }))) {
     const updated = knowledge.filter((k) => k.id !== id);
     saveStoredKnowledgeSources(updated);
     setKnowledge(updated);
     refreshData();
-    showToast("Documento de conocimiento eliminado.");
+      showToast(t("toastDocDeleted"));
+    }
   };
 
   // Run Simulator
@@ -925,12 +957,27 @@ export default function SdrAgentPage() {
                       </h4>
                     </div>
                     {!isMember && (
-                      <button
-                        onClick={() => handleDeleteKnowledge(item.id)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-800"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Botón Editar Documento */}
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditKnowledge(item)}
+                          className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-600 hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-950/20 inline-flex items-center justify-center transition shrink-0"
+                          title={t("btnEditDocument")}
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+
+                        {/* Botón Eliminar Documento */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteKnowledge(item.id, item.title)}
+                          className="h-[26px] w-[26px] rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 inline-flex items-center justify-center transition shrink-0"
+                          title={t("btnDeleteDocument")}
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 whitespace-pre-wrap">
@@ -1018,6 +1065,120 @@ export default function SdrAgentPage() {
                       className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
                     >
                       {t("btnSaveDocument")}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Editar Documento */}
+          {editingKnowledge && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+              <div className="w-full max-w-lg rounded-lg border border-gray-300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                <h4 className="text-base font-bold text-gray-900 dark:text-white">
+                  {t("modalEditTitle")}
+                </h4>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {t("modalEditDesc")}
+                </p>
+
+                <form onSubmit={handleSaveEditKnowledge} className="mt-4 space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {t("docTitleLabel")}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={t("docTitlePlaceholder")}
+                      value={editingKnowledge.title}
+                      onChange={(e) =>
+                        setEditingKnowledge({
+                          ...editingKnowledge,
+                          title: e.target.value,
+                        })
+                      }
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                        {t("docCategoryLabel")}
+                      </label>
+                      <select
+                        value={editingKnowledge.category}
+                        onChange={(e) =>
+                          setEditingKnowledge({
+                            ...editingKnowledge,
+                            category: e.target.value as KnowledgeCategory,
+                          })
+                        }
+                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      >
+                        <option value="value_prop">{t("catValueProp")}</option>
+                        <option value="pricing">{t("catPricing")}</option>
+                        <option value="objections">{t("catObjections")}</option>
+                        <option value="faqs">{t("catFaqs")}</option>
+                        <option value="company">{t("catCompany")}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                        {t("docStatusLabel")}
+                      </label>
+                      <select
+                        value={editingKnowledge.status}
+                        onChange={(e) =>
+                          setEditingKnowledge({
+                            ...editingKnowledge,
+                            status: e.target.value as "approved" | "draft" | "retired",
+                          })
+                        }
+                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      >
+                        <option value="approved">{t("statusApproved")}</option>
+                        <option value="draft">{t("statusDraft")}</option>
+                        <option value="retired">{t("statusRetired")}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {t("docContentLabel")}
+                    </label>
+                    <textarea
+                      required
+                      rows={6}
+                      placeholder={t("docContentPlaceholder")}
+                      value={editingKnowledge.content}
+                      onChange={(e) =>
+                        setEditingKnowledge({
+                          ...editingKnowledge,
+                          content: e.target.value,
+                        })
+                      }
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingKnowledge(null)}
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
+                    >
+                      {t("btnCancel")}
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
+                    >
+                      {t("btnSaveChanges")}
                     </button>
                   </div>
                 </form>

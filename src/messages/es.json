@@ -2256,7 +2256,18 @@
     "toastDiscarded": "Acción descartada de la cola de aprobaciones.",
     "toastHandoff": "Conversación con {name} transferida a control humano.",
     "toastDocAdded": "Documento \"{title}\" agregado a la base de conocimiento.",
-    "toastDocDeleted": "Documento eliminado de la base de conocimiento."
+    "toastDocDeleted": "Documento eliminado de la base de conocimiento.",
+    "btnEditDocument": "Editar documento",
+    "btnDeleteDocument": "Eliminar documento",
+    "modalEditTitle": "Editar Documento de Conocimiento",
+    "modalEditDesc": "Actualiza el contenido, la categoría o el título para calibrar el comportamiento del agente IA.",
+    "btnSaveChanges": "Guardar Cambios",
+    "confirmDeleteDocument": "¿Eliminar el documento \"{title}\" de la base de conocimiento?",
+    "toastDocUpdated": "Documento de conocimiento actualizado con éxito.",
+    "docStatusLabel": "Estado del Documento",
+    "statusApproved": "Aprobado (Activo en RAG)",
+    "statusDraft": "Borrador (Inactivo)",
+    "statusRetired": "Retirado / Inactivo"
   },
   "pipeline": {
     "pageTitle": "Pipeline CRM Comercial (Kanban)",
