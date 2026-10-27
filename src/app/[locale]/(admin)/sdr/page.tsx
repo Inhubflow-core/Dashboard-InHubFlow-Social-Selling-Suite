@@ -73,6 +73,7 @@ type SdrTab =
   | "logs";
 
 export default function SdrAgentPage() {
+  const t = useTranslations("sdr");
   const { currentUser, isSuperAdmin, isClientAdmin } = useAuth();
   const isMember = currentUser.role === "member";
 
@@ -146,7 +147,7 @@ export default function SdrAgentPage() {
     setConfig(updated);
     saveStoredSdrConfig(updated);
     refreshData();
-    showToast(`Modo del Asistente SDR actualizado a: ${mode.toUpperCase()}`);
+    showToast(t("toastModeUpdated", { mode: mode.toUpperCase() }));
   };
 
   // Save config
@@ -154,7 +155,7 @@ export default function SdrAgentPage() {
     e.preventDefault();
     saveStoredSdrConfig(config);
     refreshData();
-    showToast("Configuraciones y políticas del Asistente SDR guardadas con éxito.");
+    showToast(t("toastConfigSaved"));
   };
 
   // Approve action
@@ -196,7 +197,7 @@ export default function SdrAgentPage() {
     setEditingActionId(null);
     setEditedReply("");
     refreshData();
-    showToast(`Respuesta aprobada y despachada a LinkedIn para ${action.prospectName}.`);
+    showToast(t("toastApproved", { name: action.prospectName }));
   };
 
   // Reject / Dismiss action
@@ -206,7 +207,7 @@ export default function SdrAgentPage() {
     saveStoredPendingActions(updated);
     setEditingActionId(null);
     refreshData();
-    showToast("Acción descartada de la cola de aprobaciones.");
+    showToast(t("toastDiscarded"));
   };
 
   // Escalate to human (Handoff)
@@ -231,7 +232,7 @@ export default function SdrAgentPage() {
     });
 
     refreshData();
-    showToast(`Conversación con ${action.prospectName} transferida a control humano.`);
+    showToast(t("toastHandoff", { name: action.prospectName }));
   };
 
   // Add knowledge source
@@ -300,29 +301,29 @@ export default function SdrAgentPage() {
     switch (mode) {
       case "auto":
         return {
-          label: "Modo Automático",
+          label: t("modeBadgeAuto"),
           bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-          desc: "La IA responde directamente de forma autónoma: hace propuestas, maneja objeciones y agenda reuniones según la Base de Conocimiento oficial.",
+          desc: t("modeBadgeAutoDesc"),
         };
       case "copilot":
       case "approval":
         return {
-          label: "Modo Copiloto",
+          label: t("modeBadgeCopilot"),
           bg: "bg-[#0099ff]/10 text-[#0099ff] border-[#0099ff]/20",
-          desc: "La IA genera la propuesta o manejo de objeción fundamentado en la Base de Conocimiento; el humano decide si enviarla, editarla o transferirla.",
+          desc: t("modeBadgeCopilotDesc"),
         };
       case "shadow":
         return {
-          label: "Modo Sombra",
+          label: t("modeBadgeShadow"),
           bg: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-          desc: "Analiza y genera decisiones internamente sin enviar nada al lead para evaluar respuestas.",
+          desc: t("modeBadgeShadowDesc"),
         };
       case "off":
       default:
         return {
-          label: "Desactivado",
+          label: t("modeBadgeOff"),
           bg: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-          desc: "El agente SDR está pausado y no procesa mensajes entrantes.",
+          desc: t("modeBadgeOffDesc"),
         };
     }
   };
@@ -330,17 +331,17 @@ export default function SdrAgentPage() {
   const getIntentBadge = (intent: SdrIntent) => {
     switch (intent) {
       case "meeting_request":
-        return { label: "Petición de Reunión", color: "bg-emerald-500/10 text-emerald-600" };
+        return { label: t("intentMeeting"), color: "bg-emerald-500/10 text-emerald-600" };
       case "pricing_question":
-        return { label: "Consulta de Precios", color: "bg-blue-500/10 text-blue-600" };
+        return { label: t("intentPricing"), color: "bg-blue-500/10 text-blue-600" };
       case "objection":
-        return { label: "Manejo de Objeción", color: "bg-amber-500/10 text-amber-600" };
+        return { label: t("intentObjection"), color: "bg-amber-500/10 text-amber-600" };
       case "interested":
-        return { label: "Interés Positivo", color: "bg-purple-500/10 text-purple-600" };
+        return { label: t("intentInterested"), color: "bg-purple-500/10 text-purple-600" };
       case "human_requested":
-        return { label: "Pide Humano", color: "bg-red-500/10 text-red-600" };
+        return { label: t("intentHuman"), color: "bg-red-500/10 text-red-600" };
       case "unsubscribe":
-        return { label: "Baja / Opt-Out", color: "bg-gray-500/10 text-gray-600" };
+        return { label: t("intentUnsubscribe"), color: "bg-gray-500/10 text-gray-600" };
       default:
         return { label: intent.replace("_", " "), color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
     }
@@ -350,7 +351,7 @@ export default function SdrAgentPage() {
 
   return (
     <div className="w-full space-y-6">
-      <PageBreadcrumb pageTitle="Asistente SDR IA" />
+      <PageBreadcrumb pageTitle={t("pageTitle")} />
 
       {/* Notificación Toast */}
       {notification && (
@@ -379,11 +380,11 @@ export default function SdrAgentPage() {
                   {currentModeInfo.label}
                 </span>
                 <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                  Modelo: {config.model}
+                  {t("model", { model: config.model })}
                 </span>
               </div>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Procesa respuestas de LinkedIn en tiempo real, clasifica intención con Gemini, responde con base en conocimiento aprobado y agenda llamadas en el calendario empresarial.
+                {t("headerDesc")}
               </p>
             </div>
           </div>
@@ -392,7 +393,7 @@ export default function SdrAgentPage() {
           {!isMember && (
             <div className="flex flex-col gap-1.5 sm:items-end">
               <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                Modo de Operación del Asistente
+                {t("operationMode")}
               </span>
               <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
                 <button
@@ -405,7 +406,7 @@ export default function SdrAgentPage() {
                   }`}
                 >
                   <UserCheck className="size-3.5" />
-                  <span>Modo Copiloto (Revisa / Edita)</span>
+                  <span>{t("modeCopilot")}</span>
                 </button>
                 <button
                   type="button"
@@ -417,7 +418,7 @@ export default function SdrAgentPage() {
                   }`}
                 >
                   <Sparkles className="size-3.5" />
-                  <span>Modo Automático (Autónomo)</span>
+                  <span>{t("modeAuto")}</span>
                 </button>
                 <button
                   type="button"
@@ -427,9 +428,9 @@ export default function SdrAgentPage() {
                       ? "bg-gray-700 text-white shadow-xs"
                       : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
                   }`}
-                  title="Pausar Asistente"
+                  title={t("pauseAssistant")}
                 >
-                  Pausado
+                  {t("modePaused")}
                 </button>
               </div>
             </div>
@@ -440,49 +441,49 @@ export default function SdrAgentPage() {
       {/* Métricas Clave */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Decisiones IA</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAiDecisions")}</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.totalDecisions}
           </div>
           <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
             <CheckCircle2 className="size-3" />
-            <span>100% auditadas</span>
+            <span>{t("statAudited")}</span>
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza Media</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAvgConfidence")}</div>
           <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
             {stats.averageConfidence}%
           </div>
-          <div className="mt-1 text-xs text-gray-500">Umbral mín: 85%</div>
+          <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Por Aprobar</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statToApprove")}</div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-[#0099ff]">
               {pendingActions.filter((a) => a.status === "pending").length}
             </span>
-            <span className="text-xs text-gray-500">en cola</span>
+            <span className="text-xs text-gray-500">{t("statInQueue")}</span>
           </div>
-          <div className="mt-1 text-xs text-blue-600">Human-in-the-loop</div>
+          <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Handoffs a Humano</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statHandoffs")}</div>
           <div className="mt-2 text-2xl font-bold text-amber-600">
             {stats.handoffCount}
           </div>
-          <div className="mt-1 text-xs text-gray-500">Protección activa</div>
+          <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Envíos Autónomos</div>
+          <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("statAutonomousReplies")}</div>
           <div className="mt-2 text-2xl font-bold text-emerald-600">
             {stats.autonomousRepliesSent}
           </div>
-          <div className="mt-1 text-xs text-gray-500">Cero alucinaciones</div>
+          <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
         </div>
       </div>
 
@@ -490,17 +491,17 @@ export default function SdrAgentPage() {
       <div className="flex overflow-x-auto border-b border-gray-300 pb-px dark:border-gray-800">
         <div className="flex gap-2">
           {[
-            { key: "overview", label: "Resumen & Estado", icon: Activity },
+            { key: "overview", label: t("tabOverview"), icon: Activity },
             {
               key: "approvals",
-              label: `Cola de Aprobaciones (${pendingActions.filter((a) => a.status === "pending").length})`,
+              label: t("tabApprovals", { count: pendingActions.filter((a) => a.status === "pending").length }),
               icon: UserCheck,
             },
-            { key: "knowledge", label: "Base de Conocimiento", icon: BookOpen },
-            { key: "policies", label: "Políticas & Configuración", icon: Sliders },
-            { key: "simulator", label: "Simulador Interactivo", icon: Play },
-            { key: "gates", label: "Puertas de Seguridad", icon: ShieldCheck },
-            { key: "logs", label: "Registro de Auditoría", icon: FileText },
+            { key: "knowledge", label: t("tabKnowledge"), icon: BookOpen },
+            { key: "policies", label: t("tabPolicies"), icon: Sliders },
+            { key: "simulator", label: t("tabSimulator"), icon: Play },
+            { key: "gates", label: t("tabGates"), icon: ShieldCheck },
+            { key: "logs", label: t("tabLogs"), icon: FileText },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -529,10 +530,10 @@ export default function SdrAgentPage() {
             {/* Estado del Pipeline SDR */}
             <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Ciclo de Vida de Mensajes Entrantes
+                {t("lifecycleTitle")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Cada respuesta entrante en LinkedIn se analiza siguiendo el flujo determinista y seguro de InHubFlow:
+                {t("lifecycleDesc")}
               </p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
@@ -541,10 +542,10 @@ export default function SdrAgentPage() {
                     <MessageSquare className="size-4" />
                   </div>
                   <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    1. Captura
+                    {t("step1Title")}
                   </div>
                   <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Sincronización segura con deduplicación por message_id.
+                    {t("step1Desc")}
                   </div>
                 </div>
 
@@ -553,10 +554,10 @@ export default function SdrAgentPage() {
                     <Brain className="size-4" />
                   </div>
                   <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    2. Clasificación
+                    {t("step2Title")}
                   </div>
                   <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Detección de 14 intenciones comerciales con Gemini 3.6 Flash.
+                    {t("step2Desc")}
                   </div>
                 </div>
 
@@ -565,10 +566,10 @@ export default function SdrAgentPage() {
                     <BookOpen className="size-4" />
                   </div>
                   <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    3. RAG Aprobado
+                    {t("step3Title")}
                   </div>
                   <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Cotejo con base de conocimiento oficial (precios, objeciones).
+                    {t("step3Desc")}
                   </div>
                 </div>
 
@@ -577,10 +578,10 @@ export default function SdrAgentPage() {
                     <Send className="size-4" />
                   </div>
                   <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    4. Despacho / Handoff
+                    {t("step4Title")}
                   </div>
                   <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Cola de aprobación humana o envío seguro respetando límites.
+                    {t("step4Desc")}
                   </div>
                 </div>
               </div>
@@ -590,7 +591,7 @@ export default function SdrAgentPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                      Modo Operativo Vigente
+                      {t("currentModeLabel")}
                     </span>
                     <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
                       {currentModeInfo.label}
@@ -609,42 +610,42 @@ export default function SdrAgentPage() {
             {/* Configuración Rápida / Resumen */}
             <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Parámetros de Seguridad
+                {t("securityParamsTitle")}
               </h3>
 
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">Umbral de Confianza:</span>
+                  <span className="text-gray-500">{t("paramConfidenceThreshold")}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {Math.round(config.confidenceThreshold * 100)}%
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">Turnos Máx. Autónomos:</span>
+                  <span className="text-gray-500">{t("paramMaxAutoTurns")}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {config.maxAutoTurns} respuestas
+                    {t("paramTurnsUnit", { count: config.maxAutoTurns })}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">Calendario Integrado:</span>
+                  <span className="text-gray-500">{t("paramIntegratedCalendar")}</span>
                   <span className="font-semibold text-emerald-600">
-                    {config.calendarEnabled ? "Activo (Demo 20 min)" : "Inactivo"}
+                    {config.calendarEnabled ? t("paramCalendarActive") : t("paramCalendarInactive")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">Email de Handoff:</span>
+                  <span className="text-gray-500">{t("paramHandoffEmail")}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {config.handoffEmail}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-gray-500">Documentos RAG:</span>
+                  <span className="text-gray-500">{t("paramRagDocs")}</span>
                   <span className="font-semibold text-[#0099ff]">
-                    {knowledge.filter((k) => k.status === "approved").length} aprobados
+                    {t("paramRagApproved", { count: knowledge.filter((k) => k.status === "approved").length })}
                   </span>
                 </div>
               </div>
@@ -654,7 +655,7 @@ export default function SdrAgentPage() {
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
               >
                 <Play className="size-3.5" />
-                <span>Probar en el Simulador</span>
+                <span>{t("btnTestInSimulator")}</span>
               </button>
             </div>
           </div>
@@ -667,14 +668,14 @@ export default function SdrAgentPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Cola de Aprobaciones Human-in-the-Loop
+                {t("approvalsTitle")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Revisa, ajusta o aprueba con un solo clic las respuestas sugeridas por el Asistente SDR antes de enviarlas al lead en LinkedIn.
+                {t("approvalsDesc")}
               </p>
             </div>
             <div className="text-xs font-medium text-gray-500">
-              Mostrando {pendingActions.filter((a) => a.status === "pending").length} acción(es) pendiente(s)
+              {t("showingPendingActions", { count: pendingActions.filter((a) => a.status === "pending").length })}
             </div>
           </div>
 
@@ -684,10 +685,10 @@ export default function SdrAgentPage() {
                 <CheckCircle2 className="size-6" />
               </div>
               <h4 className="mt-3 text-base font-semibold text-gray-900 dark:text-white">
-                ¡Cola de Aprobaciones al Día!
+                {t("emptyApprovalsTitle")}
               </h4>
               <p className="mx-auto mt-1 max-w-sm text-xs text-gray-500 dark:text-gray-400">
-                No hay respuestas pendientes de revisión en este momento. Los nuevos mensajes entrantes de LinkedIn aparecerán aquí automáticamente.
+                {t("emptyApprovalsDesc")}
               </p>
             </div>
           ) : (
@@ -720,7 +721,7 @@ export default function SdrAgentPage() {
                               </span>
                             </div>
                             <div className="mt-0.5 text-xs text-gray-400">
-                              Cuenta emisora: <span className="font-medium text-gray-600 dark:text-gray-300">{action.accountName}</span>
+                              {t("senderAccount")} <span className="font-medium text-gray-600 dark:text-gray-300">{action.accountName}</span>
                             </div>
                           </div>
                         </div>
@@ -730,7 +731,7 @@ export default function SdrAgentPage() {
                             {intentInfo.label}
                           </span>
                           <span className="rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                            Confianza: {Math.round(action.confidence * 100)}%
+                            {t("confidenceLabel", { val: Math.round(action.confidence * 100) })}
                           </span>
                           <span
                             className={`rounded-lg px-2 py-1 text-xs font-medium ${
@@ -741,7 +742,7 @@ export default function SdrAgentPage() {
                                 : "bg-red-500/10 text-red-600"
                             }`}
                           >
-                            Riesgo: {action.riskLevel.toUpperCase()}
+                            {t("riskLabel", { val: action.riskLevel.toUpperCase() })}
                           </span>
                         </div>
                       </div>
@@ -749,7 +750,7 @@ export default function SdrAgentPage() {
                       {/* Mensaje Entrante del Lead */}
                       <div className="mt-4 rounded-lg border border-gray-300 bg-gray-50/70 p-3.5 dark:border-gray-800/80 dark:bg-gray-800/40">
                         <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                          Mensaje del Prospecto (LinkedIn)
+                          {t("inboundMessageLead")}
                         </span>
                         <p className="mt-1 text-xs text-gray-700 dark:text-gray-200">
                           &quot;{action.lastInboundMessage}&quot;
@@ -761,7 +762,7 @@ export default function SdrAgentPage() {
                         <div className="flex items-center justify-between pb-1.5">
                           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0099ff]">
                             <Sparkles className="size-3.5" />
-                            <span>Respuesta Generada por InHubFlow Virtual SDR</span>
+                            <span>{t("replyGeneratedAi")}</span>
                           </div>
                           {!isEditing ? (
                             <button
@@ -771,14 +772,14 @@ export default function SdrAgentPage() {
                               }}
                               className="text-xs font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white"
                             >
-                              Editar texto
+                              {t("btnEditText")}
                             </button>
                           ) : (
                             <button
                               onClick={() => setEditingActionId(null)}
                               className="text-xs font-medium text-gray-400 hover:text-gray-600"
                             >
-                              Cancelar edición
+                              {t("btnCancelEdit")}
                             </button>
                           )}
                         </div>
@@ -800,7 +801,7 @@ export default function SdrAgentPage() {
                         {action.citations.length > 0 && (
                           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
                             <BookOpen className="size-3" />
-                            <span>Fundamentado en:</span>
+                            <span>{t("groundedIn")}</span>
                             {action.citations.map((cite, idx) => (
                               <span
                                 key={idx}
@@ -820,7 +821,7 @@ export default function SdrAgentPage() {
                           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
                         >
                           <Trash2 className="size-3.5" />
-                          <span>Descartar</span>
+                          <span>{t("btnDismiss")}</span>
                         </button>
 
                         <button
@@ -828,7 +829,7 @@ export default function SdrAgentPage() {
                           className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20"
                         >
                           <ShieldAlert className="size-3.5" />
-                          <span>Escalar a Humano</span>
+                          <span>{t("btnEscalateHuman")}</span>
                         </button>
 
                         <button
@@ -836,7 +837,7 @@ export default function SdrAgentPage() {
                           className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                         >
                           <Send className="size-3.5" />
-                          <span>Aprobar & Enviar a LinkedIn</span>
+                          <span>{t("btnApproveSend")}</span>
                         </button>
                       </div>
                     </div>
@@ -853,10 +854,10 @@ export default function SdrAgentPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Base de Conocimiento Aprobada (RAG)
+                {t("knowledgeTitle")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                La IA únicamente responde dudas basándose en estos documentos oficiales, previniendo alucinaciones comerciales.
+                {t("knowledgeDesc")}
               </p>
             </div>
             {!isMember && (
@@ -865,7 +866,7 @@ export default function SdrAgentPage() {
                 className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
               >
                 <Plus className="size-3.5" />
-                <span>Agregar Documento</span>
+                <span>{t("btnAddDocument")}</span>
               </button>
             )}
           </div>
@@ -876,7 +877,7 @@ export default function SdrAgentPage() {
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar en la base de conocimiento..."
+                placeholder={t("searchKnowledgePlaceholder")}
                 value={knowledgeSearch}
                 onChange={(e) => setKnowledgeSearch(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-9 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
@@ -885,11 +886,11 @@ export default function SdrAgentPage() {
 
             <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-800/60">
               {[
-                { key: "all", label: "Todos" },
-                { key: "value_prop", label: "Propuesta" },
-                { key: "pricing", label: "Precios" },
-                { key: "objections", label: "Objeciones" },
-                { key: "company", label: "Protocolos" },
+                { key: "all", label: t("catAll") },
+                { key: "value_prop", label: t("catValueProp") },
+                { key: "pricing", label: t("catPricing") },
+                { key: "objections", label: t("catObjections") },
+                { key: "company", label: t("catCompany") },
               ].map((cat) => (
                 <button
                   key={cat.key}
@@ -939,9 +940,9 @@ export default function SdrAgentPage() {
                 <div className="mt-4 flex items-center justify-between border-t border-gray-300 pt-3 text-xs text-gray-400 dark:border-gray-800">
                   <span className="inline-flex items-center gap-1 text-emerald-600">
                     <CheckCircle2 className="size-3" />
-                    Estado: {item.status.toUpperCase()}
+                    {t("docStatus", { status: item.status.toUpperCase() })}
                   </span>
-                  <span>Actualizado: {new Date(item.updatedAt).toLocaleDateString()}</span>
+                  <span>{t("docUpdated", { date: new Date(item.updatedAt).toLocaleDateString() })}</span>
                 </div>
               </div>
             ))}
@@ -952,21 +953,21 @@ export default function SdrAgentPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
               <div className="w-full max-w-lg rounded-lg border border-gray-300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
                 <h4 className="text-base font-bold text-gray-900 dark:text-white">
-                  Agregar Documento a la Base de Conocimiento
+                  {t("modalAddTitle")}
                 </h4>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Ingresa las políticas o respuestas aprobadas que la IA podrá citar en LinkedIn.
+                  {t("modalAddDesc")}
                 </p>
 
                 <form onSubmit={handleAddKnowledge} className="mt-4 space-y-4">
                   <div>
                     <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                      Título del Documento
+                      {t("docTitleLabel")}
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ej: Política de Reembolso o Tarifas de Implementación"
+                      placeholder={t("docTitlePlaceholder")}
                       value={newKbTitle}
                       onChange={(e) => setNewKbTitle(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
@@ -975,29 +976,29 @@ export default function SdrAgentPage() {
 
                   <div>
                     <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                      Categoría
+                      {t("docCategoryLabel")}
                     </label>
                     <select
                       value={newKbCategory}
                       onChange={(e) => setNewKbCategory(e.target.value as KnowledgeCategory)}
                       className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     >
-                      <option value="value_prop">Propuesta de Valor</option>
-                      <option value="pricing">Precios y Tarifas</option>
-                      <option value="objections">Manejo de Objeciones</option>
-                      <option value="faqs">Preguntas Frecuentes (FAQs)</option>
-                      <option value="company">Protocolos y Políticas</option>
+                      <option value="value_prop">{t("catValueProp")}</option>
+                      <option value="pricing">{t("catPricing")}</option>
+                      <option value="objections">{t("catObjections")}</option>
+                      <option value="faqs">{t("catFaqs")}</option>
+                      <option value="company">{t("catCompany")}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                      Contenido Explicativo
+                      {t("docContentLabel")}
                     </label>
                     <textarea
                       required
                       rows={5}
-                      placeholder="Redacta la información detallada que el agente usará para responder..."
+                      placeholder={t("docContentPlaceholder")}
                       value={newKbContent}
                       onChange={(e) => setNewKbContent(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
@@ -1010,13 +1011,13 @@ export default function SdrAgentPage() {
                       onClick={() => setIsAddKnowledgeOpen(false)}
                       className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
                     >
-                      Cancelar
+                      {t("btnCancel")}
                     </button>
                     <button
                       type="submit"
                       className="rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0088e6]"
                     >
-                      Guardar Documento
+                      {t("btnSaveDocument")}
                     </button>
                   </div>
                 </form>
@@ -1031,16 +1032,16 @@ export default function SdrAgentPage() {
         <form onSubmit={handleSaveConfig} className="space-y-6">
           <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Identidad y Parámetros del Asistente SDR
+              {t("policiesTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Personaliza el comportamiento, tono de comunicación y umbrales de seguridad de la IA.
+              {t("policiesDesc")}
             </p>
 
             <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Nombre del Agente
+                  {t("agentNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -1053,7 +1054,7 @@ export default function SdrAgentPage() {
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Modelo LLM (Gemini Engine)
+                  {t("modelLabel")}
                 </label>
                 <input
                   type="text"
@@ -1066,7 +1067,7 @@ export default function SdrAgentPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Umbral Mínimo de Confianza
+                    {t("minConfidenceLabel")}
                   </label>
                   <span className="text-xs font-bold text-[#0099ff]">
                     {Math.round(config.confidenceThreshold * 100)}%
@@ -1085,13 +1086,13 @@ export default function SdrAgentPage() {
                   className="mt-2.5 w-full accent-[#0099ff]"
                 />
                 <span className="text-xs text-gray-400">
-                  Cualquier respuesta con confianza inferior se desviará automáticamente a un humano.
+                  {t("confidenceHelper")}
                 </span>
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Turnos Máximos de Auto-Respuesta
+                  {t("maxTurnsLabel")}
                 </label>
                 <input
                   type="number"
@@ -1105,13 +1106,13 @@ export default function SdrAgentPage() {
                   className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
                 <span className="text-xs text-gray-400">
-                  Tras este número de respuestas consecutivas, el lead pasa a un humano.
+                  {t("maxTurnsHelper")}
                 </span>
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Enlace de Agendamiento de Reuniones
+                  {t("bookingLinkLabel")}
                 </label>
                 <input
                   type="text"
@@ -1125,7 +1126,7 @@ export default function SdrAgentPage() {
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Email de Notificación de Handoff
+                  {t("handoffEmailLabel")}
                 </label>
                 <input
                   type="email"
@@ -1140,7 +1141,7 @@ export default function SdrAgentPage() {
             <div className="mt-5 space-y-4">
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  System Prompt (Instrucción Base)
+                  {t("systemPromptLabel")}
                 </label>
                 <textarea
                   rows={3}
@@ -1153,7 +1154,7 @@ export default function SdrAgentPage() {
 
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Instrucciones Personalizadas de Venta
+                  {t("customInstructionsLabel")}
                 </label>
                 <textarea
                   rows={3}
@@ -1172,7 +1173,7 @@ export default function SdrAgentPage() {
                   className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
                   <Check className="size-4" />
-                  <span>Guardar Políticas & Configuración</span>
+                  <span>{t("btnSavePolicies")}</span>
                 </button>
               </div>
             )}
@@ -1187,17 +1188,17 @@ export default function SdrAgentPage() {
           <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <div>
               <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                Simulador Interactivo de Decisión
+                {t("simTitle")}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Escribe un mensaje de prueba como si fueras un prospecto en LinkedIn para verificar cómo clasifica y responde el SDR.
+                {t("simDesc")}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Nombre del Lead
+                  {t("simLeadName")}
                 </label>
                 <input
                   type="text"
@@ -1208,7 +1209,7 @@ export default function SdrAgentPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Empresa del Lead
+                  {t("simLeadCompany")}
                 </label>
                 <input
                   type="text"
@@ -1221,13 +1222,13 @@ export default function SdrAgentPage() {
 
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Mensaje Entrante de LinkedIn
+                {t("simInboundMsg")}
               </label>
               <textarea
                 rows={4}
                 value={simText}
                 onChange={(e) => setSimText(e.target.value)}
-                placeholder="Ejemplo: 'Hola, me llamó la atención su herramienta. ¿Cuánto cuesta para 5 personas de mi equipo?'"
+                placeholder={t("simMsgPlaceholder")}
                 className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
               />
             </div>
@@ -1235,7 +1236,7 @@ export default function SdrAgentPage() {
             {/* Ejemplos Rápidos */}
             <div>
               <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                Probar Casos de Uso Frecuentes
+                {t("simQuickCases")}
               </span>
               <div className="mt-2 flex flex-wrap gap-2">
                 {[
@@ -1265,11 +1266,11 @@ export default function SdrAgentPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
             >
               {isSimulating ? (
-                <span>Evaluando con Gemini...</span>
+                <span>{t("btnSimulating")}</span>
               ) : (
                 <>
                   <Sparkles className="size-3.5" />
-                  <span>Simular Decisión IA</span>
+                  <span>{t("btnSimulate")}</span>
                 </>
               )}
             </button>
@@ -1278,14 +1279,14 @@ export default function SdrAgentPage() {
           {/* Panel Derecho: Resultado de la Simulación */}
           <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Análisis y Respuesta de la IA
+              {t("simAnalysisTitle")}
             </h3>
 
             {!simResult ? (
               <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center dark:border-gray-800">
                 <Brain className="mx-auto size-8 text-gray-400" />
                 <p className="mt-2 text-xs text-gray-500">
-                  Ingresa o selecciona un mensaje a la izquierda y presiona &quot;Simular Decisión IA&quot; para ver la clasificación en tiempo real.
+                  {t("simEmptyDesc")}
                 </p>
               </div>
             ) : (
@@ -1293,28 +1294,28 @@ export default function SdrAgentPage() {
                 {/* Badges de Decisión */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Intención</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colIntent")}</div>
                     <div className="mt-1 text-xs font-bold text-gray-900 dark:text-white">
                       {simResult.intent}
                     </div>
                   </div>
 
                   <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Confianza</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colConfidence")}</div>
                     <div className="mt-1 text-xs font-bold text-[#0099ff]">
                       {Math.round(simResult.confidence * 100)}%
                     </div>
                   </div>
 
                   <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Acción</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colAction")}</div>
                     <div className="mt-1 text-xs font-bold text-emerald-600">
                       {simResult.recommendedAction}
                     </div>
                   </div>
 
                   <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">Latencia</div>
+                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colLatency")}</div>
                     <div className="mt-1 text-xs font-bold text-gray-700 dark:text-gray-300">
                       {simResult.latencyMs} ms
                     </div>
@@ -1324,7 +1325,7 @@ export default function SdrAgentPage() {
                 {/* Razonamiento */}
                 <div className="rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/40">
                   <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    Resumen de Razonamiento
+                    {t("reasoningSummary")}
                   </span>
                   <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
                     {simResult.reasoningSummary}
@@ -1334,7 +1335,7 @@ export default function SdrAgentPage() {
                 {/* Borrador Generado */}
                 <div>
                   <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    Borrador de Respuesta Sugerida
+                    {t("suggestedReplyDraft")}
                   </span>
                   <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
                     {simResult.replyDraft}
@@ -1345,7 +1346,7 @@ export default function SdrAgentPage() {
                 {simResult.citations.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
                     <BookOpen className="size-3 text-[#0099ff]" />
-                    <span>Citas aplicadas:</span>
+                    <span>{t("citationsApplied")}</span>
                     {simResult.citations.map((c, i) => (
                       <span
                         key={i}
@@ -1367,10 +1368,10 @@ export default function SdrAgentPage() {
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Puertas de Seguridad para Promoción a Modo Autónomo
+              {t("gatesTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Estas reglas de validación garantizan que el Asistente SDR opere con máxima protección antes de permitir respuestas autónomas.
+              {t("gatesDesc")}
             </p>
           </div>
 
@@ -1402,7 +1403,7 @@ export default function SdrAgentPage() {
                       {gate.description}
                     </p>
                     <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                      <span className="font-semibold text-[#0099ff]">Evidencia técnica:</span>
+                      <span className="font-semibold text-[#0099ff]">{t("technicalEvidence")}</span>
                       <span>{gate.evidence}</span>
                     </div>
                   </div>
@@ -1415,7 +1416,7 @@ export default function SdrAgentPage() {
                       : "bg-red-500/10 text-red-600"
                   }`}
                 >
-                  {gate.passed ? "CUMPLIDO" : "PENDIENTE"}
+                  {gate.passed ? t("badgePassed") : t("badgePending")}
                 </span>
               </div>
             ))}
@@ -1428,10 +1429,10 @@ export default function SdrAgentPage() {
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              Registro de Auditoría de Decisiones (Audit Trail)
+              {t("logsTitle")}
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Historial completo de mensajes procesados, intenciones clasificadas y consumo de tokens.
+              {t("logsDesc")}
             </p>
           </div>
 
@@ -1439,14 +1440,14 @@ export default function SdrAgentPage() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-gray-300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
                 <tr>
-                  <th className="px-4 py-3">Fecha & Hora</th>
-                  <th className="px-4 py-3">Prospecto</th>
-                  <th className="px-4 py-3">Mensaje Entrante</th>
-                  <th className="px-4 py-3">Intención</th>
-                  <th className="px-4 py-3">Confianza</th>
-                  <th className="px-4 py-3">Acción</th>
-                  <th className="px-4 py-3">Latencia</th>
-                  <th className="px-4 py-3">Estado</th>
+                  <th className="px-4 py-3">{t("colDateTime")}</th>
+                  <th className="px-4 py-3">{t("colProspect")}</th>
+                  <th className="px-4 py-3">{t("colInboundText")}</th>
+                  <th className="px-4 py-3">{t("colIntentLog")}</th>
+                  <th className="px-4 py-3">{t("colConfidenceLog")}</th>
+                  <th className="px-4 py-3">{t("colActionLog")}</th>
+                  <th className="px-4 py-3">{t("colLatencyLog")}</th>
+                  <th className="px-4 py-3">{t("colStatusLog")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
