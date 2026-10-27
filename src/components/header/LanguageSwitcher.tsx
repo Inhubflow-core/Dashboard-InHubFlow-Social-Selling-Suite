@@ -4,8 +4,8 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { getLanguage, languages } from "@/i18n/languages";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import { ChevronDownIcon } from "@/icons";
-import { Check, Globe } from "lucide-react";
+
+import { Check, Globe, ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
@@ -34,12 +34,12 @@ export default function LanguageSwitcher() {
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
         aria-label={t("language")}
-        className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/5"
+        className="flex h-11 items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
       >
-        <Globe className="size-4 text-gray-500 dark:text-gray-400" />
+        <Globe className="size-4 shrink-0 text-gray-500 dark:text-gray-400" />
         <span className="font-semibold">{currentLanguage.shortName}</span>
-        <ChevronDownIcon
-          className={`size-3.5 text-gray-400 transition-transform duration-200 ${
+        <ChevronDown
+          className={`size-3.5 shrink-0 text-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
