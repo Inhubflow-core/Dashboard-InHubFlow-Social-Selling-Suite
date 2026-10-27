@@ -396,7 +396,7 @@ export default function SdrAgentPage() {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="text-base font-medium text-gray-800 dark:text-white/90">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {config.name}
                 </h2>
                 <span
@@ -425,7 +425,7 @@ export default function SdrAgentPage() {
                 <button
                   type="button"
                   onClick={() => handleModeChange("copilot")}
-                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
                     config.mode === "copilot" || config.mode === "approval"
                       ? "bg-[#0099ff] text-white shadow-xs"
                       : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -437,7 +437,7 @@ export default function SdrAgentPage() {
                 <button
                   type="button"
                   onClick={() => handleModeChange("auto")}
-                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
                     config.mode === "auto"
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -449,7 +449,7 @@ export default function SdrAgentPage() {
                 <button
                   type="button"
                   onClick={() => handleModeChange("off")}
-                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all ${
                     config.mode === "off"
                       ? "bg-gray-700 text-white shadow-xs"
                       : "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
@@ -548,7 +548,7 @@ export default function SdrAgentPage() {
         <button
           type="button"
           onClick={() => setIsSimulatorOpen(true)}
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/10 px-3 py-1.5 text-xs font-semibold text-[#0099ff] transition hover:bg-[#0099ff] hover:text-white mb-2"
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/10 px-3.5 py-1.5 text-sm font-medium text-[#0099ff] transition hover:bg-[#0099ff] hover:text-white mb-2"
         >
           <Play className="size-3.5" />
           <span>{t("btnTestAssistant")}</span>
@@ -565,10 +565,10 @@ export default function SdrAgentPage() {
                 <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                   {t("currentModeLabel")}
                 </span>
-                <h4 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                   {currentModeInfo.label}
                 </h4>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {currentModeInfo.desc}
                 </p>
               </div>
@@ -580,7 +580,7 @@ export default function SdrAgentPage() {
                   <button
                     type="button"
                     onClick={() => handleModeChange(config.mode === "auto" ? "copilot" : "auto")}
-                    className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                    className="rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
                   >
                     {config.mode === "auto" ? "Cambiar a Copiloto" : "Cambiar a Autónomo"}
                   </button>
@@ -588,7 +588,7 @@ export default function SdrAgentPage() {
                 <button
                   type="button"
                   onClick={() => setIsSimulatorOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
                   <Play className="size-3.5" />
                   <span>{t("btnTestAssistant")}</span>
@@ -606,7 +606,7 @@ export default function SdrAgentPage() {
                 {t("approvalsDesc")}
               </p>
             </div>
-            <div className="text-xs font-medium text-gray-500">
+            <div className="text-sm font-medium text-gray-500">
               {t("showingPendingActions", { count: pendingActions.filter((a) => a.status === "pending").length })}
             </div>
           </div>
@@ -620,7 +620,7 @@ export default function SdrAgentPage() {
                 <h4 className="mt-3 text-base font-semibold text-gray-900 dark:text-white">
                   {t("emptyApprovalsTitle")}
                 </h4>
-                <p className="mx-auto mt-1 max-w-sm text-xs text-gray-500 dark:text-gray-400">
+                <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
                   {t("emptyApprovalsDesc")}
                 </p>
               </div>
@@ -706,7 +706,7 @@ export default function SdrAgentPage() {
                                 {action.prospectName}
                               </h4>
                               <span className="text-xs text-gray-400">•</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
                                 {action.prospectTitle} en {action.prospectCompany}
                               </span>
                             </div>
@@ -742,7 +742,7 @@ export default function SdrAgentPage() {
                         <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                           {t("inboundMessageLead")}
                         </span>
-                        <p className="mt-1 text-xs text-gray-700 dark:text-gray-200">
+                        <p className="mt-1.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200">
                           &quot;{action.lastInboundMessage}&quot;
                         </p>
                       </div>
@@ -779,10 +779,10 @@ export default function SdrAgentPage() {
                             value={editedReply}
                             onChange={(e) => setEditedReply(e.target.value)}
                             rows={4}
-                            className="w-full rounded-lg border border-[#0099ff] bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:bg-gray-950 dark:text-white"
+                            className="w-full rounded-lg border border-[#0099ff] bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden dark:bg-gray-950 dark:text-white"
                           />
                         ) : (
-                          <div className="rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
+                          <div className="rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-sm leading-relaxed text-gray-800 whitespace-pre-wrap dark:text-gray-200">
                             {action.suggestedReply}
                           </div>
                         )}
@@ -808,7 +808,7 @@ export default function SdrAgentPage() {
                       <div className="mt-5 flex flex-wrap items-center justify-end gap-2.5 border-t border-gray-300 pt-3.5 dark:border-gray-800">
                         <button
                           onClick={() => handleRejectAction(action.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
                         >
                           <Trash2 className="size-3.5" />
                           <span>{t("btnDismiss")}</span>
@@ -816,7 +816,7 @@ export default function SdrAgentPage() {
 
                         <button
                           onClick={() => handleHandoffAction(action)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2 text-sm font-medium text-amber-600 transition hover:bg-amber-500/20"
                         >
                           <ShieldAlert className="size-3.5" />
                           <span>{t("btnEscalateHuman")}</span>
@@ -824,7 +824,7 @@ export default function SdrAgentPage() {
 
                         <button
                           onClick={() => handleApproveAction(action)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-4 py-2 text-sm font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                         >
                           <Send className="size-3.5" />
                           <span>{t("btnApproveSend")}</span>
@@ -871,7 +871,7 @@ export default function SdrAgentPage() {
                 placeholder={t("searchKnowledgePlaceholder")}
                 value={knowledgeSearch}
                 onChange={(e) => setKnowledgeSearch(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-9 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-9 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:text-white"
               />
             </div>
 
@@ -886,7 +886,7 @@ export default function SdrAgentPage() {
                 <button
                   key={cat.key}
                   onClick={() => setKnowledgeCategoryFilter(cat.key)}
-                  className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                  className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
                     knowledgeCategoryFilter === cat.key
                       ? "bg-[#0099ff] text-white shadow-xs"
                       : "text-gray-600 hover:text-gray-900 dark:text-gray-400"
@@ -911,7 +911,7 @@ export default function SdrAgentPage() {
                       <span className="rounded-lg bg-[#0099ff]/10 px-2 py-0.5 text-xs font-semibold text-[#0099ff] uppercase">
                         {item.category.replace("_", " ")}
                       </span>
-                      <h4 className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
+                      <h4 className="mt-2 text-base font-semibold text-gray-900 dark:text-white">
                         {item.title}
                       </h4>
                     </div>
@@ -939,7 +939,7 @@ export default function SdrAgentPage() {
                       </div>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 whitespace-pre-wrap">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {item.content}
                   </p>
                 </div>
@@ -961,13 +961,13 @@ export default function SdrAgentPage() {
                 <h4 className="text-base font-bold text-gray-900 dark:text-white">
                   {t("modalAddTitle")}
                 </h4>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {t("modalAddDesc")}
                 </p>
 
                 <form onSubmit={handleAddKnowledge} className="mt-4 space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("docTitleLabel")}
                     </label>
                     <input
@@ -976,18 +976,18 @@ export default function SdrAgentPage() {
                       placeholder={t("docTitlePlaceholder")}
                       value={newKbTitle}
                       onChange={(e) => setNewKbTitle(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("docCategoryLabel")}
                     </label>
                     <select
                       value={newKbCategory}
                       onChange={(e) => setNewKbCategory(e.target.value as KnowledgeCategory)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     >
                       <option value="value_prop">{t("catValueProp")}</option>
                       <option value="pricing">{t("catPricing")}</option>
@@ -998,7 +998,7 @@ export default function SdrAgentPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("docContentLabel")}
                     </label>
                     <textarea
@@ -1007,7 +1007,7 @@ export default function SdrAgentPage() {
                       placeholder={t("docContentPlaceholder")}
                       value={newKbContent}
                       onChange={(e) => setNewKbContent(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
@@ -1015,7 +1015,7 @@ export default function SdrAgentPage() {
                     <button
                       type="button"
                       onClick={() => setIsAddKnowledgeOpen(false)}
-                      className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
                     >
                       {t("btnCancel")}
                     </button>
@@ -1038,13 +1038,13 @@ export default function SdrAgentPage() {
                 <h4 className="text-base font-bold text-gray-900 dark:text-white">
                   {t("modalEditTitle")}
                 </h4>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {t("modalEditDesc")}
                 </p>
 
                 <form onSubmit={handleSaveEditKnowledge} className="mt-4 space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("docTitleLabel")}
                     </label>
                     <input
@@ -1058,13 +1058,13 @@ export default function SdrAgentPage() {
                           title: e.target.value,
                         })
                       }
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {t("docCategoryLabel")}
                       </label>
                       <select
@@ -1086,7 +1086,7 @@ export default function SdrAgentPage() {
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {t("docStatusLabel")}
                       </label>
                       <select
@@ -1097,7 +1097,7 @@ export default function SdrAgentPage() {
                             status: e.target.value as "approved" | "draft" | "retired",
                           })
                         }
-                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                       >
                         <option value="approved">{t("statusApproved")}</option>
                         <option value="draft">{t("statusDraft")}</option>
@@ -1107,7 +1107,7 @@ export default function SdrAgentPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("docContentLabel")}
                     </label>
                     <textarea
@@ -1121,7 +1121,7 @@ export default function SdrAgentPage() {
                           content: e.target.value,
                         })
                       }
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
 
@@ -1129,7 +1129,7 @@ export default function SdrAgentPage() {
                     <button
                       type="button"
                       onClick={() => setEditingKnowledge(null)}
-                      className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300"
                     >
                       {t("btnCancel")}
                     </button>
@@ -1160,7 +1160,7 @@ export default function SdrAgentPage() {
 
             <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("agentNameLabel")}
                 </label>
                 <input
@@ -1168,25 +1168,25 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.name}
                   onChange={(e) => setConfig({ ...config, name: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("modelLabel")}
                 </label>
                 <input
                   type="text"
                   disabled
                   value={config.model}
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {t("minConfidenceLabel")}
                   </label>
                   <span className="text-xs font-bold text-[#0099ff]">
@@ -1211,7 +1211,7 @@ export default function SdrAgentPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("maxTurnsLabel")}
                 </label>
                 <input
@@ -1223,7 +1223,7 @@ export default function SdrAgentPage() {
                   onChange={(e) =>
                     setConfig({ ...config, maxAutoTurns: parseInt(e.target.value, 10) || 3 })
                   }
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
                 <span className="text-xs text-gray-400">
                   {t("maxTurnsHelper")}
@@ -1231,7 +1231,7 @@ export default function SdrAgentPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("bookingLinkLabel")}
                 </label>
                 <input
@@ -1240,12 +1240,12 @@ export default function SdrAgentPage() {
                   value={config.bookingLink || ""}
                   onChange={(e) => setConfig({ ...config, bookingLink: e.target.value })}
                   placeholder="https://cal.inhubflow.com/demo-20min"
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("handoffEmailLabel")}
                 </label>
                 <input
@@ -1253,14 +1253,14 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.handoffEmail}
                   onChange={(e) => setConfig({ ...config, handoffEmail: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("systemPromptLabel")}
                 </label>
                 <textarea
@@ -1268,12 +1268,12 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.systemPrompt}
                   onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("customInstructionsLabel")}
                 </label>
                 <textarea
@@ -1281,7 +1281,7 @@ export default function SdrAgentPage() {
                   disabled={isMember}
                   value={config.customInstructions}
                   onChange={(e) => setConfig({ ...config, customInstructions: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
               </div>
             </div>
@@ -1291,7 +1291,7 @@ export default function SdrAgentPage() {
                 <button
                   type="button"
                   onClick={() => setIsSimulatorOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
                 >
                   <Play className="size-3.5 text-[#0099ff]" />
                   <span>{t("btnTestAssistant")}</span>
@@ -1299,7 +1299,7 @@ export default function SdrAgentPage() {
 
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-sm font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
                 >
                   <Check className="size-4" />
                   <span>{t("btnSavePolicies")}</span>
@@ -1324,7 +1324,7 @@ export default function SdrAgentPage() {
                   <h4 className="text-base font-bold text-gray-900 dark:text-white">
                     {t("modalSimulatorTitle")}
                   </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {t("modalSimulatorDesc")}
                   </p>
                 </div>
@@ -1344,31 +1344,31 @@ export default function SdrAgentPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("simLeadName")}
                     </label>
                     <input
                       type="text"
                       value={simSender}
                       onChange={(e) => setSimSender(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("simLeadCompany")}
                     </label>
                     <input
                       type="text"
                       value={simCompany}
                       onChange={(e) => setSimCompany(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {t("simInboundMsg")}
                   </label>
                   <textarea
@@ -1376,7 +1376,7 @@ export default function SdrAgentPage() {
                     value={simText}
                     onChange={(e) => setSimText(e.target.value)}
                     placeholder={t("simMsgPlaceholder")}
-                    className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-sm leading-relaxed text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                   />
                 </div>
 
@@ -1399,7 +1399,7 @@ export default function SdrAgentPage() {
                         onClick={() => {
                           setSimText(sample);
                         }}
-                        className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 transition hover:border-[#0099ff] hover:text-[#0099ff] dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-[#0099ff] hover:text-[#0099ff] dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
                       >
                         {sample}
                       </button>
@@ -1411,7 +1411,7 @@ export default function SdrAgentPage() {
                   type="button"
                   onClick={handleRunSimulation}
                   disabled={isSimulating || !simText.trim()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-sm font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
                 >
                   {isSimulating ? (
                     <>
@@ -1478,7 +1478,7 @@ export default function SdrAgentPage() {
                       <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         {t("reasoningSummary")}
                       </span>
-                      <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                      <p className="mt-1.5 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
                         {simResult.reasoningSummary}
                       </p>
                     </div>
@@ -1488,7 +1488,7 @@ export default function SdrAgentPage() {
                       <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
                         {t("suggestedReplyDraft")}
                       </span>
-                      <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-white p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:bg-gray-900 dark:text-gray-200">
+                      <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-white p-3.5 text-sm leading-relaxed text-gray-800 whitespace-pre-wrap dark:bg-gray-900 dark:text-gray-200">
                         {simResult.replyDraft}
                       </div>
                     </div>
