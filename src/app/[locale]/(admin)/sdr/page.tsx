@@ -65,14 +65,7 @@ import { runSdrDecision, SdrSimulationOutput } from "@/lib/sdr/simulation-engine
 import { getVisibleAccountsForUser } from "@/lib/unipile/store";
 import { sendMessageToConversation } from "@/lib/inbox/store";
 
-type SdrTab =
-  | "overview"
-  | "approvals"
-  | "knowledge"
-  | "policies"
-  | "simulator"
-  | "gates"
-  | "logs";
+type SdrTab = "approvals" | "knowledge" | "policies";
 
 export default function SdrAgentPage() {
   const t = useTranslations("sdr");
@@ -80,7 +73,8 @@ export default function SdrAgentPage() {
   const isMember = currentUser.role === "member";
 
   // Data states
-  const [activeTab, setActiveTab] = useState<SdrTab>("overview");
+  const [activeTab, setActiveTab] = useState<SdrTab>("approvals");
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [config, setConfig] = useState<SdrAgentConfig>(getStoredSdrConfig());
   const [knowledge, setKnowledge] = useState<KnowledgeSource[]>(getStoredKnowledgeSources());
   const [pendingActions, setPendingActions] = useState<SdrPendingAction[]>([]);
@@ -519,11 +513,10 @@ export default function SdrAgentPage() {
         </div>
       </div>
 
-      {/* Navegación por Pestañas */}
-      <div className="flex overflow-x-auto border-b border-gray-300 pb-px dark:border-gray-800">
-        <div className="flex gap-2">
+      {/* Navegación por Pestañas (3 Pestañas Operativas) */}
+      <div className="flex items-center justify-between border-b border-gray-300 pb-px dark:border-gray-800">
+        <div className="flex gap-2 overflow-x-auto">
           {[
-            { key: "overview", label: t("tabOverview"), icon: Activity },
             {
               key: "approvals",
               label: t("tabApprovals", { count: pendingActions.filter((a) => a.status === "pending").length }),
@@ -531,9 +524,6 @@ export default function SdrAgentPage() {
             },
             { key: "knowledge", label: t("tabKnowledge"), icon: BookOpen },
             { key: "policies", label: t("tabPolicies"), icon: Sliders },
-            { key: "simulator", label: t("tabSimulator"), icon: Play },
-            { key: "gates", label: t("tabGates"), icon: ShieldCheck },
-            { key: "logs", label: t("tabLogs"), icon: FileText },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -553,149 +543,59 @@ export default function SdrAgentPage() {
             );
           })}
         </div>
+
+        {/* Botón Probar Asistente (Acceso Rápido al Simulador) */}
+        <button
+          type="button"
+          onClick={() => setIsSimulatorOpen(true)}
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/10 px-3 py-1.5 text-xs font-semibold text-[#0099ff] transition hover:bg-[#0099ff] hover:text-white mb-2"
+        >
+          <Play className="size-3.5" />
+          <span>{t("btnTestAssistant")}</span>
+        </button>
       </div>
 
-      {/* ── TAB 1: OVERVIEW ── */}
-      {activeTab === "overview" && (
+      {/* ── TAB 1: SUPERVISIÓN & COLA DE APROBACIONES ── */}
+      {activeTab === "approvals" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Estado del Pipeline SDR */}
-            <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
-              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {t("lifecycleTitle")}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("lifecycleDesc")}
-              </p>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                <div className="rounded-lg border border-gray-300 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
-                    <MessageSquare className="size-4" />
-                  </div>
-                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    {t("step1Title")}
-                  </div>
-                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t("step1Desc")}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-gray-300 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
-                    <Brain className="size-4" />
-                  </div>
-                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    {t("step2Title")}
-                  </div>
-                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t("step2Desc")}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-gray-300 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
-                    <BookOpen className="size-4" />
-                  </div>
-                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    {t("step3Title")}
-                  </div>
-                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t("step3Desc")}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-gray-300 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                    <Send className="size-4" />
-                  </div>
-                  <div className="mt-2 text-base font-medium text-gray-800 dark:text-white/90">
-                    {t("step4Title")}
-                  </div>
-                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t("step4Desc")}
-                  </div>
-                </div>
-              </div>
-
-              {/* Banner de Modo Operativo */}
-              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                      {t("currentModeLabel")}
-                    </span>
-                    <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {currentModeInfo.label}
-                    </h4>
-                  </div>
-                  <span className={`rounded-full border px-3 py-1 text-xs font-medium ${currentModeInfo.bg}`}>
-                    {config.mode.toUpperCase()}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {/* Banner de Modo Operativo y Estado */}
+          <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
+                  {t("currentModeLabel")}
+                </span>
+                <h4 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                  {currentModeInfo.label}
+                </h4>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {currentModeInfo.desc}
                 </p>
               </div>
-            </div>
-
-            {/* Configuración Rápida / Resumen */}
-            <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {t("securityParamsTitle")}
-              </h3>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">{t("paramConfidenceThreshold")}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {Math.round(config.confidenceThreshold * 100)}%
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">{t("paramMaxAutoTurns")}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {t("paramTurnsUnit", { count: config.maxAutoTurns })}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">{t("paramIntegratedCalendar")}</span>
-                  <span className="font-semibold text-emerald-600">
-                    {config.calendarEnabled ? t("paramCalendarActive") : t("paramCalendarInactive")}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-300 pb-2.5 dark:border-gray-800">
-                  <span className="text-gray-500">{t("paramHandoffEmail")}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {config.handoffEmail}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-gray-500">{t("paramRagDocs")}</span>
-                  <span className="font-semibold text-[#0099ff]">
-                    {t("paramRagApproved", { count: knowledge.filter((k) => k.status === "approved").length })}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${currentModeInfo.bg}`}>
+                  {config.mode.toUpperCase()}
+                </span>
+                {!isMember && (
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange(config.mode === "auto" ? "copilot" : "auto")}
+                    className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                  >
+                    {config.mode === "auto" ? "Cambiar a Copiloto" : "Cambiar a Autónomo"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsSimulatorOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                >
+                  <Play className="size-3.5" />
+                  <span>{t("btnTestAssistant")}</span>
+                </button>
               </div>
-
-              <button
-                onClick={() => setActiveTab("simulator")}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
-              >
-                <Play className="size-3.5" />
-                <span>{t("btnTestInSimulator")}</span>
-              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ── TAB 2: APPROVALS QUEUE (Human-in-the-loop) ── */}
-      {activeTab === "approvals" && (
         <div className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -712,16 +612,74 @@ export default function SdrAgentPage() {
           </div>
 
           {pendingActions.filter((a) => a.status === "pending").length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-900">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                <CheckCircle2 className="size-6" />
+            <div className="space-y-6">
+              <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
+                <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                  <CheckCircle2 className="size-6" />
+                </div>
+                <h4 className="mt-3 text-base font-semibold text-gray-900 dark:text-white">
+                  {t("emptyApprovalsTitle")}
+                </h4>
+                <p className="mx-auto mt-1 max-w-sm text-xs text-gray-500 dark:text-gray-400">
+                  {t("emptyApprovalsDesc")}
+                </p>
               </div>
-              <h4 className="mt-3 text-base font-semibold text-gray-900 dark:text-white">
-                {t("emptyApprovalsTitle")}
-              </h4>
-              <p className="mx-auto mt-1 max-w-sm text-xs text-gray-500 dark:text-gray-400">
-                {t("emptyApprovalsDesc")}
-              </p>
+
+              {/* Ciclo de vida del SDR en modo background */}
+              <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                  {t("lifecycleTitle")}
+                </h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+                      <MessageSquare className="size-4" />
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      {t("step1Title")}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {t("step1Desc")}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="flex size-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600">
+                      <Brain className="size-4" />
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      {t("step2Title")}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {t("step2Desc")}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="flex size-7 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
+                      <BookOpen className="size-4" />
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      {t("step3Title")}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {t("step3Desc")}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                      <Send className="size-4" />
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      {t("step4Title")}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {t("step4Desc")}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -878,7 +836,8 @@ export default function SdrAgentPage() {
             </div>
           )}
         </div>
-      )}
+      </div>
+    )}
 
       {/* ── TAB 3: KNOWLEDGE BASE ── */}
       {activeTab === "knowledge" && (
@@ -1328,7 +1287,16 @@ export default function SdrAgentPage() {
             </div>
 
             {!isMember && (
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setIsSimulatorOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                >
+                  <Play className="size-3.5 text-[#0099ff]" />
+                  <span>{t("btnTestAssistant")}</span>
+                </button>
+
                 <button
                   type="submit"
                   className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
@@ -1342,322 +1310,212 @@ export default function SdrAgentPage() {
         </form>
       )}
 
-      {/* ── TAB 5: SIMULATOR (Playground) ── */}
-      {activeTab === "simulator" && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Panel Izquierdo: Entrada de Prueba */}
-          <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <div>
-              <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                {t("simTitle")}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("simDesc")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  {t("simLeadName")}
-                </label>
-                <input
-                  type="text"
-                  value={simSender}
-                  onChange={(e) => setSimSender(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  {t("simLeadCompany")}
-                </label>
-                <input
-                  type="text"
-                  value={simCompany}
-                  onChange={(e) => setSimCompany(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                {t("simInboundMsg")}
-              </label>
-              <textarea
-                rows={4}
-                value={simText}
-                onChange={(e) => setSimText(e.target.value)}
-                placeholder={t("simMsgPlaceholder")}
-                className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
-              />
-            </div>
-
-            {/* Ejemplos Rápidos */}
-            <div>
-              <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("simQuickCases")}
-              </span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {[
-                  "¿Cuánto cuesta para 5 cuentas de mi equipo?",
-                  "Ya usamos Waalaxy, ¿qué tienen de diferente?",
-                  "Me interesa tener una llamada esta semana para verlo en vivo.",
-                  "Por favor remuéveme de tu lista de contactos.",
-                  "Quiero hablar con una persona de soporte por teléfono.",
-                ].map((sample, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setSimText(sample);
-                    }}
-                    className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 transition hover:border-[#0099ff] hover:text-[#0099ff] dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                  >
-                    {sample}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleRunSimulation()}
-              disabled={isSimulating || !simText.trim()}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
-            >
-              {isSimulating ? (
-                <span>{t("btnSimulating")}</span>
-              ) : (
-                <>
-                  <Sparkles className="size-3.5" />
-                  <span>{t("btnSimulate")}</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Panel Derecho: Resultado de la Simulación */}
-          <div className="space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              {t("simAnalysisTitle")}
-            </h3>
-
-            {!simResult ? (
-              <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center dark:border-gray-800">
-                <Brain className="mx-auto size-8 text-gray-400" />
-                <p className="mt-2 text-xs text-gray-500">
-                  {t("simEmptyDesc")}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Badges de Decisión */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colIntent")}</div>
-                    <div className="mt-1 text-xs font-bold text-gray-900 dark:text-white">
-                      {simResult.intent}
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colConfidence")}</div>
-                    <div className="mt-1 text-xs font-bold text-[#0099ff]">
-                      {Math.round(simResult.confidence * 100)}%
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colAction")}</div>
-                    <div className="mt-1 text-xs font-bold text-emerald-600">
-                      {simResult.recommendedAction}
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/50">
-                    <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colLatency")}</div>
-                    <div className="mt-1 text-xs font-bold text-gray-700 dark:text-gray-300">
-                      {simResult.latencyMs} ms
-                    </div>
-                  </div>
+      {/* ── MODAL: SIMULADOR INTERACTIVO ── */}
+      {isSimulatorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg border border-gray-300 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
+                  <Play className="size-4" />
                 </div>
-
-                {/* Razonamiento */}
-                <div className="rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("reasoningSummary")}
-                  </span>
-                  <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                    {simResult.reasoningSummary}
+                <div>
+                  <h4 className="text-base font-bold text-gray-900 dark:text-white">
+                    {t("modalSimulatorTitle")}
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("modalSimulatorDesc")}
                   </p>
                 </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSimulatorOpen(false)}
+                className="h-[26px] w-[26px] rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 inline-flex items-center justify-center transition shrink-0"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
 
-                {/* Borrador Generado */}
-                <div>
-                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                    {t("suggestedReplyDraft")}
-                  </span>
-                  <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-[#0099ff]/5 p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:text-gray-200">
-                    {simResult.replyDraft}
+            {/* Modal Body: Two Column Simulator */}
+            <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Left Column: Input */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {t("simLeadName")}
+                    </label>
+                    <input
+                      type="text"
+                      value={simSender}
+                      onChange={(e) => setSimSender(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {t("simLeadCompany")}
+                    </label>
+                    <input
+                      type="text"
+                      value={simCompany}
+                      onChange={(e) => setSimCompany(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                    />
                   </div>
                 </div>
 
-                {/* Citas */}
-                {simResult.citations.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-                    <BookOpen className="size-3 text-[#0099ff]" />
-                    <span>{t("citationsApplied")}</span>
-                    {simResult.citations.map((c, i) => (
-                      <span
-                        key={i}
-                        className="rounded-lg bg-gray-100 px-1.5 py-0.5 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    {t("simInboundMsg")}
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={simText}
+                    onChange={(e) => setSimText(e.target.value)}
+                    placeholder={t("simMsgPlaceholder")}
+                    className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:outline-hidden dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  />
+                </div>
+
+                {/* Ejemplos Rápidos */}
+                <div>
+                  <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                    {t("simQuickCases")}
+                  </span>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {[
+                      "¿Cuánto cuesta para 5 cuentas de mi equipo?",
+                      "Ya usamos Waalaxy, ¿qué tienen de diferente?",
+                      "Me interesa tener una llamada esta semana para verlo en vivo.",
+                      "Por favor remuéveme de tu lista de contactos.",
+                      "Quiero hablar con una persona de soporte por teléfono.",
+                    ].map((sample, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setSimText(sample);
+                        }}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 transition hover:border-[#0099ff] hover:text-[#0099ff] dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
                       >
-                        {c}
-                      </span>
+                        {sample}
+                      </button>
                     ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRunSimulation}
+                  disabled={isSimulating || !simText.trim()}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0099ff] px-4 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-50"
+                >
+                  {isSimulating ? (
+                    <>
+                      <Clock className="size-4 animate-spin" />
+                      <span>{t("btnSimulating")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-4" />
+                      <span>{t("btnSimulate")}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Right Column: Output */}
+              <div className="space-y-4 rounded-lg border border-gray-300 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-850">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {t("simAnalysisTitle")}
+                </h4>
+
+                {!simResult ? (
+                  <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center dark:border-gray-800">
+                    <Brain className="mx-auto size-8 text-gray-400" />
+                    <p className="mt-2 text-xs text-gray-500">
+                      {t("simEmptyDesc")}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Badges de Decisión */}
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      <div className="rounded-lg border border-gray-300 bg-white p-2.5 dark:border-gray-800 dark:bg-gray-900">
+                        <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colIntent")}</div>
+                        <div className="mt-1 text-xs font-bold text-gray-900 dark:text-white">
+                          {simResult.intent}
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-gray-300 bg-white p-2.5 dark:border-gray-800 dark:bg-gray-900">
+                        <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colConfidence")}</div>
+                        <div className="mt-1 text-xs font-bold text-[#0099ff]">
+                          {Math.round(simResult.confidence * 100)}%
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-gray-300 bg-white p-2.5 dark:border-gray-800 dark:bg-gray-900">
+                        <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colAction")}</div>
+                        <div className="mt-1 text-xs font-bold text-emerald-600">
+                          {simResult.recommendedAction}
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-gray-300 bg-white p-2.5 dark:border-gray-800 dark:bg-gray-900">
+                        <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">{t("colLatency")}</div>
+                        <div className="mt-1 text-xs font-bold text-gray-700 dark:text-gray-300">
+                          {simResult.latencyMs} ms
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Razonamiento */}
+                    <div className="rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+                      <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                        {t("reasoningSummary")}
+                      </span>
+                      <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                        {simResult.reasoningSummary}
+                      </p>
+                    </div>
+
+                    {/* Borrador Generado */}
+                    <div>
+                      <span className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                        {t("suggestedReplyDraft")}
+                      </span>
+                      <div className="mt-1.5 rounded-lg border border-[#0099ff]/20 bg-white p-3.5 text-xs text-gray-800 whitespace-pre-wrap dark:bg-gray-900 dark:text-gray-200">
+                        {simResult.replyDraft}
+                      </div>
+                    </div>
+
+                    {/* Citas */}
+                    {simResult.citations.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+                        <BookOpen className="size-3 text-[#0099ff]" />
+                        <span>{t("citationsApplied")}</span>
+                        {simResult.citations.map((c, i) => (
+                          <span
+                            key={i}
+                            className="rounded-lg bg-gray-200/60 px-1.5 py-0.5 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          >
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── TAB 6: PROMOTION GATES ── */}
-      {activeTab === "gates" && (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              {t("gatesTitle")}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t("gatesDesc")}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            {gates.map((gate) => (
-              <div
-                key={gate.key}
-                className="flex items-start justify-between rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
-              >
-                <div className="flex items-start gap-3.5">
-                  <div
-                    className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
-                      gate.passed
-                        ? "bg-emerald-500/10 text-emerald-600"
-                        : "bg-red-500/10 text-red-600"
-                    }`}
-                  >
-                    {gate.passed ? (
-                      <CheckCircle2 className="size-5" />
-                    ) : (
-                      <AlertTriangle className="size-5" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {gate.label}
-                    </h4>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {gate.description}
-                    </p>
-                    <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                      <span className="font-semibold text-[#0099ff]">{t("technicalEvidence")}</span>
-                      <span>{gate.evidence}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    gate.passed
-                      ? "bg-emerald-500/10 text-emerald-600"
-                      : "bg-red-500/10 text-red-600"
-                  }`}
-                >
-                  {gate.passed ? t("badgePassed") : t("badgePending")}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── TAB 7: AUDIT LOGS ── */}
-      {activeTab === "logs" && (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-              {t("logsTitle")}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t("logsDesc")}
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-gray-300 bg-gray-50/75 text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase [&_th]:font-normal dark:border-gray-800 dark:bg-gray-800/50">
-                <tr>
-                  <th className="px-4 py-3">{t("colDateTime")}</th>
-                  <th className="px-4 py-3">{t("colProspect")}</th>
-                  <th className="px-4 py-3">{t("colInboundText")}</th>
-                  <th className="px-4 py-3">{t("colIntentLog")}</th>
-                  <th className="px-4 py-3">{t("colConfidenceLog")}</th>
-                  <th className="px-4 py-3">{t("colActionLog")}</th>
-                  <th className="px-4 py-3">{t("colLatencyLog")}</th>
-                  <th className="px-4 py-3">{t("colStatusLog")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-300 dark:divide-gray-800">
-                {decisionLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-850">
-                    <td className="px-4 py-3 text-gray-500">
-                      {new Date(log.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                      {log.prospectName}
-                    </td>
-                    <td className="max-w-xs truncate px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {log.inboundText}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-lg bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-600">
-                        {log.intent}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-medium text-[#0099ff]">
-                      {Math.round(log.confidence * 100)}%
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">
-                      {log.action}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{log.latencyMs}ms</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${
-                          log.status === "executed"
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : log.status === "queued_for_approval"
-                            ? "bg-[#0099ff]/10 text-[#0099ff]"
-                            : "bg-amber-500/10 text-amber-600"
-                        }`}
-                      >
-                        {log.status.replace(/_/g, " ")}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
