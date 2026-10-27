@@ -705,41 +705,32 @@ export default function CampaignsPage() {
       <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
         {/* Cabecera Superior: Título, Estado y Botones de Acción */}
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <div className="flex items-center gap-3.5">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
-              {selectedCampaignId.includes("magnet") ? (
-                <Sparkles className="size-6" />
-              ) : (
-                <Layers className="size-6" />
-              )}
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-                  {selectedCampaignId.includes("magnet") ? t("tabLeadMagnet") : t("tabLeadLists")}
-                </h3>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                {selectedCampaignId.includes("magnet") ? t("tabLeadMagnet") : t("tabLeadLists")}
+              </h3>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                  activeCampaign.status === "active"
+                    ? "border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                    : "border-gray-300 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                }`}
+              >
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                    activeCampaign.status === "active"
-                      ? "border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-                      : "border-gray-300 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                  className={`size-1.5 rounded-full ${
+                    activeCampaign.status === "active" ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
                   }`}
-                >
-                  <span
-                    className={`size-1.5 rounded-full ${
-                      activeCampaign.status === "active" ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
-                    }`}
-                  />
-                  {activeCampaign.status === "active" ? t("statusActive") : t("statusPaused")}
-                </span>
-                <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                  {t("stepsCount", { count: activeCampaign.steps.length })}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
-                {activeCampaign.triggerDescription || t("cardDesc")}
-              </p>
+                />
+                {activeCampaign.status === "active" ? t("statusActive") : t("statusPaused")}
+              </span>
+              <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                {t("stepsCount", { count: activeCampaign.steps.length })}
+              </span>
             </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-2xl">
+              {activeCampaign.triggerDescription || t("cardDesc")}
+            </p>
           </div>
 
           {/* Acciones principales a la derecha */}

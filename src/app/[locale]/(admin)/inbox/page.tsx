@@ -217,27 +217,22 @@ export default function InboxPage() {
       {/* Card Principal: Bandeja de Entrada Comercial & Filtros */}
       <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <div className="flex items-center gap-3.5">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#0099ff]/10 text-[#0099ff]">
-              <MessageSquare className="size-6" />
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
+                {t("pageTitle")}
+              </h3>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t("cloudSync")}
+              </span>
+              <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                LinkedIn Cloud API
+              </span>
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-                  {t("pageTitle")}
-                </h3>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {t("cloudSync")}
-                </span>
-                <span className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-0.5 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                  LinkedIn Cloud API
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("cardDesc")}
-              </p>
-            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {t("cardDesc")}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
