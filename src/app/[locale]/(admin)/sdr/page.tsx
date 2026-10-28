@@ -387,7 +387,7 @@ export default function SdrAgentPage() {
         </div>
       )}
 
-      {/* Card Principal: Supervisión, Estado y KPIs */}
+      {/* Card Principal: Supervisión y Controles de Estado */}
       <div className="w-full rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-white/3 shadow-theme-xs">
         {/* Header del Card Principal */}
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
@@ -460,66 +460,77 @@ export default function SdrAgentPage() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Barra inferior separada por border-t: 5 KPIs Integrados */}
-        <div className="border-t border-gray-300 px-6 py-4 dark:border-gray-800">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            <div>
-              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("statAiDecisions")}
-              </div>
-              <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalDecisions}
-              </div>
-              <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-                <CheckCircle2 className="size-3" />
-                <span>{t("statAudited")}</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("statAvgConfidence")}
-              </div>
-              <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.averageConfidence}%
-              </div>
-              <div className="mt-1 text-xs text-gray-500">{t("statMinThreshold")}</div>
-            </div>
-
-            <div>
-              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("statToApprove")}
-              </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[#0099ff]">
-                  {pendingActions.filter((a) => a.status === "pending").length}
-                </span>
-                <span className="text-xs text-gray-500">{t("statInQueue")}</span>
-              </div>
-              <div className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</div>
-            </div>
-
-            <div>
-              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("statHandoffs")}
-              </div>
-              <div className="mt-1 text-2xl font-bold text-amber-600">
-                {stats.handoffCount}
-              </div>
-              <div className="mt-1 text-xs text-gray-500">{t("statActiveProtection")}</div>
-            </div>
-
-            <div>
-              <div className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                {t("statAutonomousReplies")}
-              </div>
-              <div className="mt-1 text-2xl font-bold text-emerald-600">
-                {stats.autonomousRepliesSent}
-              </div>
-              <div className="mt-1 text-xs text-gray-500">{t("statZeroHallucinations")}</div>
-            </div>
+      {/* Grid de Cards de Métricas KPI (Formato estándar del Dashboard) */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {/* 1. Decisiones IA */}
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            {t("statAiDecisions")}
+          </span>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalDecisions}
+            </span>
           </div>
+          <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
+            <CheckCircle2 className="size-3" />
+            <span>{t("statAudited")}</span>
+          </div>
+        </div>
+
+        {/* 2. Confianza Media */}
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            {t("statAvgConfidence")}
+          </span>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.averageConfidence}%
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t("statMinThreshold")}</p>
+        </div>
+
+        {/* 3. Por Aprobar */}
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            {t("statToApprove")}
+          </span>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-[#0099ff]">
+              {pendingActions.filter((a) => a.status === "pending").length}
+            </span>
+            <span className="text-xs text-gray-500">{t("statInQueue")}</span>
+          </div>
+          <p className="mt-1 text-xs text-blue-600">{t("statHumanInTheLoop")}</p>
+        </div>
+
+        {/* 4. Handoffs a Humano */}
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            {t("statHandoffs")}
+          </span>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-amber-600">
+              {stats.handoffCount}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t("statActiveProtection")}</p>
+        </div>
+
+        {/* 5. Envíos Autónomos */}
+        <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            {t("statAutonomousReplies")}
+          </span>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-emerald-600">
+              {stats.autonomousRepliesSent}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t("statZeroHallucinations")}</p>
         </div>
       </div>
 
