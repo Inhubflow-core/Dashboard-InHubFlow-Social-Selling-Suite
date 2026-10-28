@@ -295,7 +295,7 @@ export default function AdminSubscribersPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
               {t("planStarterLabel")}
             </span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -309,7 +309,7 @@ export default function AdminSubscribersPage() {
 
         <div className="rounded-lg border border-[#0099ff]/30 bg-[#0099ff]/5 p-4 dark:border-[#0099ff]/20">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#0099ff]">
+            <span className="text-xs font-semibold text-[#0099ff] uppercase">
               {t("planGrowthLabel")}
             </span>
             <span className="rounded-full bg-[#0099ff] px-2 py-0.5 text-xs font-bold text-white">
@@ -323,7 +323,7 @@ export default function AdminSubscribersPage() {
 
         <div className="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
               {t("planBusinessLabel")}
             </span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">

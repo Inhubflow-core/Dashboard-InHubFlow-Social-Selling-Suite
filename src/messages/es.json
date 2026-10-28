@@ -1433,7 +1433,9 @@
       "preConfigurePending": "Pre-Configurar Monitor de Señales (En Espera)",
       "connectFirstPost": "+ Conectar Primer Post",
       "connectFirstPostDesc": "Conecta una publicación de LinkedIn donde ofrezcas una guía, plantilla o recurso a cambio de una palabra clave (ej. \"SISTEMA\").",
-      "deleteConfirmWithLeads": "¿Eliminar monitor de \"{title}\"?\n\nLos {count} prospectos ya captados se conservarán en tu lista de leads con la etiqueta \"Monitor de Señales eliminado\"."
+      "deleteConfirmWithLeads": "¿Eliminar monitor de \"{title}\"?\n\nLos {count} prospectos ya captados se conservarán en tu lista de leads con la etiqueta \"Monitor de Señales eliminado\".",
+      "btnShowPosts": "Ver publicación ({count})",
+      "btnHidePosts": "Ocultar publicación"
     },
     "competitors": {
       "pageTitle": "Nivel 2: Señales de Intención en la Competencia",

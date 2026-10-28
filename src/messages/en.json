@@ -1433,7 +1433,9 @@
       "preConfigurePending": "Pre-Configure Intent Monitor (Standby)",
       "connectFirstPost": "+ Connect First Post",
       "connectFirstPostDesc": "Connect a LinkedIn post where you offer a guide, template or valuable resource in exchange for a keyword (e.g. \"SYSTEM\").",
-      "deleteConfirmWithLeads": "Delete monitor for \"{title}\"?\n\nThe {count} captured prospects will remain in your CRM lead list tagged with \"Deleted Signal Monitor\"."
+      "deleteConfirmWithLeads": "Delete monitor for \"{title}\"?\n\nThe {count} captured prospects will remain in your CRM lead list tagged with \"Deleted Signal Monitor\".",
+      "btnShowPosts": "View post ({count})",
+      "btnHidePosts": "Hide post"
     },
     "competitors": {
       "pageTitle": "Level 2: Intent Signals on Competitors",

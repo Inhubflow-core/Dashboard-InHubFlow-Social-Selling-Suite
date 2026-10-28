@@ -782,7 +782,7 @@ export default function GlobalSignalsView({
       {/* Métricas del Nivel 4 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
             {t("kpiRadarTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
@@ -794,7 +794,7 @@ export default function GlobalSignalsView({
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
             {t("kpiLeadsTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-brand-600 dark:text-brand-400">
@@ -806,7 +806,7 @@ export default function GlobalSignalsView({
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
             {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">

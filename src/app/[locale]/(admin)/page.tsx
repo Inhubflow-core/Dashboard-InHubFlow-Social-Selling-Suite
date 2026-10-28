@@ -89,7 +89,7 @@ export default async function SocialSellingDashboard() {
             key={idx}
             className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
           >
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
               {m.title}
             </span>
             <div className="mt-2 flex items-baseline justify-between">

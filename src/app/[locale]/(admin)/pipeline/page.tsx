@@ -241,7 +241,7 @@ export default function PipelinePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{t("totalPipelineValue")}</span>
+            <span className="font-medium uppercase">{t("totalPipelineValue")}</span>
             <DollarSign className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
@@ -254,7 +254,7 @@ export default function PipelinePage() {
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{t("activeOpportunities")}</span>
+            <span className="font-medium uppercase">{t("activeOpportunities")}</span>
             <TrendingUp className="size-4 text-brand-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
@@ -267,7 +267,7 @@ export default function PipelinePage() {
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{t("scheduledMeetings")}</span>
+            <span className="font-medium uppercase">{t("scheduledMeetings")}</span>
             <Calendar className="size-4 text-purple-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
@@ -280,7 +280,7 @@ export default function PipelinePage() {
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{t("wonDeals")}</span>
+            <span className="font-medium uppercase">{t("wonDeals")}</span>
             <UserCheck className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
