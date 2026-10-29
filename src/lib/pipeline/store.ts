@@ -4,6 +4,26 @@ import { INITIAL_DEALS, PIPELINE_STAGES } from "./mock-data";
 import { PipelineDeal, PipelineStageId } from "./types";
 
 const DEALS_STORAGE_KEY = "inhubflow_pipeline_deals";
+const DELETED_DEALS_STORAGE_KEY = "inhubflow_pipeline_deleted_deals";
+
+function getDeletedDealIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(DELETED_DEALS_STORAGE_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDeletedDealIds(ids: Set<string>): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DELETED_DEALS_STORAGE_KEY, JSON.stringify(Array.from(ids)));
+  } catch {
+    // ignore
+  }
+}
 
 export function mapCrmStageToPipelineStage(crmStage: CrmStage | string): PipelineStageId {
   switch (crmStage) {
@@ -129,8 +149,10 @@ export function getPipelineDeals(): PipelineDeal[] {
     let modified = false;
 
     // Sincronizar o incorporar leads de campañas al Pipeline
+    const deletedIds = getDeletedDealIds();
     if (Array.isArray(campaignLeads) && campaignLeads.length > 0) {
       campaignLeads.forEach((lead) => {
+        if (deletedIds.has(lead.id) || deletedIds.has(`deal-${lead.id}`)) return;
         const existing = dealsByLeadId.get(lead.id);
         const expectedStage = mapCrmStageToPipelineStage(lead.stage);
 
@@ -335,4 +357,118 @@ export function addPipelineDeal(deal: Omit<PipelineDeal, "id">): PipelineDeal[] 
 
 export function syncPipelineWithCampaignLeads(): PipelineDeal[] {
   return getPipelineDeals();
+}
+
+/**
+ * Actualiza los campos de un Deal (valor, prioridad, notas, fecha de reunión, siguiente acción, etapa)
+ * y sincroniza bidireccionalmente con Leads 360 e Inbox.
+ */
+export function updatePipelineDeal(
+  dealId: string,
+  updates: Partial<PipelineDeal>
+): PipelineDeal[] {
+  const deals = getPipelineDeals();
+  const targetDeal = deals.find((d) => d.id === dealId || d.leadId === dealId);
+  if (!targetDeal) return deals;
+
+  const stageChanged = Boolean(updates.stageId && updates.stageId !== targetDeal.stageId);
+  const targetStageId = updates.stageId || targetDeal.stageId;
+  const targetStageConfig = PIPELINE_STAGES.find((s) => s.id === targetStageId);
+  const targetStageName = targetStageConfig?.name || targetStageId;
+
+  const nextActionByStage: Record<PipelineStageId, string> = {
+    lead_captured: "Iniciar secuencia lineal o entrega de recurso",
+    in_sequence: "Ejecutar siguiente paso social (Like / Visita / Conexión)",
+    connected_material_sent: "Hacer seguimiento sobre el recurso entregado",
+    interested: "Proponer llamada de 15 min y enviar enlace Cal.com",
+    meeting_scheduled: "Demostración comercial agendada por Cal.com",
+    proposal_sent: "Seguimiento de términos y resolución de objeciones",
+    closed_won: "Iniciar onboarding del cliente y entrega de accesos",
+    closed_lost: "Archivar para reactivación futura en 90 días",
+  };
+
+  const updated = deals.map((d) => {
+    if (d.id === dealId || d.leadId === dealId) {
+      return {
+        ...d,
+        ...updates,
+        stageId: targetStageId,
+        nextAction:
+          updates.nextAction ||
+          (stageChanged ? nextActionByStage[targetStageId] : d.nextAction),
+        meetingDate:
+          updates.meetingDate !== undefined
+            ? updates.meetingDate
+            : targetStageId === "meeting_scheduled" && !d.meetingDate
+            ? "Cal.com confirmada"
+            : d.meetingDate,
+        lastActivity:
+          updates.lastActivity ||
+          (stageChanged
+            ? "Etapa actualizada en Pipeline"
+            : "Detalles actualizados en Pipeline"),
+      };
+    }
+    return d;
+  });
+
+  savePipelineDeals(updated);
+
+  // Sincronizar bidireccionalmente con CRM e Inbox si cambió la etapa
+  if (stageChanged && targetDeal.leadId) {
+    try {
+      const crmStage = mapPipelineStageToCrmStage(targetStageId);
+      updateStoredLeadStage(
+        targetDeal.leadId,
+        crmStage,
+        `Oportunidad actualizada en el Pipeline Kanban a: ${targetStageName}`
+      );
+    } catch (err) {
+      console.warn("[Pipeline] Error sincronizando con LeadStore:", err);
+    }
+
+    try {
+      const rawInbox = localStorage.getItem("inhubflow_inbox_conversations");
+      if (rawInbox) {
+        const inboxList = JSON.parse(rawInbox);
+        if (Array.isArray(inboxList)) {
+          const updatedInbox = inboxList.map((conv) => {
+            if (conv.leadId === targetDeal.leadId || conv.id === `conv-${targetDeal.leadId}`) {
+              return {
+                ...conv,
+                crmStage: targetStageName,
+                crmStageId: targetStageId,
+              };
+            }
+            return conv;
+          });
+          localStorage.setItem("inhubflow_inbox_conversations", JSON.stringify(updatedInbox));
+        }
+      }
+    } catch (err) {
+      console.warn("[Pipeline] Error sincronizando con Inbox:", err);
+    }
+  }
+
+  return updated;
+}
+
+/**
+ * Elimina una oportunidad comercial del pipeline y asegura que no vuelva a
+ * sincronizarse automáticamente a menos que el usuario lo desee.
+ */
+export function deletePipelineDeal(dealId: string): PipelineDeal[] {
+  const deals = getPipelineDeals();
+  const target = deals.find((d) => d.id === dealId || d.leadId === dealId);
+  const updated = deals.filter((d) => d.id !== dealId && d.leadId !== dealId);
+  savePipelineDeals(updated);
+
+  if (target) {
+    const deletedIds = getDeletedDealIds();
+    deletedIds.add(target.id);
+    if (target.leadId) deletedIds.add(target.leadId);
+    saveDeletedDealIds(deletedIds);
+  }
+
+  return updated;
 }

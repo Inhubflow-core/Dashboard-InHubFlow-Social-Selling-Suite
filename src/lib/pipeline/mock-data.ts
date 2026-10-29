@@ -50,6 +50,13 @@ export const PIPELINE_STAGES: PipelineStageConfig[] = [
     badgeColor: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     headerBorder: "border-t-emerald-500",
   },
+  {
+    id: "closed_lost",
+    name: "8. Perdido (Closed Lost)",
+    order: 8,
+    badgeColor: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+    headerBorder: "border-t-rose-500",
+  },
 ];
 
 export const INITIAL_DEALS: PipelineDeal[] = [];
