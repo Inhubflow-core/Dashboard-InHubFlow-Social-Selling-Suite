@@ -82,7 +82,7 @@ export default function MonthlyProspectingTarget({
   const projectedMeetings = Math.round(scheduledMeetings * 1.35);
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 flex flex-col justify-between">
+    <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">

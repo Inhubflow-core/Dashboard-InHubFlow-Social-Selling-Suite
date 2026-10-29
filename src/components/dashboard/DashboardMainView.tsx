@@ -80,33 +80,25 @@ export default function DashboardMainView() {
       {/* 1. Métricas Principales de Alto Impacto */}
       <DashboardMetricsCards overview={analytics.overview} />
 
-      {/* 2. Fila Principal de Gráficos: Evolución Multi-KPI + Meta de Prospección */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-8">
-          <SocialEvolutionChart
-            monthlyData={analytics.evolutionMonthly}
-            weeklyData={analytics.evolutionWeekly}
-          />
-        </div>
-        <div className="lg:col-span-4 flex flex-col">
-          <MonthlyProspectingTarget
-            scheduledMeetings={analytics.overview.scheduledMeetings}
-            targetMeetings={25}
-          />
-        </div>
+      {/* 2. Evolución de Tracción y Conversión Social (Ancho Completo) */}
+      <SocialEvolutionChart
+        monthlyData={analytics.evolutionMonthly}
+        weeklyData={analytics.evolutionWeekly}
+      />
+
+      {/* 3. Meta de Prospección y Distribución por Nivel de Señal (Dos Bloques) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MonthlyProspectingTarget
+          scheduledMeetings={analytics.overview.scheduledMeetings}
+          targetMeetings={25}
+        />
+        <SignalDistributionChart distribution={analytics.signalDistribution} />
       </div>
 
-      {/* 3. Fila Secundaria de Gráficos: Embudo de Conversión Pipeline + Distribución de Señales */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-7">
-          <PipelineFunnelChart stages={analytics.funnelStages} />
-        </div>
-        <div className="lg:col-span-5 flex flex-col">
-          <SignalDistributionChart distribution={analytics.signalDistribution} />
-        </div>
-      </div>
+      {/* 4. Funil de Conversión por Etapas (Ancho Completo) */}
+      <PipelineFunnelChart stages={analytics.funnelStages} />
 
-      {/* 4. Arquitectura del Ecosistema InHubFlow Social Selling */}
+      {/* 5. Arquitectura del Ecosistema InHubFlow Social Selling */}
       <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
