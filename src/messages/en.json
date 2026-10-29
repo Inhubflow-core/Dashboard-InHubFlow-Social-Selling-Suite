@@ -957,20 +957,68 @@
   },
   "dashboard": {
     "pageTitle": "Dashboard | InHubFlow Social Selling",
-    "chartTitle": "Evolution and Traction",
-    "chartDesc": "Temporal evolution of interactions and lead capture on LinkedIn.",
-    "ecosystemTitle": "Social Selling Module Ecosystem",
-    "ecosystemSubtitle": "Inbound Conversion Architecture",
+    "subtitle": "Real-time metrics, content traction, and pipeline conversion.",
+    "timeRange": {
+      "months12": "12 Months",
+      "weeks8": "8 Weeks"
+    },
     "metrics": {
       "leadsCaptured": "Captured Leads (Signals)",
-      "leadsCapturedChange": "+28% vs previous week",
-      "queuedPosts": "Queued Posts",
-      "queuedPostsChange": "3 scheduled for this week",
-      "activeSequences": "Active Sequences (Workflow)",
-      "activeSequencesChange": "Safe human pacing (InHubFlow)",
-      "responseRate": "Inbound Response Rate",
-      "responseRateChange": "+14 pts from Lead Magnets"
+      "leadsBreakdown": "{hot} high intent ({warm} warm)",
+      "activeDeals": "Active Opportunities",
+      "activeDealsDesc": "Prospects in Kanban funnel",
+      "meetingsScheduled": "Scheduled Meetings",
+      "meetingsScheduledDesc": "Booked via Cal.com",
+      "closedWon": "Won Clients",
+      "closedWonDesc": "Confirmed commercial deals",
+      "conversionRate": "Conversion Rate",
+      "conversionRateDesc": "Overall inbound effectiveness",
+      "connectedAccounts": "LinkedIn Accounts",
+      "connectedAccountsDesc": "Safe capacity & daily quotas"
     },
+    "charts": {
+      "evolution": {
+        "title": "Social Traction & Conversion Evolution",
+        "desc": "Consolidated multichannel metrics for LinkedIn prospecting and demand generation.",
+        "seriesSignals": "Detected Signals",
+        "seriesConnections": "Connections & Conversations",
+        "seriesQualified": "Qualified Leads",
+        "seriesMeetings": "Scheduled Meetings (Cal.com)"
+      },
+      "funnel": {
+        "title": "Conversion Funnel by Stages (Pipeline)",
+        "desc": "Active prospects distribution across the 8 commercial stages.",
+        "leadsCount": "Prospects"
+      },
+      "target": {
+        "title": "Monthly Prospecting Target",
+        "desc": "Progress of scheduled meetings toward the monthly objective.",
+        "targetLabel": "Target",
+        "currentLabel": "Achieved",
+        "projectedLabel": "Projected"
+      },
+      "signalsDistribution": {
+        "title": "Distribution by Signal Level",
+        "desc": "Source and intent type detected on LinkedIn.",
+        "level1": "Level 1: My Posts (ManyChat)",
+        "level2": "Level 2: Competitor Posts",
+        "level3": "Level 3: Groups & Keywords"
+      },
+      "recentLeads": {
+        "title": "Recent Prospects in Real Time",
+        "desc": "Latest qualified leads captured from active posts and sequences.",
+        "colLead": "Prospect / Company",
+        "colSignal": "Signal Level",
+        "colScore": "Intent Score",
+        "colStage": "Pipeline Stage",
+        "colAction": "Action",
+        "viewInKanban": "View in Kanban",
+        "viewInbox": "Open Chat",
+        "noLeads": "No prospects recorded yet."
+      }
+    },
+    "ecosystemTitle": "Social Selling Module Ecosystem",
+    "ecosystemSubtitle": "Inbound Conversion Architecture",
     "modules": {
       "viralPostsName": "1. Viral Post Engine",
       "viralPostsDesc": "Create and schedule text posts, images, and PDF carousels for 1 month in 5 minutes.",
@@ -988,7 +1036,7 @@
       "inboxDesc": "Noise-free commercial inbox with AI-assisted SDR Co-Pilot to schedule meetings.",
       "inboxAction": "Open Inbox",
       "pipelineName": "6. Pipeline CRM",
-      "pipelineDesc": "7-stage commercial Kanban and appointment calendar to track deals to closure.",
+      "pipelineDesc": "8-stage commercial Kanban and appointment calendar to track deals to closure.",
       "pipelineAction": "View Kanban"
     }
   },

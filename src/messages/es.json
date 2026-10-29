@@ -957,20 +957,68 @@
   },
   "dashboard": {
     "pageTitle": "Panel de Control | InHubFlow Social Selling",
-    "chartTitle": "Evolución y Tracción",
-    "chartDesc": "Evolución temporal de interacciones y captación de leads en LinkedIn.",
-    "ecosystemTitle": "Ecosistema de Módulos de Social Selling",
-    "ecosystemSubtitle": "Arquitectura de Conversión Inbound",
+    "subtitle": "Métricas en tiempo real, tracción de contenido y conversión del pipeline.",
+    "timeRange": {
+      "months12": "12 Meses",
+      "weeks8": "8 Semanas"
+    },
     "metrics": {
       "leadsCaptured": "Leads Captados (Señales)",
-      "leadsCapturedChange": "+28% vs semana anterior",
-      "queuedPosts": "Publicaciones en Cola",
-      "queuedPostsChange": "3 programadas para esta semana",
-      "activeSequences": "Secuencias Activas (Workflow)",
-      "activeSequencesChange": "Pacing humano seguro (InHubFlow)",
-      "responseRate": "Tasa de Respuesta Inbound",
-      "responseRateChange": "+14 pts por Lead Magnets"
+      "leadsBreakdown": "{hot} de alta intención ({warm} templados)",
+      "activeDeals": "Oportunidades Activas",
+      "activeDealsDesc": "Prospectos en embudo Kanban",
+      "meetingsScheduled": "Reuniones Agendadas",
+      "meetingsScheduledDesc": "Agendadas vía Cal.com",
+      "closedWon": "Clientes Ganados",
+      "closedWonDesc": "Cierres comerciales confirmados",
+      "conversionRate": "Tasa de Conversión",
+      "conversionRateDesc": "Efectividad inbound global",
+      "connectedAccounts": "Cuentas LinkedIn",
+      "connectedAccountsDesc": "Capacidad y cuotas seguras"
     },
+    "charts": {
+      "evolution": {
+        "title": "Evolución de Tracción y Conversión Social",
+        "desc": "Métricas multicanal consolidadas de prospección en LinkedIn y generación de demanda.",
+        "seriesSignals": "Señales Detectadas",
+        "seriesConnections": "Conexiones & Conversaciones",
+        "seriesQualified": "Leads Cualificados",
+        "seriesMeetings": "Reuniones Agendadas (Cal.com)"
+      },
+      "funnel": {
+        "title": "Embudo de Conversión por Etapas (Pipeline)",
+        "desc": "Distribución de prospectos activos a lo largo del flujo comercial de 8 etapas.",
+        "leadsCount": "Prospectos"
+      },
+      "target": {
+        "title": "Meta Mensual de Prospección",
+        "desc": "Progreso de reuniones agendadas hacia el objetivo del mes.",
+        "targetLabel": "Meta",
+        "currentLabel": "Alcanzado",
+        "projectedLabel": "Proyección"
+      },
+      "signalsDistribution": {
+        "title": "Distribución por Nivel de Señal",
+        "desc": "Origen y tipo de intención detectada en LinkedIn.",
+        "level1": "Nivel 1: Mis Posts (ManyChat)",
+        "level2": "Nivel 2: Posts Competidores",
+        "level3": "Nivel 3: Grupos & Palabras Clave"
+      },
+      "recentLeads": {
+        "title": "Prospectos Recientes en Tiempo Real",
+        "desc": "Últimos leads cualificados captados desde publicaciones y secuencias activas.",
+        "colLead": "Prospecto / Empresa",
+        "colSignal": "Nivel de Señal",
+        "colScore": "Score de Intención",
+        "colStage": "Etapa Pipeline",
+        "colAction": "Acción",
+        "viewInKanban": "Ver en Kanban",
+        "viewInbox": "Abrir Chat",
+        "noLeads": "No hay prospectos registrados aún."
+      }
+    },
+    "ecosystemTitle": "Ecosistema de Módulos de Social Selling",
+    "ecosystemSubtitle": "Arquitectura de Conversión Inbound",
     "modules": {
       "viralPostsName": "1. Viral Post Engine",
       "viralPostsDesc": "Crea y programa posts de texto, imágenes y carruseles PDF para 1 mes en 5 minutos.",
@@ -988,7 +1036,7 @@
       "inboxDesc": "Buzón comercial libre de ruido con SDR Co-Pilot asistido por IA para agendar reuniones.",
       "inboxAction": "Abrir Inbox",
       "pipelineName": "6. Pipeline CRM",
-      "pipelineDesc": "Kanban comercial de 7 etapas y calendario de citas para monitorear el avance hacia el cierre.",
+      "pipelineDesc": "Kanban comercial de 8 etapas y calendario de citas para monitorear el avance hacia el cierre.",
       "pipelineAction": "Ver Kanban"
     }
   },

@@ -957,20 +957,68 @@
   },
   "dashboard": {
     "pageTitle": "Painel de Controle | InHubFlow Social Selling",
-    "chartTitle": "Evolução e Tração",
-    "chartDesc": "Evolução temporal de interações e captação de leads no LinkedIn.",
-    "ecosystemTitle": "Ecossistema de Módulos de Social Selling",
-    "ecosystemSubtitle": "Arquitetura de Conversão Inbound",
+    "subtitle": "Métricas em tempo real, tração de conteúdo e conversão do pipeline.",
+    "timeRange": {
+      "months12": "12 Meses",
+      "weeks8": "8 Semanas"
+    },
     "metrics": {
       "leadsCaptured": "Leads Captados (Sinais)",
-      "leadsCapturedChange": "+28% vs semana anterior",
-      "queuedPosts": "Publicações na Fila",
-      "queuedPostsChange": "3 programadas para esta semana",
-      "activeSequences": "Sequências Ativas (Workflow)",
-      "activeSequencesChange": "Ritmo humano seguro (InHubFlow)",
-      "responseRate": "Taxa de Resposta Inbound",
-      "responseRateChange": "+14 pts por Lead Magnets"
+      "leadsBreakdown": "{hot} de alta intenção ({warm} mornos)",
+      "activeDeals": "Oportunidades Ativas",
+      "activeDealsDesc": "Prospects no funil Kanban",
+      "meetingsScheduled": "Reuniões Agendadas",
+      "meetingsScheduledDesc": "Agendadas via Cal.com",
+      "closedWon": "Clientes Ganhos",
+      "closedWonDesc": "Fechamentos comerciais confirmados",
+      "conversionRate": "Taxa de Conversão",
+      "conversionRateDesc": "Efetividade inbound global",
+      "connectedAccounts": "Contas LinkedIn",
+      "connectedAccountsDesc": "Capacidade e cotas diárias seguras"
     },
+    "charts": {
+      "evolution": {
+        "title": "Evolução de Tração e Conversão Social",
+        "desc": "Métricas multicanal consolidadas de prospecção no LinkedIn e geração de demanda.",
+        "seriesSignals": "Sinais Detectados",
+        "seriesConnections": "Conexões & Conversas",
+        "seriesQualified": "Leads Qualificados",
+        "seriesMeetings": "Reuniões Agendadas (Cal.com)"
+      },
+      "funnel": {
+        "title": "Funil de Conversão por Etapas (Pipeline)",
+        "desc": "Distribuição de prospects ativos ao longo das 8 etapas comerciais.",
+        "leadsCount": "Prospects"
+      },
+      "target": {
+        "title": "Meta Mensal de Prospecção",
+        "desc": "Progresso de reuniões agendadas em direção ao objetivo do mês.",
+        "targetLabel": "Meta",
+        "currentLabel": "Alcançado",
+        "projectedLabel": "Projeção"
+      },
+      "signalsDistribution": {
+        "title": "Distribuição por Nível de Sinal",
+        "desc": "Origem e tipo de intenção detectada no LinkedIn.",
+        "level1": "Nível 1: Meus Posts (ManyChat)",
+        "level2": "Nivel 2: Posts Concorrentes",
+        "level3": "Nivel 3: Grupos & Palavras-chave"
+      },
+      "recentLeads": {
+        "title": "Prospects Recentes em Tempo Real",
+        "desc": "Últimos leads qualificados captados de posts e sequências ativas.",
+        "colLead": "Prospect / Empresa",
+        "colSignal": "Nível de Sinal",
+        "colScore": "Score de Intenção",
+        "colStage": "Etapa Pipeline",
+        "colAction": "Ação",
+        "viewInKanban": "Ver no Kanban",
+        "viewInbox": "Abrir Chat",
+        "noLeads": "Nenhum prospect registrado ainda."
+      }
+    },
+    "ecosystemTitle": "Ecossistema de Módulos de Social Selling",
+    "ecosystemSubtitle": "Arquitetura de Conversão Inbound",
     "modules": {
       "viralPostsName": "1. Viral Post Engine",
       "viralPostsDesc": "Crie e agende posts de texto, imagens e carrosséis PDF para 1 mês em 5 minutos.",
@@ -988,7 +1036,7 @@
       "inboxDesc": "Caixa de entrada comercial sem ruído com SDR Co-Pilot assistido por IA para agendar reuniões.",
       "inboxAction": "Abrir Inbox",
       "pipelineName": "6. Pipeline CRM",
-      "pipelineDesc": "Kanban comercial de 7 etapas e calendário de compromissos para acompanhar o fechamento.",
+      "pipelineDesc": "Kanban comercial de 8 etapas e calendário de compromissos para acompanhar o fechamento.",
       "pipelineAction": "Ver Kanban"
     }
   },
