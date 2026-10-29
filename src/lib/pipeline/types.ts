@@ -24,7 +24,7 @@ export interface PipelineDeal {
   company: string;
   location: string;
   avatarInitials: string;
-  dealValue: string; // e.g. "$1,500/mes"
+  dealValue?: string; // opcional (sin valores monetarios por defecto)
   stageId: PipelineStageId;
   sourceCampaign: string;
   leadMagnetUsed?: string;

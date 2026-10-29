@@ -82,16 +82,6 @@ function convertLeadToDeal(lead: Lead360Item): PipelineDeal {
     .slice(0, 2)
     .toUpperCase();
 
-  // Valor estimado en función del score de intención y nivel de señal
-  let dealValue = "$1,500/mes";
-  if (lead.intentScore >= 95 || lead.signalLevel === "level_1") {
-    dealValue = "$3,200/mes";
-  } else if (lead.intentScore >= 80) {
-    dealValue = "$2,400/mes";
-  } else if (lead.intentScore >= 60) {
-    dealValue = "$1,800/mes";
-  }
-
   const priority: "Alta" | "Media" | "Baja" =
     lead.intentScore >= 90 ? "Alta" : lead.intentScore >= 75 ? "Media" : "Baja";
 
@@ -116,7 +106,6 @@ function convertLeadToDeal(lead: Lead360Item): PipelineDeal {
     company: lead.company || "Empresa",
     location: lead.location || "Remoto / B2B",
     avatarInitials: initials || "LI",
-    dealValue,
     stageId,
     sourceCampaign: lead.listName || lead.signalSource || "Campaña Social Selling",
     leadMagnetUsed: lead.signalLevel === "level_1" ? "SISTEMA" : undefined,
@@ -138,11 +127,17 @@ export function getPipelineDeals(): PipelineDeal[] {
     const existingDeals: PipelineDeal[] = rawDeals ? JSON.parse(rawDeals) : [];
     const campaignLeads = getStoredLeads();
 
-    // Crear mapa de deals existentes por leadId
+    // Crear mapa de deals existentes por leadId y limpiar valores monetarios residuales
     const dealsByLeadId = new Map<string, PipelineDeal>();
     if (Array.isArray(existingDeals)) {
       existingDeals.forEach((d) => {
-        if (d && d.leadId) dealsByLeadId.set(d.leadId, d);
+        if (d && d.leadId) {
+          if (d.dealValue) {
+            delete d.dealValue;
+            modified = true;
+          }
+          dealsByLeadId.set(d.leadId, d);
+        }
       });
     }
 

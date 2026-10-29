@@ -19,7 +19,6 @@ import {
   ArrowRight,
   Building,
   Calendar,
-  DollarSign,
   ExternalLink,
   FileText,
   Filter,
@@ -33,6 +32,7 @@ import {
   Trash2,
   TrendingUp,
   UserCheck,
+  Users,
   X,
 } from "lucide-react";
 
@@ -47,20 +47,18 @@ export default function PipelinePage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Modal Crear Oportunidad
+  // Modal Crear Oportunidad (sin campos de valores monetarios)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newDealName, setNewDealName] = useState("");
   const [newDealTitle, setNewDealTitle] = useState("");
   const [newDealCompany, setNewDealCompany] = useState("");
-  const [newDealValue, setNewDealValue] = useState("$1,500/mes");
   const [newDealStage, setNewDealStage] = useState<PipelineStageId>("lead_captured");
   const [newDealCampaign, setNewDealCampaign] = useState("Nivel 1 - Post Lead Magnet SISTEMA");
   const [newDealPriority, setNewDealPriority] = useState<"Alta" | "Media" | "Baja">("Alta");
   const [newDealNotes, setNewDealNotes] = useState("");
 
-  // Modal Editar Oportunidad
+  // Modal Editar Oportunidad (sin campos de valores monetarios)
   const [editingDeal, setEditingDeal] = useState<PipelineDeal | null>(null);
-  const [editDealValue, setEditDealValue] = useState("");
   const [editDealStage, setEditDealStage] = useState<PipelineStageId>("lead_captured");
   const [editDealPriority, setEditDealPriority] = useState<"Alta" | "Media" | "Baja">("Alta");
   const [editDealMeetingDate, setEditDealMeetingDate] = useState("");
@@ -117,17 +115,7 @@ export default function PipelinePage() {
     });
   }, [deals, searchQuery, campaignFilter, priorityFilter]);
 
-  // Cálculos de métricas de ventas
-  // Excluimos closed_lost del valor comercial activo
-  const totalPipelineMRR = useMemo(() => {
-    return deals
-      .filter((d) => d.stageId !== "closed_lost")
-      .reduce((acc, d) => {
-        const clean = parseInt(d.dealValue.replace(/[^0-9]/g, ""), 10) || 0;
-        return acc + clean;
-      }, 0);
-  }, [deals]);
-
+  // Métricas operativas 100% enfocadas en flujo de leads y conversión (sin valores en dólares)
   const activeDealsCount = useMemo(() => {
     return deals.filter((d) => d.stageId !== "closed_lost").length;
   }, [deals]);
@@ -155,7 +143,7 @@ export default function PipelinePage() {
     }
   };
 
-  // Drag & drop handlers con feedback visual dinámico
+  // Drag & drop handlers
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     setDraggedDealId(dealId);
     e.dataTransfer.setData("text/plain", dealId);
@@ -221,7 +209,6 @@ export default function PipelinePage() {
       company: newDealCompany.trim(),
       location: "Remoto / B2B",
       avatarInitials: initials || "LI",
-      dealValue: newDealValue.trim(),
       stageId: newDealStage,
       sourceCampaign: newDealCampaign,
       lastActivity: "Creado manualmente en Pipeline",
@@ -242,7 +229,6 @@ export default function PipelinePage() {
   // Abrir Modal de Edición
   const handleOpenEditModal = (deal: PipelineDeal) => {
     setEditingDeal(deal);
-    setEditDealValue(deal.dealValue);
     setEditDealStage(deal.stageId);
     setEditDealPriority(deal.priority);
     setEditDealMeetingDate(deal.meetingDate || "");
@@ -256,7 +242,6 @@ export default function PipelinePage() {
     if (!editingDeal) return;
 
     const updated = updatePipelineDeal(editingDeal.id, {
-      dealValue: editDealValue.trim() || editingDeal.dealValue,
       stageId: editDealStage,
       priority: editDealPriority,
       meetingDate: editDealMeetingDate.trim() || undefined,
@@ -337,33 +322,33 @@ export default function PipelinePage() {
         </div>
       </div>
 
-      {/* Tarjetas de Métricas de Ventas (Con títulos en MAYÚSCULAS según estándar) */}
+      {/* Tarjetas de Métricas Operativas (100% limpias, sin valores en dólares) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span className="font-medium uppercase">{t("totalPipelineValue")}</span>
-            <DollarSign className="size-4 text-emerald-500" />
+            <span className="font-medium uppercase">{t("totalProspects")}</span>
+            <Users className="size-4 text-brand-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-            ${totalPipelineMRR.toLocaleString()}{" "}
-            <span className="text-xs font-normal text-gray-400">MRR</span>
+            {deals.length}{" "}
+            <span className="text-xs font-normal text-gray-400">{t("leadsInFunnel")}</span>
           </p>
-          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
-            {t("activeCommercialValue")}
+          <span className="text-xs text-brand-600 dark:text-brand-400 font-medium mt-0.5 block">
+            {t("allStagesDesc")}
           </span>
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-white p-3.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span className="font-medium uppercase">{t("activeOpportunities")}</span>
-            <TrendingUp className="size-4 text-brand-500" />
+            <TrendingUp className="size-4 text-emerald-500" />
           </div>
           <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
             {activeDealsCount}{" "}
             <span className="text-xs font-normal text-gray-400">{t("leadsInFunnel")}</span>
           </p>
-          <span className="text-xs text-gray-400 mt-0.5 block">
-            {t("capturedBySignals")}
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
+            {t("inFollowUp")}
           </span>
         </div>
 
@@ -460,14 +445,11 @@ export default function PipelinePage() {
         </div>
       </div>
 
-      {/* Tablero Kanban (8 Columnas con Scroll Horizontal fluido y feedback de arrastre) */}
+      {/* Tablero Kanban (8 Columnas limpias sin volumen monetario) */}
       <div className="flex-1 overflow-x-auto pb-6">
         <div className="flex gap-3.5 min-w-[1950px] items-stretch">
           {PIPELINE_STAGES.map((stage) => {
             const stageDeals = filteredDeals.filter((d) => d.stageId === stage.id);
-            const stageMRR = stageDeals.reduce((sum, d) => {
-              return sum + (parseInt(d.dealValue.replace(/[^0-9]/g, ""), 10) || 0);
-            }, 0);
             const isTargetOver = dragOverStage === stage.id;
             const localizedStageName = getStageLocalizedName(stage.id, stage.name);
 
@@ -485,25 +467,17 @@ export default function PipelinePage() {
                     : ""
                 }`}
               >
-                {/* Cabecera de Columna */}
-                <div className="pb-2.5 mb-2.5 border-b border-gray-300 dark:border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <h4
-                      className="text-xs font-bold text-gray-900 dark:text-white truncate"
-                      title={localizedStageName}
-                    >
-                      {localizedStageName}
-                    </h4>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
-                      {stageDeals.length}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>{t("volume")}</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">
-                      ${stageMRR.toLocaleString()}
-                    </span>
-                  </div>
+                {/* Cabecera de Columna (Título y Contador de Leads) */}
+                <div className="pb-2.5 mb-2.5 border-b border-gray-300 dark:border-gray-800 flex items-center justify-between">
+                  <h4
+                    className="text-xs font-bold text-gray-900 dark:text-white truncate"
+                    title={localizedStageName}
+                  >
+                    {localizedStageName}
+                  </h4>
+                  <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
+                    {stageDeals.length}
+                  </span>
                 </div>
 
                 {/* Lista de Tarjetas de la Etapa */}
@@ -566,31 +540,23 @@ export default function PipelinePage() {
                         </div>
                       )}
 
-                      {/* Valor Comercial y Cita Agendada */}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-300 text-xs dark:border-gray-700/60">
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                          {deal.dealValue}
-                        </span>
-                        {deal.meetingDate && (
-                          <span
-                            className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1 truncate max-w-[110px]"
-                            title={deal.meetingDate}
-                          >
-                            <Calendar className="size-2.5 shrink-0" />
-                            <span className="truncate">{deal.meetingDate}</span>
-                          </span>
-                        )}
-                      </div>
+                      {/* Cita Agendada si existe */}
+                      {deal.meetingDate && (
+                        <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 font-semibold mb-2">
+                          <Calendar className="size-3 shrink-0" />
+                          <span className="truncate">{deal.meetingDate}</span>
+                        </div>
+                      )}
 
                       {/* Siguiente Acción */}
-                      <div className="mt-2 rounded-lg bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
+                      <div className="mt-1 rounded-lg bg-gray-50 p-1.5 text-xs text-gray-500 dark:bg-gray-900/60 dark:text-gray-400">
                         <span className="font-semibold text-gray-700 dark:text-gray-300">
                           {t("step")}{" "}
                         </span>
                         <span className="line-clamp-2">{deal.nextAction}</span>
                       </div>
 
-                      {/* Notas rápidas si existen */}
+                      {/* Notas si existen */}
                       {deal.notes && (
                         <div className="mt-1.5 flex items-start gap-1 rounded bg-amber-50/60 p-1 text-[11px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
                           <FileText className="size-3 mt-0.5 shrink-0 text-amber-600" />
@@ -704,31 +670,17 @@ export default function PipelinePage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {t("titleLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej. VP of Sales"
-                    value={newDealTitle}
-                    onChange={(e) => setNewDealTitle(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {t("estimatedValueLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej. $1,800/mes"
-                    value={newDealValue}
-                    onChange={(e) => setNewDealValue(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {t("titleLabel")}
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej. VP of Sales"
+                  value={newDealTitle}
+                  onChange={(e) => setNewDealTitle(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -914,31 +866,17 @@ export default function PipelinePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {t("estimatedValueLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    value={editDealValue}
-                    onChange={(e) => setEditDealValue(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-bold text-emerald-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-emerald-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {t("meetingDateLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej. 12 Nov - 16:30 hs"
-                    value={editDealMeetingDate}
-                    onChange={(e) => setEditDealMeetingDate(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {t("meetingDateLabel")}
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej. 12 Nov - 16:30 hs"
+                  value={editDealMeetingDate}
+                  onChange={(e) => setEditDealMeetingDate(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
               </div>
 
               <div>

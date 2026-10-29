@@ -2361,7 +2361,10 @@
     "noOpportunitiesInStage": "Drag opportunities here",
     "clearFilters": "Reset filters",
     "confirmDeleteAction": "Yes, delete",
-    "closedLost": "Lost (Closed Lost)"
+    "closedLost": "Lost (Closed Lost)",
+    "totalProspects": "Total Prospects",
+    "allStagesDesc": "Across all stages",
+    "inFollowUp": "In active prospecting"
   },
   "accounts": {
     "pageTitle": "Connected LinkedIn Accounts",

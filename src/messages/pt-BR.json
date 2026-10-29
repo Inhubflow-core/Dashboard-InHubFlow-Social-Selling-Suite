@@ -2361,7 +2361,10 @@
     "noOpportunitiesInStage": "Arraste oportunidades aqui",
     "clearFilters": "Redefinir filtros",
     "confirmDeleteAction": "Sim, excluir",
-    "closedLost": "Perdido (Closed Lost)"
+    "closedLost": "Perdido (Closed Lost)",
+    "totalProspects": "Total de Prospects",
+    "allStagesDesc": "Em todas as etapas",
+    "inFollowUp": "Em prospecção ativa"
   },
   "accounts": {
     "pageTitle": "Contas do LinkedIn Conectadas",
