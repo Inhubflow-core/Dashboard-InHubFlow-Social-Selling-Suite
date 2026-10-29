@@ -9,7 +9,6 @@ import SocialEvolutionChart from "./SocialEvolutionChart";
 import MonthlyProspectingTarget from "./MonthlyProspectingTarget";
 import PipelineFunnelChart from "./PipelineFunnelChart";
 import SignalDistributionChart from "./SignalDistributionChart";
-import RecentLeadsFeed from "./RecentLeadsFeed";
 
 export default function DashboardMainView() {
   const t = useTranslations("dashboard");
@@ -107,10 +106,7 @@ export default function DashboardMainView() {
         </div>
       </div>
 
-      {/* 4. Tabla de Actividad Reciente / Feed de Prospectos en Tiempo Real */}
-      <RecentLeadsFeed leads={analytics.recentLeads} />
-
-      {/* 5. Arquitectura del Ecosistema InHubFlow Social Selling */}
+      {/* 4. Arquitectura del Ecosistema InHubFlow Social Selling */}
       <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
