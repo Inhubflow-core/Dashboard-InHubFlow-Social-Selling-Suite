@@ -96,11 +96,11 @@ export default function DashboardMainView() {
         </div>
       </div>
 
-      {/* 3. Distribución por Nivel de Señal */}
-      <SignalDistributionChart distribution={analytics.signalDistribution} />
-
-      {/* 4. Funil de Conversión por Etapas (Ancho Completo) */}
-      <PipelineFunnelChart stages={analytics.funnelStages} />
+      {/* 3. Distribución por Nivel de Señal (50%) + Embudo de Conversión por Etapas (50%) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SignalDistributionChart distribution={analytics.signalDistribution} />
+        <PipelineFunnelChart stages={analytics.funnelStages} />
+      </div>
 
       {/* 5. Arquitectura del Ecosistema InHubFlow Social Selling */}
       <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">

@@ -120,7 +120,7 @@ export default function PipelineFunnelChart({ stages }: PipelineFunnelChartProps
   ];
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 flex flex-col justify-between h-full">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
