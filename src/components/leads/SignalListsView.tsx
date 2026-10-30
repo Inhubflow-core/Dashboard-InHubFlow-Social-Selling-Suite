@@ -286,7 +286,7 @@ export default function SignalListsView({
                 value={newListDesc}
                 onChange={(e) => setNewListDesc(e.target.value)}
                 placeholder={t("listDescPlaceholder")}
-                className="w-full rounded-lg border border-gray-300 p-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                className="custom-scrollbar w-full rounded-lg border border-gray-300 p-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
 

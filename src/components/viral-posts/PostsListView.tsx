@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -712,7 +712,7 @@ export default function PostsListView({
                   rows={5}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-sans leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="custom-scrollbar w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-sans leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
             </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -552,7 +552,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     rows={3}
                     value={imagePrompt}
                     onChange={(e) => setImagePrompt(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    className="custom-scrollbar w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                   <div className="pt-2">
                     <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
@@ -668,7 +668,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                           updated[currentSlideIndex].content = e.target.value.split("\n");
                           setSlides(updated);
                         }}
-                        className="w-full rounded-lg border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        className="custom-scrollbar w-full rounded-lg border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                       />
                     </div>
                   </div>
@@ -689,7 +689,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                   rows={8}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white p-4 font-sans text-sm text-gray-800 leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  className="custom-scrollbar w-full rounded-lg border border-gray-300 bg-white p-4 font-sans text-sm text-gray-800 leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
 
