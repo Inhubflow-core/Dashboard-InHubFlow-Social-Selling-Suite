@@ -988,8 +988,56 @@ export default function ViralRadarView({
                     </div>
                   </div>
 
-                  {/* Vista previa recortada de la imagen / recurso visual (para saber de un vistazo si incluye imagen) */}
-                  {(post.mediaUrl || post.format === "image" || post.format === "carousel") && (
+                  {/* Vista previa: Para Carruseles renderizamos una portada de presentación PDF estilo LinkedIn, para imágenes la fotografía, y para videos la miniatura */}
+                  {post.format === "carousel" ? (
+                    <div
+                      className="relative mb-4 h-32 sm:h-36 w-full overflow-hidden rounded-lg bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-3 text-white border border-slate-700/80 shadow-inner flex flex-col justify-between group cursor-pointer"
+                      onClick={() => setSelectedPostForModal(post)}
+                      title="Haz clic para ver todas las diapositivas del carrusel"
+                    >
+                      {/* Fondo decorativo con brillo sutil */}
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-500/15 via-transparent to-transparent pointer-events-none" />
+
+                      {/* Barra superior de documento estilo LinkedIn */}
+                      <div className="relative z-10 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 text-brand-300 font-semibold tracking-wide">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="uppercase text-[10px] font-bold">PDF • {post.carouselSlides?.length || 5} DIAPOSITIVAS</span>
+                        </div>
+                        <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-slate-300 backdrop-blur-xs">
+                          1 / {post.carouselSlides?.length || 5}
+                        </span>
+                      </div>
+
+                      {/* Título y subtítulo de la portada */}
+                      <div className="relative z-10 my-auto py-1">
+                        <p className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-xs">
+                          {post.carouselSlides?.[0]?.title || post.hook}
+                        </p>
+                        {post.carouselSlides?.[0]?.subtitle && (
+                          <p className="text-[11px] text-brand-300/90 line-clamp-1 mt-0.5 font-medium">
+                            {post.carouselSlides[0].subtitle}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Barra inferior: creador y llamado a deslizar */}
+                      <div className="relative z-10 flex items-center justify-between text-[10px] text-slate-400 border-t border-white/10 pt-1.5">
+                        <span className="truncate max-w-[65%] font-medium text-slate-300">
+                          Por {post.author}
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold text-brand-400 group-hover:translate-x-0.5 transition-transform">
+                          Ver diapositivas ➔
+                        </span>
+                      </div>
+
+                      {/* Efecto de hojas apiladas a la derecha */}
+                      <div className="absolute right-0 top-2 bottom-2 w-1 rounded-r-md bg-white/20" />
+                      <div className="absolute right-1 top-3 bottom-3 w-1 rounded-r-md bg-white/10" />
+                    </div>
+                  ) : (post.mediaUrl || post.format === "image" || post.format === "video") ? (
                     <div className="relative mb-4 h-32 sm:h-36 w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-800 group">
                       {post.mediaUrl ? (
                         <img
@@ -1007,16 +1055,13 @@ export default function ViralRadarView({
 
                       {/* Fallback visual estilizado */}
                       <div
-                        className={`media-fallback h-full w-full ${post.mediaUrl ? "hidden" : "flex"} flex-col items-center justify-center p-3 text-center bg-gradient-to-br ${
-                          post.format === "carousel"
-                            ? "from-blue-500/10 via-brand-500/15 to-purple-500/10 border-blue-500/20"
-                            : "from-amber-500/10 via-brand-500/15 to-rose-500/10 border-amber-500/20"
-                        }`}
+                        className={`media-fallback h-full w-full ${post.mediaUrl ? "hidden" : "flex"} flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-amber-500/10 via-brand-500/15 to-rose-500/10 border-amber-500/20`}
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-xs dark:bg-gray-800 mb-1 text-brand-600 dark:text-brand-400">
-                          {post.format === "carousel" ? (
+                          {post.format === "video" ? (
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           ) : (
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1025,9 +1070,7 @@ export default function ViralRadarView({
                           )}
                         </div>
                         <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
-                          {post.format === "carousel"
-                            ? `Carrusel (${post.carouselSlides?.length || "5"} diapositivas)`
-                            : "Publicación con Imagen"}
+                          {post.format === "video" ? "Video de LinkedIn" : "Publicación con Imagen"}
                         </span>
                         {post.imagePrompt && (
                           <span className="text-xs text-gray-400 line-clamp-1 mt-0.5 max-w-[90%]">
@@ -1036,14 +1079,14 @@ export default function ViralRadarView({
                         )}
                       </div>
 
-                      {/* Etiqueta flotante inferior para confirmar que tiene imagen o carrusel */}
+                      {/* Etiqueta flotante inferior para confirmar que tiene imagen o video */}
                       <div className="absolute bottom-2 left-2 flex items-center gap-1.5 pointer-events-none">
                         <span className="inline-flex items-center gap-1 rounded-lg bg-black/65 backdrop-blur-xs px-2 py-0.5 text-xs font-bold text-white shadow-xs">
-                          {post.format === "carousel" ? "Carrusel" : "Imagen adjunta"}
+                          {post.format === "video" ? "Video adjunto" : "Imagen adjunta"}
                         </span>
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Métricas Públicas de LinkedIn: Likes, Comentarios, Reposts */}
                   <div className="mb-5 grid grid-cols-3 gap-2 border-y border-gray-300 py-2.5 text-center dark:border-gray-800">

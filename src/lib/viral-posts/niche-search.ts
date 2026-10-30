@@ -696,114 +696,762 @@ Adjunto el wireframe del flujo para que puedan aplicarlo a sus propios productos
   },
 ];
 
-// Función para generar dinámicamente publicaciones hiper-personalizadas para cualquier nicho arbitrario
+// Pool de avatares reales y profesionales de Unsplash verificados
+const authorAvatars = [
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80",
+  "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80",
+];
+
+// Obtiene 12 imágenes temáticas de alta definición y totalmente distintas según el nicho buscado
+function getNicheImagePool(keyword: string): string[] {
+  const kw = keyword.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  // 1. Salud, Nutrición, Bienestar, Medicina, Fitness
+  if (
+    kw.includes("nutri") ||
+    kw.includes("salud") ||
+    kw.includes("medic") ||
+    kw.includes("fit") ||
+    kw.includes("aliment") ||
+    kw.includes("dieta") ||
+    kw.includes("funcional") ||
+    kw.includes("bienestar") ||
+    kw.includes("wellness") ||
+    kw.includes("entrenam") ||
+    kw.includes("clinic") ||
+    kw.includes("psico")
+  ) {
+    return [
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80", // Plato saludable funcional
+      "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Hojas y vegetales orgánicos
+      "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80", // Batido funcional & estilo de vida
+      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80", // Doctora con tablet en consulta clínica
+      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80", // Bowl de superalimentos balanceados
+      "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", // Ingredientes frescos y nutrición
+      "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80", // Consulta médica profesional
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80", // Entrenamiento activo & bienestar
+      "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=800&q=80", // Investigación clínica en salud
+      "https://images.unsplash.com/photo-1494390248081-4e521a5940db?auto=format&fit=crop&w=800&q=80", // Desayuno nutritivo matutino
+      "https://images.unsplash.com/photo-1535914254981-b5012eebbd15?auto=format&fit=crop&w=800&q=80", // Bienestar físico y movilidad
+      "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80", // Preparación de alimentos saludables
+    ];
+  }
+
+  // 2. Inmobiliaria, Construcción, Arquitectura, Propiedades
+  if (
+    kw.includes("inmob") ||
+    kw.includes("raic") ||
+    kw.includes("real estate") ||
+    kw.includes("propied") ||
+    kw.includes("arquitec") ||
+    kw.includes("construc") ||
+    kw.includes("viviend") ||
+    kw.includes("inmuebl") ||
+    kw.includes("decorac")
+  ) {
+    return [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80",
+    ];
+  }
+
+  // 3. Finanzas, Fintech, Inversión, Cripto, Legal, Contabilidad
+  if (
+    kw.includes("finan") ||
+    kw.includes("invers") ||
+    kw.includes("crypt") ||
+    kw.includes("cripto") ||
+    kw.includes("banc") ||
+    kw.includes("conta") ||
+    kw.includes("fiscal") ||
+    kw.includes("legal") ||
+    kw.includes("abogad") ||
+    kw.includes("patrimon") ||
+    kw.includes("trad") ||
+    kw.includes("bolsa")
+  ) {
+    return [
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1565372195458-9de0b320ef04?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+    ];
+  }
+
+  // 4. Marketing, Ventas, Social Selling, E-commerce, Growth, Leads
+  if (
+    kw.includes("market") ||
+    kw.includes("vent") ||
+    kw.includes("social selling") ||
+    kw.includes("growth") ||
+    kw.includes("ecom") ||
+    kw.includes("public") ||
+    kw.includes("outreach") ||
+    kw.includes("lead") ||
+    kw.includes("copy") ||
+    kw.includes("funnel")
+  ) {
+    return [
+      "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1557838923-2985c318be48?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1533750349088-cd871a92f312?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+    ];
+  }
+
+  // 5. Tech, Software, IA, Datos, Ciberseguridad
+  if (
+    kw.includes("tech") ||
+    kw.includes("soft") ||
+    kw.includes("ia") ||
+    kw.includes("ai") ||
+    kw.includes("inteligencia") ||
+    kw.includes("cloud") ||
+    kw.includes("app") ||
+    kw.includes("dev") ||
+    kw.includes("prog") ||
+    kw.includes("data") ||
+    kw.includes("cyber")
+  ) {
+    return [
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
+    ];
+  }
+
+  // 6. Negocios generales, Gestión, Liderazgo, RRHH, Consultoría
+  return [
+    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=800&q=80",
+  ];
+}
+
+// Función para generar dinámicamente 12 publicaciones virales especializadas con ángulos y ganchos únicos
 function generateDynamicNicheTemplates(nicheKeyword: string, targetMarket: string): ViralPostTemplate[] {
   const cleanKeyword = nicheKeyword.trim();
   const lower = cleanKeyword.toLowerCase();
+  const imagePool = getNicheImagePool(cleanKeyword);
 
-  // Generación estructurada de 12 publicaciones adaptadas al nicho
-  const formats: PostFormat[] = ["carousel", "text", "image", "carousel", "text", "video", "carousel", "text", "image", "carousel", "text", "image"];
   const authors = [
-    { name: "Alejandro Morales", role: `Especialista en Crecimiento & Estrategia en ${cleanKeyword}` },
-    { name: "Sofía Valenzuela", role: `Directora de Operaciones & Consultora de ${cleanKeyword}` },
-    { name: "Carlos Arismendi", role: `Founder & Consultor Estratégico en ${cleanKeyword}` },
-    { name: "Mariana Costa", role: `Head of Business Development en ${cleanKeyword}` },
-    { name: "David Krause", role: `Asesor de Negocios & Rentabilidad en ${cleanKeyword}` },
-    { name: "Elena Salgado", role: `VP de Estrategia Comercial | Sector ${cleanKeyword}` },
-    { name: "Roberto Orse", role: `Arquitecto de Adquisición B2B & Social Selling` },
-    { name: "Patricia Ramos", role: `Copywriter Especializada en el Mercado de ${cleanKeyword}` },
-    { name: "Lucas Silva", role: `Líder de Adquisición & Crecimiento en ${cleanKeyword}` },
+    { name: "Laura Benítez", role: `Directora de Estrategia & Crecimiento en ${cleanKeyword}` },
+    { name: "Daniel Gómez", role: `Consultor Senior y Mentor en ${cleanKeyword}` },
     { name: "Camila Peixoto", role: `Especialista en Innovación y Tendencias de ${cleanKeyword}` },
-    { name: "Daniel Gómez", role: `Consultor de Transformación Digital en ${cleanKeyword}` },
-    { name: "Laura Benítez", role: `Directora de Proyectos y Rentabilidad en ${cleanKeyword}` },
+    { name: "Alejandro Morales", role: `Founder & Consultor Estratégico en ${cleanKeyword}` },
+    { name: "Sofía Valenzuela", role: `Head de Desarrollo e Innovación en ${cleanKeyword}` },
+    { name: "Carlos Arismendi", role: `Asesor de Operaciones & Práctica en ${cleanKeyword}` },
+    { name: "Mariana Costa", role: `VP de Expansión & Nuevos Modelos en ${cleanKeyword}` },
+    { name: "David Krause", role: `Consultor de Negocios y Retención en ${cleanKeyword}` },
+    { name: "Elena Salgado", role: `Especialista en Optimización y Procesos en ${cleanKeyword}` },
+    { name: "Patricia Ramos", role: `Líder de Adquisición y Autoridad en ${cleanKeyword}` },
+    { name: "Lucas Silva", role: `Arquitecto de Estrategia y Fidelización en ${cleanKeyword}` },
+    { name: "Andrés Vignolo", role: `Director General & Asesor Ejecutivo en ${cleanKeyword}` },
   ];
 
-  return formats.map((format, idx) => {
+  // 12 estructuras y ángulos de viralidad probados, garantizando variedad absoluta en el radar
+  const templatesData: Array<{
+    format: PostFormat;
+    hook: string;
+    fullContent: string;
+    slides?: CarouselSlide[];
+    likes: number;
+    comments: number;
+    shares: number;
+  }> = [
+    // 0. Carrusel: Playbook paso a paso
+    {
+      format: "carousel",
+      hook: `El Playbook Operativo de 5 Pasos para liderar en ${cleanKeyword} en 2026 (sin competir por precio):`,
+      fullContent: `El Playbook Operativo de 5 Pasos para liderar en ${cleanKeyword} en 2026 (sin competir por precio):
+
+El 90% de los proyectos en el sector de ${cleanKeyword} cometen el error de ofrecer soluciones genéricas a clientes que buscan resultados específicos.
+
+Durante los últimos 6 meses implementamos este framework de 5 fases en más de 25 cuentas:
+1. Diagnóstico del cuello de botella: Identificar la causa raíz en lugar del síntoma visible.
+2. Oferta de alto impacto: Empaquetar el proceso con entregables claros y medibles.
+3. Activo de valor previo: Entregar una guía o auditoría antes de la conversación formal.
+4. Secuencia de nutrición relacional: Mantener contacto constante aportando valor sin insistir en la venta.
+5. Cierre colaborativo: Diseñar el plan conjunto con métricas de éxito acordadas.
+
+El resultado promedio fue un aumento del 160% en la tasa de retención y clientes más comprometidos.
+
+Desliza el carrusel para ver el diagrama de flujo y la plantilla de implementación paso a paso.
+
+Comenta "${cleanKeyword.toUpperCase().slice(0, 7)} GUIA" abajo y te envío el PDF completo por mensaje privado.`,
+      slides: [
+        {
+          slideNumber: 1,
+          isCover: true,
+          title: `Playbook de 5 Pasos: ${cleanKeyword}`,
+          subtitle: "Cómo liderar el sector en 2026 sin competir por precio",
+          content: [`Por Laura Benítez`, `Estrategia y Rentabilidad en ${cleanKeyword}`],
+          footerText: "@laurabenitez_estrategia",
+        },
+        {
+          slideNumber: 2,
+          title: "1. Diagnóstico del Cuello de Botella",
+          content: [
+            "La mayoría atiende únicamente los síntomas visibles en lugar del origen.",
+            "Mapea el punto exacto donde el cliente se frustra o abandona el proceso.",
+            "Una solución precisa y medible justifica tarifas premium.",
+          ],
+          footerText: "Paso 1: Diagnóstico",
+        },
+        {
+          slideNumber: 3,
+          title: "2. La Oferta de Alto Impacto",
+          content: [
+            "Deja de vender horas o entregables genéricos de catálogo.",
+            "Vende la transformación concreta con plazos e hitos verificables.",
+            "El cliente busca certidumbre operativa, no horas de trabajo.",
+          ],
+          footerText: "Paso 2: Empaquetado",
+        },
+        {
+          slideNumber: 4,
+          title: "3. Nutrición y Relación Continua",
+          content: [
+            "Entrega valor real antes de pedir la confianza comercial.",
+            "Casos prácticos y comparativas generan una autoridad natural.",
+            "La decisión de compra ocurre antes de la llamada de cierre.",
+          ],
+          footerText: "Paso 3: Conversión",
+        },
+        {
+          slideNumber: 5,
+          isCta: true,
+          title: "¿Quieres el Playbook Completo?",
+          subtitle: `Optimizado para el mercado de ${cleanKeyword}`,
+          content: [
+            `Comenta ${cleanKeyword.toUpperCase().slice(0, 7)} GUIA en este post.`,
+            "Te envío el documento completo con todos los flujos en PDF.",
+          ],
+          footerText: "InHubFlow Strategic Playbook",
+        },
+      ],
+      likes: 3450,
+      comments: 695,
+      shares: 215,
+    },
+
+    // 1. Texto: El gran error de creer que necesitas más clientes
+    {
+      format: "text",
+      hook: `El mayor error que cometen los profesionales en ${cleanKeyword} (y cómo solucionarlo hoy):`,
+      fullContent: `El mayor error que cometen los profesionales en ${cleanKeyword} (y cómo solucionarlo hoy):
+
+Creer que para crecer se necesitan decenas de clientes nuevos todos los meses.
+
+La realidad del sector:
+Adquirir un cliente nuevo cuesta entre 4x y 6x más que rentabilizar y fidelizar a tu base existente.
+
+Si tus clientes no renuevan o no recomiendan tu trabajo activamente, tienes una fuga en tu modelo, no un problema de captación.
+
+Las 3 palancas que cambiaron nuestros números este año en ${cleanKeyword}:
+• Creamos un proceso de bienvenida (onboarding) impecable en las primeras 48 horas.
+• Establecimos revisiones trimestrales de avance basadas en métricas tangibles.
+• Premiamos la lealtad con acceso prioritario y activos de conocimiento exclusivos.
+
+¿El resultado? El 45% de nuestro crecimiento este trimestre provino de renovaciones y recomendaciones espontáneas.
+
+¿Qué porcentaje de tu facturación proviene de clientes recurrentes hoy? Los leo en comentarios.`,
+      likes: 2980,
+      comments: 512,
+      shares: 160,
+    },
+
+    // 2. Imagen: Patrón común de 30 casos de éxito
+    {
+      format: "image",
+      hook: `Analizamos más de 30 casos de éxito en ${cleanKeyword}. Este es el patrón común que encontramos:`,
+      fullContent: `Analizamos más de 30 casos de éxito en ${cleanKeyword}. Este es el patrón común que encontramos:
+
+Quienes lideran este mercado no tienen más presupuesto ni más seguidores en redes sociales.
+Tienen un sistema de trabajo con 3 reglas innegociables:
+
+1. Claridad absoluta en el problema que resuelven (cero ambigüedad en su propuesta).
+2. Protocolos documentados que garantizan consistencia en cada entrega.
+3. Retroalimentación continua de sus clientes para ajustar el servicio cada mes.
+
+En la infografía adjunta les comparto el mapa visual del proceso que utilizamos para estructurar cada fase sin fricciones operativas.
+
+Guarda este post si estás rediseñando tu operativa en ${cleanKeyword} este año.`,
+      likes: 2685,
+      comments: 420,
+      shares: 195,
+    },
+
+    // 3. Carrusel: Checklist de Auto-Auditoría (7 señales)
+    {
+      format: "carousel",
+      hook: `Checklist de Auto-Auditoría: 7 señales de que tu propuesta en ${cleanKeyword} necesita actualizarse:`,
+      fullContent: `Checklist de Auto-Auditoría: 7 señales de que tu propuesta en ${cleanKeyword} necesita actualizarse:
+
+El mercado ha cambiado más en los últimos 18 meses que en los 5 años anteriores.
+Lo que funcionaba en 2023 hoy genera resistencia y desinterés en los decisores.
+
+Prepara papel y lápiz: si marcas más de 3 de estos puntos, es momento de rediseñar tu enfoque:
+1. Tus prospectos siempre te preguntan el precio antes de entender el valor real.
+2. Dependes exclusivamente del boca a boca sin un canal predecible de adquisición.
+3. Te cuesta explicar en una sola frase qué te diferencia de la competencia.
+4. El tiempo de decisión de tus clientes supera los 45 días.
+5. Inviertes horas en propuestas que terminan en "lo estamos evaluando".
+
+Desliza el carrusel para ver las 7 señales completas y la solución recomendada para cada una.
+
+Comenta "AUDITORIA" y te envío la hoja de cálculo de auto-diagnóstico.`,
+      slides: [
+        {
+          slideNumber: 1,
+          isCover: true,
+          title: `Checklist de Auditoría: ${cleanKeyword}`,
+          subtitle: "7 Señales de que tu modelo comercial necesita actualizarse en 2026",
+          content: [`Por Alejandro Morales`, `Consultor de Negocios en ${cleanKeyword}`],
+          footerText: "@alejandromorales_biz",
+        },
+        {
+          slideNumber: 2,
+          title: "Señales 1 y 2: Fricción en Precios",
+          content: [
+            "¿La primera pregunta siempre es 'cuánto cuesta'?",
+            "Indica falta de claridad en el retorno de inversión percibido.",
+            "Solución: Demostrar casos y ahorro tangible antes de la cotización.",
+          ],
+          footerText: "Diagnóstico Comercial",
+        },
+        {
+          slideNumber: 3,
+          title: "Señales 3 y 4: Falta de Predecibilidad",
+          content: [
+            "El boca a boca es excelente, pero no es escalable ni controlable.",
+            "Ciclos de decisión excesivamente largos erosionan la rentabilidad.",
+            "Solución: Contenido educativo que acelera la confianza del cliente.",
+          ],
+          footerText: "Adquisición Activa",
+        },
+        {
+          slideNumber: 4,
+          title: "Señales 5, 6 y 7: Propuestas Diluidas",
+          content: [
+            "Enviar propuestas sin validación mutua tiene una conversión < 15%.",
+            "El cliente posterga porque la urgencia del dolor no quedó demostrada.",
+            "Solución: Acuerdo previo de criterios de éxito antes de enviar propuesta.",
+          ],
+          footerText: "Cierre Efectivo",
+        },
+        {
+          slideNumber: 5,
+          isCta: true,
+          title: "¿Quieres la Plantilla de Diagnóstico?",
+          subtitle: `Matriz interactiva para el sector de ${cleanKeyword}`,
+          content: [
+            "Comenta AUDITORIA en esta publicación.",
+            "Te envío el enlace a la plantilla de Notion/Excel por mensaje privado.",
+          ],
+          footerText: "InHubFlow Audit System",
+        },
+      ],
+      likes: 3120,
+      comments: 580,
+      shares: 175,
+    },
+
+    // 4. Texto: Opinión impopular / Desmitificación
+    {
+      format: "text",
+      hook: `Opinión impopular sobre ${cleanKeyword} que incomodará a los métodos tradicionales:`,
+      fullContent: `Opinión impopular sobre ${cleanKeyword} que incomodará a los métodos tradicionales:
+
+El contenido "motivacional" y los consejos genéricos ya no generan oportunidades reales de negocio en LinkedIn.
+
+Hoy, decisores y clientes exigentes buscan profundidad técnica, datos contrastados y metodología comprobada.
+
+Si tu comunicación en ${cleanKeyword} se basa en:
+• Frases hechas de liderazgo sin aplicación concreta
+• Resúmenes superficiales de noticias
+• Consejos que cualquiera encuentra en 5 segundos en Google
+
+Estás atrayendo curiosos, no clientes con presupuesto para invertir en soluciones serias.
+
+La fórmula que multiplica el engagement calificado:
+1. Cuenta un problema real y costoso que resolviste esta semana.
+2. Explica qué salió mal en el primer intento y qué aprendiste del error.
+3. Muestra el número o resultado cuantitativo final obtenido.
+
+Menos teoría, más operativa real.
+
+¿Estás de acuerdo o crees que el contenido inspiracional aún tiene peso? Te leo en comentarios.`,
+      likes: 2490,
+      comments: 630,
+      shares: 140,
+    },
+
+    // 5. Imagen: Caso de estudio de saturación a crecimiento
+    {
+      format: "image",
+      hook: `Caso de Estudio: De la saturación operativa a un crecimiento del 140% en ${cleanKeyword}:`,
+      fullContent: `Caso de Estudio: De la saturación operativa a un crecimiento del 140% en ${cleanKeyword}:
+
+Cuando comenzamos a trabajar con este proyecto, el equipo estaba completamente sobrepasado:
+• Atendían a 6 perfiles de clientes distintos con requerimientos dispares.
+• El margen neto de rentabilidad no superaba el 12%.
+• La retención de clientes a 90 días era apenas del 38%.
+
+La decisión difícil pero indispensable:
+Dijeron "NO" al 60% de los servicios secundarios para concentrar todos sus recursos en su oferta más transformadora.
+
+Los números 6 meses después:
+• Margen neto creció al 34%.
+• Tasa de satisfacción (NPS) subió a 82 puntos.
+• Clientes que renuevan automáticamente: 76%.
+
+A veces el verdadero crecimiento no consiste en sumar más iniciativas, sino en eliminar con coraje todo lo que diluye tu enfoque principal.
+
+En el gráfico adjunto pueden ver la evolución mes a mes de los unit economics.`,
+      likes: 2890,
+      comments: 440,
+      shares: 180,
+    },
+
+    // 6. Carrusel: Método de 3 Fases para cerrar clientes
+    {
+      format: "carousel",
+      hook: `El Método de 3 Fases para posicionarte como referente en ${cleanKeyword} en LinkedIn:`,
+      fullContent: `El Método de 3 Fases para posicionarte como referente en ${cleanKeyword} en LinkedIn:
+
+La mayoría de profesionales publican con frecuencia pero sin una arquitectura de conversión detrás.
+Tienen visualizaciones, pero sus mensajes directos están vacíos.
+
+Este es el sistema estructurado que aplicamos para generar conversaciones de alto valor de manera orgánica:
+
+Fase 1: Atracción por Autoridad
+Contenido enfocado en desarmar objeciones y compartir aprendizajes prácticos del día a día en ${cleanKeyword}.
+
+Fase 2: Nutrición con Activos de Intención
+Publicaciones con recursos descargables (plantillas, frameworks) que identifican a prospectos altamente calificados.
+
+Fase 3: Conversión Relacional
+Iniciar conversaciones genuinas con las personas que solicitaron el recurso, diagnosticando si podemos ayudarlas en su caso concreto.
+
+Desliza el carrusel para ver las plantillas de mensajes y los disparadores de conversación.
+
+Comenta "SISTEMA" y te lo comparto por mensaje privado.`,
+      slides: [
+        {
+          slideNumber: 1,
+          isCover: true,
+          title: `El Método de 3 Fases: ${cleanKeyword}`,
+          subtitle: "Cómo transformar visibilidad en LinkedIn en clientes calificados",
+          content: [`Por Mariana Costa`, `Especialista en Conversión B2B`],
+          footerText: "@marianacosta_growth",
+        },
+        {
+          slideNumber: 2,
+          title: "Fase 1: Atracción por Autoridad",
+          content: [
+            `Comparte aprendizajes reales de proyectos en ${cleanKeyword}.`,
+            "Evita generalidades; aporta datos, porcentajes y metodologías.",
+            "Genera confianza sólida antes de cualquier acercamiento comercial.",
+          ],
+          footerText: "Fase 1: Autoridad",
+        },
+        {
+          slideNumber: 3,
+          title: "Fase 2: Activos de Intención",
+          content: [
+            "Diseña guías, checklists o calculadoras de resolución inmediata.",
+            "Utiliza llamadas a la acción con palabras clave activadoras.",
+            "Filtra de forma natural a quienes tienen una necesidad prioritaria.",
+          ],
+          footerText: "Fase 2: Intención",
+        },
+        {
+          slideNumber: 4,
+          title: "Fase 3: Conversión Relacional",
+          content: [
+            "Inicia la conversación privada entregando el recurso sin vender.",
+            "Formula preguntas de diagnóstico sobre su situación actual.",
+            "Agenda sesiones de trabajo solo con cuentas con encaje mutuo.",
+          ],
+          footerText: "Fase 3: Relación",
+        },
+        {
+          slideNumber: 5,
+          isCta: true,
+          title: "¿Quieres los Disparadores de Conversación?",
+          subtitle: `Guiones probados para ${cleanKeyword}`,
+          content: [
+            "Comenta SISTEMA en esta publicación.",
+            "Te envío los guiones y ejemplos reales por mensaje privado.",
+          ],
+          footerText: "InHubFlow Conversion Engine",
+        },
+      ],
+      likes: 3310,
+      comments: 615,
+      shares: 190,
+    },
+
+    // 7. Texto: 3 preguntas de revisión semanal
+    {
+      format: "text",
+      hook: `3 Preguntas que deberías hacerte cada viernes si trabajas en ${cleanKeyword}:`,
+      fullContent: `3 Preguntas que deberías hacerte cada viernes si trabajas en ${cleanKeyword}:
+
+En la prisa diaria es fácil confundir estar permanentemente ocupado con estar avanzando hacia metas estratégicas.
+
+Cada semana hago este ejercicio de 10 minutos con mi equipo:
+
+1. ¿Resolvimos el problema más valioso de nuestros clientes esta semana o solo apagamos incendios?
+Si el 80% del tiempo se consume en urgencias operativas, el negocio carece de margen para innovar.
+
+2. ¿Qué fricción recurrente podríamos haber eliminado con un proceso claro?
+Cada error repetido más de 2 veces es una oportunidad de oro para documentar un procedimiento estándar (SOP).
+
+3. ¿Qué conversación de esta semana nos dejó el aprendizaje más revelador?
+Las mejores ideas de producto y posicionamiento siempre provienen de las palabras exactas que usa el cliente cuando describe su dolor.
+
+Un hábito sencillo que ahorra meses de desvío estratégico.
+
+¿Haces alguna revisión semanal similar? ¿Cuál es tu pregunta obligatoria?`,
+      likes: 2150,
+      comments: 380,
+      shares: 110,
+    },
+
+    // 8. Imagen: Matriz comparativa entre método obsoleto y moderno
+    {
+      format: "image",
+      hook: `La tabla comparativa que todo líder en ${cleanKeyword} debería tener presente este año:`,
+      fullContent: `La tabla comparativa que todo líder en ${cleanKeyword} debería tener presente este año:
+
+Enfrentarse a los desafíos del sector con herramientas y metodologías de hace 3 años es la receta perfecta para el estancamiento.
+
+En el cuadro que comparto a continuación sintetizamos:
+• El modelo tradicional: Reactivo, dependiente de esfuerzo manual repetitivo, con clientes que rotan con alta frecuencia.
+• El modelo moderno: Proactivo, apalancado en datos e inteligencia relacional, con relaciones de largo plazo y alto valor acumulado.
+
+La transición no ocurre de un día para otro, pero quienes comenzaron este cambio hoy tienen costes de captación 3 veces menores.
+
+Miren la gráfica adjunta y cuéntenme: ¿en qué columna se encuentra su operativa hoy en día?`,
+      likes: 2740,
+      comments: 465,
+      shares: 165,
+    },
+
+    // 9. Carrusel: 5 Tendencias críticas del mercado
+    {
+      format: "carousel",
+      hook: `5 Tendencias críticas que transformarán el ecosistema de ${cleanKeyword} en 2026/2027:`,
+      fullContent: `5 Tendencias críticas que transformarán el ecosistema de ${cleanKeyword} en 2026/2027:
+
+Los ciclos de adaptación son cada vez más rápidos. Quienes anticipan las curvas de cambio capturan la mayor cuota de mercado; quienes esperan, compiten por los restos.
+
+Estas son las 5 tendencias emergentes que estamos monitoreando de cerca en ${cleanKeyword}:
+1. Hiper-personalización basada en datos reales de comportamiento y contexto.
+2. Integración de IA para automatizar tareas mecánicas y liberar tiempo estratégico.
+3. El auge de la transparencia radical: marcas personales fuertes superan a logos corporativos fríos.
+4. Modelos de recurrencia y suscripción reemplazando a la venta transaccional puntual.
+5. Comunidades cerradas como principal motor de retención y referidos orgánicos.
+
+Desliza para ver el análisis detallado de cada tendencia y qué acciones inmediatas puedes tomar este trimestre.
+
+Comenta "TENDENCIAS" si quieres recibir el informe ejecutivo completo en PDF.`,
+      slides: [
+        {
+          slideNumber: 1,
+          isCover: true,
+          title: `5 Tendencias en ${cleanKeyword}`,
+          subtitle: "Hacia dónde se mueve el mercado y cómo anticiparse con éxito",
+          content: [`Por Patricia Ramos`, `Investigación de Mercados`],
+          footerText: "@patriciaramos_trends",
+        },
+        {
+          slideNumber: 2,
+          title: "Tendencia 1: Hiper-Personalización",
+          content: [
+            "Los mensajes genéricos tienen una efectividad decreciente menor al 2%.",
+            "Los decisores premian la comprensión profunda de su contexto específico.",
+            "El valor comercial está en el detalle relevante.",
+          ],
+          footerText: "Tendencia 1",
+        },
+        {
+          slideNumber: 3,
+          title: "Tendencia 2: Automatización con IA",
+          content: [
+            "Liberar a los equipos de tareas mecánicas de entrada de datos.",
+            "La inteligencia artificial como copiloto analítico y modelador de ideas.",
+            "Mayor tiempo disponible para interacciones humanas genuinas.",
+          ],
+          footerText: "Tendencia 2",
+        },
+        {
+          slideNumber: 4,
+          title: "Tendencia 3: Modelos de Recurrencia",
+          content: [
+            "Vender una única vez es insostenible con los costes de captación actuales.",
+            "Estructurar acuerdos continuos donde el valor aumente mes a mes.",
+            "La rentabilidad real florece a partir del cuarto mes de relación.",
+          ],
+          footerText: "Tendencia 3",
+        },
+        {
+          slideNumber: 5,
+          isCta: true,
+          title: "¿Quieres el Informe de Tendencias?",
+          subtitle: `Reporte estratégico para ${cleanKeyword}`,
+          content: [
+            "Comenta TENDENCIAS en esta publicación.",
+            "Te envío el documento con gráficos y proyecciones por privado.",
+          ],
+          footerText: "InHubFlow Market Intelligence",
+        },
+      ],
+      likes: 3580,
+      comments: 720,
+      shares: 240,
+    },
+
+    // 10. Texto: Cómo cerrar reuniones sin prospección fría invasiva
+    {
+      format: "text",
+      hook: `Cómo cerrar reuniones comerciales en ${cleanKeyword} sin enviar un solo mensaje frío invasivo:`,
+      fullContent: `Cómo cerrar reuniones comerciales en ${cleanKeyword} sin enviar un solo mensaje frío invasivo:
+
+El "outreach" tradicional de enviar 500 mensajes genéricos a personas que no te conocen está roto.
+La tasa de respuesta promedio cayó al 1.8% y daña la reputación de tu marca personal.
+
+La estrategia que estamos usando con un 28% de tasa de conversión a videollamada:
+
+Paso 1: Monitoreo de Señales de Intención
+Identificamos decisores en ${cleanKeyword} que interactúan activamente con publicaciones sobre los dolores específicos que resolvemos.
+
+Paso 2: Aporte de Valor sin Compromiso
+En lugar de pedir "15 minutos para una demo", compartimos una auditoría rápida o un checklist útil directamente relacionado con el tema que comentaron.
+
+Paso 3: Conversación Consultiva
+Cuando agradecen el recurso, preguntamos con curiosidad genuina cuál es su principal prioridad este trimestre.
+Si hay encaje natural, la reunión se agenda a petición del propio cliente.
+
+Vender B2B no es cazar; es cultivar credibilidad y facilitar decisiones informadas.
+
+¿Qué método te funciona mejor para iniciar conversaciones comerciales?`,
+      likes: 2790,
+      comments: 495,
+      shares: 155,
+    },
+
+    // 11. Imagen: Marco de trabajo visual de 4 cuadrantes
+    {
+      format: "image",
+      hook: `El marco de trabajo de 4 cuadrantes para simplificar la gestión en ${cleanKeyword}:`,
+      fullContent: `El marco de trabajo de 4 cuadrantes para simplificar la gestión en ${cleanKeyword}:
+
+Cuando los procesos se vuelven complejos, la ejecución se ralentiza y los errores se multiplican.
+
+Este cuadrante visual nos ayuda a priorizar cada semana qué iniciativas merecen recursos y cuáles deben descartarse de inmediato:
+
+• Cuadrante 1 (Alto impacto, baja complejidad): Victorias rápidas que implementamos en menos de 48 horas.
+• Cuadrante 2 (Alto impacto, alta complejidad): Proyectos estratégicos del trimestre con hitos semanales.
+• Cuadrante 3 (Bajo impacto, baja complejidad): Automatizar o delegar por completo.
+• Cuadrante 4 (Bajo impacto, alta complejidad): Eliminar sin dudar para no agotar al equipo.
+
+Adjunto la infografía para que puedan guardarla o utilizarla en su próxima reunión de equipo.
+
+¿Cuántas tareas de tu semana pertenecen en realidad al cuadrante 4? Te leo en comentarios.`,
+      likes: 2620,
+      comments: 395,
+      shares: 145,
+    },
+  ];
+
+  return templatesData.map((data, idx) => {
     const author = authors[idx % authors.length];
-    const likes = 1200 + (idx * 165) + ((idx % 3) * 220);
-    const comments = 180 + (idx * 35) + ((idx % 4) * 45);
-    const shares = 45 + (idx * 15);
-    const { viralityScore, viralityTier, viralityBadge, engagementRatio } = calculateVirality(likes, comments, shares);
+    const { viralityScore, viralityTier, viralityBadge, engagementRatio } = calculateVirality(
+      data.likes,
+      data.comments,
+      data.shares
+    );
 
-    const hook = `El mayor error que cometen las empresas en el sector de ${cleanKeyword} (y cómo solucionarlo en 2026):`;
-    const fullContent = `${hook}
-
-Durante los últimos 12 meses analizamos más de 40 empresas del ecosistema de ${cleanKeyword}.
-La mayoría se enfoca únicamente en el volumen de actividad en lugar de optimizar la conversión y la retención.
-
-Los 3 pilares que diferencian a los líderes en ${cleanKeyword}:
-1. Posicionamiento claro: Resolver un dolor crítico con métricas verificables en lugar de ofrecer servicios genéricos.
-2. Automatización relacional: Mantener contacto constante con decisores sin saturar con mensajes impersonales.
-3. Entrega de valor previo: Publicar frameworks, comparativas y playbooks que demuestran autoridad antes de la reunión comercial.
-
-Aplicando este sistema, la tasa de respuesta en el sector de ${cleanKeyword} se multiplica por 3x.
-
-Desliza para ver la guía completa con el paso a paso.
-
-Comenta "${cleanKeyword.toUpperCase().slice(0, 8)}" abajo y te comparto el recurso completo en PDF por privado.`;
-
-    const carouselSlides: CarouselSlide[] = [
-      {
-        slideNumber: 1,
-        isCover: true,
-        title: `Estrategia y Crecimiento en ${cleanKeyword}`,
-        subtitle: "Framework Operativo para Escalar en 2026",
-        content: [`Por ${author.name}`, author.role],
-        footerText: `@${author.name.toLowerCase().replace(/[^a-z]/g, "")}`,
-      },
-      {
-        slideNumber: 2,
-        title: `El Diagnóstico en ${cleanKeyword}`,
-        content: [
-          `El 70% de las empresas en ${cleanKeyword} compiten únicamente por precio.`,
-          "La falta de diferenciación clara destruye los márgenes comerciales.",
-          "La clave está en especializarse en el problema más costoso para el cliente.",
-        ],
-        footerText: "Paso 1: Diagnóstico",
-      },
-      {
-        slideNumber: 3,
-        title: "La Solución Metódica",
-        content: [
-          "Mapea los 3 dolores críticos que le quitan el sueño al decisor.",
-          "Crea un activo de alto valor que resuelva el primer paso del problema.",
-          "Convierte conversaciones informales en oportunidades de negocio estructuradas.",
-        ],
-        footerText: "Paso 2: Implementación",
-      },
-      {
-        slideNumber: 4,
-        isCta: true,
-        title: "¿Quieres la Guía Completa?",
-        subtitle: `Optimizado para el mercado de ${cleanKeyword}`,
-        content: [
-          `Comenta ${cleanKeyword.toUpperCase().slice(0, 8)} en esta publicación.`,
-          "Te envío el documento completo por mensaje privado hoy mismo.",
-        ],
-        footerText: "InHubFlow Market Engine",
-      },
-    ];
+    const hasMedia = data.format !== "text";
+    const mediaUrl = hasMedia ? imagePool[idx % imagePool.length] : undefined;
 
     return {
       id: `niche-${idx + 1}-${lower.replace(/[^a-z0-9]/g, "-")}`,
       author: author.name,
       authorHeadline: author.role,
-      authorAvatar: `https://images.unsplash.com/photo-${1500000000000 + idx * 10000}?auto=format&fit=crop&w=150&q=80`,
+      authorAvatar: authorAvatars[idx % authorAvatars.length],
       publishedDate: `Hace ${idx + 1} días`,
       topic: `${cleanKeyword} - Tendencias & Estrategia`,
-      format,
-      hook,
-      fullContent,
-      carouselSlides: format === "carousel" ? carouselSlides : undefined,
-      likes,
-      comments,
-      shares,
+      format: data.format,
+      hook: data.hook,
+      fullContent: data.fullContent,
+      carouselSlides: data.format === "carousel" ? data.slides : undefined,
+      likes: data.likes,
+      comments: data.comments,
+      shares: data.shares,
       viralityScore,
       viralityBadge,
       viralityTier,
       engagementRatio,
-      mediaUrl: format !== "text" ? "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=700&q=80" : undefined,
-      hasMedia: format !== "text",
+      mediaUrl,
+      hasMedia,
       marketOrigin: "LATAM / Hispanoamérica",
       detectedLanguage: "es",
       isLive: false,
