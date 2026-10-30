@@ -251,7 +251,7 @@ export function getDashboardAnalytics(): DashboardAnalytics {
     {
       countryCode: "BR",
       countryName: "Brasil",
-      flagSrc: "/images/country/country-04.svg",
+      flagSrc: "/images/country/br.svg",
       prospectsCount: 215,
       acceptanceRate: 38.4,
       coordinates: [-14.235, -51.9253] as [number, number],
@@ -259,7 +259,7 @@ export function getDashboardAnalytics(): DashboardAnalytics {
     {
       countryCode: "CL",
       countryName: "Chile",
-      flagSrc: "/images/country/country-02.svg",
+      flagSrc: "/images/country/cl.svg",
       prospectsCount: 142,
       acceptanceRate: 35.2,
       coordinates: [-35.6751, -71.543] as [number, number],
@@ -267,7 +267,7 @@ export function getDashboardAnalytics(): DashboardAnalytics {
     {
       countryCode: "ES",
       countryName: "España",
-      flagSrc: "/images/country/country-07.svg",
+      flagSrc: "/images/country/es.svg",
       prospectsCount: 86,
       acceptanceRate: 28.7,
       coordinates: [40.4637, -3.7492] as [number, number],
@@ -275,7 +275,7 @@ export function getDashboardAnalytics(): DashboardAnalytics {
     {
       countryCode: "CO",
       countryName: "Colombia",
-      flagSrc: "/images/country/country-05.svg",
+      flagSrc: "/images/country/co.svg",
       prospectsCount: 64,
       acceptanceRate: 31.0,
       coordinates: [4.5709, -74.2973] as [number, number],

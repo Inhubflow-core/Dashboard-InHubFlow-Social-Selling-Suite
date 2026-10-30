@@ -12,7 +12,7 @@ interface ProspectsDemographicCardProps {
 export default function ProspectsDemographicCard({
   demographics,
 }: ProspectsDemographicCardProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard.demographics");
 
   const markers = demographics.map((d) => ({
     latLng: d.coordinates,
@@ -29,14 +29,14 @@ export default function ProspectsDemographicCard({
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-            {t("demographics.title")}
+            {t("title")}
           </h3>
           <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
-            {t("demographics.badge")}
+            {t("badge")}
           </span>
         </div>
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {t("demographics.desc")}
+          {t("desc")}
         </p>
       </div>
 
@@ -44,19 +44,19 @@ export default function ProspectsDemographicCard({
         <DemographicCountryMap markers={markers} />
       </div>
 
-      <div className="space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+      <div className="space-y-3 border-t border-gray-100 pt-3 dark:border-gray-800">
         {demographics.map((item) => (
           <div
             key={item.countryCode}
             className="flex items-center justify-between text-xs"
           >
             <div className="flex items-center gap-2.5">
-              <div className="relative h-4 w-5 overflow-hidden rounded-xs flex-shrink-0">
+              <div className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0 shadow-xs border border-gray-200 dark:border-gray-700">
                 <Image
                   src={item.flagSrc}
                   alt={item.countryName}
                   width={20}
-                  height={16}
+                  height={20}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -65,7 +65,7 @@ export default function ProspectsDemographicCard({
                   {item.countryName}
                 </span>
                 <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
-                  {item.prospectsCount} {t("demographics.prospectsCountLabel")}
+                  {item.prospectsCount} {t("prospectsCountLabel")}
                 </span>
               </div>
             </div>
@@ -74,8 +74,8 @@ export default function ProspectsDemographicCard({
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block leading-tight">
                 {item.acceptanceRate}%
               </span>
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-tighter">
-                {t("demographics.acceptanceLabel")}
+              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 tracking-tight">
+                {t("acceptanceLabel")}
               </span>
             </div>
           </div>
