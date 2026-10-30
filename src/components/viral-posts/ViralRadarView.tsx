@@ -773,6 +773,18 @@ export default function ViralRadarView({
           </span>
         </div>
 
+        {/* Banner explicativo cuando opera en modo local / simulación */}
+        {!isSearchingLive && filteredPosts.length > 0 && !filteredPosts.some((p) => p.isLive) && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300/80 bg-amber-50/90 dark:border-amber-900/60 dark:bg-amber-950/40 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span>
+                <strong>Modo Simulación Local Activo:</strong> La API de LinkedIn (Unipile) no está conectada en este entorno (error 401). Estás visualizando plantillas modeladas de alta conversión. Cuando conectas tu cuenta de LinkedIn en vivo (como en Hostinger), el radar extrae las publicaciones 100% reales de LinkedIn con sus fotos de perfil originales, métricas en vivo y enlaces directos a cada post.
+              </span>
+            </div>
+          </div>
+        )}
+
         {isSearchingLive ? (
           <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
@@ -836,9 +848,13 @@ export default function ViralRadarView({
                           <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
                             {post.author}
                           </h4>
-                          {post.isLive && (
-                            <span className="rounded-lg bg-emerald-50 px-1.5 py-0.2 text-xs font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                              LIVE
+                          {post.isLive ? (
+                            <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shrink-0">
+                              ● EN VIVO
+                            </span>
+                          ) : (
+                            <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-900 shrink-0" title="Plantilla de inspiración simulada (modo local)">
+                              SIMULADO
                             </span>
                           )}
                         </div>
@@ -1246,12 +1262,20 @@ export default function ViralRadarView({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0a66c2] hover:text-[#004182] dark:text-sky-400 dark:hover:text-sky-300 hover:underline transition"
-                        title="Ver publicación original en LinkedIn"
+                        title={
+                          selectedPostForModal.isLive
+                            ? "Abrir publicación real en LinkedIn"
+                            : "Buscar esta temática en LinkedIn (Plantilla local)"
+                        }
                       >
                         <svg className="w-3 h-3 fill-current shrink-0" viewBox="0 0 24 24">
                           <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.77v8.37H6.46v-8.37M7.85 6.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z" />
                         </svg>
-                        <span>Ver en LinkedIn ↗</span>
+                        <span>
+                          {selectedPostForModal.isLive
+                            ? "Ver en LinkedIn ↗"
+                            : "Buscar temática en LinkedIn ↗"}
+                        </span>
                       </a>
                     </div>
                   </div>
@@ -1465,7 +1489,11 @@ export default function ViralRadarView({
                 <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
                   <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.77v8.37H6.46v-8.37M7.85 6.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z" />
                 </svg>
-                <span>Ver publicación original en LinkedIn ↗</span>
+                <span>
+                  {selectedPostForModal.isLive
+                    ? "Ver publicación original en LinkedIn ↗"
+                    : "Buscar temática en LinkedIn ↗"}
+                </span>
               </a>
 
               <div className="flex items-center justify-end gap-2">

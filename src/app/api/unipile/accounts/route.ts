@@ -164,10 +164,13 @@ export async function GET() {
     console.error('[api/unipile/accounts] Error listando cuentas:', error);
     return NextResponse.json(
       {
-        error: 'No se pudieron consultar las cuentas de LinkedIn',
+        configured: false,
+        error: 'No se pudieron consultar las cuentas de LinkedIn (Credenciales inactivas o expiradas)',
         message: error instanceof Error ? error.message : String(error),
+        accounts: [],
+        items: [],
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }
