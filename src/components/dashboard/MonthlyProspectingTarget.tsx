@@ -41,7 +41,7 @@ export default function MonthlyProspectingTarget({
         startAngle: -90,
         endAngle: 90,
         hollow: {
-          size: "72%",
+          size: "45%",
         },
         track: {
           background: "#E4E7EC",
