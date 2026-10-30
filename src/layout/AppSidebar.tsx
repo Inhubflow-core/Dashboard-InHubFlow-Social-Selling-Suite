@@ -27,6 +27,7 @@ import {
   ListIcon,
   PageIcon,
   PieChartIcon,
+  RadarIcon,
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
@@ -59,7 +60,7 @@ const navItems: NavItem[] = [
     path: "/viral-posts",
   },
   {
-    icon: <PieChartIcon />,
+    icon: <RadarIcon />,
     key: "signalRadar",
     path: "/signals",
   },

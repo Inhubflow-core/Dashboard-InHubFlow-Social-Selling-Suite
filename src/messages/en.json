@@ -976,6 +976,13 @@
       "connectedAccounts": "LinkedIn Accounts",
       "connectedAccountsDesc": "Safe capacity & daily quotas"
     },
+    "demographics": {
+      "title": "Prospects Demographics",
+      "desc": "Geographic distribution and response rate by country.",
+      "badge": "Global Reach",
+      "prospectsCountLabel": "prospects",
+      "acceptanceLabel": "Accept. / Resp."
+    },
     "charts": {
       "evolution": {
         "title": "Social Traction & Conversion Evolution",

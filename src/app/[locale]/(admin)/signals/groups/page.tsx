@@ -9,7 +9,7 @@ export default function LinkedInGroupsSignalRadarRedirect() {
   const t = useTranslations("signals.common");
 
   useEffect(() => {
-    router.replace("/signals?tab=groups");
+    router.replace("/signals");
   }, [router]);
 
   return (

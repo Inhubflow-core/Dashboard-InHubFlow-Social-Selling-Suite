@@ -44,6 +44,7 @@ export { default as PageIcon } from "./page.svg";
 export { default as PaperPlaneIcon } from "./paper-plane.svg";
 export { default as PencilIcon } from "./pencil.svg";
 export { default as PieChartIcon } from "./pie-chart.svg";
+export { default as RadarIcon } from "./radar.svg";
 export { default as PlugInIcon } from "./plug-in.svg";
 export { default as PlusIcon } from "./plus.svg";
 export { default as ShootingStarIcon } from "./shooting-star.svg";

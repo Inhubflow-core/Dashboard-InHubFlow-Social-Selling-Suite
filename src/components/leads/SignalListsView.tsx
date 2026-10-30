@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -267,12 +267,11 @@ export default function SignalListsView({
                 </label>
                 <select
                   value={newSignalLevel}
-                  onChange={(e) => setNewSignalLevel(e.target.value as "level_1" | "level_2" | "level_3" | "level_4")}
+                  onChange={(e) => setNewSignalLevel(e.target.value as "level_1" | "level_2" | "level_4")}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 >
                   <option value="level_1">{t("optionLevel1")}</option>
                   <option value="level_2">{t("optionLevel2")}</option>
-                  <option value="level_3">{t("optionLevel3")}</option>
                   <option value="level_4">{t("optionLevel4")}</option>
                 </select>
               </div>

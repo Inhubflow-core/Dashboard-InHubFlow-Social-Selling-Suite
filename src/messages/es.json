@@ -976,6 +976,13 @@
       "connectedAccounts": "Cuentas LinkedIn",
       "connectedAccountsDesc": "Capacidad y cuotas seguras"
     },
+    "demographics": {
+      "title": "Demografía de Prospectos",
+      "desc": "Distribución geográfica y tasa de respuesta por país.",
+      "badge": "Alcance Global",
+      "prospectsCountLabel": "prospectos",
+      "acceptanceLabel": "Acept. / Resp."
+    },
     "charts": {
       "evolution": {
         "title": "Evolución de Tracción y Conversión Social",

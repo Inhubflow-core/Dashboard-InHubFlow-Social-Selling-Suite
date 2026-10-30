@@ -4,13 +4,12 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { UserCheck, Target, Users, Globe } from "lucide-react";
+import { UserCheck, Target, Globe } from "lucide-react";
 import MyPostsSignalRadarView from "@/components/signals/MyPostsSignalRadarView";
 import CompetitorsSignalRadarView from "@/components/signals/CompetitorsSignalRadarView";
-import LinkedInGroupsSignalRadarView from "@/components/signals/LinkedInGroupsSignalRadarView";
 import GlobalSignalsView from "@/components/signals/GlobalSignalsView";
 
-type SignalTab = "my-posts" | "competitors" | "groups" | "global";
+type SignalTab = "my-posts" | "competitors" | "global";
 
 function SignalsContent() {
   const tSidebar = useTranslations("sidebar.items");
@@ -29,10 +28,6 @@ function SignalsContent() {
       case "competitor":
       case "competencia":
         return "competitors";
-      case "groups":
-      case "group":
-      case "grupos":
-        return "groups";
       case "global":
       case "globales":
         return "global";
@@ -93,19 +88,6 @@ function SignalsContent() {
 
           <button
             type="button"
-            onClick={() => handleTabChange("groups")}
-            className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === "groups"
-                ? "border-[#0099ff] text-[#0099ff]"
-                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            }`}
-          >
-            <Users className="size-4" />
-            <span>{tSidebar("groupPosts")}</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => handleTabChange("global")}
             className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "global"
@@ -123,7 +105,6 @@ function SignalsContent() {
       <div className="pt-1">
         {activeTab === "my-posts" && <MyPostsSignalRadarView hideBreadcrumb />}
         {activeTab === "competitors" && <CompetitorsSignalRadarView hideBreadcrumb />}
-        {activeTab === "groups" && <LinkedInGroupsSignalRadarView hideBreadcrumb />}
         {activeTab === "global" && <GlobalSignalsView hideBreadcrumb />}
       </div>
     </div>
