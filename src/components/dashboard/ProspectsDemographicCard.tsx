@@ -12,7 +12,7 @@ interface ProspectsDemographicCardProps {
 export default function ProspectsDemographicCard({
   demographics,
 }: ProspectsDemographicCardProps) {
-  const t = useTranslations("dashboard.demographics");
+  const t = useTranslations("dashboard.charts.demographics");
 
   const markers = demographics.map((d) => ({
     latLng: d.coordinates,
