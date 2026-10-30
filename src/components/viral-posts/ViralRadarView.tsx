@@ -584,46 +584,6 @@ export default function ViralRadarView({
       >
         <div className="space-y-4">
           <div className="space-y-3">
-            {/* Selector de cuenta si hay varias */}
-            {availableAccounts.length > 1 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-gray-50 border border-gray-300 dark:bg-gray-800/40 dark:border-gray-800 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-600 dark:text-gray-400">
-                    {t("connectedAccount")}
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {currentDisplayName}
-                  </span>
-                  <span className="rounded-lg bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                    OK
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-xs">{t("changeAccount")}</span>
-                  <select
-                    value={activeAccount?.id || ""}
-                    onChange={(e) => {
-                      const selected = availableAccounts.find((a) => a.id === e.target.value);
-                      if (selected) {
-                        setActiveAccount(selected);
-                        setActiveAccountName(selected.name);
-                        setActiveAccountId(selected.id);
-                        handleLiveSearch(searchKeyword, selected.id);
-                      }
-                    }}
-                    className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                  >
-                    {availableAccounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} ({a.status === "OK" ? t("statusConnected") : t("statusReconnect")})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="relative flex-1">
                 <input
