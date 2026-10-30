@@ -15,6 +15,10 @@ import {
   KeyRound,
   Rocket,
   Lightbulb,
+  Zap,
+  ExternalLink,
+  Sparkles,
+  Puzzle,
 } from "lucide-react";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import { addStoredAccount } from "@/lib/unipile/store";
@@ -102,8 +106,8 @@ export default function ConnectLinkedInModal({
   // Formulario del Paso 1
   const [form, setForm] = useState(BLANK_FORM);
 
-  // Formulario del Paso 2 (Autenticación Nativa)
-  const [authMode, setAuthMode] = useState<"credentials" | "cookie">("credentials");
+  // Formulario del Paso 2 (Autenticación UniLogin o Nativa)
+  const [authMode, setAuthMode] = useState<"unilogin" | "credentials" | "cookie">("unilogin");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
@@ -123,6 +127,29 @@ export default function ConnectLinkedInModal({
   // Modal final de recomendación y éxito estilo B2B
   const [showSuccessAdviceModal, setShowSuccessAdviceModal] = useState(false);
   const [connectedAccountResult, setConnectedAccountResult] = useState<ConnectedLinkedInAccount | null>(null);
+
+  // Escuchar evento postMessage cuando el popup de UniLogin complete la conexión con éxito
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "LINKEDIN_AUTH_SUCCESS") {
+        fetch("/api/unipile/accounts")
+          .then((r) => r.json())
+          .then((accData) => {
+            if (accData.accounts && accData.accounts.length > 0) {
+              const fresh = accData.accounts[0];
+              finalizeConnection(fresh.unipileAccountId || fresh.id);
+            } else {
+              finalizeConnection(`acc_${Date.now()}`);
+            }
+          })
+          .catch(() => {
+            finalizeConnection(`acc_${Date.now()}`);
+          });
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [form, initialAccount]);
 
   // Inicializar o resetear datos cuando cambia isOpen o initialAccount
   useEffect(() => {
@@ -153,6 +180,7 @@ export default function ConnectLinkedInModal({
         setModalStep(1);
         setIsCheckpoint(false);
       }
+      setAuthMode("unilogin");
       setAuthPassword("");
       setShowAuthPassword(false);
       setAuthCookieLiAt("");
@@ -186,6 +214,72 @@ export default function ConnectLinkedInModal({
       setAuthEmail(form.email.trim());
     }
     setModalStep(2);
+  };
+
+  // Manejo de conexión 1-Clic con Extensión UniLogin (Modalidad 1)
+  const handleUniLoginConnect = async () => {
+    setAuthLoading(true);
+    setAuthError(null);
+
+    try {
+      const host = typeof window !== "undefined" ? window.location.host : "localhost:3000";
+      const proto = typeof window !== "undefined" ? window.location.protocol : "http:";
+      const baseUrl = `${proto}//${host}`;
+
+      const res = await fetch("/api/unipile/hosted-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim() || undefined,
+          reconnectAccountId: initialAccount?.unipileAccountId || undefined,
+          successUrl: `${baseUrl}/auth/linkedin-callback?status=success`,
+          failureUrl: `${baseUrl}/auth/linkedin-callback?status=error`,
+        }),
+      });
+
+      const data = await res.json();
+      setAuthLoading(false);
+
+      if (!res.ok || !data.url) {
+        setAuthError(data.error || "No se pudo generar el enlace de conexión con UniLogin.");
+        return;
+      }
+
+      const width = 620;
+      const height = 760;
+      const left = typeof window !== "undefined" ? Math.max(0, (window.screen.width - width) / 2) : 100;
+      const top = typeof window !== "undefined" ? Math.max(0, (window.screen.height - height) / 2) : 100;
+
+      const popup = window.open(
+        data.url,
+        "UniLoginAuthWizard",
+        `width=${width},height=${height},top=${top},left=${left},status=no,toolbar=no,menubar=no`
+      );
+
+      if (!popup || popup.closed || typeof popup.closed === "undefined") {
+        window.location.href = data.url;
+        return;
+      }
+
+      // Monitoreo suave del cierre de la ventana para sincronizar
+      const checkTimer = setInterval(() => {
+        if (!popup || popup.closed) {
+          clearInterval(checkTimer);
+          fetch("/api/unipile/accounts")
+            .then((r) => r.json())
+            .then((accData) => {
+              if (accData.accounts && accData.accounts.length > 0) {
+                const fresh = accData.accounts[0];
+                finalizeConnection(fresh.unipileAccountId || fresh.id);
+              }
+            })
+            .catch(() => {});
+        }
+      }, 1500);
+    } catch (err: unknown) {
+      setAuthLoading(false);
+      setAuthError(err instanceof Error ? err.message : "Error al abrir la conexión con UniLogin.");
+    }
   };
 
   // Manejo de autenticación nativa en Paso 2
@@ -608,30 +702,46 @@ export default function ConnectLinkedInModal({
                 </form>
               </div>
 
-              {/* ─── SLIDE 2: Autenticación Nativa y Checkpoint 2FA ─── */}
+              {/* ─── SLIDE 2: Autenticación UniLogin (1 Clic) o Nativa ─── */}
               <div className="w-1/2 shrink-0 flex flex-col justify-between">
                 {!isCheckpoint ? (
-                  <form onSubmit={handleNativeLogin}>
+                  <form onSubmit={authMode === "unilogin" ? (e) => { e.preventDefault(); handleUniLoginConnect(); } : handleNativeLogin}>
                     <div className="max-h-[500px] overflow-y-auto custom-scrollbar px-6 py-4 flex flex-col gap-3">
-                      {/* Selector de Método: Credenciales vs Cookies */}
+                      {/* Selector de Método: UniLogin vs Credenciales vs Cookies */}
                       <div>
                         <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
                           Método de Conexión
                         </label>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("unilogin");
+                              setAuthError(null);
+                            }}
+                            className={`py-2 px-2 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                              authMode === "unilogin"
+                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-bold shadow-xs ring-1 ring-brand-500/30"
+                                : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-400"
+                            }`}
+                          >
+                            <Zap className="size-3.5 text-amber-500 fill-amber-500" />
+                            <span>UniLogin (1 Clic)</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
                               setAuthMode("credentials");
                               setAuthError(null);
                             }}
-                            className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                            className={`py-2 px-2 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                               authMode === "credentials"
-                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
-                                : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-bold shadow-xs ring-1 ring-brand-500/30"
+                                : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-400"
                             }`}
                           >
-                            Credenciales (Correo y Clave)
+                            <KeyRound className="size-3.5" />
+                            <span>Correo y Clave</span>
                           </button>
                           <button
                             type="button"
@@ -639,18 +749,89 @@ export default function ConnectLinkedInModal({
                               setAuthMode("cookie");
                               setAuthError(null);
                             }}
-                            className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                            className={`py-2 px-2 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                               authMode === "cookie"
-                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-semibold"
-                                : "border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-400"
+                                ? "bg-brand-500/15 border-brand-500 text-brand-600 dark:text-brand-400 font-bold shadow-xs ring-1 ring-brand-500/30"
+                                : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-400"
                             }`}
                           >
-                            Cookie de Sesión (li_at)
+                            <Lock className="size-3.5" />
+                            <span>Cookie (li_at)</span>
                           </button>
                         </div>
                       </div>
 
-                      {authMode === "credentials" ? (
+                      {authMode === "unilogin" ? (
+                        <div className="rounded-xl border border-brand-500/30 bg-gradient-to-br from-brand-50/50 via-white to-blue-50/30 dark:from-brand-950/20 dark:via-gray-900 dark:to-blue-950/10 p-5 flex flex-col gap-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-10 h-10 rounded-lg bg-[#0A66C2] text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0">
+                                in
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                                    Conexión con Extensión UniLogin
+                                  </h4>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    <Sparkles className="size-2.5" /> Recomendado
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                  Vincula tu sesión activa de LinkedIn en este navegador en 1 solo clic.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 pt-1 border-t border-brand-500/10 dark:border-brand-500/20">
+                            <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
+                              <Check className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                              <span><strong>Cero fricción:</strong> No requiere escribir contraseñas ni copiar cookies manualmente.</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
+                              <ShieldCheck className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                              <span><strong>Protección Anti-Checkpoint:</strong> Utiliza tu misma IP y proxy residencial del mismo país para evitar bloqueos de LinkedIn.</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
+                              <Lock className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                              <span><strong>Privacidad Total:</strong> InHubFlow nunca almacena tu contraseña personal de LinkedIn.</span>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 flex flex-col gap-2">
+                            <button
+                              type="button"
+                              onClick={handleUniLoginConnect}
+                              disabled={authLoading}
+                              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-[#0A66C2] hover:bg-[#004182] text-white text-sm font-bold transition-all shadow-md cursor-pointer disabled:opacity-50"
+                            >
+                              {authLoading ? (
+                                <>
+                                  <Loader2 className="size-4 animate-spin" />
+                                  <span>Iniciando Asistente UniLogin...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="size-4 text-amber-300 fill-amber-300" />
+                                  <span>Conectar con Extensión UniLogin (1 Clic)</span>
+                                </>
+                              )}
+                            </button>
+
+                            <a
+                              href="https://chromewebstore.google.com/detail/unilogin/kmmoommiihbcemaebamojhchnnjhbkkl"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-1.5 text-xs text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 py-1 transition-colors"
+                            >
+                              <Puzzle className="size-3.5" />
+                              <span>¿Aún no tienes la extensión? Instálala gratis desde Chrome Web Store</span>
+                              <ExternalLink className="size-3" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : authMode === "credentials" ? (
                         <>
                           <div>
                             <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
@@ -737,56 +918,58 @@ export default function ConnectLinkedInModal({
                         </>
                       )}
 
-                      {/* Opciones Avanzadas: Proxy y País */}
-                      <div className="border-t border-gray-300 dark:border-gray-800 pt-3 flex flex-col gap-3">
-                        <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                          Opciones Avanzadas (Proxy y País)
-                        </p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                              País del Proxy
-                            </label>
-                            <select
-                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
-                              value={authCountry}
-                              onChange={(e) => setAuthCountry(e.target.value)}
-                              disabled={authLoading}
-                            >
-                              <option value="">Automático (Según tu IP)</option>
-                              <option value="BR">Brasil (BR)</option>
-                              <option value="ES">España (ES)</option>
-                              <option value="US">Estados Unidos (US)</option>
-                              <option value="MX">México (MX)</option>
-                              <option value="CO">Colombia (CO)</option>
-                              <option value="AR">Argentina (AR)</option>
-                              <option value="CL">Chile (CL)</option>
-                              <option value="PE">Perú (PE)</option>
-                              <option value="GB">Reino Unido (GB)</option>
-                              <option value="FR">Francia (FR)</option>
-                              <option value="DE">Alemania (DE)</option>
-                              <option value="IT">Italia (IT)</option>
-                              <option value="PT">Portugal (PT)</option>
-                            </select>
+                      {/* Opciones Avanzadas: Proxy y País (Solo para credenciales o cookies) */}
+                      {authMode !== "unilogin" && (
+                        <div className="border-t border-gray-300 dark:border-gray-800 pt-3 flex flex-col gap-3">
+                          <p className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                            Opciones Avanzadas (Proxy y País)
+                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                                País del Proxy
+                              </label>
+                              <select
+                                className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 cursor-pointer"
+                                value={authCountry}
+                                onChange={(e) => setAuthCountry(e.target.value)}
+                                disabled={authLoading}
+                              >
+                                <option value="">Automático (Según tu IP)</option>
+                                <option value="BR">Brasil (BR)</option>
+                                <option value="ES">España (ES)</option>
+                                <option value="US">Estados Unidos (US)</option>
+                                <option value="MX">México (MX)</option>
+                                <option value="CO">Colombia (CO)</option>
+                                <option value="AR">Argentina (AR)</option>
+                                <option value="CL">Chile (CL)</option>
+                                <option value="PE">Perú (PE)</option>
+                                <option value="GB">Reino Unido (GB)</option>
+                                <option value="FR">Francia (FR)</option>
+                                <option value="DE">Alemania (DE)</option>
+                                <option value="IT">Italia (IT)</option>
+                                <option value="PT">Portugal (PT)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
+                                Proxy Personalizado (Opcional)
+                              </label>
+                              <input
+                                type="text"
+                                className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                placeholder="host:port:user:pass"
+                                value={authCustomProxy}
+                                onChange={(e) => setAuthCustomProxy(e.target.value)}
+                                disabled={authLoading}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                              Proxy Personalizado (Opcional)
-                            </label>
-                            <input
-                              type="text"
-                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                              placeholder="host:port:user:pass"
-                              value={authCustomProxy}
-                              onChange={(e) => setAuthCustomProxy(e.target.value)}
-                              disabled={authLoading}
-                            />
-                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
+                            Si no defines un proxy propio, se asignará automáticamente un proxy de alta reputación según el país seleccionado.
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 leading-snug">
-                          Si no defines un proxy propio, se asignará automáticamente un proxy de alta reputación según el país seleccionado.
-                        </p>
-                      </div>
+                      )}
 
                       {authError && (
                         <p className="text-xs text-red-500 font-medium">{authError}</p>
@@ -806,23 +989,45 @@ export default function ConnectLinkedInModal({
                       >
                         Volver
                       </button>
-                      <button
-                        type="submit"
-                        disabled={authLoading}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                      >
-                        {authLoading ? (
-                          <>
-                            <Loader2 className="size-4 animate-spin" />
-                            <span>Conectando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Conectar Cuenta</span>
-                            <ArrowRight className="size-4" />
-                          </>
-                        )}
-                      </button>
+
+                      {authMode === "unilogin" ? (
+                        <button
+                          type="button"
+                          onClick={handleUniLoginConnect}
+                          disabled={authLoading}
+                          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-[#0A66C2] hover:bg-[#004182] text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        >
+                          {authLoading ? (
+                            <>
+                              <Loader2 className="size-4 animate-spin" />
+                              <span>Conectando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="size-4 text-amber-300 fill-amber-300" />
+                              <span>Conectar con UniLogin ⚡</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={authLoading}
+                          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        >
+                          {authLoading ? (
+                            <>
+                              <Loader2 className="size-4 animate-spin" />
+                              <span>Conectando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Conectar Cuenta</span>
+                              <ArrowRight className="size-4" />
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </form>
                 ) : (
