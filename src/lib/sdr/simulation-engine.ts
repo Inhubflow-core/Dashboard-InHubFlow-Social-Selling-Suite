@@ -57,7 +57,9 @@ export function runSdrDecision(input: SdrSimulationInput): SdrSimulationOutput {
   let reasoningSummary = "";
   let replyDraft = "";
   const citations: string[] = [];
-  const bookingUrl = input.config.bookingLink || "https://cal.inhubflow.com/demo-20min";
+  const goalType = input.config.conversionGoalType || "send_landing_demo";
+  const targetUrl = input.config.targetUrl || input.config.bookingLink || "https://inhubflow.com/demo";
+  const bookingUrl = input.config.bookingLink || targetUrl || "https://cal.inhubflow.com/demo-20min";
 
   // 1. Riesgo legal o reclamo severo -> Emergency Handoff
   if (
@@ -182,33 +184,73 @@ export function runSdrDecision(input: SdrSimulationInput): SdrSimulationOutput {
     intent = "meeting_request";
     confidence = 0.96;
     riskLevel = "low";
-    action = "offer_slots";
+    action = goalType === "schedule_meeting" ? "offer_slots" : "answer";
     requiresHuman = false;
-    reasonCode = "demo_booking_requested";
-    reasoningSummary = "El prospecto muestra intención clara de agendar una sesión demostrativa o videollamada.";
-    citations.push("Protocolo de Agendamiento de Reuniones", "Propuesta de Valor & Capacidades de InHubFlow");
+    reasonCode = goalType === "schedule_meeting" ? "demo_booking_requested" : "demo_landing_sent";
+    reasoningSummary =
+      goalType === "schedule_meeting"
+        ? "El prospecto muestra intención de agendar una videollamada. Se ofrece el enlace de calendario."
+        : "El prospecto muestra interés o solicita demo. Se le comparte el enlace directo a la presentación/demo en video.";
+    citations.push(
+      goalType === "schedule_meeting"
+        ? "Protocolo de Agendamiento de Reuniones"
+        : "Presentación Oficial y Demostración en Video",
+      "Propuesta de Valor & Capacidades de InHubFlow"
+    );
 
-    if (lang === "pt") {
-      replyDraft = `Excelente iniciativa, ${sender}! Ficaremos felizes em apresentar a plataforma ao vivo adaptada aos objetivos da sua equipe.
+    if (goalType === "schedule_meeting") {
+      if (lang === "pt") {
+        replyDraft = `Excelente iniciativa, ${sender}! Ficaremos felizes em apresentar a plataforma ao vivo adaptada aos objetivos da sua equipe.
 
 Você pode escolher o melhor dia e horário diretamente por este link (20 minutos):
 ${bookingUrl}
 
 Fica bom para você, ou prefere combinar um horário específico por aqui?`;
-    } else if (lang === "en") {
-      replyDraft = `Great initiative, ${sender}! We would love to show you the platform live tailored to your team's goals.
+      } else if (lang === "en") {
+        replyDraft = `Great initiative, ${sender}! We would love to show you the platform live tailored to your team's goals.
 
 You can pick the date and time that suits you best via this link (20 minutes):
 ${bookingUrl}
 
 Does that work for you, or would you rather coordinate a specific slot here?`;
-    } else {
-      replyDraft = `¡Excelente iniciativa, ${sender}! Estaremos encantados de mostrarte la plataforma en vivo adaptada a los objetivos de tu equipo. 
+      } else {
+        replyDraft = `¡Excelente iniciativa, ${sender}! Estaremos encantados de mostrarte la plataforma en vivo adaptada a los objetivos de tu equipo.
 
 Puedes elegir la fecha y franja horaria que mejor te convenga en este enlace (20 minutos):
 ${bookingUrl}
 
 ¿Te parece bien, o prefieres que coordinemos una hora concreta por aquí?`;
+      }
+    } else if (goalType === "send_landing_demo") {
+      if (lang === "pt") {
+        replyDraft = `Excelente iniciativa, ${sender}! Compartilho aqui o link direto para a nossa apresentação e demonstração em vídeo para que você possa avaliar no seu próprio ritmo:
+
+${targetUrl}
+
+Diretamente pela página você pode conferir todos os detalhes e ativar seu acesso se fizer sentido. O que acha?`;
+      } else if (lang === "en") {
+        replyDraft = `Great initiative, ${sender}! Here is the direct link to our interactive presentation and video walkthrough so you can review it at your own pace:
+
+${targetUrl}
+
+You can explore all capabilities and get started directly from that page if it aligns with your goals. Does that sound good?`;
+      } else {
+        replyDraft = `¡Excelente iniciativa, ${sender}! Te comparto aquí el enlace directo a nuestra presentación interactiva y demostración en video para que puedas revisarla a tu propio ritmo:
+
+${targetUrl}
+
+Desde esa misma página puedes evaluar las funcionalidades y activar tu acceso si te resulta de valor. ¿Te parece bien revisarlo por allí?`;
+      }
+    } else {
+      // custom_link
+      const pitch = input.config.ctaPitchText || "Te comparto el enlace directo a continuación:";
+      if (lang === "pt") {
+        replyDraft = `Perfeito, ${sender}! ${pitch}\n\n${targetUrl}\n\nFico à total disposição para qualquer dúvida.`;
+      } else if (lang === "en") {
+        replyDraft = `Awesome, ${sender}! ${pitch}\n\n${targetUrl}\n\nPlease let me know if you have any questions along the way.`;
+      } else {
+        replyDraft = `¡Excelente, ${sender}! ${pitch}\n\n${targetUrl}\n\nQuedo a tu total disposición por cualquier duda que te surja al revisarlo.`;
+      }
     }
   }
 

@@ -31,7 +31,7 @@ export const PIPELINE_STAGES: PipelineStageConfig[] = [
   },
   {
     id: "meeting_scheduled",
-    name: "5. Reunion Agendada",
+    name: "5. Demo / Reunion Agendada",
     order: 5,
     badgeColor: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
     headerBorder: "border-t-purple-500",

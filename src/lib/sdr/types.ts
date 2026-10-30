@@ -85,6 +85,11 @@ export interface PromotionGate {
   evidence: string;
 }
 
+export type SdrConversionGoalType =
+  | "schedule_meeting"
+  | "send_landing_demo"
+  | "custom_link";
+
 export interface SdrAgentConfig {
   id: string;
   name: string;
@@ -98,6 +103,11 @@ export interface SdrAgentConfig {
   customInstructions: string;
   calendarEnabled: boolean;
   bookingLink?: string;
+  // Objetivo Final de Conversión
+  conversionGoalType: SdrConversionGoalType;
+  targetUrl: string;
+  targetUrlTitle: string;
+  ctaPitchText: string;
 }
 
 export interface SdrStats {

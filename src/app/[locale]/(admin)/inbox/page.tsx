@@ -45,7 +45,7 @@ const STAGES = [
   { id: "in_sequence", name: "2. En Secuencia" },
   { id: "connected_material_sent", name: "3. Conectado / Material Entregado" },
   { id: "interested", name: "4. Conversacion Activa / Interesado" },
-  { id: "meeting_scheduled", name: "5. Reunion Agendada" },
+  { id: "meeting_scheduled", name: "5. Demo / Reunion Agendada" },
   { id: "proposal_sent", name: "6. Propuesta Presentada" },
   { id: "won", name: "7. Ganado (Closed Won)" },
 ];
@@ -143,17 +143,35 @@ export default function InboxPage() {
     setMessageInput(suggestion);
   };
 
+  const sdrConfig = useMemo(() => getStoredSdrConfig(), []);
+  const isMeetingGoal = sdrConfig.conversionGoalType === "schedule_meeting";
+  const isLandingDemoGoal = sdrConfig.conversionGoalType === "send_landing_demo";
+
   const handleSendAiSuggestionDirectly = (suggestion: string) => {
     handleSendMessage(suggestion);
     showNotice("Respuesta inteligente enviada por SDR Co-Pilot");
   };
 
-  const handleSendMeetingLink = () => {
+  const handleSendConversionLink = () => {
     if (!activeConversation) return;
-    const meetingText =
-      "Puedes elegir el horario que mejor te convenga directamente en mi calendario de reuniones: https://cal.inhubflow.com/sdr-meeting";
-    handleSendMessage(meetingText);
-    showNotice("Enlace de agendamiento enviado exitosamente");
+    const destUrl = sdrConfig.targetUrl || sdrConfig.bookingLink || "https://inhubflow.com/demo";
+    let messageText = "";
+
+    if (isMeetingGoal) {
+      messageText = `Puedes elegir el horario que mejor te convenga directamente en mi calendario de reuniones: ${destUrl}`;
+    } else if (isLandingDemoGoal) {
+      messageText = `Te comparto aquí el enlace directo a nuestra presentación y demostración en video para que la revises a tu propio ritmo:\n${destUrl}\nDesde esa misma página puedes activar tu acceso si te resulta de valor.`;
+    } else {
+      const pitch = sdrConfig.ctaPitchText || "Te comparto el enlace directo a continuación:";
+      messageText = `${pitch}\n${destUrl}`;
+    }
+
+    handleSendMessage(messageText);
+    showNotice(
+      isMeetingGoal
+        ? "Enlace de agendamiento enviado exitosamente"
+        : "Enlace de presentación y demo enviado exitosamente"
+    );
   };
 
   const handleSendVoiceNote = () => {
@@ -446,11 +464,25 @@ export default function InboxPage() {
 
                 <button
                   type="button"
-                  onClick={handleSendMeetingLink}
-                  className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1"
+                  onClick={handleSendConversionLink}
+                  className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-1.5"
                 >
-                  <Calendar className="size-3.5" />
-                  <span>{t("sendCalendar")}</span>
+                  {isMeetingGoal ? (
+                    <>
+                      <Calendar className="size-3.5" />
+                      <span>{t("sendCalendar")}</span>
+                    </>
+                  ) : isLandingDemoGoal ? (
+                    <>
+                      <Play className="size-3.5" />
+                      <span>{t("sendLandingDemo")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="size-3.5" />
+                      <span>{t("sendCustomLink")}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

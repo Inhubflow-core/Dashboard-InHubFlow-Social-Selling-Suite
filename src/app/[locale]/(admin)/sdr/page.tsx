@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
@@ -23,6 +23,9 @@ import {
   Trash2,
   Check,
   ExternalLink,
+  Calendar,
+  Video,
+  Link2,
   Search,
   Eye,
   MessageSquare,
@@ -1250,20 +1253,6 @@ export default function SdrAgentPage() {
 
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t("bookingLinkLabel")}
-                </label>
-                <input
-                  type="text"
-                  disabled={isMember}
-                  value={config.bookingLink || ""}
-                  onChange={(e) => setConfig({ ...config, bookingLink: e.target.value })}
-                  placeholder="https://cal.inhubflow.com/demo-20min"
-                  className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("handoffEmailLabel")}
                 </label>
                 <input
@@ -1273,6 +1262,204 @@ export default function SdrAgentPage() {
                   onChange={(e) => setConfig({ ...config, handoffEmail: e.target.value })}
                   className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
                 />
+              </div>
+            </div>
+
+            {/* ── SECCIÓN DESTACADA: OBJETIVO FINAL DE CONVERSIÓN (DESTINO / CTA) ── */}
+            <div className="mt-6 rounded-lg border border-brand-200 bg-brand-50/20 p-5 dark:border-brand-900/50 dark:bg-brand-950/10 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Sparkles className="size-4 text-brand-500" />
+                    <span>{t("goalSectionTitle")}</span>
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {t("goalSectionDesc")}
+                  </p>
+                </div>
+                <span className="rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300 text-[11px] font-semibold px-2.5 py-0.5 self-start sm:self-auto">
+                  {config.conversionGoalType === "send_landing_demo"
+                    ? t("goalTypeLandingDemo")
+                    : config.conversionGoalType === "schedule_meeting"
+                    ? t("goalTypeMeeting")
+                    : t("goalTypeCustomLink")}
+                </span>
+              </div>
+
+              {/* Selector de 3 Opciones de Objetivo Final */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Opción 1: Enviar Landing Page / Demo en Video */}
+                <button
+                  type="button"
+                  disabled={isMember}
+                  onClick={() => setConfig({ ...config, conversionGoalType: "send_landing_demo" })}
+                  className={`p-3.5 rounded-lg border text-start transition flex flex-col justify-between gap-2 ${
+                    config.conversionGoalType === "send_landing_demo"
+                      ? "border-brand-500 bg-white dark:bg-gray-900 shadow-xs ring-2 ring-brand-500/20"
+                      : "border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/40 hover:border-gray-300 dark:hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                      <Video className="size-4" />
+                    </span>
+                    <span className={`size-3.5 rounded-full border flex items-center justify-center ${
+                      config.conversionGoalType === "send_landing_demo"
+                        ? "border-brand-500 bg-brand-500"
+                        : "border-gray-300 dark:border-gray-700"
+                    }`}>
+                      {config.conversionGoalType === "send_landing_demo" && (
+                        <span className="size-1.5 rounded-full bg-white" />
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900 dark:text-white">
+                      {t("goalTypeLandingDemo")}
+                    </span>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">
+                      {t("goalTypeLandingDemoHelper")}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Opción 2: Agendar Reunión Comercial */}
+                <button
+                  type="button"
+                  disabled={isMember}
+                  onClick={() => setConfig({ ...config, conversionGoalType: "schedule_meeting" })}
+                  className={`p-3.5 rounded-lg border text-start transition flex flex-col justify-between gap-2 ${
+                    config.conversionGoalType === "schedule_meeting"
+                      ? "border-brand-500 bg-white dark:bg-gray-900 shadow-xs ring-2 ring-brand-500/20"
+                      : "border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/40 hover:border-gray-300 dark:hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                      <Calendar className="size-4" />
+                    </span>
+                    <span className={`size-3.5 rounded-full border flex items-center justify-center ${
+                      config.conversionGoalType === "schedule_meeting"
+                        ? "border-brand-500 bg-brand-500"
+                        : "border-gray-300 dark:border-gray-700"
+                    }`}>
+                      {config.conversionGoalType === "schedule_meeting" && (
+                        <span className="size-1.5 rounded-full bg-white" />
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900 dark:text-white">
+                      {t("goalTypeMeeting")}
+                    </span>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">
+                      {t("goalTypeMeetingHelper")}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Opción 3: Enlace Personalizado */}
+                <button
+                  type="button"
+                  disabled={isMember}
+                  onClick={() => setConfig({ ...config, conversionGoalType: "custom_link" })}
+                  className={`p-3.5 rounded-lg border text-start transition flex flex-col justify-between gap-2 ${
+                    config.conversionGoalType === "custom_link"
+                      ? "border-brand-500 bg-white dark:bg-gray-900 shadow-xs ring-2 ring-brand-500/20"
+                      : "border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/40 hover:border-gray-300 dark:hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
+                      <Link2 className="size-4" />
+                    </span>
+                    <span className={`size-3.5 rounded-full border flex items-center justify-center ${
+                      config.conversionGoalType === "custom_link"
+                        ? "border-brand-500 bg-brand-500"
+                        : "border-gray-300 dark:border-gray-700"
+                    }`}>
+                      {config.conversionGoalType === "custom_link" && (
+                        <span className="size-1.5 rounded-full bg-white" />
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900 dark:text-white">
+                      {t("goalTypeCustomLink")}
+                    </span>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">
+                      {t("goalTypeCustomLinkHelper")}
+                    </span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Campos Editables de la URL, Título y Frase de la IA */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-brand-100 dark:border-brand-900/30">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    {config.conversionGoalType === "schedule_meeting"
+                      ? t("bookingLinkLabel")
+                      : t("targetUrlLabel")}
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isMember}
+                    value={config.targetUrl || config.bookingLink || ""}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        targetUrl: e.target.value,
+                        bookingLink: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      config.conversionGoalType === "schedule_meeting"
+                        ? "https://cal.inhubflow.com/demo-20min"
+                        : "https://inhubflow.com/demo"
+                    }
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  />
+                  <span className="text-[11px] text-gray-400 mt-0.5 block">
+                    {config.conversionGoalType === "schedule_meeting"
+                      ? t("bookingLinkHelper")
+                      : t("targetUrlHelper")}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    {t("targetUrlTitleLabel")}
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isMember}
+                    value={config.targetUrlTitle || ""}
+                    onChange={(e) => setConfig({ ...config, targetUrlTitle: e.target.value })}
+                    placeholder="Ej. Presentación y Demostración en Video"
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  />
+                  <span className="text-[11px] text-gray-400 mt-0.5 block">
+                    {t("targetUrlTitleHelper")}
+                  </span>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    {t("ctaPitchLabel")}
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isMember}
+                    value={config.ctaPitchText || ""}
+                    onChange={(e) => setConfig({ ...config, ctaPitchText: e.target.value })}
+                    placeholder="Ej. Te comparto el enlace directo a nuestra presentación interactiva para que puedas evaluarla:"
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-900 focus:outline-hidden disabled:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+                  />
+                  <span className="text-[11px] text-gray-400 mt-0.5 block">
+                    {t("ctaPitchHelper")}
+                  </span>
+                </div>
               </div>
             </div>
 

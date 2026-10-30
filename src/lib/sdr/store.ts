@@ -21,11 +21,15 @@ export const DEFAULT_SDR_CONFIG: SdrAgentConfig = {
   confidenceThreshold: 0.85,
   maxAutoTurns: 3,
   handoffEmail: "inhubflow@gmail.com",
-  companyContext: "InHubFlow | Social Selling Suite es una plataforma B2B que combina Signal Radar, secuencias visuales de Canvas y Asistente SDR IA con soporte multislots para generar reuniones comerciales de alto valor.",
-  systemPrompt: "Eres un SDR virtual senior de InHubFlow. Tu objetivo es mantener conversaciones ejecutivas, concisas y naturales en LinkedIn. Responde dudas fundamentándote únicamente en el conocimiento aprobado y guía al prospecto calificado a agendar una llamada de 20 minutos.",
-  customInstructions: "Nunca inventes funcionalidades ni tarifas que no estén en el documento de precios oficiales. Sé empático, saluda por el nombre y ofrece el enlace de calendario cuando haya interés claro.",
+  companyContext: "InHubFlow | Social Selling Suite es una plataforma B2B que combina Signal Radar, secuencias visuales de Canvas y Asistente SDR IA con soporte multislots para generar prospectos calificados y conversiones de alto valor.",
+  systemPrompt: "Eres un SDR virtual senior de InHubFlow. Tu objetivo es mantener conversaciones ejecutivas, concisas y naturales en LinkedIn. Responde dudas fundamentándote únicamente en el conocimiento aprobado y guía al prospecto calificado hacia el objetivo final de conversión.",
+  customInstructions: "Nunca inventes funcionalidades ni tarifas que no estén en el documento de precios oficiales. Sé empático, saluda por el nombre y ofrece el enlace de conversión correspondiente cuando haya interés claro.",
   calendarEnabled: true,
   bookingLink: "https://cal.inhubflow.com/demo-20min",
+  conversionGoalType: "send_landing_demo",
+  targetUrl: "https://inhubflow.com/demo",
+  targetUrlTitle: "Presentación y Demostración en Video",
+  ctaPitchText: "Te comparto el enlace directo a nuestra presentación interactiva para que puedas evaluarla:",
 };
 
 export const INITIAL_PENDING_ACTIONS: SdrPendingAction[] = [
@@ -215,7 +219,15 @@ export function getStoredSdrConfig(): SdrAgentConfig {
   const raw = localStorage.getItem(SDR_CONFIG_KEY);
   if (!raw) return DEFAULT_SDR_CONFIG;
   try {
-    return { ...DEFAULT_SDR_CONFIG, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_SDR_CONFIG,
+      ...parsed,
+      conversionGoalType: parsed.conversionGoalType || DEFAULT_SDR_CONFIG.conversionGoalType,
+      targetUrl: parsed.targetUrl || DEFAULT_SDR_CONFIG.targetUrl,
+      targetUrlTitle: parsed.targetUrlTitle || DEFAULT_SDR_CONFIG.targetUrlTitle,
+      ctaPitchText: parsed.ctaPitchText || DEFAULT_SDR_CONFIG.ctaPitchText,
+    };
   } catch {
     return DEFAULT_SDR_CONFIG;
   }

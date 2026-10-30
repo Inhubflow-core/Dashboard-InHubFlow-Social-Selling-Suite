@@ -104,6 +104,8 @@ export interface LinearSequenceCampaign {
   };
   stopOnReply: boolean;
   workingHoursOnly: boolean;
+  conversionGoalType?: "schedule_meeting" | "send_landing_demo" | "custom_link";
+  targetUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
