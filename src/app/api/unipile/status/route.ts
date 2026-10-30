@@ -42,7 +42,7 @@ export async function GET() {
       dsn: 'https://cloud.inhubflow.com (Prueba Expirada)',
       provider: 'LINKEDIN',
       error: isAuthError ? 'trial_expired' : 'connection_error',
-      accountEmail: 'ads.cashgrow.app@gmail.com',
+      accountEmail: 'adm.cashgrow.app@gmail.com',
       trialNotice: isAuthError
         ? 'El periodo de prueba de 7 días de Unipile ha finalizado (Error 401: Missing credentials). Reconecta una nueva cuenta o actualiza tu clave de Unipile.'
         : `Error de conexión con la pasarela LinkedIn: ${errMsg}`,

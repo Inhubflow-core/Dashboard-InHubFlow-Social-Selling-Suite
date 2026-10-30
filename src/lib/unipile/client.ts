@@ -62,6 +62,11 @@ export class UnipileClient {
     return !this.isConfigured();
   }
 
+  public isV2(): boolean {
+    const dsn = this.getDsn().toLowerCase();
+    return dsn.includes('api.unipile.com') || dsn.includes('/v2');
+  }
+
   private getHeaders(includeJsonContentType = true): Record<string, string> {
     return {
       'X-API-KEY': this.getApiKey(),
@@ -262,6 +267,33 @@ export class UnipileClient {
       };
     }
 
+    if (this.isV2()) {
+      const res = await this.request<{ object?: string; data?: any[]; items?: any[] }>('/v2/accounts');
+      const rawAccounts = res.data || res.items || [];
+      const items: UnipileAccount[] = rawAccounts.map((acc: any) => {
+        const isRunning =
+          acc.status === 'running' ||
+          acc.status === 'OK' ||
+          acc.status === 'CONNECTED';
+        const mappedStatus = isRunning ? 'OK' : (acc.status ? String(acc.status).toUpperCase() : 'OK');
+        return {
+          id: acc.id,
+          type: (acc.provider || 'LINKEDIN').toUpperCase() as any,
+          provider: (acc.provider || 'LINKEDIN').toUpperCase(),
+          status: mappedStatus as any,
+          name: acc.name,
+          created_at: acc.created_at,
+          sources: [
+            {
+              id: 'LINKEDIN',
+              status: mappedStatus as any,
+            },
+          ],
+        };
+      });
+      return { items };
+    }
+
     return this.request<{ items: UnipileAccount[] }>('/api/v1/accounts');
   }
 
@@ -280,6 +312,29 @@ export class UnipileClient {
       };
     }
 
+    if (this.isV2()) {
+      const acc = await this.request<any>(`/v2/accounts/${encodeURIComponent(accountId)}`);
+      const isRunning =
+        acc.status === 'running' ||
+        acc.status === 'OK' ||
+        acc.status === 'CONNECTED';
+      const mappedStatus = isRunning ? 'OK' : (acc.status ? String(acc.status).toUpperCase() : 'OK');
+      return {
+        id: acc.id,
+        type: (acc.provider || 'LINKEDIN').toUpperCase() as any,
+        provider: (acc.provider || 'LINKEDIN').toUpperCase(),
+        status: mappedStatus as any,
+        name: acc.name,
+        created_at: acc.created_at,
+        sources: [
+          {
+            id: 'LINKEDIN',
+            status: mappedStatus as any,
+          },
+        ],
+      };
+    }
+
     return this.request<UnipileAccount>(`/api/v1/accounts/${accountId}`);
   }
 
@@ -291,7 +346,11 @@ export class UnipileClient {
       return { success: true };
     }
 
-    return this.request<{ success: boolean }>(`/api/v1/accounts/${accountId}`, {
+    const endpoint = this.isV2()
+      ? `/v2/accounts/${encodeURIComponent(accountId)}`
+      : `/api/v1/accounts/${accountId}`;
+
+    return this.request<{ success: boolean }>(endpoint, {
       method: 'DELETE',
     });
   }
@@ -329,6 +388,26 @@ export class UnipileClient {
       };
     }
 
+    if (this.isV2()) {
+      const res = await this.request<any>(
+        `/v2/${encodeURIComponent(accountId)}/users/${encodeURIComponent(cleanId)}`
+      );
+      const nameParts = (res.display_name || '').trim().split(' ');
+      return {
+        object: 'UserProfile',
+        provider: 'LINKEDIN',
+        provider_id: res.id || `urn:li:member:${cleanId}`,
+        public_identifier: res.public_identifier || cleanId,
+        public_profile_url: res.profile_url || `https://www.linkedin.com/in/${cleanId}`,
+        first_name: nameParts[0] || cleanId,
+        last_name: nameParts.slice(1).join(' ') || '',
+        headline: res.description || res.headline || '',
+        picture_url: res.public_picture_url || res.picture_url,
+        profile_picture_url: res.public_picture_url || res.profile_picture_url,
+        location: res.location || '',
+      };
+    }
+
     const query = new URLSearchParams({
       account_id: accountId,
       linkedin_sections: '*',
@@ -354,6 +433,25 @@ export class UnipileClient {
         headline: 'Founder & CEO en InHubFlow | Social Selling & Automatizacion B2B con IA',
         picture_url: '/images/user/owner.png',
         profile_picture_url: '/images/user/owner.png',
+      };
+    }
+
+    if (this.isV2()) {
+      const res = await this.request<any>(
+        `/v2/${encodeURIComponent(accountId)}/users/me`
+      );
+      const nameParts = (res.display_name || '').trim().split(' ');
+      return {
+        object: 'UserProfile',
+        provider: 'LINKEDIN',
+        provider_id: res.id || `urn:li:member:${accountId}`,
+        public_identifier: res.public_identifier || res.id,
+        public_profile_url: res.profile_url || (res.public_identifier ? `https://www.linkedin.com/in/${res.public_identifier}` : undefined),
+        first_name: nameParts[0] || 'ADM',
+        last_name: nameParts.slice(1).join(' ') || 'CASHGROW',
+        headline: res.description || res.headline || 'ADM.CASHGROW',
+        picture_url: res.public_picture_url || res.picture_url,
+        profile_picture_url: res.public_picture_url || res.profile_picture_url,
       };
     }
 
@@ -733,11 +831,21 @@ export class UnipileClient {
       };
     }
 
+    const safePostId = encodeURIComponent(postId).replace(/%3A/gi, ':');
+
+    if (this.isV2() && accountId) {
+      const query = new URLSearchParams({ limit: String(limit) });
+      const rawRes = await this.request<any>(
+        `/v2/${encodeURIComponent(accountId)}/posts/${safePostId}/comments?${query.toString()}`
+      );
+      const items = rawRes?.data || rawRes?.items || (Array.isArray(rawRes) ? rawRes : []);
+      return { items };
+    }
+
     const query = new URLSearchParams();
     if (accountId) query.set('account_id', accountId);
     query.set('limit', String(limit));
 
-    const safePostId = encodeURIComponent(postId).replace(/%3A/gi, ':');
     const rawRes = await this.request<any>(
       `/api/v1/posts/${safePostId}/comments?${query.toString()}`
     );
@@ -767,11 +875,21 @@ export class UnipileClient {
       };
     }
 
+    const safePostId = encodeURIComponent(postId).replace(/%3A/gi, ':');
+
+    if (this.isV2() && accountId) {
+      const query = new URLSearchParams({ limit: String(limit) });
+      const rawRes = await this.request<any>(
+        `/v2/${encodeURIComponent(accountId)}/posts/${safePostId}/reactions?${query.toString()}`
+      );
+      const items = rawRes?.data || rawRes?.items || (Array.isArray(rawRes) ? rawRes : []);
+      return { items };
+    }
+
     const query = new URLSearchParams();
     if (accountId) query.set('account_id', accountId);
     query.set('limit', String(limit));
 
-    const safePostId = encodeURIComponent(postId).replace(/%3A/gi, ':');
     const rawRes = await this.request<any>(
       `/api/v1/posts/${safePostId}/reactions?${query.toString()}`
     );
@@ -799,11 +917,18 @@ export class UnipileClient {
       };
     }
 
-    const query = new URLSearchParams();
-    if (accountId) query.set('account_id', accountId);
-
     const safePostId = encodeURIComponent(postId).replace(/%3A/gi, ':');
     try {
+      if (this.isV2() && accountId) {
+        const post = await this.request<any>(
+          `/v2/${encodeURIComponent(accountId)}/posts/${safePostId}`
+        );
+        return post || null;
+      }
+
+      const query = new URLSearchParams();
+      if (accountId) query.set('account_id', accountId);
+
       const post = await this.request<UnipilePostItem>(
         `/api/v1/posts/${safePostId}?${query.toString()}`
       );
@@ -827,6 +952,12 @@ export class UnipileClient {
     const identifier = params.identifier.trim();
     if (!identifier) return {};
 
+    if (this.isV2()) {
+      return this.request<Record<string, unknown>>(
+        `/v2/${encodeURIComponent(params.account_id)}/linkedin/company/${encodeURIComponent(identifier)}`
+      );
+    }
+
     return this.request<Record<string, unknown>>(
       `/api/v1/linkedin/company/${encodeURIComponent(identifier)}?account_id=${encodeURIComponent(params.account_id)}`
     );
@@ -847,6 +978,119 @@ export class UnipileClient {
     }
 
     const { account_id, cursor, limit = 25, api = 'classic', category = 'people', ...filters } = params;
+
+    if (this.isV2()) {
+      const safeLimit = Math.min(100, Math.max(1, limit));
+      const query = new URLSearchParams({ limit: String(safeLimit) });
+      if (cursor) query.set('cursor', cursor);
+
+      if (category === 'posts') {
+        const body: Record<string, unknown> = {
+          keywords: params.keywords || '',
+          sort_by: (filters as any).sort_by || 'RELEVANCE',
+          date_posted: (filters as any).date_posted || 'PAST_MONTH',
+        };
+        if ((filters as any).content_type) {
+          body.content_type = (filters as any).content_type;
+        }
+
+        const res = await this.request<any>(
+          `/v2/${encodeURIComponent(account_id)}/linkedin/search/posts?${query.toString()}`,
+          {
+            method: 'POST',
+            body: JSON.stringify(body),
+          }
+        );
+
+        const rawList = res.data || res.items || [];
+        const items = rawList.map((item: any) => {
+          let reactionCounter = 0;
+          if (typeof item.reaction_counter === 'number') {
+            reactionCounter = item.reaction_counter;
+          } else if (typeof item.reactions_counter === 'number') {
+            reactionCounter = item.reactions_counter;
+          } else if (Array.isArray(item.reactions_counter)) {
+            reactionCounter = item.reactions_counter.reduce(
+              (acc: number, curr: any) => acc + (Number(curr?.count) || 0),
+              0
+            );
+          }
+
+          const commentsCounter = item.comments_counter ?? item.comment_counter ?? 0;
+          const repostsCounter = item.reposts_counter ?? item.repost_counter ?? 0;
+
+          return {
+            ...item,
+            reaction_counter: reactionCounter,
+            comment_counter: commentsCounter,
+            repost_counter: repostsCounter,
+            date: item.created_at || item.date,
+            share_url: item.share_url,
+            social_id: item.share_url ? item.share_url.split('-').pop() : item.id,
+            author: item.author
+              ? {
+                  ...item.author,
+                  name: item.author.display_name || item.author.name || 'Líder de Industria B2B',
+                  headline: item.author.description || item.author.headline || 'Especialista B2B',
+                  picture_url: item.author.public_picture_url || item.author.picture_url || null,
+                  public_identifier: item.author.public_identifier || null,
+                }
+              : undefined,
+          };
+        });
+
+        return {
+          object: 'LinkedinSearch',
+          items,
+          cursor: res.next_cursor || res.cursor || null,
+          paging: {
+            start: 0,
+            page_count: items.length,
+            total_count: res.total_count ?? items.length,
+          },
+        };
+      }
+
+      if (category === 'people') {
+        const res = await this.request<any>(
+          `/v2/${encodeURIComponent(account_id)}/linkedin/search/people?${query.toString()}`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ keywords: params.keywords || '', ...filters }),
+          }
+        );
+        const items = res.data || res.items || [];
+        return {
+          object: 'LinkedinSearch',
+          items,
+          cursor: res.next_cursor || null,
+          paging: {
+            start: 0,
+            page_count: items.length,
+            total_count: res.total_count ?? items.length,
+          },
+        };
+      }
+
+      const res = await this.request<any>(
+        `/v2/${encodeURIComponent(account_id)}/linkedin/search?${query.toString()}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ category, keywords: params.keywords || '', ...filters }),
+        }
+      );
+      return {
+        object: 'LinkedinSearch',
+        items: res.data || res.items || [],
+        cursor: res.next_cursor || null,
+        paging: {
+          start: 0,
+          page_count: (res.data || res.items || []).length,
+          total_count: res.total_count ?? (res.data || res.items || []).length,
+        },
+      };
+    }
+
     const query = new URLSearchParams({
       account_id,
       limit: String(Math.min(100, Math.max(1, limit))),

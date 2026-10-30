@@ -350,11 +350,20 @@ export async function POST(req: Request) {
       console.warn("[Posts Search] Error consultando cuentas Unipile:", err);
     }
 
-    // Identificar cuenta activa y saludable (status === "OK" o fuente "OK")
+    // Identificar cuenta activa y saludable (status === "OK" o fuente "OK" o "running")
     const isAccountHealthy = (acc: any) => {
       if (!acc) return false;
-      if (acc.status === "OK" || acc.status === "CONNECTED") return true;
-      if (Array.isArray(acc.sources) && acc.sources.some((s: any) => s.status === "OK")) return true;
+      const st = String(acc.status || "").toLowerCase();
+      if (st === "ok" || st === "connected" || st === "running") return true;
+      if (
+        Array.isArray(acc.sources) &&
+        acc.sources.some((s: any) => {
+          const sSt = String(s?.status || "").toLowerCase();
+          return sSt === "ok" || sSt === "connected" || sSt === "running";
+        })
+      ) {
+        return true;
+      }
       return false;
     };
 
@@ -546,11 +555,13 @@ export async function POST(req: Request) {
           attType === "DOCUMENT" ||
           attType === "CAROUSEL" ||
           attType === "PRESENTATION" ||
+          (attType === "FILE" && (mime.includes("pdf") || urlStr.includes(".pdf") || titleStr.includes(".pdf"))) ||
           mime.includes("pdf") ||
           mime.includes("document") ||
           mime.includes("presentation") ||
           urlStr.endsWith(".pdf") ||
           urlStr.includes("/pdf/") ||
+          urlStr.includes("feedshare-document") ||
           titleStr.endsWith(".pdf") ||
           titleStr.endsWith(".pptx") ||
           titleStr.endsWith(".ppt") ||
@@ -574,6 +585,7 @@ export async function POST(req: Request) {
         // Detección de Imagen
         if (
           attType === "IMAGE" ||
+          attType === "IMG" ||
           attType === "PHOTO" ||
           mime.startsWith("image/") ||
           att?.preview_url ||
@@ -639,9 +651,19 @@ export async function POST(req: Request) {
 
       const hasMedia = Boolean(mediaUrl || attachments.length > 0 || format !== "text");
 
-      const likes = item.reaction_counter ?? 0;
-      const comments = item.comment_counter ?? 0;
-      const shares = item.repost_counter ?? 0;
+      const likes =
+        typeof item.reaction_counter === "number"
+          ? item.reaction_counter
+          : typeof item.reactions_counter === "number"
+          ? item.reactions_counter
+          : Array.isArray(item.reactions_counter)
+          ? item.reactions_counter.reduce(
+              (acc: number, curr: any) => acc + (Number(curr?.count) || 0),
+              0
+            )
+          : 0;
+      const comments = item.comments_counter ?? item.comment_counter ?? 0;
+      const shares = item.reposts_counter ?? item.repost_counter ?? 0;
 
       // Algoritmo Ponderado de Viralidad InHubFlow:
       // - Likes (x1): Reacciones de lectura rápida en el feed
@@ -672,15 +694,20 @@ export async function POST(req: Request) {
 
       // Detección de idioma y origen de mercado geográfico
       const lang = detectPostLanguage(text);
-      const marketOrigin = detectMarketOrigin(text, item.author?.headline || "", lang);
+      const marketOrigin = detectMarketOrigin(text, item.author?.headline || item.author?.description || "", lang);
+
+      const postLinkedinUrl =
+        item.share_url ||
+        (item.social_id ? `https://www.linkedin.com/feed/update/${item.social_id}` : null) ||
+        `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(hook.slice(0, 80))}`;
 
       return {
         id: item.id || `live-post-${idx}`,
-        author: item.author?.name || "Líder de Industria B2B",
-        authorHeadline: item.author?.headline || "Especialista en LinkedIn & B2B",
-        authorAvatar: item.author?.picture_url || null,
+        author: item.author?.display_name || item.author?.name || "Líder de Industria B2B",
+        authorHeadline: item.author?.description || item.author?.headline || "Especialista en LinkedIn & B2B",
+        authorAvatar: item.author?.public_picture_url || item.author?.picture_url || null,
         publicIdentifier: item.author?.public_identifier || null,
-        publishedDate: item.date || "Reciente",
+        publishedDate: item.created_at || item.date || "Reciente",
         topic: keywords,
         format,
         hook,
@@ -697,7 +724,7 @@ export async function POST(req: Request) {
         marketOrigin,
         detectedLanguage: lang,
         socialId: item.social_id || null,
-        linkedinUrl: item.social_id ? `https://www.linkedin.com/feed/update/${item.social_id}` : null,
+        linkedinUrl: postLinkedinUrl,
         isLive: true,
       };
     });

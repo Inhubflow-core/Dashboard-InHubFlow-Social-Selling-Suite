@@ -58,6 +58,7 @@ export async function GET() {
         }
 
         const isCashgrow =
+          acc.id === "acc_01m6787803eh78ykrhe61bc8hz" ||
           acc.id === "7VSGKBGlTNGRbzZKuh6VpQ" ||
           (email && email.toLowerCase().includes("cashgrow")) ||
           name.toLowerCase().includes("cashgrow") ||
@@ -65,13 +66,13 @@ export async function GET() {
           name.toLowerCase().includes("linn");
 
         if (isCashgrow) {
-          name = "ADS CASHGROW";
-          email = "ads.cashgrow.app@gmail.com";
-          headline = "Gerente de vendas da empresa ADS CASHGROW";
+          name = "ADM.CASHGROW";
+          email = "adm.cashgrow.app@gmail.com";
+          headline = "Gerente de vendas da empresa ADM CASHGROW";
         }
 
         return {
-          id: isCashgrow ? `acc-li-7VSGKBGlTNGRbzZKuh6VpQ` : `acc-li-${acc.id}`,
+          id: isCashgrow ? `acc-li-cashgrow` : `acc-li-${acc.id}`,
           unipileAccountId: acc.id,
           name,
           email,
@@ -81,7 +82,7 @@ export async function GET() {
           status,
           authMode: (im?.connection_method === 'credentials' ? 'credentials' : 'hosted') as ConnectedLinkedInAccount['authMode'],
           connectedAt: acc.created_at || new Date().toISOString(),
-          lastSyncAt: 'Sincronizado con InHubFlow Cloud',
+          lastSyncAt: 'Sincronizado con InHubFlow Cloud (Unipile v2)',
           dailyActionsCount: {
             invitationsSent: 0,
             messagesSent: 0,
@@ -92,11 +93,11 @@ export async function GET() {
           daily_visit_limit: 20,
           active_hours_start: 9,
           active_hours_end: 18,
-          timezone: 'Europe/Madrid',
+          timezone: 'America/Sao_Paulo',
           working_days: '1,2,3,4,5',
           ownerId: "usr-client-roberto-agencia",
-          assignedUserId: isCashgrow ? "usr-team-lynn-01" : undefined,
-          assignedUserName: isCashgrow ? "ADS CASHGROW (Team)" : undefined,
+          assignedUserId: isCashgrow ? "usr-team-cashgrow-01" : undefined,
+          assignedUserName: isCashgrow ? "ADM.CASHGROW (Team)" : undefined,
         };
       })
     );
