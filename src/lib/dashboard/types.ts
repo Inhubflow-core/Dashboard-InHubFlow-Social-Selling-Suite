@@ -40,9 +40,19 @@ export interface EvolutionData {
   series: EvolutionChartSeries[];
 }
 
+export interface GeographicDemographicItem {
+  countryCode: string;
+  countryName: string;
+  flagSrc: string;
+  prospectsCount: number;
+  acceptanceRate: number; // Tasa de aceptación y respuesta (%)
+  coordinates: [number, number];
+}
+
 export interface DashboardAnalytics {
   overview: DashboardMetricOverview;
   signalDistribution: SignalDistributionData;
+  demographics: GeographicDemographicItem[];
   funnelStages: FunnelStageData[];
   evolutionMonthly: EvolutionData;
   evolutionWeekly: EvolutionData;

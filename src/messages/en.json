@@ -1004,6 +1004,13 @@
         "level2": "Level 2: Competitor Posts",
         "level3": "Level 3: Groups & Keywords"
       },
+      "demographics": {
+        "title": "Prospects Demographics",
+        "desc": "Geographical distribution and response rate by country.",
+        "badge": "Global Reach",
+        "prospectsCountLabel": "prospects",
+        "acceptanceLabel": "Accept. / Resp."
+      },
       "recentLeads": {
         "title": "Recent Prospects in Real Time",
         "desc": "Latest qualified leads captured from active posts and sequences.",

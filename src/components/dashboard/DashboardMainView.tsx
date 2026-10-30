@@ -9,6 +9,7 @@ import SocialEvolutionChart from "./SocialEvolutionChart";
 import MonthlyProspectingTarget from "./MonthlyProspectingTarget";
 import PipelineFunnelChart from "./PipelineFunnelChart";
 import SignalDistributionChart from "./SignalDistributionChart";
+import ProspectsDemographicCard from "./ProspectsDemographicCard";
 
 export default function DashboardMainView() {
   const t = useTranslations("dashboard");
@@ -96,9 +97,10 @@ export default function DashboardMainView() {
         </div>
       </div>
 
-      {/* 3. Distribución por Nivel de Señal (50%) + Embudo de Conversión por Etapas (50%) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* 3. Fila Intermedia Equitativa (33% - 33% - 33%): Señales + Demografía + Embudo */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <SignalDistributionChart distribution={analytics.signalDistribution} />
+        <ProspectsDemographicCard demographics={analytics.demographics} />
         <PipelineFunnelChart stages={analytics.funnelStages} />
       </div>
 

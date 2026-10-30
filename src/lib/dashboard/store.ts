@@ -246,7 +246,43 @@ export function getDashboardAnalytics(): DashboardAnalytics {
     ],
   };
 
-  // 5. Leads recientes
+  // 5. Demografía por países
+  const demographics = [
+    {
+      countryCode: "BR",
+      countryName: "Brasil",
+      flagSrc: "/images/country/country-04.svg",
+      prospectsCount: 215,
+      acceptanceRate: 38.4,
+      coordinates: [-14.235, -51.9253] as [number, number],
+    },
+    {
+      countryCode: "CL",
+      countryName: "Chile",
+      flagSrc: "/images/country/country-02.svg",
+      prospectsCount: 142,
+      acceptanceRate: 35.2,
+      coordinates: [-35.6751, -71.543] as [number, number],
+    },
+    {
+      countryCode: "ES",
+      countryName: "España",
+      flagSrc: "/images/country/country-07.svg",
+      prospectsCount: 86,
+      acceptanceRate: 28.7,
+      coordinates: [40.4637, -3.7492] as [number, number],
+    },
+    {
+      countryCode: "CO",
+      countryName: "Colombia",
+      flagSrc: "/images/country/country-05.svg",
+      prospectsCount: 64,
+      acceptanceRate: 31.0,
+      coordinates: [4.5709, -74.2973] as [number, number],
+    },
+  ];
+
+  // 6. Leads recientes
   const recentLeads = leads.length > 0
     ? [...leads].sort((a, b) => b.intentScore - a.intentScore).slice(0, 6)
     : FALLBACK_RECENT_LEADS;
@@ -271,6 +307,7 @@ export function getDashboardAnalytics(): DashboardAnalytics {
       level3Count: safeL3,
       total: totalSignals,
     },
+    demographics,
     funnelStages,
     evolutionMonthly,
     evolutionWeekly,
