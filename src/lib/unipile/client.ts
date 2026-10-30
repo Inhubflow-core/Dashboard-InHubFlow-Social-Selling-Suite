@@ -141,20 +141,33 @@ export class UnipileClient {
       const redirectUri = params.success_redirect_url || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/linkedin-accounts`;
       const expiresOn = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-      if (type === 'reconnect' && params.reconnect_account) {
-        const body = {
-          account_id: params.reconnect_account,
-          expires_on: expiresOn,
-          redirect_uri: redirectUri,
-        };
-        const res = await this.request<{ object?: string; link?: string; url?: string }>('/v2/auth/link', {
-          method: 'POST',
-          body: JSON.stringify(body),
-        });
-        return {
-          object: 'HostedAuthLink',
-          url: res.link || res.url || '',
-        };
+      // Validar si el account_id para reconexión cumple con el formato estricto de Unipile v2 (^acc_)
+      const isValidV2AccountId =
+        type === 'reconnect' &&
+        typeof params.reconnect_account === 'string' &&
+        params.reconnect_account.startsWith('acc_') &&
+        !params.reconnect_account.startsWith('demo-') &&
+        !params.reconnect_account.startsWith('up_acc_');
+
+      if (isValidV2AccountId) {
+        try {
+          const body = {
+            account_id: params.reconnect_account,
+            expires_on: expiresOn,
+            redirect_uri: redirectUri,
+          };
+          const res = await this.request<{ object?: string; link?: string; url?: string }>('/v2/auth/link', {
+            method: 'POST',
+            body: JSON.stringify(body),
+          });
+          return {
+            object: 'HostedAuthLink',
+            url: res.link || res.url || '',
+          };
+        } catch (reconnectErr) {
+          console.warn('[Unipile v2] Reconnect con account_id falló, generando enlace nuevo:', reconnectErr);
+          // Si falla la reconexión de ese ID específico en Unipile, caer al flujo de nueva cuenta
+        }
       }
 
       const body = {

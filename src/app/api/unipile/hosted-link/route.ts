@@ -19,11 +19,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const type = reconnectAccountId ? 'reconnect' : 'create';
+    const isV2Acc =
+      typeof reconnectAccountId === 'string' &&
+      reconnectAccountId.startsWith('acc_') &&
+      !reconnectAccountId.startsWith('demo-') &&
+      !reconnectAccountId.startsWith('up_acc_');
+
+    const type = isV2Acc ? 'reconnect' : 'create';
     const response = await unipile.getHostedAuthLink({
       type,
-      reconnect_account: reconnectAccountId,
-      providers: ['LINKEDIN'],
+      reconnect_account: isV2Acc ? reconnectAccountId : undefined,
+      providers: ['linkedin'],
       name: name || undefined,
       success_redirect_url: successUrl || `${baseUrl}/auth/linkedin-callback?status=success`,
       failure_redirect_url: failureUrl || `${baseUrl}/auth/linkedin-callback?status=error`,
