@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useState, useMemo } from "react";
@@ -52,8 +52,11 @@ export default function LinkedInAccountsPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [unipileStatus, setUnipileStatus] = useState<{
     configured: boolean;
-    mode: "live" | "demo";
+    mode: "live" | "demo" | "expired" | "sandbox" | "error";
     dsn?: string;
+    isExpired?: boolean;
+    accountEmail?: string;
+    trialNotice?: string;
   } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -82,6 +85,17 @@ export default function LinkedInAccountsPage() {
     fetch("/api/unipile/accounts")
       .then((res) => res.json())
       .then((data) => {
+        if (data.isExpired || !data.configured) {
+          // Si Unipile expiró (401) o no está configurado, marcar las cuentas locales en CREDENTIALS
+          const currentList = getVisibleAccountsForUser(currentUser);
+          currentList.forEach((acc) => {
+            updateStoredAccountStatus(acc.id, "CREDENTIALS");
+          });
+          const refreshed = getVisibleAccountsForUser(currentUser);
+          setAccounts(refreshed);
+          return;
+        }
+
         if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
           data.accounts.forEach((remoteAcc: ConnectedLinkedInAccount) => {
             addStoredAccount(remoteAcc);
@@ -147,6 +161,16 @@ export default function LinkedInAccountsPage() {
     try {
       const res = await fetch("/api/unipile/accounts");
       const data = await res.json();
+      if (data.isExpired || !data.configured) {
+        const visible = getVisibleAccountsForUser(currentUser);
+        visible.forEach((acc) => {
+          updateStoredAccountStatus(acc.id, "CREDENTIALS");
+        });
+        const refreshed = getVisibleAccountsForUser(currentUser);
+        setAccounts(refreshed);
+        setNotice("El periodo de prueba de Unipile ha finalizado (Error 401: Missing credentials). Las cuentas han sido marcadas como desconectadas.");
+        return;
+      }
       if (data.accounts && Array.isArray(data.accounts)) {
         data.accounts.forEach((remoteAcc: ConnectedLinkedInAccount) => {
           addStoredAccount(remoteAcc);
@@ -238,6 +262,24 @@ export default function LinkedInAccountsPage() {
             Estas conectado como <strong>Operador SDR</strong> ({currentUser.name}) en <strong>{currentUser.companyName}</strong>. 
             Solo tienes acceso y visibilidad sobre tu cuenta personal de LinkedIn asignada. La contratacion y gestion de slots corresponde al Administrador.
           </span>
+        </div>
+      )}
+
+      {/* Alerta de prueba de Unipile expirada */}
+      {unipileStatus?.isExpired && (
+        <div className="flex items-start gap-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-xs font-medium text-rose-700 dark:text-rose-300">
+          <AlertTriangle className="size-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold text-sm text-rose-800 dark:text-rose-200">
+              Periodo de prueba de Unipile finalizado (Error 401: Missing credentials)
+            </p>
+            <p>
+              El periodo de prueba de 7 días de Unipile para la cuenta <strong>{unipileStatus.accountEmail || "principal"}</strong> ha expirado. Por este motivo, todas las cuentas de LinkedIn han sido marcadas como desconectadas (Credenciales requeridas) y la extracción en vivo de LinkedIn está pausada.
+            </p>
+            <p className="text-[11px] text-rose-600 dark:text-rose-400 font-mono mt-1">
+              Para reanudar las funciones en vivo, genera una nueva API Key en Unipile e ingrésala en .env.local (o conecta tu nuevo periodo de prueba).
+            </p>
+          </div>
         </div>
       )}
 

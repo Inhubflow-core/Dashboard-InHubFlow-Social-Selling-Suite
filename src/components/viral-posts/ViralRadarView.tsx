@@ -263,7 +263,12 @@ export default function ViralRadarView({
     fetch("/api/unipile/accounts")
       .then((r) => r.json())
       .then((data) => {
-        if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+        if (data.isExpired || !data.configured) {
+          const visible = getVisibleAccountsForUser(currentUser);
+          visible.forEach((acc) => {
+            updateStoredAccountStatus(acc.id, "CREDENTIALS");
+          });
+        } else if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
           data.accounts.forEach((remoteAcc: any) => {
             addStoredAccount(remoteAcc);
           });
