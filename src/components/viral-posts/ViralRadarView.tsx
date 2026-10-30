@@ -1137,7 +1137,7 @@ export default function ViralRadarView({
       {/* Modal de Lectura Completa con Estructura Fiel a LinkedIn */}
       {selectedPostForModal && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 shadow-theme-xl border border-gray-300 dark:border-gray-800">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto custom-scrollbar rounded-lg bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 shadow-theme-xl border border-gray-300 dark:border-gray-800">
             {/* Barra Superior de Metadatos y Cierre */}
             <div className="flex items-center justify-between gap-3 border-b border-gray-300 dark:border-gray-800 pb-3 mb-4">
               <div className="flex items-center gap-2 flex-wrap">

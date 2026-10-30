@@ -2362,7 +2362,7 @@ export default function CampaignsPage() {
               </div>
             </div>
 
-            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+            <div className="max-h-80 overflow-y-auto custom-scrollbar space-y-2 pr-1">
               {runnerLogs.length === 0 ? (
                 <p className="text-xs text-gray-400 py-6 text-center">
                   {t("noRecentLogs")}

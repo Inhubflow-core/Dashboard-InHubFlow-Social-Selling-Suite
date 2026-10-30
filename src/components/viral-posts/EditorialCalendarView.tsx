@@ -727,7 +727,7 @@ export default function EditorialCalendarView({
       {/* Modal de Detalle de Publicación */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto custom-scrollbar rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
             <div className="flex items-start justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
               <div>
                 <span className="text-xs uppercase font-bold text-brand-600">

@@ -153,7 +153,7 @@ export default function ConfigureAccountLimitsModal({
 
         {/* Formulario */}
         <form onSubmit={handleSubmit}>
-          <div className="max-h-[520px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
+          <div className="max-h-[520px] overflow-y-auto custom-scrollbar px-6 py-4 flex flex-col gap-3">
             {/* Nombre para mostrar */}
             <div>
               <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">

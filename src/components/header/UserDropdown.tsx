@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Link } from "@/i18n/navigation";
 import { ChevronDownIcon } from "@/icons";
@@ -319,7 +319,7 @@ export default function UserDropdown() {
             {t("switchAccountTitle")}
           </h2>
 
-          <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+          <div className="flex flex-col gap-1 max-h-56 overflow-y-auto custom-scrollbar pr-1">
             {switchableUsers.map((item) => {
               const isSelected = item.isCurrent;
 

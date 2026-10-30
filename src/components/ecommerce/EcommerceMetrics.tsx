@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons";
 import { useTranslations } from "next-intl";

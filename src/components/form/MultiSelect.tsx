@@ -212,7 +212,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
           {isOpen && (
             <div
-              className="max-h-select inset-s-0 absolute top-full z-40 w-full overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-900"
+              className="max-h-select inset-s-0 absolute top-full z-40 w-full overflow-y-auto custom-scrollbar pr-1 rounded-lg bg-white shadow-sm dark:bg-gray-900"
               onClick={(e) => e.stopPropagation()}
               role="listbox"
               aria-label={label}

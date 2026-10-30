@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { isRtl } from "@/i18n/languages";
 import type { Locale } from "@/i18n/routing";

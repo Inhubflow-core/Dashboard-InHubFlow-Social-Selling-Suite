@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { MoreDotIcon } from "@/icons";
 import { useTranslations } from "next-intl";

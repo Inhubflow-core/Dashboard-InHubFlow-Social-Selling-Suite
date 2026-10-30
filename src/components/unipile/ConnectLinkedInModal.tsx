@@ -389,7 +389,7 @@ export default function ConnectLinkedInModal({
               {/* ─── SLIDE 1: Formulario de Configuración y Límites ─── */}
               <div className="w-1/2 shrink-0 flex flex-col justify-between">
                 <form onSubmit={handleProceedToStep2}>
-                  <div className="max-h-[500px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
+                  <div className="max-h-[500px] overflow-y-auto custom-scrollbar px-6 py-4 flex flex-col gap-3">
                     <div>
                       <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
                         Nombre para mostrar
@@ -612,7 +612,7 @@ export default function ConnectLinkedInModal({
               <div className="w-1/2 shrink-0 flex flex-col justify-between">
                 {!isCheckpoint ? (
                   <form onSubmit={handleNativeLogin}>
-                    <div className="max-h-[500px] overflow-y-auto px-6 py-4 flex flex-col gap-3">
+                    <div className="max-h-[500px] overflow-y-auto custom-scrollbar px-6 py-4 flex flex-col gap-3">
                       {/* Selector de Método: Credenciales vs Cookies */}
                       <div>
                         <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
@@ -828,7 +828,7 @@ export default function ConnectLinkedInModal({
                 ) : (
                   // ── Sub-vista 2FA Checkpoint ──
                   <form onSubmit={handleSolveCheckpoint}>
-                    <div className="max-h-[500px] overflow-y-auto px-6 py-6 flex flex-col gap-4">
+                    <div className="max-h-[500px] overflow-y-auto custom-scrollbar px-6 py-6 flex flex-col gap-4">
                       <div>
                         <label className="text-sm font-bold text-gray-900 dark:text-white pb-1 block">
                           Verificación de Dos Pasos (2FA)

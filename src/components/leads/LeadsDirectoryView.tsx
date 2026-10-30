@@ -341,7 +341,7 @@ export default function LeadsDirectoryView({
       {/* Modal Interactivo: Ficha del Contacto */}
       {selectedLeadFor360 && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto custom-scrollbar rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
             {/* Cabecera de la Ficha */}
             <div className="flex items-start justify-between border-b border-gray-300 pb-4 dark:border-gray-800 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">

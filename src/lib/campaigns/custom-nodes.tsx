@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { NodeConfigData } from "./types";

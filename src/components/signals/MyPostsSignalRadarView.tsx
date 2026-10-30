@@ -663,7 +663,7 @@ export default function MyPostsSignalRadarView({
                 {/* Dropdown de Sugerencias de /viral-posts/list */}
                 {isDropdownOpen && createdPosts.length > 0 && (
                   <div
-                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-300 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
+                    className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto custom-scrollbar rounded-lg border border-gray-300 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <div className="flex items-center justify-between px-2 py-1 border-b border-gray-300 dark:border-gray-800 mb-1">
@@ -1307,7 +1307,7 @@ export default function MyPostsSignalRadarView({
       {/* Modal para Visualizar Leads Captados por un Monitor Específico */}
       {selectedMonitorForLeads && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto custom-scrollbar rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800">
             <div className="flex items-start justify-between border-b border-gray-300 pb-4 dark:border-gray-800">
               <div>
                 <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-mono font-bold text-brand-600 dark:bg-brand-950 dark:text-brand-300">

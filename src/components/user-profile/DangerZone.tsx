@@ -1,4 +1,4 @@
-export default function DangerZone() {
+﻿export default function DangerZone() {
   return (
     <div className="mb-6 rounded-lg border border-gray-300 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/3">
       <h4 className="mb-4 text-lg font-semibold text-gray-800 lg:mb-6 dark:text-white/90">

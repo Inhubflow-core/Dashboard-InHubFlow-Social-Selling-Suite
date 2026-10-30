@@ -481,7 +481,7 @@ export default function PipelinePage() {
                 </div>
 
                 {/* Lista de Tarjetas de la Etapa */}
-                <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] pr-1">
+                <div className="flex-1 space-y-2.5 overflow-y-auto custom-scrollbar max-h-[calc(100vh-360px)] pr-1">
                   {stageDeals.map((deal) => (
                     <div
                       key={deal.id}

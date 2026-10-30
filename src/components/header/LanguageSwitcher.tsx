@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { getLanguage, languages } from "@/i18n/languages";

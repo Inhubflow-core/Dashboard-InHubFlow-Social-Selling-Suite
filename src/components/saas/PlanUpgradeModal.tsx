@@ -44,7 +44,7 @@ export default function PlanUpgradeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto bg-gray-900/70 p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto custom-scrollbar bg-gray-900/70 p-4 backdrop-blur-xs">
       <div className="relative w-full max-w-5xl rounded-lg border border-gray-300 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:p-8">
         {/* Botón Cerrar */}
         <button

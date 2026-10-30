@@ -882,7 +882,7 @@ export default function GlobalSignalsView({
                 </button>
 
                 {isCountryDropdownOpen && (
-                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto custom-scrollbar rounded-lg border border-gray-300 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 text-xs p-1">
                     <div className="p-1.5 border-b border-gray-300 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
                       <input
                         type="text"
@@ -1443,7 +1443,7 @@ export default function GlobalSignalsView({
                     {t("tractionRegion", { region: selectedRuleForLeads.targetCountryName || t("defaultRegion") })}
                   </span>
                 </div>
-                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
                   {selectedRuleForLeads.lastScannedPosts.map((post, pIdx) => (
                     <div
                       key={post.id || pIdx}
@@ -1553,7 +1553,7 @@ export default function GlobalSignalsView({
               </button>
             </div>
 
-            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar pr-1">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                   {t("labelTopic")}

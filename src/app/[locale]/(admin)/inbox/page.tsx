@@ -335,7 +335,7 @@ export default function InboxPage() {
           </div>
 
           {/* Lista scrolleable */}
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-300 dark:divide-gray-800">
+          <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-gray-300 dark:divide-gray-800">
             {filteredConversations.length === 0 ? (
               <div className="p-8 text-center text-xs text-gray-400">
                 {t("noConversations")}
@@ -476,7 +476,7 @@ export default function InboxPage() {
             </div>
 
             {/* Flujo de Mensajes */}
-            <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+            <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
               {activeConversation.messages.map((msg) => (
                 <div
                   key={msg.id}

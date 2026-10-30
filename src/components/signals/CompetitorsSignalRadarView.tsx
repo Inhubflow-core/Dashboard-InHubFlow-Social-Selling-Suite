@@ -706,7 +706,7 @@ export default function CompetitorsSignalRadarView({
                     </div>
 
                     {/* Lista con scroll vertical explícito */}
-                    <div className="overflow-y-auto max-h-72 p-2 space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
+                    <div className="overflow-y-auto custom-scrollbar max-h-72 p-2 space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                       {filteredSearchResults.length === 0 ? (
                         <div className="py-6 text-center text-gray-500 dark:text-gray-400 text-xs">
                           {searchResults.length === 0
@@ -1410,7 +1410,7 @@ export default function CompetitorsSignalRadarView({
               </button>
             </div>
 
-            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+            <div className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar pr-1">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                   Nombre del Competidor o Autor
