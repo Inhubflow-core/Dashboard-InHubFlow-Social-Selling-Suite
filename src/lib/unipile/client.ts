@@ -136,6 +136,42 @@ export class UnipileClient {
     }
 
     const type = params.type || 'create';
+
+    if (this.isV2()) {
+      const redirectUri = params.success_redirect_url || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/linkedin-accounts`;
+      const expiresOn = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+      if (type === 'reconnect' && params.reconnect_account) {
+        const body = {
+          account_id: params.reconnect_account,
+          expires_on: expiresOn,
+          redirect_uri: redirectUri,
+        };
+        const res = await this.request<{ object?: string; link?: string; url?: string }>('/v2/auth/link', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        return {
+          object: 'HostedAuthLink',
+          url: res.link || res.url || '',
+        };
+      }
+
+      const body = {
+        expires_on: expiresOn,
+        redirect_uri: redirectUri,
+        providers: ['linkedin'],
+      };
+      const res = await this.request<{ object?: string; link?: string; url?: string }>('/v2/auth/link', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      return {
+        object: 'HostedAuthLink',
+        url: res.link || res.url || '',
+      };
+    }
+
     const payload = {
       type,
       ...(type === 'reconnect'
@@ -153,6 +189,51 @@ export class UnipileClient {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  }
+
+  /**
+   * Inicia el flujo de autenticacion UniLogin mediante extension de navegador (Unipile v2)
+   */
+  async startUniLoginAuth(params: {
+    account_id?: string;
+    redirect_uri?: string;
+  } = {}): Promise<{
+    account_id: string;
+    extension_code: string;
+    extension_code_expires_at: string;
+    extension_store_urls: { chrome?: string; firefox?: string; edge?: string; safari?: string };
+  }> {
+    if (this.isSandboxMode()) {
+      return {
+        account_id: `acc_sim_${Date.now()}`,
+        extension_code: 'SIMU-LATE-2026',
+        extension_code_expires_at: new Date(Date.now() + 600000).toISOString(),
+        extension_store_urls: {
+          chrome: 'https://chromewebstore.google.com/detail/unilogin/kmmoommiihbcemaebamojhchnnjhbkkl',
+        },
+      };
+    }
+
+    const payload: Record<string, unknown> = {
+      provider: 'linkedin',
+      unilogin: true,
+      ...(params.account_id ? { account_id: params.account_id } : {}),
+      ...(params.redirect_uri ? { redirect_uri: params.redirect_uri } : {}),
+    };
+
+    const res = await this.request<any>('/v2/auth/intent', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    return {
+      account_id: res.account_id || res.intent_id,
+      extension_code: res.checkpoint?.extension_code || '',
+      extension_code_expires_at: res.checkpoint?.extension_code_expires_at || '',
+      extension_store_urls: res.checkpoint?.extension_store_urls || {
+        chrome: 'https://chromewebstore.google.com/detail/unilogin/kmmoommiihbcemaebamojhchnnjhbkkl',
+      },
+    };
   }
 
   /**
