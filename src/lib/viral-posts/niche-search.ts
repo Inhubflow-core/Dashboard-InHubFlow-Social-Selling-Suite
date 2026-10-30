@@ -1500,10 +1500,6 @@ export function getNicheViralPosts(keywords: string, targetMarket: string): Vira
         engagementRatio,
       };
     });
-        viralityBadge,
-        engagementRatio,
-      };
-    });
 
     // Ordenar de mayor a menor score de viralidad
     return templates.sort((a, b) => (b.viralityScore ?? 0) - (a.viralityScore ?? 0));
