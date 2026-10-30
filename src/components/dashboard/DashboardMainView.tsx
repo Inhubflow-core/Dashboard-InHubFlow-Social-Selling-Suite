@@ -80,15 +80,15 @@ export default function DashboardMainView() {
       {/* 1. Métricas Principales de Alto Impacto */}
       <DashboardMetricsCards overview={analytics.overview} />
 
-      {/* 2. Fila Principal: Evolución (75% / 9 cols) + Meta de Prospección (25% / 3 cols) */}
+      {/* 2. Fila Principal: Evolución (67% / 8 cols) + Meta de Prospección (33% / 4 cols) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-9">
+        <div className="lg:col-span-8">
           <SocialEvolutionChart
             monthlyData={analytics.evolutionMonthly}
             weeklyData={analytics.evolutionWeekly}
           />
         </div>
-        <div className="lg:col-span-3 flex flex-col">
+        <div className="lg:col-span-4 flex flex-col">
           <MonthlyProspectingTarget
             scheduledMeetings={analytics.overview.scheduledMeetings}
             targetMeetings={25}

@@ -31,7 +31,7 @@ export default function MonthlyProspectingTarget({
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "radialBar",
-      height: 280,
+      height: 340,
       sparkline: {
         enabled: true,
       },
@@ -41,19 +41,19 @@ export default function MonthlyProspectingTarget({
         startAngle: -90,
         endAngle: 90,
         hollow: {
-          size: "45%",
+          size: "60%",
         },
         track: {
           background: "#E4E7EC",
           strokeWidth: "100%",
-          margin: 5,
+          margin: 0,
         },
         dataLabels: {
           name: {
             show: false,
           },
           value: {
-            fontSize: "30px",
+            fontSize: "36px",
             fontWeight: "700",
             offsetY: -20,
             color: "#111827",
@@ -97,12 +97,13 @@ export default function MonthlyProspectingTarget({
         </p>
       </div>
 
-      <div className="relative -my-2 flex justify-center">
+      <div className="relative my-auto flex w-full justify-center">
         <ReactApexChart
           options={options}
           series={series}
           type="radialBar"
-          height={260}
+          height={320}
+          width="100%"
         />
       </div>
 
