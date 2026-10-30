@@ -80,20 +80,24 @@ export default function DashboardMainView() {
       {/* 1. Métricas Principales de Alto Impacto */}
       <DashboardMetricsCards overview={analytics.overview} />
 
-      {/* 2. Evolución de Tracción y Conversión Social (Ancho Completo) */}
-      <SocialEvolutionChart
-        monthlyData={analytics.evolutionMonthly}
-        weeklyData={analytics.evolutionWeekly}
-      />
-
-      {/* 3. Meta de Prospección y Distribución por Nivel de Señal (Dos Bloques) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <MonthlyProspectingTarget
-          scheduledMeetings={analytics.overview.scheduledMeetings}
-          targetMeetings={25}
-        />
-        <SignalDistributionChart distribution={analytics.signalDistribution} />
+      {/* 2. Fila Principal: Evolución (75% / 9 cols) + Meta de Prospección (25% / 3 cols) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-9">
+          <SocialEvolutionChart
+            monthlyData={analytics.evolutionMonthly}
+            weeklyData={analytics.evolutionWeekly}
+          />
+        </div>
+        <div className="lg:col-span-3 flex flex-col">
+          <MonthlyProspectingTarget
+            scheduledMeetings={analytics.overview.scheduledMeetings}
+            targetMeetings={25}
+          />
+        </div>
       </div>
+
+      {/* 3. Distribución por Nivel de Señal */}
+      <SignalDistributionChart distribution={analytics.signalDistribution} />
 
       {/* 4. Funil de Conversión por Etapas (Ancho Completo) */}
       <PipelineFunnelChart stages={analytics.funnelStages} />
