@@ -44,7 +44,39 @@ export default function ProspectsDemographicCard({
         <DemographicCountryMap markers={markers} />
       </div>
 
-      <div className="max-h-[168px] overflow-y-auto space-y-3 border-t border-gray-100 pt-3 dark:border-gray-800 no-scrollbar hover:[scrollbar-width:thin] pr-1">
+      <div className="demographic-scroll-list max-h-[168px] overflow-y-auto space-y-3 border-t border-gray-100 pt-3 pr-2.5 dark:border-gray-800">
+        <style jsx>{`
+          .demographic-scroll-list {
+            /* Reserva el espacio de forma permanente para que el contenido nunca se mueva ni 1px */
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+            transition: scrollbar-color 0.3s ease;
+          }
+          .demographic-scroll-list:hover {
+            scrollbar-color: rgba(156, 163, 175, 0.45) transparent;
+          }
+          .demographic-scroll-list::-webkit-scrollbar {
+            width: 4px;
+          }
+          .demographic-scroll-list::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .demographic-scroll-list::-webkit-scrollbar-thumb {
+            background-color: transparent;
+            border-radius: 9999px;
+            transition: background-color 0.3s ease;
+          }
+          .demographic-scroll-list:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.45);
+          }
+          :global(.dark) .demographic-scroll-list:hover {
+            scrollbar-color: rgba(107, 114, 128, 0.4) transparent;
+          }
+          :global(.dark) .demographic-scroll-list:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(107, 114, 128, 0.4);
+          }
+        `}</style>
         {demographics.map((item) => (
           <div
             key={item.countryCode}
