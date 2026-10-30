@@ -50,13 +50,13 @@ export default function ProspectsDemographicCard({
             key={item.countryCode}
             className="flex items-center justify-between text-xs"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0 shadow-xs border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 shadow-xs dark:border-gray-700">
                 <Image
                   src={item.flagSrc}
                   alt={item.countryName}
-                  width={20}
-                  height={20}
+                  width={36}
+                  height={36}
                   className="h-full w-full object-cover"
                 />
               </div>
