@@ -23,7 +23,7 @@ interface DemographicCountryMapProps {
 
 export default function DemographicCountryMap({ markers }: DemographicCountryMapProps) {
   return (
-    <div className="h-[140px] w-full overflow-hidden">
+    <div className="h-[210px] w-full overflow-hidden [&_.jvectormap-container]:!h-full [&_.jvectormap-container]:!w-full [&_svg]:!h-full [&_svg]:!w-full">
       <VectorMap
         map={worldMill}
         backgroundColor="transparent"
@@ -37,13 +37,13 @@ export default function DemographicCountryMap({ markers }: DemographicCountryMap
         markerStyle={{
           initial: {
             fill: "#0099ff",
-            r: 4,
+            r: 5,
           },
         }}
         regionStyle={{
           initial: {
             fill: "#D0D5DD",
-            fillOpacity: 0.8,
+            fillOpacity: 0.85,
             fontFamily: "Outfit, sans-serif",
             stroke: "none",
             strokeWidth: 0,

@@ -40,11 +40,11 @@ export default function ProspectsDemographicCard({
         </p>
       </div>
 
-      <div className="my-3 overflow-hidden rounded-lg border border-gray-100 bg-gray-50/70 p-2 dark:border-gray-800 dark:bg-gray-800/40">
+      <div className="my-3 overflow-hidden rounded-lg border border-gray-100 bg-gray-50/70 p-0.5 dark:border-gray-800 dark:bg-gray-800/40">
         <DemographicCountryMap markers={markers} />
       </div>
 
-      <div className="space-y-3 border-t border-gray-100 pt-3 dark:border-gray-800">
+      <div className="max-h-[168px] overflow-y-auto space-y-3 border-t border-gray-100 pt-3 dark:border-gray-800 no-scrollbar hover:[scrollbar-width:thin] pr-1">
         {demographics.map((item) => (
           <div
             key={item.countryCode}
