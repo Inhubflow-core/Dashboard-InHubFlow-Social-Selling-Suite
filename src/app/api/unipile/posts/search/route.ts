@@ -453,66 +453,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback inteligente para localhost / desarrollo cuando no hay publicaciones en vivo de Unipile
+    // Fallback hiper-especializado por nicho e industria para localhost y desarrollo
     if (rawItems.length === 0) {
-      const { initialViralTemplates } = await import("@/lib/viral-posts/mock-data");
-      const kwLower = keywords.toLowerCase();
-
-      const scoredTemplates = initialViralTemplates.map((t) => {
-        let relevanceScore = 0;
-        const textToMatch = `${t.topic} ${t.hook} ${t.fullContent}`.toLowerCase();
-
-        if (textToMatch.includes(kwLower)) relevanceScore += 10;
-        const kwWords = kwLower.split(/\s+/).filter(Boolean);
-        for (const w of kwWords) {
-          if (textToMatch.includes(w)) relevanceScore += 3;
-        }
-
-        const likes = t.likes || 150;
-        const comments = t.comments || 35;
-        const shares = t.shares || 12;
-        const viralityScore = t.viralityScore ?? Math.round((likes * 1) + (comments * 3.5) + (shares * 5));
-
-        let viralityTier: "mega" | "high" | "trending" = "trending";
-        let viralityBadge = "En Tendencia 🔥";
-        if (viralityScore >= 100 || (likes >= 50 && comments >= 15)) {
-          viralityTier = "mega";
-          viralityBadge = "Mega Viral 🔥🔥🔥";
-        } else if (viralityScore >= 35 || (likes >= 20 && comments >= 5) || comments >= 8) {
-          viralityTier = "high";
-          viralityBadge = "Alta Tracción 🔥🔥";
-        }
-
-        const totalInteractions = likes + comments + shares;
-        const engagementRatio = t.engagementRatio || (totalInteractions > 0
-          ? `${Math.min(25, Math.max(1.2, parseFloat((4.0 + Math.log10(totalInteractions + 1) * 3.5).toFixed(1))))}%`
-          : "5.4%");
-
-        return {
-          ...t,
-          topic: t.topic || keywords,
-          likes,
-          comments,
-          shares,
-          viralityScore,
-          viralityBadge,
-          viralityTier,
-          engagementRatio,
-          relevanceScore,
-          marketOrigin: t.marketOrigin || "LATAM / Hispanoamérica",
-          detectedLanguage: t.detectedLanguage || "es",
-          isLive: false,
-        };
-      });
-
-      scoredTemplates.sort((a, b) => {
-        if (b.relevanceScore !== a.relevanceScore) {
-          return b.relevanceScore - a.relevanceScore;
-        }
-        return (b.viralityScore ?? 0) - (a.viralityScore ?? 0);
-      });
-
-      const top12Fallback = scoredTemplates.slice(0, 12);
+      const { getNicheViralPosts } = await import("@/lib/viral-posts/niche-search");
+      const nicheItems = getNicheViralPosts(keywords, targetMarket);
 
       return NextResponse.json({
         success: true,
@@ -520,12 +464,12 @@ export async function POST(req: Request) {
         targetMarket,
         accountId: targetAccountId || "local-dev-account",
         accountName: selectedAccountObj?.name || "Cuenta Local (InHubFlow Demo)",
-        totalFound: initialViralTemplates.length,
+        totalFound: nicheItems.length,
         filteredCyrillicCount: 0,
         filteredJobsCount: 0,
-        count: top12Fallback.length,
+        count: nicheItems.length,
         filteredOutZeroCount: 0,
-        items: top12Fallback,
+        items: nicheItems,
       });
     }
 
