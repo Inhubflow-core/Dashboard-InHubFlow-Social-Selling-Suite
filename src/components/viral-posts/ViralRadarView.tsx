@@ -1227,12 +1227,32 @@ export default function ViralRadarView({
                     <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
                       {selectedPostForModal.authorHeadline}
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex-wrap">
                       <span>{selectedPostForModal.publishedDate}</span>
                       <span>•</span>
                       <svg className="w-3 h-3 text-gray-400 fill-current inline" viewBox="0 0 16 16">
                         <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM4.88 5.75A5.72 5.72 0 0 1 8 4.75c1.17 0 2.25.35 3.12 1L9.75 7.12A3.24 3.24 0 0 0 8 6.75c-.64 0-1.24.19-1.75.52L4.88 5.75Zm6.24 4.5A5.72 5.72 0 0 1 8 11.25a5.72 5.72 0 0 1-3.12-1l1.37-1.37c.51.33 1.11.52 1.75.52.64 0 1.24-.19 1.75-.52l1.37 1.37Z" />
                       </svg>
+                      <span>•</span>
+                      <a
+                        href={
+                          selectedPostForModal.linkedinUrl ||
+                          (selectedPostForModal.socialId
+                            ? `https://www.linkedin.com/feed/update/${selectedPostForModal.socialId}`
+                            : `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(
+                                selectedPostForModal.hook?.replace(/:$/, "").slice(0, 90) || selectedPostForModal.topic
+                              )}`)
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0a66c2] hover:text-[#004182] dark:text-sky-400 dark:hover:text-sky-300 hover:underline transition"
+                        title="Ver publicación original en LinkedIn"
+                      >
+                        <svg className="w-3 h-3 fill-current shrink-0" viewBox="0 0 24 24">
+                          <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.77v8.37H6.46v-8.37M7.85 6.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z" />
+                        </svg>
+                        <span>Ver en LinkedIn ↗</span>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1428,28 +1448,49 @@ export default function ViralRadarView({
             )}
 
             {/* Botones de Acción */}
-            <div className="flex justify-end gap-3 border-t border-gray-300 pt-4 dark:border-gray-800">
-              <button
-                type="button"
-                onClick={handleClosePostModal}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-              >{t("backBtn")}</button>
-              <button
-                type="button"
-                onClick={() => {
-                  const contentToModel =
-                    translations[selectedPostForModal.id]?.isShowing &&
-                    translations[selectedPostForModal.id]?.translatedText
-                      ? {
-                          ...selectedPostForModal,
-                          fullContent:
-                            translations[selectedPostForModal.id].translatedText,
-                        }
-                      : selectedPostForModal;
-                  handleModelWithAi(contentToModel);
-                }}
-                className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs"
-              >{t("modelThisPostBtn")}</button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-gray-300 pt-4 dark:border-gray-800">
+              <a
+                href={
+                  selectedPostForModal.linkedinUrl ||
+                  (selectedPostForModal.socialId
+                    ? `https://www.linkedin.com/feed/update/${selectedPostForModal.socialId}`
+                    : `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(
+                        selectedPostForModal.hook?.replace(/:$/, "").slice(0, 90) || selectedPostForModal.topic
+                      )}`)
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0a66c2] hover:text-[#004182] dark:text-sky-400 dark:hover:text-sky-300 hover:underline transition self-start sm:self-center"
+              >
+                <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.77v8.37H6.46v-8.37M7.85 6.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z" />
+                </svg>
+                <span>Ver publicación original en LinkedIn ↗</span>
+              </a>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleClosePostModal}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 cursor-pointer"
+                >{t("backBtn")}</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const contentToModel =
+                      translations[selectedPostForModal.id]?.isShowing &&
+                      translations[selectedPostForModal.id]?.translatedText
+                        ? {
+                            ...selectedPostForModal,
+                            fullContent:
+                              translations[selectedPostForModal.id].translatedText,
+                          }
+                        : selectedPostForModal;
+                    handleModelWithAi(contentToModel);
+                  }}
+                  className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs cursor-pointer"
+                >{t("modelThisPostBtn")}</button>
+              </div>
             </div>
           </div>
         </div>

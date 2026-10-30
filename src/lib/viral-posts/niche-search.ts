@@ -1452,6 +1452,9 @@ Adjunto la infografía para que puedan guardarla o utilizarla en su próxima reu
       engagementRatio,
       mediaUrl,
       hasMedia,
+      linkedinUrl: `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(
+        data.hook.replace(/:$/, "").slice(0, 90)
+      )}`,
       marketOrigin: "LATAM / Hispanoamérica",
       detectedLanguage: "es",
       isLive: false,
@@ -1486,8 +1489,17 @@ export function getNicheViralPosts(keywords: string, targetMarket: string): Vira
       );
       return {
         ...t,
+        linkedinUrl:
+          t.linkedinUrl ||
+          `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(
+            t.hook.replace(/:$/, "").slice(0, 90)
+          )}`,
         viralityScore,
         viralityTier,
+        viralityBadge,
+        engagementRatio,
+      };
+    });
         viralityBadge,
         engagementRatio,
       };
