@@ -7,7 +7,7 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: #F8FAFC;
-  color: #0F172A;
+  color: #101828;
   width: 320px;
   overflow: hidden;
   user-select: none;
@@ -35,28 +35,20 @@ body {
   gap: 10px;
 }
 
-.logo-box {
+.brand-logo {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FFFFFF;
-  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
-}
-
-.logo-icon {
-  width: 18px;
-  height: 18px;
+  object-fit: contain;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12);
 }
 
 .brand-title {
   font-size: 14px;
   font-weight: 700;
-  color: #0F172A;
+  color: #101828;
   line-height: 1.2;
+  letter-spacing: -0.2px;
 }
 
 .brand-subtitle {
@@ -66,12 +58,12 @@ body {
 
 .badge-tag {
   font-size: 10px;
-  font-weight: 600;
-  background-color: #E0F2FE;
-  color: #0284C7;
-  padding: 2px 6px;
+  font-weight: 700;
+  background-color: #E6F4FE;
+  color: #0082DB;
+  padding: 2px 7px;
   border-radius: 9999px;
-  border: 1px solid #BAE6FD;
+  border: 1px solid #CCE9FD;
 }
 
 /* Content */
@@ -97,7 +89,7 @@ body {
   width: 28px;
   height: 28px;
   border: 3px solid #E2E8F0;
-  border-top-color: #0284C7;
+  border-top-color: #0099FF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 20px auto 10px;
@@ -190,7 +182,7 @@ body {
 
 .info-val {
   font-weight: 600;
-  color: #1E293B;
+  color: #101828;
 }
 
 .info-val.font-mono {
@@ -224,9 +216,9 @@ body {
 }
 
 .feedback-box.info {
-  background-color: #F0F9FF;
-  color: #0369A1;
-  border: 1px solid #BAE6FD;
+  background-color: #E6F4FE;
+  color: #0082DB;
+  border: 1px solid #99D3FC;
 }
 
 /* Buttons */
@@ -251,18 +243,18 @@ body {
   flex-shrink: 0;
 }
 
-/* Botón Destacado 1-Clic */
+/* Botón Destacado 1-Clic con Color Oficial InHubFlow (#0099FF) */
 .btn-autoconnect {
-  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  background: linear-gradient(135deg, #0099FF 0%, #0082DB 100%);
   color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 153, 255, 0.35);
   font-weight: 700;
   letter-spacing: -0.2px;
 }
 
 .btn-autoconnect:hover {
-  background: linear-gradient(135deg, #0369A1 0%, #075985 100%);
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.45);
+  background: linear-gradient(135deg, #0082DB 0%, #006BB8 100%);
+  box-shadow: 0 4px 12px rgba(0, 153, 255, 0.45);
 }
 
 .btn-autoconnect:active {
@@ -270,7 +262,7 @@ body {
 }
 
 .btn-autoconnect.connecting {
-  background: #0284C7 !important;
+  background: #0099FF !important;
   opacity: 0.9;
   cursor: wait;
 }
@@ -292,7 +284,7 @@ body {
 .btn-secondary-outline:hover {
   background: #F1F5F9;
   border-color: #94A3B8;
-  color: #0F172A;
+  color: #101828;
 }
 
 .btn-secondary-outline.copied {
@@ -303,12 +295,12 @@ body {
 
 .btn-secondary {
   background: #FFFFFF;
-  color: #0284C7;
-  border: 1px solid #BAE6FD;
+  color: #0099FF;
+  border: 1px solid #CCE9FD;
 }
 
 .btn-secondary:hover {
-  background: #F0F9FF;
+  background: #E6F4FE;
 }
 
 .help-text {
