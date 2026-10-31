@@ -31,6 +31,7 @@ interface ConnectLinkedInModalProps {
   onAccountConnected: (account: ConnectedLinkedInAccount) => void;
   initialAccount?: ConnectedLinkedInAccount | null;
   initialStep?: 1 | 2;
+  autoConnectData?: { accessToken: string; premiumToken?: string; userAgent?: string } | null;
 }
 
 const BLANK_FORM = {
@@ -98,8 +99,19 @@ export default function ConnectLinkedInModal({
   onAccountConnected,
   initialAccount = null,
   initialStep = 1,
+  autoConnectData = null,
 }: ConnectLinkedInModalProps) {
   const { currentUser } = useAuth();
+
+  // Detección de extensión InHubFlow Connect instalada en el navegador
+  const [isExtensionInstalled, setIsExtensionInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const isInstalled = document.documentElement.getAttribute("data-inhubflow-extension-installed") === "true";
+      setIsExtensionInstalled(isInstalled);
+    }
+  }, []);
 
   // Paso del slider: 1 = Configuración de límites y horario, 2 = Autenticación y opciones avanzadas
   const [modalStep, setModalStep] = useState<1 | 2>(initialStep);
@@ -196,7 +208,110 @@ export default function ConnectLinkedInModal({
     setModalStep(2);
   };
 
-  // Manejo de autenticación nativa en Paso 2
+  // Ejecución centralizada de autenticación nativa (Credenciales, Cookie o 1-Clic desde Extensión)
+  const performNativeLogin = async (params: {
+    mode: "credentials" | "cookie";
+    accessToken?: string;
+    premiumToken?: string;
+    username?: string;
+    password?: string;
+    userAgent?: string;
+  }) => {
+    setAuthLoading(true);
+    setAuthError(null);
+
+    try {
+      const userAgent = params.userAgent || (typeof navigator !== "undefined" ? navigator.userAgent : undefined);
+
+      const res = await fetch("/api/unipile/auth-native", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: params.mode,
+          accountId: initialAccount?.id || undefined,
+          reconnectAccountId: initialAccount?.unipileAccountId || undefined,
+          name: form.name.trim() || undefined,
+          username: params.username || authEmail.trim(),
+          password: params.password || authPassword,
+          accessToken: params.accessToken || authCookieLiAt.trim(),
+          premiumToken: params.premiumToken || authCookieLiA.trim() || undefined,
+          country: authCountry || undefined,
+          proxy: authCustomProxy.trim() || undefined,
+          userAgent,
+        }),
+      });
+
+      const data = await res.json();
+      setAuthLoading(false);
+
+      if (!res.ok) {
+        const errorMsg = data.error || "No se pudo autenticar con LinkedIn.";
+        setAuthError(errorMsg);
+        if (typeof window !== "undefined") {
+          window.postMessage(
+            {
+              source: "INHUBFLOW_WEBAPP",
+              type: "AUTOCONNECT_RESULT",
+              success: false,
+              error: errorMsg,
+            },
+            "*"
+          );
+        }
+        return;
+      }
+
+      // LinkedIn solicita 2FA (Checkpoint)
+      if (data.checkpoint) {
+        setIsCheckpoint(true);
+        setCheckpointRemoteAccountId(data.remoteAccountId);
+        setAuthError(null);
+        if (typeof window !== "undefined") {
+          window.postMessage(
+            {
+              source: "INHUBFLOW_WEBAPP",
+              type: "AUTOCONNECT_RESULT",
+              checkpoint: true,
+              remoteAccountId: data.remoteAccountId,
+            },
+            "*"
+          );
+        }
+        return;
+      }
+
+      // Conexión exitosa directa
+      finalizeConnection(data.remoteAccountId);
+      if (typeof window !== "undefined") {
+        window.postMessage(
+          {
+            source: "INHUBFLOW_WEBAPP",
+            type: "AUTOCONNECT_RESULT",
+            success: true,
+            remoteAccountId: data.remoteAccountId,
+          },
+          "*"
+        );
+      }
+    } catch (err: unknown) {
+      setAuthLoading(false);
+      const errorMsg = err instanceof Error ? err.message : "Error al conectar con el servidor.";
+      setAuthError(errorMsg);
+      if (typeof window !== "undefined") {
+        window.postMessage(
+          {
+            source: "INHUBFLOW_WEBAPP",
+            type: "AUTOCONNECT_RESULT",
+            success: false,
+            error: errorMsg,
+          },
+          "*"
+        );
+      }
+    }
+  };
+
+  // Manejo de autenticación nativa manual desde formulario del Paso 2
   const handleNativeLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -212,53 +327,77 @@ export default function ConnectLinkedInModal({
       }
     }
 
-    setAuthLoading(true);
-    setAuthError(null);
-
-    try {
-      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : undefined;
-
-      const res = await fetch("/api/unipile/auth-native", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: authMode,
-          accountId: initialAccount?.id || undefined,
-          reconnectAccountId: initialAccount?.unipileAccountId || undefined,
-          name: form.name.trim() || undefined,
-          username: authEmail.trim(),
-          password: authPassword,
-          accessToken: authCookieLiAt.trim(),
-          premiumToken: authCookieLiA.trim() || undefined,
-          country: authCountry || undefined,
-          proxy: authCustomProxy.trim() || undefined,
-          userAgent,
-        }),
-      });
-
-      const data = await res.json();
-      setAuthLoading(false);
-
-      if (!res.ok) {
-        setAuthError(data.error || "No se pudo autenticar con LinkedIn.");
-        return;
-      }
-
-      // LinkedIn solicita 2FA (Checkpoint)
-      if (data.checkpoint) {
-        setIsCheckpoint(true);
-        setCheckpointRemoteAccountId(data.remoteAccountId);
-        setAuthError(null);
-        return;
-      }
-
-      // Conexión exitosa directa
-      finalizeConnection(data.remoteAccountId);
-    } catch (err: unknown) {
-      setAuthLoading(false);
-      setAuthError(err instanceof Error ? err.message : "Error al conectar con el servidor.");
-    }
+    await performNativeLogin({
+      mode: authMode,
+      accessToken: authCookieLiAt.trim(),
+      premiumToken: authCookieLiA.trim() || undefined,
+      username: authEmail.trim(),
+      password: authPassword,
+    });
   };
+
+  // Manejo reactivo de autoconexión en 1-clic proveniente de la Extensión InHubFlow Connect
+  useEffect(() => {
+    if (!isOpen) return;
+
+    interface AutoConnectPayload {
+      accessToken?: string;
+      liAt?: string;
+      premiumToken?: string;
+      liA?: string;
+      userAgent?: string;
+      source?: string;
+      type?: string;
+    }
+
+    const processAutoConnect = async (payload: AutoConnectPayload) => {
+      const token = (payload.accessToken || payload.liAt || "").trim();
+      if (!token) return;
+
+      const premToken = (payload.premiumToken || payload.liA || "").trim();
+      const userAgent = payload.userAgent;
+
+      setAuthMode("cookie");
+      setAuthCookieLiAt(token);
+      if (premToken) setAuthCookieLiA(premToken);
+      setModalStep(2);
+
+      await performNativeLogin({
+        mode: "cookie",
+        accessToken: token,
+        premiumToken: premToken || undefined,
+        userAgent,
+      });
+    };
+
+    const handleAutoConnectEvent = (event: Event | MessageEvent) => {
+      let payload: AutoConnectPayload | null = null;
+      if ("detail" in event && (event as CustomEvent).detail) {
+        payload = (event as CustomEvent).detail;
+      } else if ("data" in event && (event as MessageEvent).data) {
+        const msg = (event as MessageEvent).data;
+        if (msg && msg.source === "INHUBFLOW_EXTENSION" && (msg.type === "AUTOCONNECT" || msg.type === "INHUBFLOW_AUTOCONNECT")) {
+          payload = msg;
+        }
+      }
+
+      if (payload) {
+        processAutoConnect(payload);
+      }
+    };
+
+    window.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
+    window.addEventListener("message", handleAutoConnectEvent);
+
+    if (autoConnectData && autoConnectData.accessToken) {
+      processAutoConnect(autoConnectData);
+    }
+
+    return () => {
+      window.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
+      window.removeEventListener("message", handleAutoConnectEvent);
+    };
+  }, [isOpen, autoConnectData, form, initialAccount, authCountry, authCustomProxy]);
 
   // Manejo de resolución de 2FA
   const handleSolveCheckpoint = async (e: React.FormEvent) => {
@@ -724,9 +863,15 @@ export default function ConnectLinkedInModal({
                       ) : (
                         <>
                           {/* Banner informativo de Extensión InHubFlow Connect */}
-                          <div className="rounded-xl border border-brand-500/20 bg-brand-50/50 dark:bg-brand-950/20 p-3.5 flex flex-col gap-2">
+                          <div className={`rounded-xl border p-3.5 flex flex-col gap-2 transition-all ${
+                            isExtensionInstalled
+                              ? "border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20"
+                              : "border-brand-500/20 bg-brand-50/50 dark:bg-brand-950/20"
+                          }`}>
                             <div className="flex items-start gap-2.5">
-                              <div className="p-1.5 rounded-lg bg-brand-500 text-white shrink-0 mt-0.5">
+                              <div className={`p-1.5 rounded-lg text-white shrink-0 mt-0.5 ${
+                                isExtensionInstalled ? "bg-emerald-600" : "bg-brand-500"
+                              }`}>
                                 <Puzzle className="size-4" />
                               </div>
                               <div className="flex-1">
@@ -734,12 +879,20 @@ export default function ConnectLinkedInModal({
                                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                                     Extensión InHubFlow Connect
                                   </h4>
-                                  <span className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-2 py-0.5 rounded-full">
-                                    Recomendado
-                                  </span>
+                                  {isExtensionInstalled ? (
+                                    <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300 dark:border-emerald-800">
+                                      <Check className="size-3" /> Extensión 1-Clic Lista
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-2 py-0.5 rounded-full">
+                                      Recomendado (1 Clic)
+                                    </span>
+                                  )}
                                 </div>
                                 <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
-                                  Detecta tu Código de Conexión en 1 solo clic con nuestra extensión (sin abrir herramientas de desarrollador ni F12). Copia el código en la extensión y haz clic en el botón de abajo.
+                                  {isExtensionInstalled
+                                    ? "¡Extensión activa en este navegador! Abre el icono de InHubFlow Connect en tu barra de extensiones y presiona '⚡ Conectar LinkedIn con InHub' para vincular de inmediato."
+                                    : "Detecta tu sesión en 1 solo clic con nuestra extensión oficial. Abre la extensión y presiona conectar, o pega tu código abajo."}
                                 </p>
                               </div>
                             </div>

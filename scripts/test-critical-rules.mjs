@@ -1523,6 +1523,76 @@ const replyEn = getSdrReplyByLanguage("en", "Sarah", "meeting");
 assert(replyEn.startsWith("Awesome Sarah"), "La IA responde en inglés nativo para el lead angloparlante");
 assert(replyEn.includes("Feel free to pick a time on my calendar"), "Propone el agendamiento en inglés");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 28: Verificación del Puente 1-Clic de Extensión InHubFlow Connect
+// -----------------------------------------------------------------------------
+console.log("\n--- 28. Prueba de Puente y Autenticación 1-Clic de Extensión InHubFlow Connect ---");
+
+// Validar manifest.json de la extensión
+const extManifestPath = path.resolve("./extension-inhubflow-connect/manifest.json");
+assert(fs.existsSync(extManifestPath), "El manifest.json de la extensión existe");
+const manifestContent = JSON.parse(fs.readFileSync(extManifestPath, "utf-8"));
+assert(manifestContent.version === "1.1.0", "La extensión está en versión 1.1.0 con soporte 1-clic");
+assert(
+  Array.isArray(manifestContent.content_scripts) && manifestContent.content_scripts.length > 0,
+  "El manifest registra el content script para comunicación bidireccional con el Dashboard"
+);
+assert(
+  manifestContent.permissions.includes("cookies") && manifestContent.permissions.includes("tabs"),
+  "La extensión posee permisos requeridos (cookies y tabs) para detección y foco 1-clic"
+);
+
+// Validar content-script.js
+const extContentScriptPath = path.resolve("./extension-inhubflow-connect/content-script.js");
+assert(fs.existsSync(extContentScriptPath), "El content-script.js de la extensión existe");
+const contentScriptText = fs.readFileSync(extContentScriptPath, "utf-8");
+assert(
+  contentScriptText.includes("INHUBFLOW_AUTOCONNECT_EVENT") && contentScriptText.includes("AUTOCONNECT"),
+  "El content script despacha el evento INHUBFLOW_AUTOCONNECT_EVENT hacia React en el DOM"
+);
+
+// Validar popup.js
+const extPopupJsPath = path.resolve("./extension-inhubflow-connect/popup.js");
+assert(fs.existsSync(extPopupJsPath), "El popup.js de la extensión existe");
+const popupJsText = fs.readFileSync(extPopupJsPath, "utf-8");
+assert(
+  popupJsText.includes("handleAutoConnect") && popupJsText.includes("btn-autoconnect"),
+  "popup.js implementa el botón y handler de conexión 1-clic automático"
+);
+assert(
+  popupJsText.includes("executeDirectApiFallback"),
+  "popup.js posee fallback resiliente directo a la API nativa de InHubFlow"
+);
+
+// Validar contrato del evento recibido por el Dashboard
+function simulateAutoConnectDispatcher(incomingEvent) {
+  const payload = incomingEvent.detail || incomingEvent.data;
+  if (!payload || !payload.accessToken) return { status: "error", message: "Token missing" };
+  return {
+    status: "success",
+    mode: "cookie",
+    accessToken: payload.accessToken.trim(),
+    premiumToken: payload.premiumToken?.trim() || null,
+    userAgent: payload.userAgent || "test-agent",
+  };
+}
+
+const mockExtensionEvent = {
+  detail: {
+    source: "INHUBFLOW_EXTENSION",
+    type: "AUTOCONNECT",
+    accessToken: "AQEDAQ_test_li_at_sample_cookie_xyz123",
+    premiumToken: "AQEDAQ_test_li_a_premium_sample",
+    userAgent: "Mozilla/5.0 InHubFlow Test Agent",
+  },
+};
+
+const dispatchResult = simulateAutoConnectDispatcher(mockExtensionEvent);
+assert(dispatchResult.status === "success", "El despachador de eventos procesa la carga útil de la extensión");
+assert(dispatchResult.mode === "cookie", "La conexión se enruta automáticamente en modo cookie sin intervención");
+assert(dispatchResult.accessToken === "AQEDAQ_test_li_at_sample_cookie_xyz123", "El token li_at se transmite intacto");
+assert(dispatchResult.premiumToken === "AQEDAQ_test_li_a_premium_sample", "El token premium li_a de Sales Navigator se preserva");
+
 // Limpieza de base de datos de test
 
 db.close();

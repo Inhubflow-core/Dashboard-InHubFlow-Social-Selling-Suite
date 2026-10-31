@@ -46,6 +46,7 @@ export default function LinkedInAccountsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalInitialAccount, setModalInitialAccount] = useState<ConnectedLinkedInAccount | null>(null);
   const [modalInitialStep, setModalInitialStep] = useState<1 | 2>(1);
+  const [autoConnectPayload, setAutoConnectPayload] = useState<{ accessToken: string; premiumToken?: string; userAgent?: string } | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [editingLimitsAccount, setEditingLimitsAccount] = useState<ConnectedLinkedInAccount | null>(null);
   const [isLimitsModalOpen, setIsLimitsModalOpen] = useState(false);
@@ -123,6 +124,56 @@ export default function LinkedInAccountsPage() {
     window.addEventListener("message", handleCallbackMessage);
     return () => window.removeEventListener("message", handleCallbackMessage);
   }, [currentUser]);
+
+  // Escuchar evento de 1-Clic emitido por la extensión InHubFlow Connect
+  useEffect(() => {
+    interface ExtensionPayload {
+      accessToken?: string;
+      liAt?: string;
+      premiumToken?: string;
+      liA?: string;
+      userAgent?: string;
+      source?: string;
+      type?: string;
+    }
+
+    const handleAutoConnectTrigger = (event: Event | MessageEvent) => {
+      let payload: ExtensionPayload | null = null;
+      if ("detail" in event && (event as CustomEvent).detail) {
+        payload = (event as CustomEvent).detail;
+      } else if ("data" in event && (event as MessageEvent).data) {
+        const msg = (event as MessageEvent).data;
+        if (msg && msg.source === "INHUBFLOW_EXTENSION" && (msg.type === "AUTOCONNECT" || msg.type === "INHUBFLOW_AUTOCONNECT")) {
+          payload = msg;
+        }
+      }
+
+      if (!payload) return;
+
+      const token = payload.accessToken || payload.liAt;
+      if (!token) return;
+
+      // Si el modal está cerrado, lo abrimos directamente en Paso 2 de conexión
+      if (!isModalOpen) {
+        setAutoConnectPayload({
+          accessToken: token.trim(),
+          premiumToken: payload.premiumToken || payload.liA,
+          userAgent: payload.userAgent,
+        });
+        setModalInitialAccount(null);
+        setModalInitialStep(2);
+        setIsModalOpen(true);
+      }
+    };
+
+    window.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
+    window.addEventListener("message", handleAutoConnectTrigger);
+
+    return () => {
+      window.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
+      window.removeEventListener("message", handleAutoConnectTrigger);
+    };
+  }, [isModalOpen]);
 
   const handleSelectActive = (id: string) => {
     setActiveId(id);
@@ -517,10 +568,15 @@ export default function LinkedInAccountsPage() {
           setIsModalOpen(false);
           setModalInitialAccount(null);
           setModalInitialStep(1);
+          setAutoConnectPayload(null);
         }}
-        onAccountConnected={handleAccountConnected}
+        onAccountConnected={(acc) => {
+          setAutoConnectPayload(null);
+          handleAccountConnected(acc);
+        }}
         initialAccount={modalInitialAccount}
         initialStep={modalInitialStep}
+        autoConnectData={autoConnectPayload}
       />
 
       {/* Modal para Configurar Límites y Horario de la Cuenta */}

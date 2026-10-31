@@ -21,7 +21,7 @@
           <p class="brand-subtitle">Vinculación LinkedIn 1-Clic</p>
         </div>
       </div>
-      <span class="badge-tag">v1.0.1</span>
+      <span class="badge-tag">v1.1.0</span>
     </header>
 
     <!-- Main Content -->
@@ -29,7 +29,7 @@
       <!-- Loading State -->
       <div id="state-loading" class="state-card">
         <div class="spinner"></div>
-        <p class="state-text">Consultando cookies de LinkedIn...</p>
+        <p class="state-text">Detectando sesión de LinkedIn...</p>
       </div>
 
       <!-- Success / Detected State -->
@@ -58,16 +58,31 @@
           </div>
         </div>
 
-        <button id="btn-copy" class="btn btn-primary" type="button">
+        <!-- Feedback Alert Box -->
+        <div id="feedback-box" class="feedback-box hidden">
+          <span id="feedback-text"></span>
+        </div>
+
+        <!-- 1-Click Primary Action -->
+        <button id="btn-autoconnect" class="btn btn-autoconnect" type="button">
+          <div id="btn-spinner" class="spinner-mini hidden"></div>
+          <svg id="btn-bolt" class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span id="btn-autoconnect-text">⚡ Conectar LinkedIn con InHub</span>
+        </button>
+
+        <!-- Secondary Manual Action -->
+        <button id="btn-copy" class="btn btn-secondary-outline" type="button">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
-          <span id="btn-copy-text">Copiar Código de Conexión</span>
+          <span id="btn-copy-text">Copiar Código Manualmente</span>
         </button>
 
         <p class="help-text">
-          Haz clic arriba para copiar el código, luego ve a tu Dashboard InHubFlow y presiona <strong>"Pegar Código del Portapapeles"</strong>.
+          Al presionar <strong>"Conectar LinkedIn con InHub"</strong> se vincula tu cuenta automáticamente con tu Dashboard sin necesidad de copiar ni pegar.
         </p>
       </div>
 
