@@ -271,6 +271,60 @@ export class UnipileClient {
       };
     }
 
+    if (this.isV2()) {
+      const defaultUserAgent =
+        params.userAgent?.trim() ||
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+      const credentials: Record<string, unknown> = {};
+      if (params.accessToken?.trim()) {
+        credentials.access_token = params.accessToken.trim();
+        credentials.user_agent = defaultUserAgent;
+        if (params.premiumToken?.trim()) {
+          credentials.premium_token = params.premiumToken.trim();
+        }
+      } else if (params.username && params.password) {
+        credentials.username = params.username.trim();
+        credentials.password = params.password;
+        credentials.user_agent = defaultUserAgent;
+      }
+
+      const v2Payload: Record<string, unknown> = {
+        provider: 'linkedin',
+        credentials,
+        ...(params.country?.trim() ? { auto_proxy_country: params.country.trim().toUpperCase() } : {}),
+        ...(params.name ? { name: params.name } : {}),
+      };
+
+      if (params.reconnectAccountId && params.reconnectAccountId.startsWith('acc_')) {
+        v2Payload.account_id = params.reconnectAccountId;
+      }
+
+      const res = await this.request<any>('/v2/auth/intent', {
+        method: 'POST',
+        body: JSON.stringify(v2Payload),
+      });
+
+      if (res.checkpoint || res.object === 'AuthenticationCheckpoint' || res.object === 'Checkpoint') {
+        return {
+          object: 'Checkpoint',
+          id: (res.account_id || res.intent_id) as string,
+          account_id: (res.account_id || res.intent_id) as string,
+          checkpoint: {
+            type: res.checkpoint?.type || '2FA',
+            message: res.checkpoint?.message || 'Introduce el código de verificación de LinkedIn',
+          },
+        };
+      }
+
+      const accountId = (res.account_id || res.id || res.intent_id) as string;
+      return {
+        object: 'Account',
+        id: accountId,
+        account_id: accountId,
+      };
+    }
+
     const payload: Record<string, unknown> = {
       provider: 'LINKEDIN',
       ...(params.name ? { name: params.name } : {}),
@@ -327,6 +381,22 @@ export class UnipileClient {
         object: 'Account',
         id: params.accountId,
         account_id: params.accountId,
+      };
+    }
+
+    if (this.isV2()) {
+      const res = await this.request<any>('/v2/auth/checkpoint', {
+        method: 'POST',
+        body: JSON.stringify({
+          intent_id: params.accountId,
+          code: params.code.trim(),
+        }),
+      });
+
+      return {
+        object: 'Account',
+        id: (res.account_id || res.id || params.accountId) as string,
+        account_id: (res.account_id || res.id || params.accountId) as string,
       };
     }
 

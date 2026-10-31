@@ -113,6 +113,8 @@ export default function ConnectLinkedInModal({
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authCookieLiAt, setAuthCookieLiAt] = useState("");
+  const [showAuthCookie, setShowAuthCookie] = useState(false);
+  const [pastedSuccess, setPastedSuccess] = useState(false);
   const [authCookieLiA, setAuthCookieLiA] = useState("");
   const [authCountry, setAuthCountry] = useState(""); // "" = Automático (Según tu IP)
   const [authCustomProxy, setAuthCustomProxy] = useState("");
@@ -214,6 +216,8 @@ export default function ConnectLinkedInModal({
     setAuthError(null);
 
     try {
+      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : undefined;
+
       const res = await fetch("/api/unipile/auth-native", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -228,6 +232,7 @@ export default function ConnectLinkedInModal({
           premiumToken: authCookieLiA.trim() || undefined,
           country: authCountry || undefined,
           proxy: authCustomProxy.trim() || undefined,
+          userAgent,
         }),
       });
 
@@ -619,6 +624,16 @@ export default function ConnectLinkedInModal({
                 {!isCheckpoint ? (
                   <form onSubmit={handleNativeLogin}>
                     <div className="max-h-[500px] overflow-y-auto custom-scrollbar px-6 py-4 flex flex-col gap-3">
+                      {/* Banner de Error Superior Visible Inmediatamente */}
+                      {authError && (
+                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-300 animate-in fade-in">
+                          <X className="size-4 shrink-0 mt-0.5 text-red-500" />
+                          <div className="flex-1">
+                            <span className="font-bold">Error de Conexión:</span> {authError}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Selector de Método: Credenciales vs Código de Conexión */}
                       <div>
                         <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
@@ -737,6 +752,8 @@ export default function ConnectLinkedInModal({
                                     if (text && text.trim()) {
                                       setAuthCookieLiAt(text.trim());
                                       setAuthError(null);
+                                      setPastedSuccess(true);
+                                      setTimeout(() => setPastedSuccess(false), 3000);
                                     }
                                   } catch {
                                     setAuthError("No se pudo acceder al portapapeles. Pega tu código manualmente con Ctrl+V.");
@@ -744,28 +761,54 @@ export default function ConnectLinkedInModal({
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-all shadow-xs cursor-pointer"
                               >
-                                <ClipboardPaste className="size-3.5" />
-                                <span>Pegar Código del Portapapeles</span>
+                                {pastedSuccess ? (
+                                  <>
+                                    <Check className="size-3.5 text-emerald-500" />
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">¡Código pegado!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ClipboardPaste className="size-3.5" />
+                                    <span>Pegar Código del Portapapeles</span>
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
 
                           <div>
-                            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1 block">
-                              Código de Conexión (li_at)
-                            </label>
-                            <input
-                              type="password"
-                              className="h-9 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                              placeholder="AQEDAQ..."
-                              value={authCookieLiAt}
-                              onChange={(e) => {
-                                setAuthCookieLiAt(e.target.value);
-                                setAuthError(null);
-                              }}
-                              disabled={authLoading}
-                              required
-                            />
+                            <div className="flex items-center justify-between pb-1">
+                              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                                Código de Conexión (li_at)
+                              </label>
+                              {authCookieLiAt && (
+                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                                  {authCookieLiAt.length} caracteres detectados
+                                </span>
+                              )}
+                            </div>
+                            <div className="relative">
+                              <input
+                                type={showAuthCookie ? "text" : "password"}
+                                className="h-9 w-full pr-9 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                placeholder="AQEDAQ..."
+                                value={authCookieLiAt}
+                                onChange={(e) => {
+                                  setAuthCookieLiAt(e.target.value);
+                                  setAuthError(null);
+                                }}
+                                disabled={authLoading}
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowAuthCookie(!showAuthCookie)}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                                tabIndex={-1}
+                              >
+                                {showAuthCookie ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </div>
                             <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
                               Código seguro de sesión activa de LinkedIn. Cifrado de extremo a extremo.
                             </p>

@@ -24,7 +24,7 @@ export default function DashboardMetricsCards({
           {t("metrics.leadsCaptured")}
         </span>
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+          <span className="text-2xl font-bold text-brand-600 dark:text-brand-400" suppressHydrationWarning>
             {overview.totalLeads}
           </span>
           <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
@@ -48,7 +48,7 @@ export default function DashboardMetricsCards({
           {t("metrics.activeDeals")}
         </span>
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">
+          <span className="text-2xl font-bold text-gray-900 dark:text-white" suppressHydrationWarning>
             {overview.activeDeals}
           </span>
           <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-400">
@@ -69,7 +69,7 @@ export default function DashboardMetricsCards({
           {t("metrics.closedWon")}
         </span>
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400" suppressHydrationWarning>
             {overview.closedWon}
           </span>
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
@@ -87,7 +87,7 @@ export default function DashboardMetricsCards({
           {t("metrics.conversionRate")}
         </span>
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+          <span className="text-2xl font-bold text-brand-600 dark:text-brand-400" suppressHydrationWarning>
             {overview.conversionRate}%
           </span>
           <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">

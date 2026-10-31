@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
       name,
       accountId,
       reconnectAccountId,
+      userAgent: clientUserAgent,
     } = body;
 
     if (mode === "cookie") {
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
     }
 
     const proxyConfig = parseProxyString(rawProxy);
-    const userAgent = req.headers.get("user-agent") || undefined;
+    const userAgent = clientUserAgent || req.headers.get("user-agent") || undefined;
 
     // Si el usuario seleccionó Automático (""), intentar resolver país real desde headers (Cloudflare, Vercel, etc.)
     let resolvedCountry = country?.trim()?.toUpperCase() || undefined;

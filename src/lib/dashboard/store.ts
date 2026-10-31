@@ -130,16 +130,16 @@ const DEFAULT_STAGE_COUNTS: Record<PipelineStageId, number> = {
   closed_lost: 4,
 };
 
-export function getDashboardAnalytics(): DashboardAnalytics {
-  let leads = getStoredLeads();
-  if (typeof window !== "undefined" && leads.length === 0) {
+export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
+  let leads = forceSsr ? initialLeadsData : getStoredLeads();
+  if (typeof window !== "undefined" && !forceSsr && leads.length === 0) {
     const synced = syncSignalLeadsToCrm();
     leads = synced.leads;
   }
-  const deals = getPipelineDeals();
-  const accounts = getStoredAccounts();
-  const posts = getStoredCreatedPosts();
-  const campaigns = getStoredLinearCampaigns();
+  const deals = forceSsr ? [] : getPipelineDeals();
+  const accounts = forceSsr ? [] : getStoredAccounts();
+  const posts = forceSsr ? [] : getStoredCreatedPosts();
+  const campaigns = forceSsr ? [] : getStoredLinearCampaigns();
 
   // 1. Overview counts
   const totalLeads = leads.length;
@@ -318,17 +318,17 @@ export function getDashboardAnalytics(): DashboardAnalytics {
 
 /**
  * Hook reactivo para obtener los datos analíticos del Dashboard
- * y reaccionar a cambios en el almacenamiento local.
+ * y reaccionar a cambios en el almacenamiento local sin provocar hydration mismatch.
  */
 export function useDashboardAnalytics(): DashboardAnalytics {
-  const [analytics, setAnalytics] = useState<DashboardAnalytics>(getDashboardAnalytics);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics>(() => getDashboardAnalytics(true));
 
   useEffect(() => {
-    // Sincronizar en el montaje del cliente
-    setAnalytics(getDashboardAnalytics());
+    // Sincronizar en el montaje del cliente con datos reales de localStorage
+    setAnalytics(getDashboardAnalytics(false));
 
     const handleStorageChange = () => {
-      setAnalytics(getDashboardAnalytics());
+      setAnalytics(getDashboardAnalytics(false));
     };
 
     window.addEventListener("storage", handleStorageChange);

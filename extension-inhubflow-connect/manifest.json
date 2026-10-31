@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "InHubFlow Connect — Vinculación LinkedIn",
   "short_name": "InHubFlow Connect",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extensión oficial de InHubFlow para vincular tu cuenta de LinkedIn con un solo clic de forma 100% segura y privada.",
   "permissions": [
     "cookies",
@@ -10,7 +10,8 @@
     "clipboardWrite"
   ],
   "host_permissions": [
-    "https://*.linkedin.com/*"
+    "https://*.linkedin.com/*",
+    "https://linkedin.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
