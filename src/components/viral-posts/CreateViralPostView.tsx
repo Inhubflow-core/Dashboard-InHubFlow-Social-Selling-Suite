@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
-import { Sparkles, Image as ImageIcon } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Bot } from "lucide-react";
 import VisualEditorModal from "./VisualEditorModal";
 
 export default function CreateViralPostView({
@@ -42,6 +42,11 @@ export default function CreateViralPostView({
   const [format, setFormat] = useState<PostFormat>("text");
   const [topic, setTopic] = useState("Social Selling B2B");
   const [leadMagnetKeyword, setLeadMagnetKeyword] = useState("SISTEMA");
+  const [autoDmEnabled, setAutoDmEnabled] = useState(true);
+  const [autoLikeComment, setAutoLikeComment] = useState(true);
+  const [autoDmMessage, setAutoDmMessage] = useState(
+    `¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicación. Aquí tienes el documento completo con el framework accionable. ¿En qué reto comercial estás enfocado este trimestre?`
+  );
   const [tone, setTone] = useState("Autoridad B2B con llamada a la acción");
   const [content, setContent] = useState("");
   const [imagePrompt, setImagePrompt] = useState("");
@@ -326,7 +331,10 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       mediaUrl: previewImage || undefined,
       carouselSlides: format === "carousel" ? slides : undefined,
       carouselTheme: format === "carousel" ? carouselTheme : undefined,
-      leadMagnetKeyword,
+      leadMagnetKeyword: autoDmEnabled ? leadMagnetKeyword : undefined,
+      autoDmEnabled,
+      autoDmMessage: autoDmEnabled ? autoDmMessage : undefined,
+      autoLikeComment: autoDmEnabled ? autoLikeComment : undefined,
       status,
       targetAccountId: selectedAccountId,
       linkedinPostId,
@@ -505,6 +513,52 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     <option value="Provocador y debate constructivo">{t("toneProvocative")}</option>
                   </select>
                 </div>
+              </div>
+
+              {/* SECCIÓN CENTINELA INBOUND LEAD MAGNET & AUTO-DM */}
+              <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-7 rounded-lg bg-brand-500/20 text-brand-500 flex items-center justify-center shrink-0">
+                      <Bot className="size-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+                        <span>Auto-DM de Comentarios Inbound</span>
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-1.5 py-0.2 rounded-sm font-semibold">
+                          Activo
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        Envía automáticamente el recurso por mensaje privado a quien comente &quot;{leadMagnetKeyword}&quot;.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoDmEnabled}
+                      onChange={(e) => setAutoDmEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4.5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-brand-500"></div>
+                  </label>
+                </div>
+
+                {autoDmEnabled && (
+                  <div className="pt-2 border-t border-brand-500/20 space-y-2">
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase">
+                      Mensaje Automático en DM de LinkedIn:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={autoDmMessage}
+                      onChange={(e) => setAutoDmMessage(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-brand-500 focus:outline-hidden"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Botón de Generación / Mejora con IA + Base de Conocimiento (RAG) */}

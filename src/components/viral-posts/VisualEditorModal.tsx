@@ -26,7 +26,9 @@ import {
   ArrowUp,
   ArrowDown,
   Highlighter,
-  Sliders
+  Sliders,
+  Search,
+  Bot
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 
@@ -77,43 +79,133 @@ const AVAILABLE_FONTS = [
   { name: "Georgia", label: "Georgia (Cita Clásica)" },
 ];
 
-// Fondos curados de alta resolución (Unsplash optimizados)
-const CURATED_BACKGROUNDS = [
+// Interfaz de foto curada con etiquetas de búsqueda
+export interface UnsplashPhotoItem {
+  id: string;
+  name: string;
+  tags: string[];
+  thumb: string;
+  url: string;
+}
+
+// Catálogo ampliado y categorizado de fotos de alta resolución de Unsplash
+const CURATED_BACKGROUNDS: UnsplashPhotoItem[] = [
+  // Oficina & Juntas
   {
     id: "executive_office",
     name: "Oficina Ejecutiva",
+    tags: ["oficina", "oficinas", "reunion", "reunión", "boardroom", "corporativo", "ejecutivo", "moderno"],
     thumb: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
   },
   {
+    id: "glass_meeting_room",
+    name: "Sala de Juntas de Cristal",
+    tags: ["oficina", "sala", "cristal", "reunion", "reunión", "equipo", "estrategia"],
+    thumb: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "dark_modern_lounge",
+    name: "Lounge Corporativo Dark",
+    tags: ["oficina", "lounge", "dark", "elegante", "lujo", "arquitectura"],
+    thumb: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=85",
+  },
+  // Laptops, Datos & Dashboards
+  {
     id: "tech_desk",
-    name: "Setup Tecnológico",
+    name: "Setup Tecnológico Pro",
+    tags: ["laptop", "computadora", "tech", "datos", "escritorio", "pantallas"],
     thumb: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=85",
   },
   {
+    id: "analytics_charts",
+    name: "Gráficos & Crecimiento",
+    tags: ["datos", "charts", "analytics", "graficos", "ventas", "crecimiento", "metricas", "métricas", "saas"],
+    thumb: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "coding_screens",
+    name: "Pantallas de Código & IA",
+    tags: ["tech", "ia", "codigo", "código", "desarrollo", "software", "pantallas", "futuro"],
+    thumb: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=85",
+  },
+  // Ciudad, Rascacielos & Arquitectura
+  {
     id: "architecture_clean",
-    name: "Arquitectura Minimal",
+    name: "Rascacielos & Vidrio",
+    tags: ["ciudad", "rascacielos", "edificios", "arquitectura", "finanzas", "b2b", "moderno"],
     thumb: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85",
   },
   {
+    id: "skyline_night",
+    name: "Skyline Nocturno",
+    tags: ["ciudad", "noche", "skyline", "luces", "rascacielos", "metropolis", "vision"],
+    thumb: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "urban_minimal_geometric",
+    name: "Geometría Urbana",
+    tags: ["ciudad", "arquitectura", "minimal", "concreto", "lineas", "diseño"],
+    thumb: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=85",
+  },
+  // Gradientes, 3D & Dark Luxury
+  {
     id: "dark_gradient_ambient",
-    name: "Gradiente Corporativo",
+    name: "Gradiente Corporativo Azul",
+    tags: ["gradiente", "degradé", "dark", "azul", "abstracto", "fondo", "minimalista"],
     thumb: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "abstract_3d",
-    name: "3D Geométrico Dark",
+    name: "Ondas 3D Noir",
+    tags: ["3d", "abstracto", "ondas", "oscuro", "noir", "textura", "futuro"],
     thumb: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85",
   },
   {
+    id: "cyber_neon_dark",
+    name: "Ambiente Cyber Dark",
+    tags: ["cyber", "neon", "oscuro", "tecnologia", "tecnología", "redes", "abstracto"],
+    thumb: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85",
+  },
+  // Equipo & Negociación B2B
+  {
+    id: "team_brainstorm",
+    name: "Equipo en Sesión Estratégica",
+    tags: ["equipo", "brainstorm", "personas", "reunion", "reunión", "startup", "estrategia", "colaboracion"],
+    thumb: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "handshake_deal",
+    name: "Cierre de Negocios",
+    tags: ["ventas", "negocio", "acuerdo", "cierre", "partnership", "confianza", "b2b"],
+    thumb: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
     id: "workspace_coffee",
-    name: "Espacio Creativo",
+    name: "Espacio Creativo & Café",
+    tags: ["cafe", "café", "escritorio", "minimal", "laptop", "libreta", "mañana", "trabajo"],
     thumb: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "conference_stage",
+    name: "Escenario de Conferencia",
+    tags: ["conferencia", "evento", "autoridad", "orador", "escenario", "liderazgo"],
+    thumb: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=85",
   },
 ];
 
@@ -150,6 +242,20 @@ export default function VisualEditorModal({
   const [accentColor, setAccentColor] = useState("#0099ff");
   const [overlayOpacity, setOverlayOpacity] = useState(0.75);
   const [activeTab, setActiveTab] = useState<"templates" | "content" | "backgrounds" | "brand">("templates");
+
+  // Buscador de Fotos de Unsplash en Vivo (Feature #4)
+  const [photoSearchQuery, setPhotoSearchQuery] = useState("");
+  const [activePhotoTag, setActivePhotoTag] = useState("all");
+
+  const filteredPhotos = CURATED_BACKGROUNDS.filter((photo) => {
+    const matchesTag = activePhotoTag === "all" || photo.tags.includes(activePhotoTag);
+    const query = photoSearchQuery.toLowerCase().trim();
+    const matchesQuery =
+      !query ||
+      photo.name.toLowerCase().includes(query) ||
+      photo.tags.some((t) => t.toLowerCase().includes(query));
+    return matchesTag && matchesQuery;
+  });
 
   // Diapositivas del Carrusel (Punto 3: Navegador Multidiapositiva)
   const [slides, setSlides] = useState<CarouselSlideItem[]>([
@@ -1207,14 +1313,73 @@ export default function VisualEditorModal({
                 </div>
               )}
 
-              {/* CONTENIDO DE LA PESTAÑA 3: FOTOS Y FONDOS */}
+              {/* CONTENIDO DE LA PESTAÑA 3: FOTOS Y FONDOS CON BUSCADOR EN VIVO (Feature #4) */}
               {activeTab === "backgrounds" && (
-                <div className="space-y-3">
-                  <p className="text-xs text-gray-400">
-                    Cambia la fotografía de fondo manteniendo el contraste y degradé:
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {CURATED_BACKGROUNDS.map((bg) => (
+                <div className="space-y-3.5">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">
+                      Buscador de Fotos de Stock (Unsplash)
+                    </h3>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      Busca instantáneamente por temática o selecciona una categoría:
+                    </p>
+                  </div>
+
+                  {/* Barra de Búsqueda en Tiempo Real */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 size-3.5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={photoSearchQuery}
+                      onChange={(e) => setPhotoSearchQuery(e.target.value)}
+                      placeholder="Buscar: oficina, laptop, datos, reunión..."
+                      className="w-full rounded-xl border border-gray-700 bg-gray-900 pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-brand-500 focus:outline-hidden"
+                    />
+                  </div>
+
+                  {/* Chips de Categorías Populares */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                    {[
+                      { id: "all", label: "Todas" },
+                      { id: "oficina", label: "🏢 Oficina" },
+                      { id: "laptop", label: "💻 Laptops" },
+                      { id: "datos", label: "📊 Datos" },
+                      { id: "ciudad", label: "🏙️ Ciudad" },
+                      { id: "ia", label: "🧠 Tech / IA" },
+                      { id: "equipo", label: "👥 Equipo" },
+                      { id: "cafe", label: "☕ Café" },
+                    ].map((chip) => (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        onClick={() => setActivePhotoTag(chip.id)}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg shrink-0 transition ${
+                          activePhotoTag === chip.id
+                            ? "bg-brand-500 text-white"
+                            : "bg-gray-800 text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Resultados de la Búsqueda */}
+                  <div className="flex items-center justify-between text-[11px] text-gray-400">
+                    <span>{filteredPhotos.length} fotos encontradas</span>
+                    {photoSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setPhotoSearchQuery("")}
+                        className="text-brand-400 hover:underline"
+                      >
+                        Limpiar búsqueda
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                    {filteredPhotos.map((bg) => (
                       <button
                         key={bg.id}
                         type="button"
@@ -1222,24 +1387,31 @@ export default function VisualEditorModal({
                           setSelectedBgUrl(bg.url);
                           renderSlideOnCanvas(slides[currentSlideIndex]);
                         }}
-                        className={`relative rounded-xl overflow-hidden border aspect-video transition ${
+                        className={`group relative rounded-xl overflow-hidden border aspect-video transition ${
                           selectedBgUrl === bg.url
                             ? "border-brand-500 ring-2 ring-brand-500"
                             : "border-gray-800 hover:border-gray-600"
                         }`}
                       >
-                        <img src={bg.thumb} alt={bg.name} className="size-full object-cover" />
-                        <span className="absolute bottom-1 left-1 text-[10px] font-semibold text-white bg-black/60 px-1.5 py-0.5 rounded-sm">
-                          {bg.name}
-                        </span>
+                        <img
+                          src={bg.thumb}
+                          alt={bg.name}
+                          className="size-full object-cover group-hover:scale-105 transition duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex items-end p-1.5">
+                          <span className="text-[10px] font-semibold text-white leading-tight drop-shadow-xs truncate">
+                            {bg.name}
+                          </span>
+                        </div>
                       </button>
                     ))}
                   </div>
 
-                  <div className="pt-2">
+                  {/* Subir Foto Propia */}
+                  <div className="pt-2 border-t border-gray-800">
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-3 cursor-pointer hover:border-brand-500/70 transition">
-                      <Upload className="size-5 text-gray-400 mb-1" />
-                      <span className="text-[11px] text-gray-300">Subir foto propia</span>
+                      <Upload className="size-4 text-gray-400 mb-1" />
+                      <span className="text-[11px] text-gray-300">O sube tu propia fotografía (PNG / JPG)</span>
                       <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                     </label>
                   </div>

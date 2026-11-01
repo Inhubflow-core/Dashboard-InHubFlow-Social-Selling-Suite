@@ -55,6 +55,9 @@ export interface CreatedPost {
     authorName: string;
   };
   leadMagnetKeyword?: string;
+  autoDmEnabled?: boolean;
+  autoDmMessage?: string;
+  autoLikeComment?: boolean;
   status: PostStatus;
   scheduledAt?: string;
   createdAt: string;

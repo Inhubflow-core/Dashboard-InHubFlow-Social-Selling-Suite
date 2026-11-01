@@ -20,7 +20,8 @@ import {
   Smile,
   FileText,
   Sliders,
-  ExternalLink
+  ExternalLink,
+  Bot
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -71,6 +72,14 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
   // Modal de Estudio Visual (Canva / Fabric.js)
   const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
+
+  // Estados de Inbound Lead Magnet & Auto-DM (Feature #1)
+  const [autoDmEnabled, setAutoDmEnabled] = useState(true);
+  const [leadMagnetKeyword, setLeadMagnetKeyword] = useState("SISTEMA");
+  const [autoLikeComment, setAutoLikeComment] = useState(true);
+  const [autoDmMessage, setAutoDmMessage] = useState(
+    `¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicación. Aquí tienes el documento completo con el framework accionable en PDF. ¿En qué reto comercial estás enfocado este trimestre?`
+  );
 
   // Estados de publicación
   const [isPublishing, setIsPublishing] = useState(false);
@@ -203,6 +212,10 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       format: postFormat,
       content: bodyText,
       mediaUrl: attachedImage || undefined,
+      leadMagnetKeyword: autoDmEnabled ? leadMagnetKeyword : undefined,
+      autoDmEnabled,
+      autoDmMessage: autoDmEnabled ? autoDmMessage : undefined,
+      autoLikeComment: autoDmEnabled ? autoLikeComment : undefined,
       status,
       targetAccountId: selectedAccountId,
       scheduledAt: status === "scheduled" ? `${scheduledDate}T${scheduledTime}:00` : undefined,
@@ -497,6 +510,88 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       >
                         <Trash2 className="size-4" />
                       </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECCIÓN CENTINELA INBOUND LEAD MAGNET & AUTO-DM (Feature #1) */}
+              <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-4 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-8 rounded-lg bg-brand-500/20 text-brand-500 flex items-center justify-center shrink-0">
+                      <Bot className="size-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+                        <span>Centinela Inbound & Despacho Auto-DM</span>
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-sm font-semibold">
+                          Conversión B2B
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        Monitorea los comentarios del post y envía el recurso por DM a quien comente la palabra clave.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Toggle Activado / Desactivado */}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoDmEnabled}
+                      onChange={(e) => setAutoDmEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500"></div>
+                  </label>
+                </div>
+
+                {autoDmEnabled && (
+                  <div className="space-y-3 pt-2 border-t border-brand-500/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                          Palabra Clave de Activación
+                        </label>
+                        <input
+                          type="text"
+                          value={leadMagnetKeyword}
+                          onChange={(e) => setLeadMagnetKeyword(e.target.value.toUpperCase())}
+                          placeholder="Ej. SISTEMA, GUIA, PLAYBOOK"
+                          className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-mono font-bold text-brand-400 focus:border-brand-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                          Algoritmo LinkedIn
+                        </label>
+                        <label className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-700 bg-gray-900 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={autoLikeComment}
+                            onChange={(e) => setAutoLikeComment(e.target.checked)}
+                            className="accent-brand-500 rounded"
+                          />
+                          <span className="text-xs text-gray-300 truncate">Dar Like automático al comentario</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                        Mensaje de Entrega en Mensaje Privado (DM)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={autoDmMessage}
+                        onChange={(e) => setAutoDmMessage(e.target.value)}
+                        className="w-full rounded-lg border border-gray-700 bg-gray-900 p-2.5 text-xs text-gray-200 focus:border-brand-500 focus:outline-hidden leading-relaxed"
+                      />
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        InHubFlow reemplaza automáticamente: {'{nombre}'}, {'{palabra_clave}'} e inicia el chat en el CRM.
+                      </p>
                     </div>
                   </div>
                 )}
