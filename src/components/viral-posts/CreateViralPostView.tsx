@@ -20,6 +20,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
+import { Sparkles, Image as ImageIcon } from "lucide-react";
+import VisualEditorModal from "./VisualEditorModal";
 
 export default function CreateViralPostView({
   onTabChange,
@@ -45,6 +47,7 @@ export default function CreateViralPostView({
   const [imagePrompt, setImagePrompt] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
 
   // Referencia original si vino de Radar Viral
   const [referenceHook, setReferenceHook] = useState("");
@@ -533,9 +536,34 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 </button>
               </div>
 
-              {/* Formato 2: Generador de Prompt Visual */}
+              {/* Formato 2: Generador de Prompt Visual y Estudio Gráfico */}
               {format === "image" && (
-                <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-3">
+                <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
+                  {/* Banner Destacado del Estudio Visual */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-lg bg-brand-500/20 flex items-center justify-center text-brand-500 shrink-0">
+                        <Sparkles className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white">
+                          Estudio Visual Interactivo (Fabric.js)
+                        </p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          Diseña tu imagen con plantillas virales, fotos de stock y degradé de alto impacto.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsVisualStudioOpen(true)}
+                      className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
+                    >
+                      <Sparkles className="size-3.5" />
+                      <span>{previewImage ? "Editar en Estudio" : "Diseñar con Estudio"}</span>
+                    </button>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
                       {t("visualPromptTitle")}
@@ -549,12 +577,12 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     </button>
                   </div>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={imagePrompt}
                     onChange={(e) => setImagePrompt(e.target.value)}
                     className="custom-scrollbar w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
-                  <div className="pt-2">
+                  <div className="pt-1">
                     <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
                       {t("uploadImageLabel")}
                     </label>
@@ -929,6 +957,24 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           </ComponentCard>
         </div>
       </div>
+
+      {/* Modal de Estudio Visual Integrado */}
+      <VisualEditorModal
+        isOpen={isVisualStudioOpen}
+        onClose={() => setIsVisualStudioOpen(false)}
+        initialTitle={referenceHook || topic || content.split("\n")[0] || "Tu Titular de Alto Impacto"}
+        initialSubtitle={topic || "Estrategia B2B"}
+        authorName={activeAccObj?.name || currentUser.name}
+        authorHandle={`@${(activeAccObj?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
+        onApplyImage={(dataUrl) => {
+          setPreviewImage(dataUrl);
+          setPublishFeedback({
+            type: "success",
+            message: "¡Diseño visual aplicado con éxito a la publicación!",
+          });
+          setTimeout(() => setPublishFeedback(null), 3000);
+        }}
+      />
     </div>
   );
 }

@@ -4,13 +4,14 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { Flame, Bot, FileText, Calendar } from "lucide-react";
+import { Flame, Bot, PenTool, FileText, Calendar } from "lucide-react";
 import ViralRadarView from "@/components/viral-posts/ViralRadarView";
 import CreateViralPostView from "@/components/viral-posts/CreateViralPostView";
+import PersonalPostComposerView from "@/components/viral-posts/PersonalPostComposerView";
 import PostsListView from "@/components/viral-posts/PostsListView";
 import EditorialCalendarView from "@/components/viral-posts/EditorialCalendarView";
 
-type ViralTab = "radar" | "create" | "list" | "calendar";
+type ViralTab = "radar" | "create" | "personal" | "list" | "calendar";
 
 function ViralPostsContent() {
   const tSidebar = useTranslations("sidebar.items");
@@ -27,6 +28,11 @@ function ViralPostsContent() {
       case "modeler":
       case "modelador":
         return "create";
+      case "personal":
+      case "custom":
+      case "composer":
+      case "libre":
+        return "personal";
       case "list":
       case "posts":
       case "publicaciones":
@@ -91,6 +97,19 @@ function ViralPostsContent() {
 
           <button
             type="button"
+            onClick={() => handleTabChange("personal")}
+            className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === "personal"
+                ? "border-[#0099ff] text-[#0099ff]"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <PenTool className="size-4" />
+            <span>{tSidebar("personalPost")}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleTabChange("list")}
             className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "list"
@@ -127,6 +146,12 @@ function ViralPostsContent() {
         )}
         {activeTab === "create" && (
           <CreateViralPostView
+            hideBreadcrumb
+            onTabChange={(tab) => handleTabChange(tab as ViralTab)}
+          />
+        )}
+        {activeTab === "personal" && (
+          <PersonalPostComposerView
             hideBreadcrumb
             onTabChange={(tab) => handleTabChange(tab as ViralTab)}
           />
