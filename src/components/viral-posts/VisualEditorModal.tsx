@@ -347,6 +347,12 @@ export default function VisualEditorModal({
   const canvasWidth = 1080;
   const canvasHeight = aspectRatio === "4:5" ? 1350 : 1080;
 
+  // Escala de previsualización adaptativa para que el 100% del lienzo sea visible
+  const targetPreviewHeight = aspectRatio === "4:5" ? 500 : 450;
+  const previewScale = targetPreviewHeight / canvasHeight;
+  const previewWidth = Math.round(canvasWidth * previewScale);
+  const previewHeight = Math.round(canvasHeight * previewScale);
+
   // Escuchar selecciones en Fabric.js para activar la Barra Flotante Contextual (Punto 2)
   const bindCanvasEvents = useCallback((canvas: any) => {
     const handleSelection = () => {
@@ -429,12 +435,18 @@ export default function VisualEditorModal({
     };
   }, [isOpen, aspectRatio]);
 
-  // Renderizar una diapositiva en el lienzo de Fabric.js
+  // Renderizar una diapositiva en el lienzo de Fabric.js según la plantilla activa
   const renderSlideOnCanvas = useCallback(
-    async (slideItem: CarouselSlideItem, canvasInstance?: any, fabricModule?: any) => {
+    async (
+      slideItem: CarouselSlideItem,
+      canvasInstance?: any,
+      fabricModule?: any,
+      templateToUse?: TemplateId
+    ) => {
       const canvas = canvasInstance || fabricCanvasRef.current;
       if (!canvas) return;
 
+      const currentTemplate = templateToUse || selectedTemplate;
       const fabric = fabricModule || (await import("fabric"));
       setIsRendering(true);
 
@@ -445,135 +457,663 @@ export default function VisualEditorModal({
       const currentH = canvas.height || canvasHeight;
 
       try {
-        // 1. CARGA DE FONDO (FOTO DE STOCK)
-        try {
-          const img = await fabric.FabricImage.fromURL(selectedBgUrl, {
-            crossOrigin: "anonymous",
-          });
-          const imgW = img.width || 1;
-          const imgH = img.height || 1;
-          const scale = Math.max(currentW / imgW, currentH / imgH);
+        // 1. CARGA DE FONDO (FOTO DE STOCK O SPLIT FOCUS)
+        if (currentTemplate === "split_focus" && slideItem.type === "cover") {
+          // --- SPLIT FOCUS: 48% FOTO SUPERIOR + 52% PANEL INFERIOR ---
+          try {
+            const img = await fabric.FabricImage.fromURL(selectedBgUrl, {
+              crossOrigin: "anonymous",
+            });
+            const imgW = img.width || 1;
+            const imgH = img.height || 1;
+            const targetH = currentH * 0.48;
+            const scale = Math.max(currentW / imgW, targetH / imgH);
 
-          img.set({
-            scaleX: scale,
-            scaleY: scale,
-            originX: "center",
-            originY: "center",
-            left: currentW / 2,
-            top: currentH / 2,
+            img.set({
+              scaleX: scale,
+              scaleY: scale,
+              originX: "center",
+              originY: "top",
+              left: currentW / 2,
+              top: 0,
+              selectable: false,
+              evented: false,
+            });
+            canvas.add(img);
+
+            // Overlay sutil sobre la foto superior
+            const topOverlay = new fabric.Rect({
+              left: 0,
+              top: 0,
+              width: currentW,
+              height: targetH,
+              fill: "rgba(5, 10, 20, 0.25)",
+              selectable: false,
+              evented: false,
+            });
+            canvas.add(topOverlay);
+          } catch (err) {
+            console.warn("Fondo fallback split:", err);
+          }
+
+          // Divisor de Acento
+          const divider = new fabric.Rect({
+            left: 0,
+            top: currentH * 0.48 - 3,
+            width: currentW,
+            height: 6,
+            fill: accentColor,
+            selectable: false,
+          });
+          // Fondo oscuro inferior
+          const bottomBg = new fabric.Rect({
+            left: 0,
+            top: currentH * 0.48,
+            width: currentW,
+            height: currentH * 0.52,
+            fill: "#080c16",
             selectable: false,
             evented: false,
           });
-          canvas.add(img);
-        } catch (err) {
-          console.warn("Fondo fallback:", err);
-        }
+          canvas.add(divider, bottomBg);
+        } else {
+          // --- FONDO COMPLETO INMERSIVO (EDITORIAL, CITA, CARD, MÉTRICA) ---
+          try {
+            const img = await fabric.FabricImage.fromURL(selectedBgUrl, {
+              crossOrigin: "anonymous",
+            });
+            const imgW = img.width || 1;
+            const imgH = img.height || 1;
+            const scale = Math.max(currentW / imgW, currentH / imgH);
 
-        // 2. CAPA DEGRADÉ DE ALTO CONTRASTE (Para lectura perfecta)
-        const gradientRect = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: currentW,
-          height: currentH,
-          selectable: false,
-          evented: false,
-          fill: new fabric.Gradient({
-            type: "linear",
-            coords: { x1: 0, y1: 0, x2: 0, y2: currentH },
-            colorStops: [
-              { offset: 0, color: "rgba(5, 10, 20, 0.3)" },
-              { offset: 0.45, color: `rgba(5, 10, 20, ${overlayOpacity * 0.75})` },
-              { offset: 0.85, color: `rgba(5, 10, 20, ${overlayOpacity})` },
-              { offset: 1, color: `rgba(5, 10, 20, ${Math.min(1, overlayOpacity + 0.15)})` },
-            ],
-          }),
-        });
-        canvas.add(gradientRect);
+            img.set({
+              scaleX: scale,
+              scaleY: scale,
+              originX: "center",
+              originY: "center",
+              left: currentW / 2,
+              top: currentH / 2,
+              selectable: false,
+              evented: false,
+            });
+            canvas.add(img);
+          } catch (err) {
+            console.warn("Fondo fallback:", err);
+          }
 
-        // 3. RENDER SEGÚN EL TIPO DE DIAPOSITIVA (Portada, Desarrollo, o CTA)
-        if (slideItem.type === "cover") {
-          // --- PORTADA VIRAL ---
-          // Badge Superior de Categoría
-          const tagBg = new fabric.Rect({
-            left: 70,
-            top: currentH - 580,
-            rx: 8,
-            ry: 8,
-            fill: accentColor,
-            width: Math.min((slideItem.tag || "B2B").length * 14 + 32, 450),
-            height: 38,
-            selectable: true,
-          });
-          const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
-            left: 86,
-            top: currentH - 572,
-            fontSize: 18,
-            fontWeight: "bold",
-            fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
-            fontFamily: "Inter, sans-serif",
-            selectable: true,
-          });
-          canvas.add(tagBg, tagText);
+          // Capa de degradé de alto contraste personalizada según plantilla
+          const topAlpha = currentTemplate === "authority_quote" ? 0.85 : 0.35;
+          const bottomAlpha = currentTemplate === "authority_quote" ? 0.95 : Math.min(1, overlayOpacity + 0.15);
 
-          // Gran Titular Gancho
-          const titleObj = new fabric.Textbox(slideItem.title, {
-            left: 70,
-            top: currentH - 510,
-            width: currentW - 140,
-            fontSize: 54,
-            lineHeight: 1.15,
-            fontWeight: "bold",
-            fill: "#ffffff",
-            fontFamily: "Outfit, sans-serif",
-            shadow: new fabric.Shadow({
-              color: "rgba(0,0,0,0.85)",
-              blur: 20,
-              offsetX: 0,
-              offsetY: 6,
+          const gradientRect = new fabric.Rect({
+            left: 0,
+            top: 0,
+            width: currentW,
+            height: currentH,
+            selectable: false,
+            evented: false,
+            fill: new fabric.Gradient({
+              type: "linear",
+              coords: { x1: 0, y1: 0, x2: 0, y2: currentH },
+              colorStops: [
+                { offset: 0, color: `rgba(5, 10, 20, ${topAlpha})` },
+                { offset: 0.5, color: `rgba(5, 10, 20, ${overlayOpacity})` },
+                { offset: 1, color: `rgba(5, 10, 20, ${bottomAlpha})` },
+              ],
             }),
           });
-          canvas.add(titleObj);
+          canvas.add(gradientRect);
+        }
 
-          // Subtítulo
-          const subObj = new fabric.Textbox(slideItem.subtitle, {
-            left: 70,
-            top: currentH - 260,
-            width: currentW - 140,
-            fontSize: 26,
-            lineHeight: 1.35,
-            fill: "rgba(226, 232, 240, 0.95)",
-            fontFamily: "Inter, sans-serif",
-          });
-          canvas.add(subObj);
+        // 2. RENDERIZADO POR TIPO DE DIAPOSITIVA Y ESTILO DE PLANTILLA
+        if (slideItem.type === "cover") {
+          // ========================================================
+          // --- PLANTILLA 1: CINEMATIC EDITORIAL (Degradé envolvente + Titular B2B)
+          // ========================================================
+          if (currentTemplate === "editorial") {
+            const tagBg = new fabric.Rect({
+              left: 80,
+              top: currentH - 560,
+              rx: 8,
+              ry: 8,
+              fill: accentColor,
+              width: Math.min((slideItem.tag || "B2B").length * 15 + 32, 450),
+              height: 40,
+              selectable: true,
+            });
+            const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
+              left: 96,
+              top: currentH - 551,
+              fontSize: 18,
+              fontWeight: "bold",
+              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
+              fontFamily: "Inter, sans-serif",
+              selectable: true,
+            });
+            canvas.add(tagBg, tagText);
 
-          // Insignia "DESLIZA ➔" (Badge de Carrusel)
-          if (editorMode === "carousel") {
-            const swipeBadge = new fabric.Rect({
-              left: currentW - 250,
-              top: currentH - 120,
-              width: 180,
-              height: 42,
-              rx: 21,
-              ry: 21,
-              fill: "rgba(255, 255, 255, 0.12)",
+            const titleObj = new fabric.Textbox(slideItem.title, {
+              left: 80,
+              top: currentH - 490,
+              width: currentW - 160,
+              fontSize: 54,
+              lineHeight: 1.15,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              fontFamily: "Outfit, sans-serif",
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.9)",
+                blur: 24,
+                offsetX: 0,
+                offsetY: 6,
+              }),
+            });
+            canvas.add(titleObj);
+
+            const subObj = new fabric.Textbox(slideItem.subtitle, {
+              left: 80,
+              top: currentH - 240,
+              width: currentW - 160,
+              fontSize: 26,
+              lineHeight: 1.35,
+              fill: "rgba(226, 232, 240, 0.95)",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(subObj);
+
+            if (editorMode === "carousel") {
+              const swipeBadge = new fabric.Rect({
+                left: currentW - 260,
+                top: currentH - 120,
+                width: 180,
+                height: 44,
+                rx: 22,
+                ry: 22,
+                fill: "rgba(255, 255, 255, 0.12)",
+                stroke: accentColor,
+                strokeWidth: 2,
+                selectable: true,
+              });
+              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
+                left: currentW - 235,
+                top: currentH - 109,
+                fontSize: 18,
+                fontWeight: "bold",
+                fill: accentColor,
+                fontFamily: "Inter, sans-serif",
+                selectable: true,
+              });
+              canvas.add(swipeBadge, swipeText);
+            }
+          }
+          // ========================================================
+          // --- PLANTILLA 2: CITA DE AUTORIDAD (Comillas grandes + Enfoque centrado)
+          // ========================================================
+          else if (currentTemplate === "authority_quote") {
+            // Tag superior centrado
+            const quoteTag = new fabric.Rect({
+              left: currentW / 2 - 130,
+              top: 110,
+              width: 260,
+              height: 38,
+              rx: 19,
+              ry: 19,
+              fill: "rgba(255, 255, 255, 0.08)",
               stroke: accentColor,
               strokeWidth: 1.5,
               selectable: true,
             });
-            const swipeText = new fabric.Textbox("DESLIZA  ➔", {
-              left: currentW - 225,
-              top: currentH - 110,
-              fontSize: 18,
+            const quoteTagText = new fabric.Textbox((slideItem.tag || "CITA DE AUTORIDAD").toUpperCase(), {
+              left: currentW / 2 - 130,
+              top: 119,
+              width: 260,
+              fontSize: 15,
               fontWeight: "bold",
+              textAlign: "center",
               fill: accentColor,
               fontFamily: "Inter, sans-serif",
               selectable: true,
             });
-            canvas.add(swipeBadge, swipeText);
+            canvas.add(quoteTag, quoteTagText);
+
+            // Comillas Gigantes
+            const quoteMark = new fabric.Textbox("“", {
+              left: currentW / 2 - 60,
+              top: 160,
+              width: 120,
+              fontSize: 140,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: accentColor,
+              fontFamily: "Playfair Display, Georgia, serif",
+              selectable: true,
+            });
+            canvas.add(quoteMark);
+
+            // Texto de la Cita (Titular)
+            const quoteStatement = new fabric.Textbox(`"${slideItem.title}"`, {
+              left: 90,
+              top: 320,
+              width: currentW - 180,
+              fontSize: 48,
+              lineHeight: 1.25,
+              fontStyle: "italic",
+              fontWeight: "600",
+              textAlign: "center",
+              fill: "#ffffff",
+              fontFamily: "Playfair Display, Georgia, serif",
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.9)",
+                blur: 20,
+                offsetX: 0,
+                offsetY: 6,
+              }),
+            });
+            canvas.add(quoteStatement);
+
+            // Subtítulo centrado
+            const quoteSub = new fabric.Textbox(slideItem.subtitle, {
+              left: 120,
+              top: 600,
+              width: currentW - 240,
+              fontSize: 26,
+              lineHeight: 1.4,
+              textAlign: "center",
+              fill: "rgba(203, 213, 225, 0.95)",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(quoteSub);
+
+            // Bloque de Autor Centrado en forma de Tarjeta
+            const authorCardW = 420;
+            const authorCard = new fabric.Rect({
+              left: currentW / 2 - authorCardW / 2,
+              top: currentH - 240,
+              width: authorCardW,
+              height: 84,
+              rx: 42,
+              ry: 42,
+              fill: "rgba(15, 23, 42, 0.85)",
+              stroke: "rgba(255, 255, 255, 0.15)",
+              strokeWidth: 1.5,
+              selectable: true,
+            });
+            const avatarCircle = new fabric.Circle({
+              left: currentW / 2 - authorCardW / 2 + 16,
+              top: currentH - 224,
+              radius: 26,
+              fill: accentColor,
+              selectable: true,
+            });
+            const initialsText = new fabric.Textbox(
+              (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
+              {
+                left: currentW / 2 - authorCardW / 2 + 16,
+                top: currentH - 210,
+                width: 52,
+                fontSize: 20,
+                fontWeight: "bold",
+                textAlign: "center",
+                fill: "#ffffff",
+                fontFamily: "Inter, sans-serif",
+                selectable: false,
+              }
+            );
+            const authName = new fabric.Textbox(nameText, {
+              left: currentW / 2 - authorCardW / 2 + 82,
+              top: currentH - 223,
+              width: 300,
+              fontSize: 20,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              fontFamily: "Inter, sans-serif",
+            });
+            const authHandle = new fabric.Textbox(handleText, {
+              left: currentW / 2 - authorCardW / 2 + 82,
+              top: currentH - 195,
+              width: 300,
+              fontSize: 16,
+              fill: accentColor,
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(authorCard, avatarCircle, initialsText, authName, authHandle);
+          }
+          // ========================================================
+          // --- PLANTILLA 3: TARJETA SOCIAL / FEED (Post viral con check azul y stats)
+          // ========================================================
+          else if (currentTemplate === "social_card") {
+            const cardW = currentW - 140;
+            const cardH = currentH - 250;
+            const card = new fabric.Rect({
+              left: 70,
+              top: 110,
+              width: cardW,
+              height: cardH,
+              rx: 28,
+              ry: 28,
+              fill: "rgba(15, 23, 42, 0.94)",
+              stroke: "rgba(255, 255, 255, 0.15)",
+              strokeWidth: 2,
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.8)",
+                blur: 35,
+                offsetX: 0,
+                offsetY: 15,
+              }),
+              selectable: true,
+            });
+            canvas.add(card);
+
+            // Cabecera: Avatar + Nombre + Check Azul + Handle
+            const avatar = new fabric.Circle({
+              left: 110,
+              top: 150,
+              radius: 34,
+              fill: accentColor,
+              selectable: true,
+            });
+            const initials = new fabric.Textbox(
+              (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
+              {
+                left: 110,
+                top: 166,
+                width: 68,
+                fontSize: 26,
+                fontWeight: "bold",
+                textAlign: "center",
+                fill: "#ffffff",
+                fontFamily: "Inter, sans-serif",
+                selectable: false,
+              }
+            );
+            const authName = new fabric.Textbox(nameText, {
+              left: 195,
+              top: 155,
+              fontSize: 26,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              fontFamily: "Inter, sans-serif",
+            });
+            const badgeCheck = new fabric.Circle({
+              left: 195 + Math.min(nameText.length * 15 + 10, 340),
+              top: 160,
+              radius: 11,
+              fill: "#0099ff",
+            });
+            const checkMark = new fabric.Textbox("✓", {
+              left: 195 + Math.min(nameText.length * 15 + 10, 340),
+              top: 161,
+              width: 22,
+              fontSize: 14,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: "#ffffff",
+              fontFamily: "Inter, sans-serif",
+              selectable: false,
+            });
+            const authHandle = new fabric.Textbox(`${handleText} • LinkedIn Creator`, {
+              left: 195,
+              top: 190,
+              fontSize: 18,
+              fill: "#94a3b8",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(avatar, initials, authName, badgeCheck, checkMark, authHandle);
+
+            // Tag Pill
+            const tagPill = new fabric.Rect({
+              left: 110,
+              top: 255,
+              width: Math.min((slideItem.tag || "B2B").length * 14 + 32, 380),
+              height: 36,
+              rx: 8,
+              fill: "rgba(0, 153, 255, 0.15)",
+              stroke: accentColor,
+              strokeWidth: 1.5,
+            });
+            const tagPillText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
+              left: 126,
+              top: 263,
+              fontSize: 16,
+              fontWeight: "bold",
+              fill: accentColor,
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(tagPill, tagPillText);
+
+            // Titular Gancho
+            const postTitle = new fabric.Textbox(slideItem.title, {
+              left: 110,
+              top: 315,
+              width: cardW - 80,
+              fontSize: 46,
+              lineHeight: 1.22,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              fontFamily: "Outfit, sans-serif",
+            });
+            canvas.add(postTitle);
+
+            // Caja de Insight / Subtítulo con barra lateral de acento
+            const quoteBoxH = 160;
+            const quoteBox = new fabric.Rect({
+              left: 110,
+              top: 540,
+              width: cardW - 80,
+              height: quoteBoxH,
+              rx: 16,
+              fill: "rgba(255, 255, 255, 0.04)",
+              stroke: "rgba(255, 255, 255, 0.08)",
+              strokeWidth: 1,
+            });
+            const quoteBoxBar = new fabric.Rect({
+              left: 110,
+              top: 540,
+              width: 8,
+              height: quoteBoxH,
+              rx: 4,
+              fill: accentColor,
+            });
+            const quoteBoxText = new fabric.Textbox(slideItem.subtitle, {
+              left: 135,
+              top: 565,
+              width: cardW - 130,
+              fontSize: 26,
+              lineHeight: 1.4,
+              fill: "#e2e8f0",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(quoteBox, quoteBoxBar, quoteBoxText);
+
+            // Barra Social Inferior
+            const divider = new fabric.Rect({
+              left: 110,
+              top: cardH + 15,
+              width: cardW - 80,
+              height: 1,
+              fill: "rgba(255, 255, 255, 0.12)",
+            });
+            const socialStats = new fabric.Textbox(
+              "❤️ 1,428 me gusta    💬 189 comentarios    🔁 54 compartidos",
+              {
+                left: 110,
+                top: cardH + 30,
+                width: cardW - 80,
+                fontSize: 18,
+                fontWeight: "600",
+                fill: "#94a3b8",
+                fontFamily: "Inter, sans-serif",
+              }
+            );
+            canvas.add(divider, socialStats);
+          }
+          // ========================================================
+          // --- PLANTILLA 4: SPLIT FOCUS 50/50 (Foto arriba + Datos abajo)
+          // ========================================================
+          else if (currentTemplate === "split_focus") {
+            const splitTopY = currentH * 0.48;
+
+            const tagBg = new fabric.Rect({
+              left: 80,
+              top: splitTopY + 40,
+              rx: 8,
+              ry: 8,
+              fill: accentColor,
+              width: Math.min((slideItem.tag || "B2B").length * 15 + 32, 450),
+              height: 40,
+              selectable: true,
+            });
+            const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
+              left: 96,
+              top: splitTopY + 49,
+              fontSize: 18,
+              fontWeight: "bold",
+              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
+              fontFamily: "Inter, sans-serif",
+              selectable: true,
+            });
+            canvas.add(tagBg, tagText);
+
+            const titleObj = new fabric.Textbox(slideItem.title, {
+              left: 80,
+              top: splitTopY + 105,
+              width: currentW - 160,
+              fontSize: 50,
+              lineHeight: 1.18,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              fontFamily: "Outfit, sans-serif",
+            });
+            canvas.add(titleObj);
+
+            const subObj = new fabric.Textbox(slideItem.subtitle, {
+              left: 80,
+              top: splitTopY + 285,
+              width: currentW - 160,
+              fontSize: 26,
+              lineHeight: 1.35,
+              fill: "rgba(226, 232, 240, 0.95)",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(subObj);
+
+            if (editorMode === "carousel") {
+              const swipeBadge = new fabric.Rect({
+                left: currentW - 260,
+                top: currentH - 120,
+                width: 180,
+                height: 44,
+                rx: 22,
+                ry: 22,
+                fill: "rgba(255, 255, 255, 0.12)",
+                stroke: accentColor,
+                strokeWidth: 2,
+                selectable: true,
+              });
+              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
+                left: currentW - 235,
+                top: currentH - 109,
+                fontSize: 18,
+                fontWeight: "bold",
+                fill: accentColor,
+                fontFamily: "Inter, sans-serif",
+                selectable: true,
+              });
+              canvas.add(swipeBadge, swipeText);
+            }
+          }
+          // ========================================================
+          // --- PLANTILLA 5: MÉTRICA DE ALTO IMPACTO (+340% o Validación de Datos)
+          // ========================================================
+          else if (currentTemplate === "big_metric") {
+            const metricTag = new fabric.Rect({
+              left: currentW / 2 - 170,
+              top: 100,
+              width: 340,
+              height: 38,
+              rx: 19,
+              ry: 19,
+              fill: "rgba(255, 255, 255, 0.08)",
+              stroke: accentColor,
+              strokeWidth: 1.5,
+              selectable: true,
+            });
+            const metricTagText = new fabric.Textbox((slideItem.tag || "MÉTRICA VALIDADA").toUpperCase(), {
+              left: currentW / 2 - 170,
+              top: 109,
+              width: 340,
+              fontSize: 15,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: accentColor,
+              fontFamily: "Inter, sans-serif",
+              selectable: true,
+            });
+            canvas.add(metricTag, metricTagText);
+
+            // Gran Número de Métrica
+            const metricObj = new fabric.Textbox(initialMetric || "+340%", {
+              left: 60,
+              top: 160,
+              width: currentW - 120,
+              fontSize: 140,
+              fontWeight: "900",
+              textAlign: "center",
+              fill: accentColor,
+              fontFamily: "Outfit, sans-serif",
+              shadow: new fabric.Shadow({
+                color: accentColor,
+                blur: 40,
+                offsetX: 0,
+                offsetY: 4,
+              }),
+            });
+            canvas.add(metricObj);
+
+            // Sub-etiqueta de métrica
+            const metricSubLabel = new fabric.Textbox("INCREMENTO COMPROBADO EN CONVERSIONES B2B", {
+              left: 80,
+              top: 330,
+              width: currentW - 160,
+              fontSize: 18,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: "#94a3b8",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(metricSubLabel);
+
+            // Titular explicativo
+            const metricTitle = new fabric.Textbox(slideItem.title, {
+              left: 80,
+              top: 410,
+              width: currentW - 160,
+              fontSize: 48,
+              lineHeight: 1.2,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: "#ffffff",
+              fontFamily: "Outfit, sans-serif",
+            });
+            canvas.add(metricTitle);
+
+            // Subtítulo
+            const metricSub = new fabric.Textbox(slideItem.subtitle, {
+              left: 100,
+              top: 610,
+              width: currentW - 200,
+              fontSize: 26,
+              lineHeight: 1.4,
+              textAlign: "center",
+              fill: "rgba(226, 232, 240, 0.95)",
+              fontFamily: "Inter, sans-serif",
+            });
+            canvas.add(metricSub);
           }
         } else if (slideItem.type === "problem" || slideItem.type === "solution") {
-          // --- LÁMINA INTERMEDIA CON PUNTOS ACCIONABLES ---
-          // Tag de Paso
+          // ========================================================
+          // --- LÁMINAS INTERMEDIAS (DIAGNÓSTICO O FRAMEWORK DE SOLUCIÓN)
+          // ========================================================
           const stepTag = new fabric.Textbox((slideItem.tag || "PASO ACCIONABLE").toUpperCase(), {
             left: 70,
             top: 100,
@@ -584,7 +1124,6 @@ export default function VisualEditorModal({
           });
           canvas.add(stepTag);
 
-          // Titular de la Diapositiva
           const slideTitle = new fabric.Textbox(slideItem.title, {
             left: 70,
             top: 150,
@@ -597,7 +1136,6 @@ export default function VisualEditorModal({
           });
           canvas.add(slideTitle);
 
-          // Contenedor / Tarjeta de Puntos Clave
           const cardY = 320;
           const cardH = currentH - 460;
           const contentCard = new fabric.Rect({
@@ -605,39 +1143,40 @@ export default function VisualEditorModal({
             top: cardY,
             width: currentW - 140,
             height: cardH,
-            rx: 20,
-            ry: 20,
-            fill: "rgba(15, 23, 42, 0.75)",
+            rx: 24,
+            ry: 24,
+            fill: "rgba(15, 23, 42, 0.85)",
             stroke: "rgba(255, 255, 255, 0.12)",
             strokeWidth: 1.5,
           });
           canvas.add(contentCard);
 
-          // Lista de Bullets
           const bullets = slideItem.bullets || ["Punto clave número 1", "Punto clave número 2", "Punto clave número 3"];
-          let bulletY = cardY + 40;
+          let bulletY = cardY + 45;
           bullets.forEach((bText, idx) => {
             const numCircle = new fabric.Rect({
               left: 105,
               top: bulletY,
-              width: 36,
-              height: 36,
-              rx: 18,
-              ry: 18,
+              width: 40,
+              height: 40,
+              rx: 20,
+              ry: 20,
               fill: accentColor,
             });
             const numText = new fabric.Textbox(String(idx + 1), {
-              left: 118,
-              top: bulletY + 6,
+              left: 105,
+              top: bulletY + 8,
+              width: 40,
               fontSize: 20,
               fontWeight: "bold",
+              textAlign: "center",
               fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
               fontFamily: "Inter, sans-serif",
               selectable: false,
             });
             const bulletBody = new fabric.Textbox(bText, {
-              left: 160,
-              top: bulletY + 2,
+              left: 165,
+              top: bulletY + 4,
               width: currentW - 320,
               fontSize: 26,
               lineHeight: 1.35,
@@ -645,28 +1184,30 @@ export default function VisualEditorModal({
               fontFamily: "Inter, sans-serif",
             });
             canvas.add(numCircle, numText, bulletBody);
-            bulletY += 115;
+            bulletY += 120;
           });
         } else if (slideItem.type === "cta") {
-          // --- LÁMINA FINAL DE LLAMADA A LA ACCIÓN (CTA) ---
+          // ========================================================
+          // --- LÁMINA FINAL DE LLAMADA A LA ACCIÓN (LEAD MAGNET SENTINEL)
+          // ========================================================
           const ctaCardW = currentW - 140;
-          const ctaCardH = currentH - 300;
+          const ctaCardH = currentH - 280;
           const ctaCard = new fabric.Rect({
             left: 70,
-            top: 150,
+            top: 140,
             width: ctaCardW,
             height: ctaCardH,
-            rx: 24,
-            ry: 24,
-            fill: "rgba(10, 15, 26, 0.85)",
+            rx: 28,
+            ry: 28,
+            fill: "rgba(10, 15, 26, 0.90)",
             stroke: accentColor,
-            strokeWidth: 2,
+            strokeWidth: 2.5,
           });
           canvas.add(ctaCard);
 
-          const ctaTag = new fabric.Textbox("LLAMADA A LA ACCIÓN", {
+          const ctaTag = new fabric.Textbox("LLAMADA A LA ACCIÓN // ACCESO DIRECTO", {
             left: 110,
-            top: 200,
+            top: 190,
             fontSize: 20,
             fontWeight: "bold",
             fill: accentColor,
@@ -675,7 +1216,7 @@ export default function VisualEditorModal({
 
           const ctaTitle = new fabric.Textbox(slideItem.title, {
             left: 110,
-            top: 250,
+            top: 240,
             width: ctaCardW - 80,
             fontSize: 48,
             lineHeight: 1.2,
@@ -686,7 +1227,7 @@ export default function VisualEditorModal({
 
           const ctaSub = new fabric.Textbox(slideItem.subtitle, {
             left: 110,
-            top: 400,
+            top: 390,
             width: ctaCardW - 80,
             fontSize: 28,
             lineHeight: 1.4,
@@ -697,20 +1238,20 @@ export default function VisualEditorModal({
           // Caja de la Palabra Clave
           const keywordBox = new fabric.Rect({
             left: 110,
-            top: currentH - 450,
+            top: currentH - 420,
             width: ctaCardW - 80,
-            height: 90,
-            rx: 16,
-            ry: 16,
+            height: 94,
+            rx: 18,
+            ry: 18,
             fill: accentColor,
           });
           const keywordText = new fabric.Textbox(
             `Comenta "${slideItem.ctaKeyword || "SISTEMA"}" abajo`,
             {
               left: 140,
-              top: currentH - 425,
+              top: currentH - 395,
               width: ctaCardW - 140,
-              fontSize: 32,
+              fontSize: 34,
               textAlign: "center",
               fontWeight: "900",
               fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
@@ -720,31 +1261,33 @@ export default function VisualEditorModal({
           canvas.add(ctaCard, ctaTag, ctaTitle, ctaSub, keywordBox, keywordText);
         }
 
-        // 4. PIE DE AUTOR COMÚN (En todas las láminas)
-        const authorLine = new fabric.Rect({
-          left: 70,
-          top: currentH - 75,
-          width: currentW - 140,
-          height: 1.5,
-          fill: "rgba(255, 255, 255, 0.15)",
-          selectable: false,
-        });
-        const authorFooterName = new fabric.Textbox(nameText, {
-          left: 70,
-          top: currentH - 60,
-          fontSize: 20,
-          fontWeight: "bold",
-          fill: "#ffffff",
-          fontFamily: "Inter, sans-serif",
-        });
-        const authorFooterHandle = new fabric.Textbox(handleText, {
-          left: currentW - 280,
-          top: currentH - 60,
-          fontSize: 18,
-          fill: accentColor,
-          fontFamily: "Inter, sans-serif",
-        });
-        canvas.add(authorLine, authorFooterName, authorFooterHandle);
+        // 3. PIE DE AUTOR COMÚN (Para plantillas distintas a authority_quote)
+        if (currentTemplate !== "authority_quote" || slideItem.type !== "cover") {
+          const authorLine = new fabric.Rect({
+            left: 70,
+            top: currentH - 75,
+            width: currentW - 140,
+            height: 1.5,
+            fill: "rgba(255, 255, 255, 0.15)",
+            selectable: false,
+          });
+          const authorFooterName = new fabric.Textbox(nameText, {
+            left: 70,
+            top: currentH - 60,
+            fontSize: 20,
+            fontWeight: "bold",
+            fill: "#ffffff",
+            fontFamily: "Inter, sans-serif",
+          });
+          const authorFooterHandle = new fabric.Textbox(handleText, {
+            left: currentW - 280,
+            top: currentH - 60,
+            fontSize: 18,
+            fill: accentColor,
+            fontFamily: "Inter, sans-serif",
+          });
+          canvas.add(authorLine, authorFooterName, authorFooterHandle);
+        }
 
         canvas.renderAll();
       } catch (err) {
@@ -753,7 +1296,18 @@ export default function VisualEditorModal({
         setIsRendering(false);
       }
     },
-    [selectedBgUrl, overlayOpacity, accentColor, nameText, handleText, canvasWidth, canvasHeight, editorMode]
+    [
+      selectedBgUrl,
+      overlayOpacity,
+      accentColor,
+      nameText,
+      handleText,
+      canvasWidth,
+      canvasHeight,
+      editorMode,
+      selectedTemplate,
+      initialMetric,
+    ]
   );
 
   // Manejar cambio de lámina en la tira inferior (Punto 3)
@@ -1160,21 +1714,24 @@ export default function VisualEditorModal({
                   <p className="text-xs text-gray-400">
                     Selecciona un estilo base. Tus textos se mantendrán intactos al alternar:
                   </p>
+
+                  {/* 1. Cinematic Editorial */}
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedTemplate("editorial");
-                      renderSlideOnCanvas(slides[currentSlideIndex]);
+                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "editorial");
                     }}
                     className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
                       selectedTemplate === "editorial"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
                         : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gradient-to-t from-gray-950 to-blue-900/50 border border-gray-700 p-1 flex flex-col justify-end">
+                    <div className="size-12 rounded-lg bg-gradient-to-t from-gray-950 via-gray-900 to-blue-900/40 border border-gray-700 p-1.5 flex flex-col justify-end shrink-0">
                       <div className="h-1.5 w-5 bg-brand-400 rounded-xs mb-1"></div>
-                      <div className="h-1 w-8 bg-white rounded-xs"></div>
+                      <div className="h-1 w-8 bg-white rounded-xs mb-0.5"></div>
+                      <div className="h-0.5 w-6 bg-gray-400 rounded-xs"></div>
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">Cinematic Editorial</p>
@@ -1182,19 +1739,20 @@ export default function VisualEditorModal({
                     </div>
                   </button>
 
+                  {/* 2. Cita de Autoridad */}
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedTemplate("authority_quote");
-                      renderSlideOnCanvas(slides[currentSlideIndex]);
+                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "authority_quote");
                     }}
                     className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
                       selectedTemplate === "authority_quote"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
                         : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex items-center justify-center text-brand-400 font-serif text-2xl">
+                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex items-center justify-center text-brand-400 font-serif text-2xl shrink-0">
                       “
                     </div>
                     <div>
@@ -1203,25 +1761,74 @@ export default function VisualEditorModal({
                     </div>
                   </button>
 
+                  {/* 3. Tarjeta Social / Feed */}
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedTemplate("social_card");
-                      renderSlideOnCanvas(slides[currentSlideIndex]);
+                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "social_card");
                     }}
                     className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
                       selectedTemplate === "social_card"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
                         : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-900 border border-gray-700 flex flex-col items-center justify-center p-1">
+                    <div className="size-12 rounded-lg bg-gray-900 border border-gray-700 flex flex-col items-center justify-center p-1 shrink-0">
                       <div className="size-3 rounded-full bg-brand-400 mb-1"></div>
-                      <div className="h-1 w-6 bg-gray-400 rounded-xs"></div>
+                      <div className="h-1 w-6 bg-gray-300 rounded-xs mb-0.5"></div>
+                      <div className="h-0.5 w-4 bg-gray-500 rounded-xs"></div>
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">Tarjeta Social / Feed</p>
                       <p className="text-[11px] text-gray-400">Bordes redondeados + check azul</p>
+                    </div>
+                  </button>
+
+                  {/* 4. Split Focus (50/50) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTemplate("split_focus");
+                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "split_focus");
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                      selectedTemplate === "split_focus"
+                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
+                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                    }`}
+                  >
+                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex flex-col overflow-hidden shrink-0">
+                      <div className="h-1/2 bg-blue-600/30 border-b border-brand-500"></div>
+                      <div className="h-1/2 bg-gray-900 p-1 flex flex-col justify-center">
+                        <div className="h-1 w-5 bg-white rounded-xs"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Split Focus (50/50)</p>
+                      <p className="text-[11px] text-gray-400">Foto arriba + datos abajo</p>
+                    </div>
+                  </button>
+
+                  {/* 5. Métrica de Alto Impacto */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTemplate("big_metric");
+                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "big_metric");
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                      selectedTemplate === "big_metric"
+                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
+                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                    }`}
+                  >
+                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex flex-col items-center justify-center p-1 shrink-0 text-brand-400 font-mono font-bold text-xs">
+                      +340%
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Métrica de Alto Impacto</p>
+                      <p className="text-[11px] text-gray-400">Número gigante + validación</p>
                     </div>
                   </button>
                 </div>
@@ -1740,19 +2347,33 @@ export default function VisualEditorModal({
               )}
             </div>
 
-            {/* ESCENARIO CENTRAL DEL CANVAS */}
-            <div className="flex-1 flex items-center justify-center p-3 sm:p-4 overflow-hidden relative">
-              <div className="relative shadow-2xl rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+            {/* ESCENARIO CENTRAL DEL CANVAS (PREVIEW WYSIWYG ESTILO CANVA) */}
+            <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4 overflow-hidden relative bg-slate-950">
+              {/* Marco Contenedor con Dimensiones Escaladas Exactas */}
+              <div
+                className="relative shadow-2xl rounded-2xl border border-gray-800 bg-gray-900 overflow-hidden ring-1 ring-white/10 shrink-0"
+                style={{
+                  width: `${previewWidth}px`,
+                  height: `${previewHeight}px`,
+                }}
+              >
                 <div
                   style={{
-                    width: aspectRatio === "4:5" ? "400px" : "440px",
-                    height: aspectRatio === "4:5" ? "500px" : "440px",
-                    position: "relative",
+                    width: `${canvasWidth}px`,
+                    height: `${canvasHeight}px`,
+                    transform: `scale(${previewScale})`,
+                    transformOrigin: "top left",
                   }}
-                  className="overflow-hidden bg-gray-950 flex items-center justify-center"
                 >
-                  <canvas ref={canvasElRef} style={{ width: "100%", height: "100%", display: "block" }} />
+                  <canvas ref={canvasElRef} />
                 </div>
+              </div>
+
+              {/* Barra inferior con resolución HD y porcentaje de escala */}
+              <div className="mt-2.5 flex items-center gap-3 text-[11px] text-gray-500 font-mono">
+                <span>{canvasWidth} × {canvasHeight}px ({aspectRatio})</span>
+                <span>•</span>
+                <span className="text-brand-400 font-bold">Escala: {Math.round(previewScale * 100)}% (Ajustado)</span>
               </div>
             </div>
 
