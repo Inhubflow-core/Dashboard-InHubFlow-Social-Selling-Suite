@@ -55,8 +55,15 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
-      <body className={`${outfit.className} bg-[#E9F0F7] dark:bg-gray-900`}>
+    <html
+      lang={locale}
+      dir={isRtl(locale as Locale) ? "rtl" : "ltr"}
+      suppressHydrationWarning
+    >
+      <body
+        className={`${outfit.className} bg-[#E9F0F7] dark:bg-gray-900`}
+        suppressHydrationWarning
+      >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <AuthProvider>
