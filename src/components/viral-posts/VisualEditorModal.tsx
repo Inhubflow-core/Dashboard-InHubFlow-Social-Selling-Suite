@@ -688,24 +688,6 @@ export default function VisualEditorModal({
               canvas.add(swipeBadge, swipeText);
             }
           }
-                ry: 22,
-                fill: "rgba(255, 255, 255, 0.12)",
-                stroke: accentColor,
-                strokeWidth: 2,
-                selectable: true,
-              });
-              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
-                left: currentW - 235,
-                top: currentH - 109,
-                fontSize: 18,
-                fontWeight: "bold",
-                fill: accentColor,
-                fontFamily: "Inter, sans-serif",
-                selectable: true,
-              });
-              canvas.add(swipeBadge, swipeText);
-            }
-          }
           // ========================================================
           // --- PLANTILLA 2: CITA DE AUTORIDAD (Comillas grandes + Enfoque centrado)
           // ========================================================
