@@ -1576,7 +1576,7 @@ export default function VisualEditorModal({
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight break-words drop-shadow-md`}>
                                   <InlineEditableText
                                     elementKey="title"
-                                    as="h1"
+                                    as="span"
                                     value={currentSlide.title}
                                     onChange={(val) => updateCurrentSlide({ title: val })}
                                     selectedElement={selectedElement}
@@ -1602,7 +1602,7 @@ export default function VisualEditorModal({
                                 <p className="text-xs sm:text-sm text-slate-200 mt-2.5 leading-relaxed font-normal">
                                   <InlineEditableText
                                     elementKey="subtitle"
-                                    as="p"
+                                    as="span"
                                     value={currentSlide.subtitle}
                                     onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                     selectedElement={selectedElement}
@@ -1733,7 +1733,7 @@ export default function VisualEditorModal({
                                 "
                                 <InlineEditableText
                                   elementKey="title"
-                                  as="h1"
+                                  as="span"
                                   value={currentSlide.title}
                                   onChange={(val) => updateCurrentSlide({ title: val })}
                                   selectedElement={selectedElement}
@@ -1747,7 +1747,7 @@ export default function VisualEditorModal({
                               <p className="text-xs text-slate-300 mt-3 font-normal">
                                 <InlineEditableText
                                   elementKey="subtitle"
-                                  as="p"
+                                  as="span"
                                   value={currentSlide.subtitle}
                                   onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                   selectedElement={selectedElement}
@@ -1921,7 +1921,7 @@ export default function VisualEditorModal({
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
                                   <InlineEditableText
                                     elementKey="title"
-                                    as="h1"
+                                    as="span"
                                     value={currentSlide.title}
                                     onChange={(val) => updateCurrentSlide({ title: val })}
                                     selectedElement={selectedElement}
@@ -1949,7 +1949,7 @@ export default function VisualEditorModal({
                                 >
                                   <InlineEditableText
                                     elementKey="subtitle"
-                                    as="p"
+                                    as="span"
                                     value={currentSlide.subtitle}
                                     onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                     selectedElement={selectedElement}
@@ -2050,7 +2050,7 @@ export default function VisualEditorModal({
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight`}>
                                   <InlineEditableText
                                     elementKey="title"
-                                    as="h1"
+                                    as="span"
                                     value={currentSlide.title}
                                     onChange={(val) => updateCurrentSlide({ title: val })}
                                     selectedElement={selectedElement}
@@ -2075,7 +2075,7 @@ export default function VisualEditorModal({
                                 <p className="text-xs text-slate-300 mt-2 font-normal line-clamp-3">
                                   <InlineEditableText
                                     elementKey="subtitle"
-                                    as="p"
+                                    as="span"
                                     value={currentSlide.subtitle}
                                     onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                     selectedElement={selectedElement}
@@ -2215,7 +2215,7 @@ export default function VisualEditorModal({
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white mt-3`}>
                                   <InlineEditableText
                                     elementKey="title"
-                                    as="h1"
+                                    as="span"
                                     value={currentSlide.title}
                                     onChange={(val) => updateCurrentSlide({ title: val })}
                                     selectedElement={selectedElement}
@@ -2228,7 +2228,7 @@ export default function VisualEditorModal({
                                 <p className="text-xs text-slate-300 mt-1 font-normal">
                                   <InlineEditableText
                                     elementKey="subtitle"
-                                    as="p"
+                                    as="span"
                                     value={currentSlide.subtitle}
                                     onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                     selectedElement={selectedElement}
@@ -2345,7 +2345,7 @@ export default function VisualEditorModal({
                             <h2 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
                               <InlineEditableText
                                 elementKey="title"
-                                as="h2"
+                                as="span"
                                 value={currentSlide.title}
                                 onChange={(val) => updateCurrentSlide({ title: val })}
                                 selectedElement={selectedElement}
@@ -2358,7 +2358,7 @@ export default function VisualEditorModal({
                             <p className="text-xs text-slate-300 mt-1">
                               <InlineEditableText
                                 elementKey="subtitle"
-                                as="p"
+                                as="span"
                                 value={currentSlide.subtitle}
                                 onChange={(val) => updateCurrentSlide({ subtitle: val })}
                                 selectedElement={selectedElement}
