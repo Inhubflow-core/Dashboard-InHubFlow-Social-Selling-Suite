@@ -38,7 +38,8 @@ export type TemplateId =
   | "authority_quote"
   | "social_card"
   | "split_focus"
-  | "big_metric";
+  | "big_metric"
+  | "bold_highlighter";
 
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
@@ -54,7 +55,42 @@ export interface CarouselSlideItem {
   bullets?: string[];
   ctaKeyword?: string;
   metric?: string;
+  titlePrefix?: string;
+  highlightText?: string;
+  titleSuffix?: string;
   offsets?: Record<string, { x: number; y: number }>;
+}
+
+/** Extrae de forma inteligente las tres partes del titular para la plantilla Bold Highlighter */
+function getTitleParts(slide: CarouselSlideItem) {
+  if (slide.highlightText) {
+    return {
+      prefix: slide.titlePrefix || "el 90% de los",
+      highlight: slide.highlightText,
+      suffix: slide.titleSuffix || "terminan en la papelera",
+    };
+  }
+  const match = (slide.title || "").match(/^(.*?)\[(.*?)\](.*?)$/);
+  if (match) {
+    return {
+      prefix: match[1].trim() || "el 90% de los",
+      highlight: match[2].trim() || "mensajes b2b",
+      suffix: match[3].trim().replace(/\.$/, "") || "terminan en la papelera",
+    };
+  }
+  const words = (slide.title || "").split(" ").filter(Boolean);
+  if (words.length >= 4) {
+    return {
+      prefix: words.slice(0, 2).join(" "),
+      highlight: words.slice(2, 4).join(" "),
+      suffix: words.slice(4).join(" ").replace(/\.$/, ""),
+    };
+  }
+  return {
+    prefix: "el 90% de los",
+    highlight: "mensajes b2b",
+    suffix: "terminan en la papelera",
+  };
 }
 
 export interface VisualEditorModalProps {
@@ -88,6 +124,13 @@ export interface UnsplashPhotoItem {
 
 // Catálogo curado de fondos de alta resolución
 const CURATED_BACKGROUNDS: UnsplashPhotoItem[] = [
+  {
+    id: "executive_tablet_night",
+    name: "Ejecutivo B2B & Tablet",
+    tags: ["ejecutivo", "tablet", "b2b", "oficina", "noche", "estrategia"],
+    thumb: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=70",
+    url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=85",
+  },
   {
     id: "executive_office",
     name: "Oficina Ejecutiva",
@@ -1005,6 +1048,32 @@ export default function VisualEditorModal({
                       </div>
                     </div>
                   </button>
+
+                  {/* 6. Bold Highlighter B2B */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplate("bold_highlighter")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
+                      selectedTemplate === "bold_highlighter"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-950 to-indigo-950 border border-gray-700 flex flex-col justify-center p-1.5 shrink-0 overflow-hidden">
+                      <div className="h-1.5 w-6 rounded-full bg-white mb-1"></div>
+                      <div className="h-2 w-8 rounded-sm bg-[#7058FE] -rotate-3 mb-1"></div>
+                      <div className="h-1.5 w-5 rounded-full bg-white"></div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span>Bold Highlighter B2B</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] bg-brand-500/20 text-brand-300 font-mono">NUEVO</span>
+                      </div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Titular masivo con cinta violeta inclinada y punto magenta neón.
+                      </div>
+                    </div>
+                  </button>
                 </div>
               )}
 
@@ -1082,6 +1151,29 @@ export default function VisualEditorModal({
                         onChange={(e) => updateCurrentSlide({ metric: e.target.value })}
                         className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-brand-400 font-mono font-bold focus:border-brand-500 focus:outline-hidden"
                         placeholder="+340% o $1.2M"
+                      />
+                    </div>
+                  )}
+
+                  {/* Frase resaltada para Bold Highlighter */}
+                  {selectedTemplate === "bold_highlighter" && isCover && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5 flex items-center justify-between">
+                        <span>Palabra Clave Resaltada</span>
+                        <span className="text-[10px] text-purple-400 font-mono">Cinta Violeta</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={currentSlide.highlightText || "mensajes b2b"}
+                        onChange={(e) => {
+                          const parts = getTitleParts(currentSlide);
+                          updateCurrentSlide({
+                            highlightText: e.target.value,
+                            title: `${parts.prefix} [${e.target.value}] ${parts.suffix}.`,
+                          });
+                        }}
+                        className="w-full rounded-lg border border-purple-500/40 bg-purple-950/20 px-3 py-2 text-xs text-purple-300 font-bold focus:border-purple-400 focus:outline-hidden"
+                        placeholder="Ej: mensajes b2b"
                       />
                     </div>
                   )}
@@ -2386,6 +2478,191 @@ export default function VisualEditorModal({
                         </div>
                       </>
                     )}
+
+                    {/* PLANTILLA 6: BOLD HIGHLIGHTER B2B (Estilo Pinterest / Klowt) */}
+                    {selectedTemplate === "bold_highlighter" && (() => {
+                      const parts = getTitleParts(currentSlide);
+                      return (
+                        <>
+                          {/* Capa z-10: Degradado inteligente lateral para lectura perfecta sobre fotos */}
+                          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/20" />
+
+                          {/* Capa z-20: Contenidos de la Lámina */}
+                          <div className="absolute inset-0 z-20 pointer-events-none p-6 sm:p-7 flex flex-col justify-between">
+                            {/* Cabecera Superior: Tag / Serie a la derecha */}
+                            <div className="flex items-center justify-between w-full">
+                              {/* Logo / Monograma Opcional Izquierda */}
+                              <DraggableWrapper
+                                id="bold-logo"
+                                label="Isotipo / Monograma"
+                                isFreeMode={isFreeMode}
+                                offset={currentSlide.offsets?.["bold-logo"]}
+                                onOffsetChange={handleOffsetChange}
+                                isExporting={isExporting}
+                                className="pointer-events-auto"
+                              >
+                                <span className="text-sm font-black font-mono text-white/80 tracking-wider">
+                                  {nameText.charAt(0).toUpperCase()}.
+                                </span>
+                              </DraggableWrapper>
+
+                              {/* Etiqueta de Serie Derecha */}
+                              <DraggableWrapper
+                                id="bold-tag"
+                                label="Etiqueta / Serie"
+                                isFreeMode={isFreeMode}
+                                offset={currentSlide.offsets?.["bold-tag"]}
+                                onOffsetChange={handleOffsetChange}
+                                isExporting={isExporting}
+                                isSelected={selectedElement === "tag"}
+                                onSelect={() => setSelectedElement("tag")}
+                                className="pointer-events-auto"
+                              >
+                                <div className="text-[11px] font-black tracking-[0.2em] text-white/90 uppercase drop-shadow-md">
+                                  <InlineEditableText
+                                    elementKey="tag"
+                                    value={currentSlide.tag || "INSIGHTS B2B"}
+                                    onChange={(val) => updateCurrentSlide({ tag: val })}
+                                    selectedElement={selectedElement}
+                                    onSelect={setSelectedElement}
+                                    isExporting={isExporting}
+                                    placeholder="INSIGHTS B2B"
+                                  />
+                                </div>
+                              </DraggableWrapper>
+                            </div>
+
+                            {/* Bloque Central / Titular + Bajada */}
+                            <div className="my-auto space-y-4 max-w-[340px]">
+                              {/* Titular con Resaltador Violeta */}
+                              <DraggableWrapper
+                                id="bold-title"
+                                label="Titular con Resaltador"
+                                isFreeMode={isFreeMode}
+                                offset={currentSlide.offsets?.["bold-title"]}
+                                onOffsetChange={handleOffsetChange}
+                                isExporting={isExporting}
+                                isSelected={selectedElement === "title"}
+                                onSelect={() => setSelectedElement("title")}
+                                className="pointer-events-auto"
+                              >
+                                <div className="font-extrabold text-white tracking-tight leading-[1.08] select-text">
+                                  {/* Prefijo en minúsculas */}
+                                  <div className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} drop-shadow-md`}>
+                                    <InlineEditableText
+                                      elementKey="title-prefix"
+                                      as="span"
+                                      value={parts.prefix}
+                                      onChange={(val) => {
+                                        updateCurrentSlide({
+                                          titlePrefix: val,
+                                          title: `${val} [${parts.highlight}] ${parts.suffix}.`,
+                                        });
+                                      }}
+                                      selectedElement={selectedElement}
+                                      onSelect={setSelectedElement}
+                                      isExporting={isExporting}
+                                      placeholder="el 90% de los"
+                                    />
+                                  </div>
+
+                                  {/* Cinta violeta resaltadora inclinada */}
+                                  <div className="my-1.5 inline-block">
+                                    <span
+                                      style={{ backgroundColor: accentColor === "#0099ff" ? "#7058FE" : accentColor }}
+                                      className="inline-block px-3.5 py-0.5 rounded-xl text-white font-extrabold italic shadow-2xl -rotate-[2deg] transform origin-left"
+                                    >
+                                      <span className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} tracking-tight`}>
+                                        <InlineEditableText
+                                          elementKey="title-highlight"
+                                          as="span"
+                                          value={parts.highlight}
+                                          onChange={(val) => {
+                                            updateCurrentSlide({
+                                              highlightText: val,
+                                              title: `${parts.prefix} [${val}] ${parts.suffix}.`,
+                                            });
+                                          }}
+                                          selectedElement={selectedElement}
+                                          onSelect={setSelectedElement}
+                                          isExporting={isExporting}
+                                          placeholder="mensajes b2b"
+                                        />
+                                      </span>
+                                    </span>
+                                  </div>
+
+                                  {/* Sufijo con punto final magenta neón */}
+                                  <div className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} drop-shadow-md flex items-baseline flex-wrap`}>
+                                    <InlineEditableText
+                                      elementKey="title-suffix"
+                                      as="span"
+                                      value={parts.suffix}
+                                      onChange={(val) => {
+                                        updateCurrentSlide({
+                                          titleSuffix: val,
+                                          title: `${parts.prefix} [${parts.highlight}] ${val}.`,
+                                        });
+                                      }}
+                                      selectedElement={selectedElement}
+                                      onSelect={setSelectedElement}
+                                      isExporting={isExporting}
+                                      placeholder="terminan en la papelera"
+                                    />
+                                    <span className="text-[#FF177D] font-black inline-block ml-0.5">.</span>
+                                  </div>
+                                </div>
+                              </DraggableWrapper>
+
+                              {/* Bajada / Subtítulo */}
+                              <DraggableWrapper
+                                id="bold-subtitle"
+                                label="Subtítulo Explicativo"
+                                isFreeMode={isFreeMode}
+                                offset={currentSlide.offsets?.["bold-subtitle"]}
+                                onOffsetChange={handleOffsetChange}
+                                isExporting={isExporting}
+                                isSelected={selectedElement === "subtitle"}
+                                onSelect={() => setSelectedElement("subtitle")}
+                                className="pointer-events-auto pt-2"
+                              >
+                                <p className="text-xs sm:text-[13px] text-slate-200/90 leading-relaxed font-normal drop-shadow-sm">
+                                  <InlineEditableText
+                                    elementKey="subtitle"
+                                    as="span"
+                                    value={currentSlide.subtitle || "El problema no es el volumen, es la falta de estrategia operativa. Menos ruido masivo, más automatización inteligente."}
+                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                    selectedElement={selectedElement}
+                                    onSelect={setSelectedElement}
+                                    isExporting={isExporting}
+                                    multiline={true}
+                                    placeholder="El problema no es el volumen, es la falta de estrategia operativa..."
+                                  />
+                                </p>
+                              </DraggableWrapper>
+                            </div>
+
+                            {/* Pie / Flecha de deslizamiento */}
+                            <DraggableWrapper
+                              id="bold-footer"
+                              label="Indicador / Flecha"
+                              isFreeMode={isFreeMode}
+                              offset={currentSlide.offsets?.["bold-footer"]}
+                              onOffsetChange={handleOffsetChange}
+                              isExporting={isExporting}
+                              className="pointer-events-auto self-end flex items-center gap-2"
+                            >
+                              <div className="flex items-center gap-2 text-white/80">
+                                {editorMode === "carousel" && (
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Desliza</span>
+                                )}
+                                <ArrowRight className="size-5 text-white/90" />
+                              </div>
+                            </DraggableWrapper>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </>
                 ) : (
                   /* B) LÁMINAS INTERMEDIAS (PROBLEMA, SOLUCIÓN, CTA) */
