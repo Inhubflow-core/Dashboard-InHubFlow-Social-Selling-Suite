@@ -320,6 +320,7 @@ function DraggableWrapper({
   const posX = offset?.x || 0;
   const posY = offset?.y || 0;
   const hasMoved = posX !== 0 || posY !== 0;
+  const positionClass = className.includes("absolute") ? "" : "relative";
 
   return (
     <div
@@ -331,7 +332,7 @@ function DraggableWrapper({
         transform: hasMoved ? `translate(${posX}px, ${posY}px)` : undefined,
         touchAction: isFreeMode ? "none" : undefined,
       }}
-      className={`relative transition-transform duration-75 ${
+      className={`${positionClass} transition-transform duration-75 ${
         isFreeMode && !isExporting
           ? `group/drag ${
               isDragging
@@ -382,6 +383,7 @@ export default function VisualEditorModal({
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("editorial");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>(CURATED_BACKGROUNDS[0].url);
+  const [bgScale, setBgScale] = useState(1.15);
   const [accentColor, setAccentColor] = useState("#0099ff");
   const [overlayOpacity, setOverlayOpacity] = useState(0.8);
   const [overlayMode, setOverlayMode] = useState<"card" | "fullscreen">("card");
@@ -1152,6 +1154,31 @@ export default function VisualEditorModal({
                     <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                   </label>
 
+                  {/* Zoom y Escala de la Fotografía */}
+                  <div className="p-3 rounded-xl border border-gray-800 bg-gray-900/60 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-300 font-semibold uppercase flex items-center gap-1.5">
+                        <ImageIcon className="size-3 text-brand-400" />
+                        Escala / Zoom de Foto
+                      </span>
+                      <span className="text-brand-400 font-mono font-bold">
+                        {Math.round(bgScale * 100)}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1.0}
+                      max={2.0}
+                      step={0.05}
+                      value={bgScale}
+                      onChange={(e) => setBgScale(parseFloat(e.target.value))}
+                      className="w-full accent-brand-500 cursor-pointer"
+                    />
+                    <div className="text-[10px] text-gray-400">
+                      En <span className="text-indigo-400 font-bold">Modo Libre</span> puedes arrastrar la foto para reencuadrar el ángulo.
+                    </div>
+                  </div>
+
                   {/* Filtro rápido por categoría */}
                   <div className="flex flex-wrap gap-1.5">
                     {[
@@ -1471,16 +1498,31 @@ export default function VisualEditorModal({
                 onClick={() => setSelectedElement("background")}
                 className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
               >
-                {/* 1. FOTO DE FONDO CON OBJECT-FIT COVER */}
-                <div className="absolute inset-0 z-0">
-                  <img
-                    src={selectedBgUrl}
-                    alt="Background"
-                    crossOrigin="anonymous"
-                    className="w-full h-full object-cover pointer-events-none"
-                  />
-                  {/* Filtro ambiental sutil de contraste */}
-                  <div className="absolute inset-0 bg-slate-950/40 pointer-events-none"></div>
+                {/* 1. FOTO DE FONDO (Capa independiente z-0, draggable y escalable con zoom) */}
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                  <DraggableWrapper
+                    id="bg-photo"
+                    label="Foto de Fondo"
+                    isFreeMode={isFreeMode}
+                    offset={currentSlide.offsets?.["bg-photo"]}
+                    onOffsetChange={handleOffsetChange}
+                    isExporting={isExporting}
+                    isSelected={selectedElement === "background"}
+                    onSelect={() => setSelectedElement("background")}
+                    className="absolute -inset-24 w-[calc(100%+192px)] h-[calc(100%+192px)] pointer-events-auto cursor-grab active:cursor-grabbing"
+                  >
+                    <div className="w-full h-full relative">
+                      <img
+                        src={selectedBgUrl}
+                        alt="Background"
+                        crossOrigin="anonymous"
+                        style={{ transform: `scale(${bgScale})` }}
+                        className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
+                      />
+                      {/* Filtro ambiental sutil de contraste */}
+                      <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+                    </div>
+                  </DraggableWrapper>
                 </div>
 
                 {/* BOTÓN FLOTANTE: CAMBIAR FOTO (Oculto al exportar) */}
@@ -1507,30 +1549,48 @@ export default function VisualEditorModal({
                   <>
                     {/* PLANTILLA 1: CINEMATIC EDITORIAL */}
                     {selectedTemplate === "editorial" && (
-                      <div className="relative z-10 w-full h-full flex flex-col justify-end p-5">
-                        <DraggableWrapper
-                          id="editorial-card"
-                          label="Panel Tarjeta"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["editorial-card"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "brand"}
-                          onSelect={() => setSelectedElement("brand")}
-                          className="w-full"
-                        >
+                      <>
+                        {/* Capa z-10: Fondo Tarjeta Transparente (Hermano independiente) */}
+                        <div className="absolute inset-0 z-10 pointer-events-none p-5 flex flex-col justify-end">
+                          <DraggableWrapper
+                            id="editorial-card"
+                            label="Fondo Tarjeta"
+                            isFreeMode={isFreeMode}
+                            offset={currentSlide.offsets?.["editorial-card"]}
+                            onOffsetChange={handleOffsetChange}
+                            isExporting={isExporting}
+                            isSelected={selectedElement === "brand"}
+                            onSelect={() => setSelectedElement("brand")}
+                            className="w-full pointer-events-auto"
+                          >
+                            <div
+                              style={{
+                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedElement("brand");
+                              }}
+                              className={`w-full border border-white/15 shadow-2xl backdrop-blur-md transition-all ${
+                                overlayMode === "fullscreen"
+                                  ? "h-[485px] rounded-none"
+                                  : aspectRatio === "4:5"
+                                  ? "h-[300px] rounded-3xl"
+                                  : "h-[250px] rounded-3xl"
+                              }`}
+                            />
+                          </DraggableWrapper>
+                        </div>
+
+                        {/* Capa z-20: Contenidos de Texto y Badges (Hermanos independientes) */}
+                        <div className="absolute inset-0 z-20 pointer-events-none p-5 flex flex-col justify-end">
                           <div
-                            style={{
-                              backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedElement("brand");
-                            }}
-                            className={`relative w-full border border-white/15 shadow-2xl backdrop-blur-md flex flex-col justify-between transition-all ${
+                            className={`w-full flex flex-col justify-between transition-all p-6 ${
                               overlayMode === "fullscreen"
-                                ? "h-full rounded-none p-6"
-                                : "rounded-3xl p-6"
+                                ? "h-[485px]"
+                                : aspectRatio === "4:5"
+                                ? "h-[300px]"
+                                : "h-[250px]"
                             }`}
                           >
                             <div>
@@ -1544,7 +1604,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "tag"}
                                 onSelect={() => setSelectedElement("tag")}
-                                className="inline-block mb-3"
+                                className="inline-block mb-3 pointer-events-auto"
                               >
                                 <span
                                   style={{ backgroundColor: accentColor }}
@@ -1572,6 +1632,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "title"}
                                 onSelect={() => setSelectedElement("title")}
+                                className="pointer-events-auto"
                               >
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight break-words drop-shadow-md`}>
                                   <InlineEditableText
@@ -1598,6 +1659,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "subtitle"}
                                 onSelect={() => setSelectedElement("subtitle")}
+                                className="pointer-events-auto"
                               >
                                 <p className="text-xs sm:text-sm text-slate-200 mt-2.5 leading-relaxed font-normal">
                                   <InlineEditableText
@@ -1625,7 +1687,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="pt-4 mt-3 border-t border-white/10 flex items-center justify-between"
+                              className="pt-4 mt-3 border-t border-white/10 flex items-center justify-between pointer-events-auto"
                             >
                               <div className="flex items-center gap-2">
                                 <div
@@ -1658,34 +1720,42 @@ export default function VisualEditorModal({
                               )}
                             </DraggableWrapper>
                           </div>
-                        </DraggableWrapper>
-                      </div>
+                        </div>
+                      </>
                     )}
 
                     {/* PLANTILLA 2: CITA DE AUTORIDAD */}
                     {selectedTemplate === "authority_quote" && (
-                      <div className="relative z-10 w-full h-full flex flex-col justify-between p-6">
-                        <DraggableWrapper
-                          id="quote-card"
-                          label="Panel Cita"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["quote-card"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "brand"}
-                          onSelect={() => setSelectedElement("brand")}
-                          className="w-full h-full"
-                        >
-                          <div
-                            style={{
-                              backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedElement("brand");
-                            }}
-                            className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center text-center"
+                      <>
+                        {/* Capa z-10: Fondo Tarjeta Transparente */}
+                        <div className="absolute inset-0 z-10 pointer-events-none p-6">
+                          <DraggableWrapper
+                            id="quote-card"
+                            label="Fondo Cita"
+                            isFreeMode={isFreeMode}
+                            offset={currentSlide.offsets?.["quote-card"]}
+                            onOffsetChange={handleOffsetChange}
+                            isExporting={isExporting}
+                            isSelected={selectedElement === "brand"}
+                            onSelect={() => setSelectedElement("brand")}
+                            className="w-full h-full pointer-events-auto"
                           >
+                            <div
+                              style={{
+                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedElement("brand");
+                              }}
+                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                            />
+                          </DraggableWrapper>
+                        </div>
+
+                        {/* Capa z-20: Contenidos de la Cita */}
+                        <div className="absolute inset-0 z-20 pointer-events-none p-6">
+                          <div className="w-full h-full p-6 flex flex-col justify-between items-center text-center">
                             {/* Tag superior */}
                             <DraggableWrapper
                               id="quote-tag"
@@ -1696,6 +1766,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "tag"}
                               onSelect={() => setSelectedElement("tag")}
+                              className="pointer-events-auto"
                             >
                               <span
                                 style={{ borderColor: accentColor, color: accentColor }}
@@ -1723,7 +1794,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "title"}
                               onSelect={() => setSelectedElement("title")}
-                              className="my-auto px-2"
+                              className="my-auto px-2 pointer-events-auto"
                             >
                               <Quote
                                 className="size-10 mx-auto mb-2 opacity-80"
@@ -1769,7 +1840,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/90 border border-white/15 shadow-md"
+                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/90 border border-white/15 shadow-md pointer-events-auto"
                             >
                               <div
                                 style={{ backgroundColor: accentColor }}
@@ -1803,33 +1874,47 @@ export default function VisualEditorModal({
                               </div>
                             </DraggableWrapper>
                           </div>
-                        </DraggableWrapper>
-                      </div>
+                        </div>
+                      </>
                     )}
 
                     {/* PLANTILLA 3: TARJETA SOCIAL / FEED */}
                     {selectedTemplate === "social_card" && (
-                      <div className="relative z-10 w-full h-full flex flex-col justify-center p-5">
-                        <DraggableWrapper
-                          id="social-card"
-                          label="Tarjeta Social"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["social-card"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "brand"}
-                          onSelect={() => setSelectedElement("brand")}
-                          className="w-full"
-                        >
+                      <>
+                        {/* Capa z-10: Fondo Tarjeta Social */}
+                        <div className="absolute inset-0 z-10 pointer-events-none p-5 flex flex-col justify-center">
+                          <DraggableWrapper
+                            id="social-card"
+                            label="Fondo Tarjeta"
+                            isFreeMode={isFreeMode}
+                            offset={currentSlide.offsets?.["social-card"]}
+                            onOffsetChange={handleOffsetChange}
+                            isExporting={isExporting}
+                            isSelected={selectedElement === "brand"}
+                            onSelect={() => setSelectedElement("brand")}
+                            className="w-full pointer-events-auto"
+                          >
+                            <div
+                              style={{
+                                backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedElement("brand");
+                              }}
+                              className={`w-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md ${
+                                aspectRatio === "4:5" ? "h-[390px]" : "h-[350px]"
+                              }`}
+                            />
+                          </DraggableWrapper>
+                        </div>
+
+                        {/* Capa z-20: Contenidos Tarjeta Social */}
+                        <div className="absolute inset-0 z-20 pointer-events-none p-5 flex flex-col justify-center">
                           <div
-                            style={{
-                              backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedElement("brand");
-                            }}
-                            className="relative w-full rounded-3xl border border-white/15 p-5 shadow-2xl backdrop-blur-md flex flex-col justify-between"
+                            className={`w-full p-5 flex flex-col justify-between ${
+                              aspectRatio === "4:5" ? "h-[390px]" : "h-[350px]"
+                            }`}
                           >
                             {/* Cabecera estilo LinkedIn */}
                             <DraggableWrapper
@@ -1841,7 +1926,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="flex items-center gap-3 pb-3 border-b border-white/10"
+                              className="flex items-center gap-3 pb-3 border-b border-white/10 pointer-events-auto"
                             >
                               <div
                                 style={{ backgroundColor: accentColor }}
@@ -1890,7 +1975,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "tag"}
                                 onSelect={() => setSelectedElement("tag")}
-                                className="inline-block"
+                                className="inline-block pointer-events-auto"
                               >
                                 <span
                                   style={{ borderColor: accentColor, color: accentColor }}
@@ -1917,6 +2002,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "title"}
                                 onSelect={() => setSelectedElement("title")}
+                                className="pointer-events-auto"
                               >
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
                                   <InlineEditableText
@@ -1942,6 +2028,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "subtitle"}
                                 onSelect={() => setSelectedElement("subtitle")}
+                                className="pointer-events-auto"
                               >
                                 <div
                                   style={{ borderLeftColor: accentColor }}
@@ -1970,7 +2057,7 @@ export default function VisualEditorModal({
                               offset={currentSlide.offsets?.["social-stats"]}
                               onOffsetChange={handleOffsetChange}
                               isExporting={isExporting}
-                              className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium"
+                              className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium pointer-events-auto"
                             >
                               <span className="flex items-center gap-1">
                                 <Heart className="size-3 text-rose-400" /> 1,428
@@ -1983,32 +2070,40 @@ export default function VisualEditorModal({
                               </span>
                             </DraggableWrapper>
                           </div>
-                        </DraggableWrapper>
-                      </div>
+                        </div>
+                      </>
                     )}
 
                     {/* PLANTILLA 4: SPLIT FOCUS 50/50 */}
                     {selectedTemplate === "split_focus" && (
-                      <div className="relative z-10 w-full h-full flex flex-col justify-end">
-                        <DraggableWrapper
-                          id="split-card"
-                          label="Panel Inferior"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["split-card"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "brand"}
-                          onSelect={() => setSelectedElement("brand")}
-                          className="w-full h-[52%]"
-                        >
-                          <div
-                            style={{ borderTopColor: accentColor }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedElement("brand");
-                            }}
-                            className="relative h-full w-full bg-slate-950/95 border-t-4 p-5 flex flex-col justify-between backdrop-blur-md"
+                      <>
+                        {/* Capa z-10: Panel Inferior */}
+                        <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-end">
+                          <DraggableWrapper
+                            id="split-card"
+                            label="Panel Inferior"
+                            isFreeMode={isFreeMode}
+                            offset={currentSlide.offsets?.["split-card"]}
+                            onOffsetChange={handleOffsetChange}
+                            isExporting={isExporting}
+                            isSelected={selectedElement === "brand"}
+                            onSelect={() => setSelectedElement("brand")}
+                            className="w-full h-[52%] pointer-events-auto"
                           >
+                            <div
+                              style={{ borderTopColor: accentColor }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedElement("brand");
+                              }}
+                              className="h-full w-full bg-slate-950/95 border-t-4 backdrop-blur-md"
+                            />
+                          </DraggableWrapper>
+                        </div>
+
+                        {/* Capa z-20: Contenidos de Split Focus */}
+                        <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end">
+                          <div className="w-full h-[52%] p-5 flex flex-col justify-between">
                             <div>
                               <DraggableWrapper
                                 id="split-tag"
@@ -2019,7 +2114,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "tag"}
                                 onSelect={() => setSelectedElement("tag")}
-                                className="inline-block mb-2"
+                                className="inline-block mb-2 pointer-events-auto"
                               >
                                 <span
                                   style={{ backgroundColor: accentColor }}
@@ -2046,6 +2141,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "title"}
                                 onSelect={() => setSelectedElement("title")}
+                                className="pointer-events-auto"
                               >
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight`}>
                                   <InlineEditableText
@@ -2071,6 +2167,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "subtitle"}
                                 onSelect={() => setSelectedElement("subtitle")}
+                                className="pointer-events-auto"
                               >
                                 <p className="text-xs text-slate-300 mt-2 font-normal line-clamp-3">
                                   <InlineEditableText
@@ -2097,7 +2194,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-400"
+                              className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 pointer-events-auto"
                             >
                               <span className="font-bold text-white">
                                 <InlineEditableText
@@ -2117,34 +2214,42 @@ export default function VisualEditorModal({
                               )}
                             </DraggableWrapper>
                           </div>
-                        </DraggableWrapper>
-                      </div>
+                        </div>
+                      </>
                     )}
 
                     {/* PLANTILLA 5: MÉTRICA DE ALTO IMPACTO */}
                     {selectedTemplate === "big_metric" && (
-                      <div className="relative z-10 w-full h-full flex flex-col justify-center p-6 text-center">
-                        <DraggableWrapper
-                          id="metric-card"
-                          label="Panel Métrica"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["metric-card"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "brand"}
-                          onSelect={() => setSelectedElement("brand")}
-                          className="w-full h-full"
-                        >
-                          <div
-                            style={{
-                              backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedElement("brand");
-                            }}
-                            className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center"
+                      <>
+                        {/* Capa z-10: Fondo Tarjeta Métrica */}
+                        <div className="absolute inset-0 z-10 pointer-events-none p-6">
+                          <DraggableWrapper
+                            id="metric-card"
+                            label="Fondo Métrica"
+                            isFreeMode={isFreeMode}
+                            offset={currentSlide.offsets?.["metric-card"]}
+                            onOffsetChange={handleOffsetChange}
+                            isExporting={isExporting}
+                            isSelected={selectedElement === "brand"}
+                            onSelect={() => setSelectedElement("brand")}
+                            className="w-full h-full pointer-events-auto"
                           >
+                            <div
+                              style={{
+                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedElement("brand");
+                              }}
+                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                            />
+                          </DraggableWrapper>
+                        </div>
+
+                        {/* Capa z-20: Contenidos de Métrica */}
+                        <div className="absolute inset-0 z-20 pointer-events-none p-6 text-center">
+                          <div className="w-full h-full p-6 flex flex-col justify-between items-center">
                             <DraggableWrapper
                               id="metric-tag"
                               label="Etiqueta"
@@ -2154,6 +2259,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "tag"}
                               onSelect={() => setSelectedElement("tag")}
+                              className="pointer-events-auto"
                             >
                               <span
                                 style={{ borderColor: accentColor, color: accentColor }}
@@ -2181,6 +2287,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "metric"}
                                 onSelect={() => setSelectedElement("metric")}
+                                className="pointer-events-auto"
                               >
                                 <div
                                   style={{ color: accentColor }}
@@ -2211,6 +2318,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 isSelected={selectedElement === "title"}
                                 onSelect={() => setSelectedElement("title")}
+                                className="pointer-events-auto"
                               >
                                 <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white mt-3`}>
                                   <InlineEditableText
@@ -2250,7 +2358,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="text-xs text-gray-400 font-mono"
+                              className="text-xs text-gray-400 font-mono pointer-events-auto"
                             >
                               <InlineEditableText
                                 elementKey="author-name"
@@ -2275,34 +2383,42 @@ export default function VisualEditorModal({
                               </span>
                             </DraggableWrapper>
                           </div>
-                        </DraggableWrapper>
-                      </div>
+                        </div>
+                      </>
                     )}
                   </>
                 ) : (
                   /* B) LÁMINAS INTERMEDIAS (PROBLEMA, SOLUCIÓN, CTA) */
-                  <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
-                    <DraggableWrapper
-                      id="inter-card"
-                      label="Tarjeta de Contenido"
-                      isFreeMode={isFreeMode}
-                      offset={currentSlide.offsets?.["inter-card"]}
-                      onOffsetChange={handleOffsetChange}
-                      isExporting={isExporting}
-                      isSelected={selectedElement === "brand"}
-                      onSelect={() => setSelectedElement("brand")}
-                      className="w-full h-full"
-                    >
-                      <div
-                        style={{
-                          backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedElement("brand");
-                        }}
-                        className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between"
+                  <>
+                    {/* Capa z-10: Fondo Tarjeta Intermedia */}
+                    <div className="absolute inset-0 z-10 pointer-events-none p-6">
+                      <DraggableWrapper
+                        id="inter-card"
+                        label="Fondo Tarjeta"
+                        isFreeMode={isFreeMode}
+                        offset={currentSlide.offsets?.["inter-card"]}
+                        onOffsetChange={handleOffsetChange}
+                        isExporting={isExporting}
+                        isSelected={selectedElement === "brand"}
+                        onSelect={() => setSelectedElement("brand")}
+                        className="w-full h-full pointer-events-auto"
                       >
+                        <div
+                          style={{
+                            backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                        />
+                      </DraggableWrapper>
+                    </div>
+
+                    {/* Capa z-20: Contenidos de la Lámina Intermedia */}
+                    <div className="absolute inset-0 z-20 pointer-events-none p-6">
+                      <div className="w-full h-full p-6 flex flex-col justify-between">
                         {/* Cabecera de la lámina */}
                         <div>
                           <DraggableWrapper
@@ -2314,7 +2430,7 @@ export default function VisualEditorModal({
                             isExporting={isExporting}
                             isSelected={selectedElement === "tag"}
                             onSelect={() => setSelectedElement("tag")}
-                            className="inline-block mb-2.5"
+                            className="inline-block mb-2.5 pointer-events-auto"
                           >
                             <span
                               style={{ borderColor: accentColor, color: accentColor }}
@@ -2341,6 +2457,7 @@ export default function VisualEditorModal({
                             isExporting={isExporting}
                             isSelected={selectedElement === "title"}
                             onSelect={() => setSelectedElement("title")}
+                            className="pointer-events-auto"
                           >
                             <h2 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
                               <InlineEditableText
@@ -2380,7 +2497,7 @@ export default function VisualEditorModal({
                             offset={currentSlide.offsets?.["inter-bullets"]}
                             onOffsetChange={handleOffsetChange}
                             isExporting={isExporting}
-                            className="my-auto space-y-2.5"
+                            className="my-auto space-y-2.5 pointer-events-auto"
                           >
                             {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((bullet, idx) => (
                               <div key={idx} className="flex items-start gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
@@ -2420,7 +2537,7 @@ export default function VisualEditorModal({
                             offset={currentSlide.offsets?.["inter-cta"]}
                             onOffsetChange={handleOffsetChange}
                             isExporting={isExporting}
-                            className="my-auto p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-3"
+                            className="my-auto p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-3 pointer-events-auto"
                           >
                             <p className="text-xs text-slate-200 font-medium">
                               Comenta abajo para enviarte el activo completo por mensaje directo:
@@ -2454,7 +2571,7 @@ export default function VisualEditorModal({
                           isExporting={isExporting}
                           isSelected={selectedElement === "author-name"}
                           onSelect={() => setSelectedElement("author-name")}
-                          className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400"
+                          className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 pointer-events-auto"
                         >
                           <span className="font-bold text-white">
                             <InlineEditableText
@@ -2472,8 +2589,8 @@ export default function VisualEditorModal({
                           </span>
                         </DraggableWrapper>
                       </div>
-                    </DraggableWrapper>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
