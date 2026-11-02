@@ -448,6 +448,12 @@ export default function VisualEditorModal({
     import("fabric").then((fabric) => {
       if (!isMounted || !canvasElRef.current) return;
 
+      // Forzar origen estándar top-left para todas las geometrías en Fabric v7
+      if (fabric.FabricObject && fabric.FabricObject.ownDefaults) {
+        fabric.FabricObject.ownDefaults.originX = "left";
+        fabric.FabricObject.ownDefaults.originY = "top";
+      }
+
       if (fabricCanvasRef.current) {
         try {
           fabricCanvasRef.current.dispose();
@@ -497,6 +503,10 @@ export default function VisualEditorModal({
       const currentTemplate = templateToUse || selectedTemplate;
       const currentBgUrl = bgUrlToUse || selectedBgUrl;
       const fabric = fabricModule || (await import("fabric"));
+      if (fabric.FabricObject && fabric.FabricObject.ownDefaults) {
+        fabric.FabricObject.ownDefaults.originX = "left";
+        fabric.FabricObject.ownDefaults.originY = "top";
+      }
       setIsRendering(true);
 
       canvas.clear();
@@ -627,6 +637,8 @@ export default function VisualEditorModal({
             top: 0,
             width: currentW,
             height: currentH,
+            originX: "left",
+            originY: "top",
             fill: "rgba(5, 8, 16, 0.35)",
             selectable: false,
             evented: false,
@@ -752,6 +764,36 @@ export default function VisualEditorModal({
           // --- PLANTILLA 2: CITA DE AUTORIDAD (Comillas grandes + Enfoque centrado)
           // ========================================================
           else if (currentTemplate === "authority_quote") {
+            // FONDO OSCURO TRANSPARENTE 100% EDITABLE PARA CITA (debe añadirse primero como fondo)
+            const quoteOverlay = new fabric.Rect({
+              name: "darkOverlay",
+              left: 50,
+              top: 80,
+              width: currentW - 100,
+              height: currentH - 160,
+              rx: 24,
+              ry: 24,
+              fill: "#090d18",
+              opacity: overlayOpacity,
+              stroke: "rgba(255, 255, 255, 0.12)",
+              strokeWidth: 1.5,
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.65)",
+                blur: 30,
+                offsetX: 0,
+                offsetY: 8,
+              }),
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
+            });
+            canvas.add(quoteOverlay);
+
             // Tag superior centrado
             const quoteTag = new fabric.Rect({
               left: currentW / 2 - 130,
@@ -795,7 +837,7 @@ export default function VisualEditorModal({
             // Texto de la Cita (Titular)
             const quoteStatement = new fabric.Textbox(`"${slideItem.title}"`, {
               left: 90,
-              top: 320,
+              top: 300,
               width: currentW - 180,
               fontSize: 48,
               lineHeight: 1.25,
@@ -816,7 +858,7 @@ export default function VisualEditorModal({
             // Subtítulo centrado
             const quoteSub = new fabric.Textbox(slideItem.subtitle, {
               left: 120,
-              top: 600,
+              top: 540,
               width: currentW - 240,
               fontSize: 26,
               lineHeight: 1.4,
@@ -826,41 +868,11 @@ export default function VisualEditorModal({
             });
             canvas.add(quoteSub);
 
-            // FONDO OSCURO TRANSPARENTE 100% EDITABLE PARA CITA
-            const quoteOverlay = new fabric.Rect({
-              name: "darkOverlay",
-              left: 50,
-              top: 100,
-              width: currentW - 100,
-              height: currentH - 200,
-              rx: 24,
-              ry: 24,
-              fill: "#090d18",
-              opacity: overlayOpacity,
-              stroke: "rgba(255, 255, 255, 0.12)",
-              strokeWidth: 1.5,
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.65)",
-                blur: 30,
-                offsetX: 0,
-                offsetY: 8,
-              }),
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(quoteOverlay);
-
             // Bloque de Autor Centrado en forma de Tarjeta
             const authorCardW = 420;
             const authorCard = new fabric.Rect({
               left: currentW / 2 - authorCardW / 2,
-              top: currentH - 240,
+              top: currentH - 220,
               width: authorCardW,
               height: 84,
               rx: 42,
@@ -873,7 +885,7 @@ export default function VisualEditorModal({
             });
             const avatarCircle = new fabric.Circle({
               left: currentW / 2 - authorCardW / 2 + 16,
-              top: currentH - 224,
+              top: currentH - 204,
               radius: 26,
               fill: accentColor,
               selectable: true,
@@ -883,7 +895,7 @@ export default function VisualEditorModal({
               (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
               {
                 left: currentW / 2 - authorCardW / 2 + 16,
-                top: currentH - 210,
+                top: currentH - 190,
                 width: 52,
                 fontSize: 20,
                 fontWeight: "bold",
@@ -896,7 +908,7 @@ export default function VisualEditorModal({
             );
             const authName = new fabric.Textbox(nameText, {
               left: currentW / 2 - authorCardW / 2 + 82,
-              top: currentH - 223,
+              top: currentH - 203,
               width: 300,
               fontSize: 20,
               fontWeight: "bold",
@@ -907,7 +919,7 @@ export default function VisualEditorModal({
             });
             const authHandle = new fabric.Textbox(handleText, {
               left: currentW / 2 - authorCardW / 2 + 82,
-              top: currentH - 195,
+              top: currentH - 175,
               width: 300,
               fontSize: 16,
               fill: accentColor,
@@ -1083,7 +1095,7 @@ export default function VisualEditorModal({
             // Barra Social Inferior
             const divider = new fabric.Rect({
               left: 110,
-              top: cardH + 15,
+              top: 110 + cardH - 80,
               width: cardW - 80,
               height: 1,
               fill: "rgba(255, 255, 255, 0.12)",
@@ -1092,7 +1104,7 @@ export default function VisualEditorModal({
               "❤️ 1,428 me gusta    💬 189 comentarios    🔁 54 compartidos",
               {
                 left: 110,
-                top: cardH + 30,
+                top: 110 + cardH - 62,
                 width: cardW - 80,
                 fontSize: 18,
                 fontWeight: "600",
@@ -1185,9 +1197,9 @@ export default function VisualEditorModal({
             const metricOverlay = new fabric.Rect({
               name: "darkOverlay",
               left: 50,
-              top: 80,
+              top: 70,
               width: currentW - 100,
-              height: currentH - 160,
+              height: currentH - 170,
               rx: 28,
               ry: 28,
               fill: "#090d18",
@@ -1213,7 +1225,7 @@ export default function VisualEditorModal({
 
             const metricTag = new fabric.Rect({
               left: currentW / 2 - 170,
-              top: 100,
+              top: 95,
               width: 340,
               height: 38,
               rx: 19,
@@ -1226,7 +1238,7 @@ export default function VisualEditorModal({
             });
             const metricTagText = new fabric.Textbox((slideItem.tag || "MÉTRICA VALIDADA").toUpperCase(), {
               left: currentW / 2 - 170,
-              top: 109,
+              top: 104,
               width: 340,
               fontSize: 15,
               fontWeight: "bold",
@@ -1241,9 +1253,9 @@ export default function VisualEditorModal({
             // Gran Número de Métrica
             const metricObj = new fabric.Textbox(initialMetric || "+340%", {
               left: 60,
-              top: 160,
+              top: 155,
               width: currentW - 120,
-              fontSize: 140,
+              fontSize: 130,
               fontWeight: "900",
               textAlign: "center",
               fill: accentColor,
@@ -1262,7 +1274,7 @@ export default function VisualEditorModal({
             // Sub-etiqueta de métrica
             const metricSubLabel = new fabric.Textbox("INCREMENTO COMPROBADO EN CONVERSIONES B2B", {
               left: 80,
-              top: 330,
+              top: 310,
               width: currentW - 160,
               fontSize: 18,
               fontWeight: "bold",
@@ -1277,9 +1289,9 @@ export default function VisualEditorModal({
             // Titular explicativo
             const metricTitle = new fabric.Textbox(slideItem.title, {
               left: 80,
-              top: 410,
+              top: 380,
               width: currentW - 160,
-              fontSize: 48,
+              fontSize: 46,
               lineHeight: 1.2,
               fontWeight: "bold",
               textAlign: "center",
@@ -1293,7 +1305,7 @@ export default function VisualEditorModal({
             // Subtítulo
             const metricSub = new fabric.Textbox(slideItem.subtitle, {
               left: 100,
-              top: 610,
+              top: 550,
               width: currentW - 200,
               fontSize: 26,
               lineHeight: 1.4,
@@ -1495,8 +1507,8 @@ export default function VisualEditorModal({
           canvas.add(ctaCard, ctaTag, ctaTitle, ctaSub, keywordBox, keywordText);
         }
 
-        // 3. PIE DE AUTOR COMÚN (Para plantillas distintas a authority_quote)
-        if (currentTemplate !== "authority_quote" || slideItem.type !== "cover") {
+        // 3. PIE DE AUTOR COMÚN (Para plantillas con autor al pie, excluyendo authority_quote y social_card en portada)
+        if ((currentTemplate !== "authority_quote" && currentTemplate !== "social_card") || slideItem.type !== "cover") {
           const authorLine = new fabric.Rect({
             left: 70,
             top: currentH - 75,
