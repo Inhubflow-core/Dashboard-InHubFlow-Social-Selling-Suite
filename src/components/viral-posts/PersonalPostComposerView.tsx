@@ -666,18 +666,27 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
           >
             <div className="rounded-xl border border-gray-300 bg-white shadow-xs dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
               {/* Header de LinkedIn */}
-              <div className="p-4 flex items-center gap-3">
-                <div className="size-11 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center font-bold text-base shrink-0 border border-brand-500/30">
+              <div suppressHydrationWarning className="p-4 flex items-center gap-3">
+                <div
+                  suppressHydrationWarning
+                  className="size-11 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center font-bold text-base shrink-0 border border-brand-500/30"
+                >
                   {currentUser.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                    <p
+                      suppressHydrationWarning
+                      className="text-xs font-bold text-gray-900 dark:text-white truncate"
+                    >
                       {activeAccount?.name || currentUser.name}
                     </p>
                     <span className="text-[10px] text-gray-400">• 1º</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                  <p
+                    suppressHydrationWarning
+                    className="text-[11px] text-gray-500 dark:text-gray-400 truncate"
+                  >
                     {activeAccount?.headline || "Líder B2B • Social Selling & Automatización de Demanda"}
                   </p>
                   <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
