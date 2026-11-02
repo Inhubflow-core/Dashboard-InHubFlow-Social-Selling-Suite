@@ -312,12 +312,18 @@ export default function VisualEditorModal({
   // Estado del objeto seleccionado en el lienzo (Punto 2: Barra Flotante Contextual)
   const [selectedObjectInfo, setSelectedObjectInfo] = useState<{
     isText: boolean;
+    isShape: boolean;
+    name?: string;
     fontFamily: string;
     fontSize: number;
     fontWeight: string;
     fontStyle: string;
     textAlign: string;
     fill: string;
+    opacity: number;
+    rx: number;
+    stroke: string;
+    strokeWidth: number;
     underline: boolean;
     hasHighlight: boolean;
   } | null>(null);
@@ -363,27 +369,41 @@ export default function VisualEditorModal({
       }
 
       const isText = active.type === "textbox" || active.type === "i-text" || active.text !== undefined;
+      const isShape = active.type === "rect" || active.type === "circle" || active.name === "darkOverlay";
+
       if (isText) {
         setSelectedObjectInfo({
           isText: true,
+          isShape: false,
+          name: active.name,
           fontFamily: active.fontFamily || "Outfit",
           fontSize: Math.round(active.fontSize || 40),
           fontWeight: active.fontWeight || "normal",
           fontStyle: active.fontStyle || "normal",
           textAlign: active.textAlign || "left",
           fill: typeof active.fill === "string" ? active.fill : "#ffffff",
+          opacity: typeof active.opacity === "number" ? active.opacity : 1,
+          rx: 0,
+          stroke: typeof active.stroke === "string" ? active.stroke : "",
+          strokeWidth: active.strokeWidth || 0,
           underline: Boolean(active.underline),
           hasHighlight: Boolean(active.backgroundColor && active.backgroundColor !== ""),
         });
       } else {
         setSelectedObjectInfo({
           isText: false,
+          isShape: isShape,
+          name: active.name,
           fontFamily: "",
           fontSize: 0,
           fontWeight: "normal",
           fontStyle: "normal",
           textAlign: "left",
-          fill: typeof active.fill === "string" ? active.fill : "#ffffff",
+          fill: typeof active.fill === "string" ? active.fill : "#0a0f1d",
+          opacity: typeof active.opacity === "number" ? active.opacity : 0.82,
+          rx: active.rx || 0,
+          stroke: typeof active.stroke === "string" ? active.stroke : "",
+          strokeWidth: active.strokeWidth || 0,
           underline: false,
           hasHighlight: false,
         });
@@ -529,10 +549,10 @@ export default function VisualEditorModal({
             img.set({
               scaleX: scale,
               scaleY: scale,
-              originX: "center",
-              originY: "center",
-              left: currentW / 2,
-              top: currentH / 2,
+              originX: "left",
+              originY: "top",
+              left: (currentW - imgW * scale) / 2,
+              top: (currentH - imgH * scale) / 2,
               selectable: false,
               evented: false,
             });
@@ -541,39 +561,61 @@ export default function VisualEditorModal({
             console.warn("Fondo fallback:", err);
           }
 
-          // Capa de degradé de alto contraste personalizada según plantilla
-          const topAlpha = currentTemplate === "authority_quote" ? 0.85 : 0.35;
-          const bottomAlpha = currentTemplate === "authority_quote" ? 0.95 : Math.min(1, overlayOpacity + 0.15);
-
-          const gradientRect = new fabric.Rect({
+          // Filtro ambiental sutil de contraste para legibilidad
+          const ambientDimmer = new fabric.Rect({
             left: 0,
             top: 0,
             width: currentW,
             height: currentH,
+            fill: "rgba(5, 8, 16, 0.35)",
             selectable: false,
             evented: false,
-            fill: new fabric.Gradient({
-              type: "linear",
-              coords: { x1: 0, y1: 0, x2: 0, y2: currentH },
-              colorStops: [
-                { offset: 0, color: `rgba(5, 10, 20, ${topAlpha})` },
-                { offset: 0.5, color: `rgba(5, 10, 20, ${overlayOpacity})` },
-                { offset: 1, color: `rgba(5, 10, 20, ${bottomAlpha})` },
-              ],
-            }),
           });
-          canvas.add(gradientRect);
+          canvas.add(ambientDimmer);
         }
 
         // 2. RENDERIZADO POR TIPO DE DIAPOSITIVA Y ESTILO DE PLANTILLA
         if (slideItem.type === "cover") {
           // ========================================================
-          // --- PLANTILLA 1: CINEMATIC EDITORIAL (Degradé envolvente + Titular B2B)
+          // --- PLANTILLA 1: CINEMATIC EDITORIAL (Fondo oscuro transparente editable + Titular B2B)
           // ========================================================
           if (currentTemplate === "editorial") {
+            const darkCardY = currentH - 680;
+            const darkCardH = 580;
+
+            // FONDO OSCURO TRANSPARENTE 100% EDITABLE
+            const overlayCard = new fabric.Rect({
+              name: "darkOverlay",
+              left: 50,
+              top: darkCardY,
+              width: currentW - 100,
+              height: darkCardH,
+              rx: 24,
+              ry: 24,
+              fill: "#090d18",
+              opacity: overlayOpacity,
+              stroke: "rgba(255, 255, 255, 0.14)",
+              strokeWidth: 1.5,
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.65)",
+                blur: 30,
+                offsetX: 0,
+                offsetY: 8,
+              }),
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
+            });
+            canvas.add(overlayCard);
+
             const tagBg = new fabric.Rect({
               left: 80,
-              top: currentH - 560,
+              top: darkCardY + 45,
               rx: 8,
               ry: 8,
               fill: accentColor,
@@ -583,7 +625,7 @@ export default function VisualEditorModal({
             });
             const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
               left: 96,
-              top: currentH - 551,
+              top: darkCardY + 54,
               fontSize: 18,
               fontWeight: "bold",
               fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
@@ -594,10 +636,10 @@ export default function VisualEditorModal({
 
             const titleObj = new fabric.Textbox(slideItem.title, {
               left: 80,
-              top: currentH - 490,
+              top: darkCardY + 110,
               width: currentW - 160,
-              fontSize: 54,
-              lineHeight: 1.15,
+              fontSize: 52,
+              lineHeight: 1.18,
               fontWeight: "bold",
               fill: "#ffffff",
               fontFamily: "Outfit, sans-serif",
@@ -612,7 +654,7 @@ export default function VisualEditorModal({
 
             const subObj = new fabric.Textbox(slideItem.subtitle, {
               left: 80,
-              top: currentH - 240,
+              top: darkCardY + 340,
               width: currentW - 160,
               fontSize: 26,
               lineHeight: 1.35,
@@ -623,11 +665,29 @@ export default function VisualEditorModal({
 
             if (editorMode === "carousel") {
               const swipeBadge = new fabric.Rect({
-                left: currentW - 260,
-                top: currentH - 120,
+                left: currentW - 270,
+                top: darkCardY + darkCardH - 75,
                 width: 180,
                 height: 44,
                 rx: 22,
+                ry: 22,
+                fill: "rgba(255, 255, 255, 0.12)",
+                stroke: accentColor,
+                strokeWidth: 2,
+                selectable: true,
+              });
+              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
+                left: currentW - 245,
+                top: darkCardY + darkCardH - 64,
+                fontSize: 18,
+                fontWeight: "bold",
+                fill: accentColor,
+                fontFamily: "Inter, sans-serif",
+                selectable: true,
+              });
+              canvas.add(swipeBadge, swipeText);
+            }
+          }
                 ry: 22,
                 fill: "rgba(255, 255, 255, 0.12)",
                 stroke: accentColor,
@@ -1387,6 +1447,60 @@ export default function VisualEditorModal({
     setSelectedObjectInfo((prev: any) => (prev ? { ...prev, [property]: value } : null));
   };
 
+  const applyShapeProperty = (property: string, value: any) => {
+    const canvas = fabricCanvasRef.current;
+    const active = canvas?.getActiveObject();
+    if (!active) return;
+
+    active.set({ [property]: value });
+    if (property === "rx") {
+      active.set({ ry: value });
+    }
+    canvas.requestRenderAll();
+
+    setSelectedObjectInfo((prev: any) => (prev ? { ...prev, [property]: value } : null));
+  };
+
+  const handleSetOverlayMode = (mode: "fullscreen" | "card") => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    let target = canvas.getActiveObject();
+    if (!target || target.type !== "rect") {
+      target = canvas.getObjects().find((o: any) => o.name === "darkOverlay" || (o.type === "rect" && !o.text));
+    }
+    if (!target) return;
+
+    const currentW = canvas.width || canvasWidth;
+    const currentH = canvas.height || canvasHeight;
+
+    if (mode === "fullscreen") {
+      target.set({
+        left: 0,
+        top: 0,
+        width: currentW,
+        height: currentH,
+        rx: 0,
+        ry: 0,
+      });
+    } else {
+      target.set({
+        left: 60,
+        top: currentH - 680,
+        width: currentW - 120,
+        height: 580,
+        rx: 24,
+        ry: 24,
+      });
+    }
+    target.setCoords();
+    canvas.setActiveObject(target);
+    canvas.requestRenderAll();
+    setSelectedObjectInfo((prev: any) =>
+      prev ? { ...prev, rx: mode === "fullscreen" ? 0 : 24 } : null
+    );
+  };
+
   const handleDuplicateSelected = () => {
     const canvas = fabricCanvasRef.current;
     const active = canvas?.getActiveObject();
@@ -2057,23 +2171,45 @@ export default function VisualEditorModal({
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  {/* Control del Fondo Oscuro Transparente */}
+                  <div className="p-3 rounded-xl border border-gray-800 bg-gray-900/60 space-y-2.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300 font-semibold uppercase">Opacidad de Sombra</span>
-                      <span className="text-brand-400 font-mono">{Math.round(overlayOpacity * 100)}%</span>
+                      <span className="text-gray-300 font-semibold uppercase flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-brand-400"></span>
+                        Fondo Oscuro Transparente
+                      </span>
+                      <span className="text-brand-400 font-mono font-bold">{Math.round(overlayOpacity * 100)}%</span>
                     </div>
                     <input
                       type="range"
-                      min={0.3}
+                      min={0.1}
                       max={0.95}
                       step={0.05}
                       value={overlayOpacity}
                       onChange={(e) => {
-                        setOverlayOpacity(parseFloat(e.target.value));
-                        renderSlideOnCanvas(slides[currentSlideIndex]);
+                        const val = parseFloat(e.target.value);
+                        setOverlayOpacity(val);
+                        applyShapeProperty("opacity", val);
                       }}
-                      className="w-full accent-brand-500"
+                      className="w-full accent-brand-500 cursor-pointer"
+                      title="Regular nivel de opacidad y transparencia del fondo"
                     />
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleSetOverlayMode("card")}
+                        className="px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                      >
+                        Modo Tarjeta
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetOverlayMode("fullscreen")}
+                        className="px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                      >
+                        Pantalla Completa
+                      </button>
+                    </div>
                   </div>
 
                   <div className="pt-2 border-t border-gray-800 space-y-2">
@@ -2311,25 +2447,132 @@ export default function VisualEditorModal({
                   </div>
                 </div>
               ) : selectedObjectInfo ? (
-                /* Controles cuando hay una Forma u Objeto General */
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Elemento Gráfico Seleccionado</span>
-                  <button
-                    type="button"
-                    onClick={handleDuplicateSelected}
-                    className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800"
-                    title="Duplicar"
-                  >
-                    <Copy className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelected}
-                    className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
+                /* Controles cuando hay una Forma o Fondo Oscuro Seleccionado (Punto Canva: Fondo Editable) */
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-brand-400 flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-brand-400"></span>
+                    Fondo Oscuro / Tarjeta:
+                  </span>
+
+                  {/* Color de Fondo */}
+                  <div className="flex items-center gap-1.5 pl-1" title="Color del Fondo">
+                    <span className="text-[11px] text-gray-400">Color:</span>
+                    <input
+                      type="color"
+                      value={selectedObjectInfo.fill && selectedObjectInfo.fill.startsWith("#") ? selectedObjectInfo.fill : "#090d18"}
+                      onChange={(e) => applyShapeProperty("fill", e.target.value)}
+                      className="size-6 rounded-md border border-gray-700 bg-transparent cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Slider de Opacidad / Transparencia */}
+                  <div className="flex items-center gap-1.5 pl-2 border-l border-gray-800">
+                    <span className="text-[11px] text-gray-400">Opacidad:</span>
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={1}
+                      step={0.05}
+                      value={selectedObjectInfo.opacity}
+                      onChange={(e) => applyShapeProperty("opacity", parseFloat(e.target.value))}
+                      className="w-20 accent-brand-500 cursor-pointer"
+                      title="Nivel de transparencia del fondo"
+                    />
+                    <span className="text-xs font-mono text-brand-400 font-bold min-w-[32px]">
+                      {Math.round(selectedObjectInfo.opacity * 100)}%
+                    </span>
+                  </div>
+
+                  {/* Curvatura de Bordes (0px, 16px, 24px) */}
+                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
+                    <span className="text-[11px] text-gray-400">Bordes:</span>
+                    <button
+                      type="button"
+                      onClick={() => applyShapeProperty("rx", 0)}
+                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
+                        selectedObjectInfo.rx === 0 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      }`}
+                      title="Bordes Rectos (0px)"
+                    >
+                      0px
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyShapeProperty("rx", 16)}
+                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
+                        selectedObjectInfo.rx === 16 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      }`}
+                      title="Bordes Suaves (16px)"
+                    >
+                      16px
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyShapeProperty("rx", 24)}
+                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
+                        selectedObjectInfo.rx === 24 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      }`}
+                      title="Bordes Redondeados (24px)"
+                    >
+                      24px
+                    </button>
+                  </div>
+
+                  {/* Modos Rápidos de Tamaño: Tarjeta vs Pantalla Completa */}
+                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
+                    <button
+                      type="button"
+                      onClick={() => handleSetOverlayMode("fullscreen")}
+                      className="px-2 py-1 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                      title="Extender fondo a pantalla completa"
+                    >
+                      Pantalla Completa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetOverlayMode("card")}
+                      className="px-2 py-1 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                      title="Formato Tarjeta Flotante"
+                    >
+                      Modo Tarjeta
+                    </button>
+                  </div>
+
+                  {/* Capas, Duplicar y Eliminar */}
+                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
+                    <button
+                      type="button"
+                      onClick={handleBringForward}
+                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+                      title="Traer al frente"
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendBackward}
+                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+                      title="Enviar atrás"
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDuplicateSelected}
+                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+                      title="Duplicar"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Barra de estado en reposo */
@@ -2337,7 +2580,7 @@ export default function VisualEditorModal({
                   <div className="flex items-center gap-2">
                     <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>
-                      Modo Canva Activo: Selecciona cualquier texto o elemento para editar tipografía, tamaño y colores.
+                      Modo Canva Activo: Haz clic en el fondo oscuro, textos o elementos para editarlos libremente.
                     </span>
                   </div>
                   <span className="text-gray-500 text-[11px]">
@@ -2359,10 +2602,13 @@ export default function VisualEditorModal({
               >
                 <div
                   style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
                     width: `${canvasWidth}px`,
                     height: `${canvasHeight}px`,
                     transform: `scale(${previewScale})`,
-                    transformOrigin: "top left",
+                    transformOrigin: "0 0",
                   }}
                 >
                   <canvas ref={canvasElRef} />
