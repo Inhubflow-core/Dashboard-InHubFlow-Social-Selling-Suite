@@ -11,26 +11,22 @@ import {
   Palette,
   Layers,
   FileDown,
-  RefreshCw,
   Upload,
   User,
   Plus,
   Trash2,
   Copy,
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  ArrowUp,
-  ArrowDown,
-  Highlighter,
-  Sliders,
   Search,
-  Bot,
-  Maximize2
+  Sliders,
+  CheckCircle2,
+  Quote,
+  TrendingUp,
+  ArrowRight,
+  Heart,
+  MessageCircle,
+  Repeat2
 } from "lucide-react";
+import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
 export type TemplateId =
@@ -53,8 +49,7 @@ export interface CarouselSlideItem {
   tag: string;
   bullets?: string[];
   ctaKeyword?: string;
-  canvasData?: any;
-  thumbnailData?: string;
+  metric?: string;
 }
 
 export interface VisualEditorModalProps {
@@ -70,17 +65,14 @@ export interface VisualEditorModalProps {
   onApplyImage?: (dataUrl: string) => void;
 }
 
-// Tipografías modernas disponibles en el editor estilo Canva
+// Tipografías modernas disponibles
 const AVAILABLE_FONTS = [
-  { name: "Outfit", label: "Outfit (Moderna B2B)" },
-  { name: "Inter", label: "Inter (Tech Minimalista)" },
-  { name: "Montserrat", label: "Montserrat (Impacto Bold)" },
-  { name: "Playfair Display", label: "Playfair (Elegante Editorial)" },
-  { name: "Bebas Neue", label: "Bebas Neue (Titular Gigante)" },
-  { name: "Georgia", label: "Georgia (Cita Clásica)" },
+  { name: "Outfit, sans-serif", label: "Outfit (Moderna B2B)" },
+  { name: "Inter, sans-serif", label: "Inter (Tech Minimalista)" },
+  { name: "Montserrat, sans-serif", label: "Montserrat (Impacto Bold)" },
+  { name: "Georgia, serif", label: "Georgia (Cita de Autoridad)" },
 ];
 
-// Interfaz de foto curada con etiquetas de búsqueda
 export interface UnsplashPhotoItem {
   id: string;
   name: string;
@@ -89,128 +81,66 @@ export interface UnsplashPhotoItem {
   url: string;
 }
 
-// Catálogo ampliado y categorizado de fotos de alta resolución de Unsplash
+// Catálogo curado de fondos de alta resolución
 const CURATED_BACKGROUNDS: UnsplashPhotoItem[] = [
-  // Oficina & Juntas
   {
     id: "executive_office",
     name: "Oficina Ejecutiva",
-    tags: ["oficina", "oficinas", "reunion", "reunión", "boardroom", "corporativo", "ejecutivo", "moderno"],
+    tags: ["oficina", "reunión", "corporativo", "ejecutivo", "moderno"],
     thumb: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "glass_meeting_room",
     name: "Sala de Juntas de Cristal",
-    tags: ["oficina", "sala", "cristal", "reunion", "reunión", "equipo", "estrategia"],
+    tags: ["oficina", "sala", "cristal", "estrategia"],
     thumb: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "dark_modern_lounge",
     name: "Lounge Corporativo Dark",
-    tags: ["oficina", "lounge", "dark", "elegante", "lujo", "arquitectura"],
+    tags: ["oficina", "dark", "elegante", "lujo"],
     thumb: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=85",
   },
-  // Laptops, Datos & Dashboards
   {
     id: "tech_desk",
     name: "Setup Tecnológico Pro",
-    tags: ["laptop", "computadora", "tech", "datos", "escritorio", "pantallas"],
+    tags: ["laptop", "computadora", "tech", "datos"],
     thumb: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "analytics_charts",
     name: "Gráficos & Crecimiento",
-    tags: ["datos", "charts", "analytics", "graficos", "ventas", "crecimiento", "metricas", "métricas", "saas"],
+    tags: ["datos", "charts", "analytics", "saas"],
     thumb: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=85",
   },
   {
-    id: "coding_screens",
-    name: "Pantallas de Código & IA",
-    tags: ["tech", "ia", "codigo", "código", "desarrollo", "software", "pantallas", "futuro"],
-    thumb: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=85",
-  },
-  // Ciudad, Rascacielos & Arquitectura
-  {
     id: "architecture_clean",
     name: "Rascacielos & Vidrio",
-    tags: ["ciudad", "rascacielos", "edificios", "arquitectura", "finanzas", "b2b", "moderno"],
+    tags: ["ciudad", "rascacielos", "finanzas", "b2b"],
     thumb: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85",
   },
   {
-    id: "skyline_night",
-    name: "Skyline Nocturno",
-    tags: ["ciudad", "noche", "skyline", "luces", "rascacielos", "metropolis", "vision"],
-    thumb: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: "urban_minimal_geometric",
-    name: "Geometría Urbana",
-    tags: ["ciudad", "arquitectura", "minimal", "concreto", "lineas", "diseño"],
-    thumb: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=85",
-  },
-  // Gradientes, 3D & Dark Luxury
-  {
     id: "dark_gradient_ambient",
     name: "Gradiente Corporativo Azul",
-    tags: ["gradiente", "degradé", "dark", "azul", "abstracto", "fondo", "minimalista"],
+    tags: ["gradiente", "degradé", "dark", "azul"],
     thumb: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=85",
   },
   {
-    id: "abstract_3d",
-    name: "Ondas 3D Noir",
-    tags: ["3d", "abstracto", "ondas", "oscuro", "noir", "textura", "futuro"],
-    thumb: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: "cyber_neon_dark",
-    name: "Ambiente Cyber Dark",
-    tags: ["cyber", "neon", "oscuro", "tecnologia", "tecnología", "redes", "abstracto"],
-    thumb: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85",
-  },
-  // Equipo & Negociación B2B
-  {
     id: "team_brainstorm",
-    name: "Equipo en Sesión Estratégica",
-    tags: ["equipo", "brainstorm", "personas", "reunion", "reunión", "startup", "estrategia", "colaboracion"],
+    name: "Equipo Estratégico",
+    tags: ["equipo", "brainstorm", "startup", "colaboración"],
     thumb: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=70",
     url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85",
   },
-  {
-    id: "handshake_deal",
-    name: "Cierre de Negocios",
-    tags: ["ventas", "negocio", "acuerdo", "cierre", "partnership", "confianza", "b2b"],
-    thumb: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: "workspace_coffee",
-    name: "Espacio Creativo & Café",
-    tags: ["cafe", "café", "escritorio", "minimal", "laptop", "libreta", "mañana", "trabajo"],
-    thumb: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: "conference_stage",
-    name: "Escenario de Conferencia",
-    tags: ["conferencia", "evento", "autoridad", "orador", "escenario", "liderazgo"],
-    thumb: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=400&q=70",
-    url: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=85",
-  },
 ];
 
-// Colores de acento recomendados para LinkedIn
 const BRAND_COLORS = [
   { name: "InHubFlow Cyan", hex: "#0099ff" },
   { name: "Indigo Tech", hex: "#6366f1" },
@@ -232,33 +162,32 @@ export default function VisualEditorModal({
   authorAvatar,
   onApplyImage,
 }: VisualEditorModalProps) {
-  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
-  const fabricCanvasRef = useRef<any>(null);
+  const slideContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Modo del editor: Imagen Única vs Carrusel
+  // Estados del editor
   const [editorMode, setEditorMode] = useState<EditorMode>("carousel");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("editorial");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>(CURATED_BACKGROUNDS[0].url);
   const [accentColor, setAccentColor] = useState("#0099ff");
-  const [overlayOpacity, setOverlayOpacity] = useState(0.75);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.8);
+  const [overlayMode, setOverlayMode] = useState<"card" | "fullscreen">("card");
+  const [selectedFont, setSelectedFont] = useState(AVAILABLE_FONTS[0].name);
   const [activeTab, setActiveTab] = useState<"templates" | "content" | "backgrounds" | "brand">("templates");
 
-  // Buscador de Fotos de Unsplash en Vivo (Feature #4)
+  // Estados de autor
+  const [nameText, setNameText] = useState(authorName);
+  const [handleText, setHandleText] = useState(authorHandle);
+
+  // Estados de exportación
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFeedback, setExportFeedback] = useState<string | null>(null);
+
+  // Búsqueda de fotos
   const [photoSearchQuery, setPhotoSearchQuery] = useState("");
   const [activePhotoTag, setActivePhotoTag] = useState("all");
 
-  const filteredPhotos = CURATED_BACKGROUNDS.filter((photo) => {
-    const matchesTag = activePhotoTag === "all" || photo.tags.includes(activePhotoTag);
-    const query = photoSearchQuery.toLowerCase().trim();
-    const matchesQuery =
-      !query ||
-      photo.name.toLowerCase().includes(query) ||
-      photo.tags.some((t) => t.toLowerCase().includes(query));
-    return matchesTag && matchesQuery;
-  });
-
-  // Diapositivas del Carrusel (Punto 3: Navegador Multidiapositiva)
+  // Diapositivas
   const [slides, setSlides] = useState<CarouselSlideItem[]>([
     {
       id: "slide-1",
@@ -268,6 +197,7 @@ export default function VisualEditorModal({
       title: initialTitle,
       subtitle: initialSubtitle,
       tag: initialCategory,
+      metric: initialMetric,
     },
     {
       id: "slide-2",
@@ -310,33 +240,7 @@ export default function VisualEditorModal({
   ]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-  // Estado del objeto seleccionado en el lienzo (Punto 2: Barra Flotante Contextual)
-  const [selectedObjectInfo, setSelectedObjectInfo] = useState<{
-    isText: boolean;
-    isShape: boolean;
-    isImage: boolean;
-    name?: string;
-    fontFamily: string;
-    fontSize: number;
-    fontWeight: string;
-    fontStyle: string;
-    textAlign: string;
-    fill: string;
-    opacity: number;
-    rx: number;
-    stroke: string;
-    strokeWidth: number;
-    underline: boolean;
-    hasHighlight: boolean;
-  } | null>(null);
-
-  // Estados de autor y render
-  const [nameText, setNameText] = useState(authorName);
-  const [handleText, setHandleText] = useState(authorHandle);
-  const [isRendering, setIsRendering] = useState(false);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  // Sincronizar props entrantes
+  // Sincronizar props
   useEffect(() => {
     if (initialTitle) {
       setSlides((prev) => {
@@ -344,1817 +248,304 @@ export default function VisualEditorModal({
         next[0].title = initialTitle;
         if (initialSubtitle) next[0].subtitle = initialSubtitle;
         if (initialCategory) next[0].tag = initialCategory;
+        if (initialMetric) next[0].metric = initialMetric;
         return next;
       });
     }
     if (authorName) setNameText(authorName);
     if (authorHandle) setHandleText(authorHandle);
-  }, [initialTitle, initialSubtitle, initialCategory, authorName, authorHandle]);
+  }, [initialTitle, initialSubtitle, initialCategory, initialMetric, authorName, authorHandle]);
 
-  // Dimensiones nativas de alta resolución
-  const canvasWidth = 1080;
-  const canvasHeight = aspectRatio === "4:5" ? 1350 : 1080;
-
-  // Escala de previsualización adaptativa para que el 100% del lienzo sea visible
-  const targetPreviewHeight = aspectRatio === "4:5" ? 500 : 450;
-  const previewScale = targetPreviewHeight / canvasHeight;
-  const previewWidth = Math.round(canvasWidth * previewScale);
-  const previewHeight = Math.round(canvasHeight * previewScale);
-
-  // Escuchar selecciones en Fabric.js para activar la Barra Flotante Contextual (Punto 2)
-  const bindCanvasEvents = useCallback((canvas: any) => {
-    const handleSelection = () => {
-      const active = canvas.getActiveObject();
-      if (!active) {
-        setSelectedObjectInfo(null);
-        return;
-      }
-
-      const isText = active.type === "textbox" || active.type === "i-text" || active.text !== undefined;
-      const isImage = active.type === "image" || active.name === "backgroundImage" || typeof active.getElement === "function";
-      const isShape = !isText && !isImage;
-
-      if (isText) {
-        setSelectedObjectInfo({
-          isText: true,
-          isShape: false,
-          isImage: false,
-          name: active.name,
-          fontFamily: active.fontFamily || "Outfit",
-          fontSize: Math.round(active.fontSize || 40),
-          fontWeight: active.fontWeight || "normal",
-          fontStyle: active.fontStyle || "normal",
-          textAlign: active.textAlign || "left",
-          fill: typeof active.fill === "string" ? active.fill : "#ffffff",
-          opacity: typeof active.opacity === "number" ? active.opacity : 1,
-          rx: 0,
-          stroke: typeof active.stroke === "string" ? active.stroke : "",
-          strokeWidth: active.strokeWidth || 0,
-          underline: Boolean(active.underline),
-          hasHighlight: Boolean(active.backgroundColor && active.backgroundColor !== ""),
-        });
-      } else if (isImage) {
-        setSelectedObjectInfo({
-          isText: false,
-          isShape: false,
-          isImage: true,
-          name: active.name || "backgroundImage",
-          fontFamily: "",
-          fontSize: 0,
-          fontWeight: "normal",
-          fontStyle: "normal",
-          textAlign: "left",
-          fill: "",
-          opacity: typeof active.opacity === "number" ? active.opacity : 1,
-          rx: 0,
-          stroke: "",
-          strokeWidth: 0,
-          underline: false,
-          hasHighlight: false,
-        });
-      } else {
-        setSelectedObjectInfo({
-          isText: false,
-          isShape: true,
-          isImage: false,
-          name: active.name,
-          fontFamily: "",
-          fontSize: 0,
-          fontWeight: "normal",
-          fontStyle: "normal",
-          textAlign: "left",
-          fill: typeof active.fill === "string" ? active.fill : "#0a0f1d",
-          opacity: typeof active.opacity === "number" ? active.opacity : 0.82,
-          rx: active.rx || 0,
-          stroke: typeof active.stroke === "string" ? active.stroke : "",
-          strokeWidth: active.strokeWidth || 0,
-          underline: false,
-          hasHighlight: false,
-        });
-      }
-    };
-
-    canvas.on("selection:created", handleSelection);
-    canvas.on("selection:updated", handleSelection);
-    canvas.on("selection:cleared", () => setSelectedObjectInfo(null));
-  }, []);
-
-  // Inicializar Canvas
-  useEffect(() => {
-    if (!isOpen || !canvasElRef.current) return;
-
-    let isMounted = true;
-
-    import("fabric").then((fabric) => {
-      if (!isMounted || !canvasElRef.current) return;
-
-      // Forzar origen estándar top-left para todas las geometrías en Fabric v7
-      if (fabric.BaseFabricObject && fabric.BaseFabricObject.ownDefaults) {
-        fabric.BaseFabricObject.ownDefaults.originX = "left";
-        fabric.BaseFabricObject.ownDefaults.originY = "top";
-      }
-      if (fabric.BaseFabricObject && fabric.BaseFabricObject.ownDefaults) {
-        fabric.BaseFabricObject.ownDefaults.originX = "left";
-        fabric.BaseFabricObject.ownDefaults.originY = "top";
-      }
-      if (fabric.FabricObject && fabric.FabricObject.ownDefaults) {
-        fabric.FabricObject.ownDefaults.originX = "left";
-        fabric.FabricObject.ownDefaults.originY = "top";
-      }
-
-      if (fabricCanvasRef.current) {
-        try {
-          fabricCanvasRef.current.dispose();
-        } catch {}
-      }
-
-      const canvas = new fabric.Canvas(canvasElRef.current, {
-        width: canvasWidth,
-        height: canvasHeight,
-        selection: true,
-        preserveObjectStacking: true,
-        backgroundColor: "#090d16",
-      });
-
-      fabricCanvasRef.current = canvas;
-      bindCanvasEvents(canvas);
-      if (typeof canvas.calcOffset === "function") {
-        canvas.calcOffset();
-      }
-
-      renderSlideOnCanvas(slides[currentSlideIndex], canvas, fabric);
+  // Manejar edición de la lámina actual
+  const updateCurrentSlide = (fields: Partial<CarouselSlideItem>) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      next[currentSlideIndex] = { ...next[currentSlideIndex], ...fields };
+      return next;
     });
-
-    return () => {
-      isMounted = false;
-      if (fabricCanvasRef.current) {
-        try {
-          fabricCanvasRef.current.dispose();
-          fabricCanvasRef.current = null;
-        } catch {}
-      }
-    };
-  }, [isOpen, aspectRatio]);
-
-  // Renderizar una diapositiva en el lienzo de Fabric.js según la plantilla activa
-  const renderSlideOnCanvas = useCallback(
-    async (
-      slideItem: CarouselSlideItem,
-      canvasInstance?: any,
-      fabricModule?: any,
-      templateToUse?: TemplateId,
-      bgUrlToUse?: string
-    ) => {
-      const canvas = canvasInstance || fabricCanvasRef.current;
-      if (!canvas) return;
-
-      const currentTemplate = templateToUse || selectedTemplate;
-      const currentBgUrl = bgUrlToUse || selectedBgUrl;
-      const fabric = fabricModule || (await import("fabric"));
-      if (fabric.BaseFabricObject && fabric.BaseFabricObject.ownDefaults) {
-        fabric.BaseFabricObject.ownDefaults.originX = "left";
-        fabric.BaseFabricObject.ownDefaults.originY = "top";
-      }
-      if (fabric.FabricObject && fabric.FabricObject.ownDefaults) {
-        fabric.FabricObject.ownDefaults.originX = "left";
-        fabric.FabricObject.ownDefaults.originY = "top";
-      }
-      setIsRendering(true);
-
-      canvas.clear();
-      canvas.backgroundColor = "#090d16";
-
-      const currentW = canvas.width || canvasWidth;
-      const currentH = canvas.height || canvasHeight;
-
-      try {
-        // 1. CARGA DE FONDO (FOTO DE STOCK O SPLIT FOCUS)
-        if (currentTemplate === "split_focus" && slideItem.type === "cover") {
-          // --- SPLIT FOCUS: 48% FOTO SUPERIOR + 52% PANEL INFERIOR ---
-          try {
-            const img = await fabric.FabricImage.fromURL(currentBgUrl, {
-              crossOrigin: "anonymous",
-            });
-            const imgW = img.width || 1;
-            const imgH = img.height || 1;
-            const targetH = currentH * 0.48;
-            const scale = Math.max(currentW / imgW, targetH / imgH);
-
-            img.set({
-              name: "backgroundImage",
-              scaleX: scale,
-              scaleY: scale,
-              originX: "center",
-              originY: "top",
-              left: currentW / 2,
-              top: 0,
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(img);
-
-            // Overlay sutil sobre la foto superior
-            const topOverlay = new fabric.Rect({
-              name: "splitOverlay",
-              left: 0,
-              top: 0,
-              width: currentW,
-              height: targetH,
-              originX: "left",
-              originY: "top",
-              fill: "rgba(5, 10, 20, 0.25)",
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 12,
-              transparentCorners: false,
-            });
-            canvas.add(topOverlay);
-          } catch (err) {
-            console.warn("Fondo fallback split:", err);
-          }
-
-          // Divisor de Acento
-          const divider = new fabric.Rect({
-            left: 0,
-            top: currentH * 0.48 - 3,
-            width: currentW,
-            height: 6,
-            originX: "left",
-            originY: "top",
-            fill: accentColor,
-            selectable: true,
-            evented: true,
-          });
-          // Fondo oscuro inferior editable
-          const bottomBg = new fabric.Rect({
-            name: "darkOverlay",
-            left: 0,
-            top: currentH * 0.48,
-            width: currentW,
-            height: currentH * 0.52,
-            originX: "left",
-            originY: "top",
-            fill: "#080c16",
-            opacity: overlayOpacity,
-            selectable: true,
-            evented: true,
-            hasControls: true,
-            hasBorders: true,
-            cornerColor: accentColor,
-            cornerStyle: "circle",
-            cornerSize: 13,
-            transparentCorners: false,
-          });
-          canvas.add(divider, bottomBg);
-        } else {
-          // --- FONDO COMPLETO INMERSIVO (EDITORIAL, CITA, CARD, MÉTRICA) ---
-          try {
-            const img = await fabric.FabricImage.fromURL(currentBgUrl, {
-              crossOrigin: "anonymous",
-            });
-            const imgW = img.width || 1;
-            const imgH = img.height || 1;
-            const scale = Math.max(currentW / imgW, currentH / imgH);
-
-            img.set({
-              name: "backgroundImage",
-              scaleX: scale,
-              scaleY: scale,
-              originX: "left",
-              originY: "top",
-              left: (currentW - imgW * scale) / 2,
-              top: (currentH - imgH * scale) / 2,
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(img);
-          } catch (err) {
-            console.warn("Fondo fallback:", err);
-          }
-
-          // Filtro ambiental sutil de contraste para legibilidad (no intercepta clics)
-          const ambientDimmer = new fabric.Rect({
-            name: "ambientDimmer",
-            left: 0,
-            top: 0,
-            width: currentW,
-            height: currentH,
-            originX: "left",
-            originY: "top",
-            fill: "rgba(5, 8, 16, 0.35)",
-            selectable: false,
-            evented: false,
-          });
-          canvas.add(ambientDimmer);
-        }
-
-        // 2. RENDERIZADO POR TIPO DE DIAPOSITIVA Y ESTILO DE PLANTILLA
-        if (slideItem.type === "cover") {
-          // ========================================================
-          // --- PLANTILLA 1: CINEMATIC EDITORIAL (Fondo oscuro transparente editable + Titular B2B)
-          // ========================================================
-          if (currentTemplate === "editorial") {
-            const darkCardY = currentH - 680;
-            const darkCardH = 580;
-
-            // FONDO OSCURO TRANSPARENTE 100% EDITABLE
-            const overlayCard = new fabric.Rect({
-              name: "darkOverlay",
-              left: 50,
-              top: darkCardY,
-              width: currentW - 100,
-              height: darkCardH,
-              originX: "left",
-              originY: "top",
-              rx: 24,
-              ry: 24,
-              fill: "#090d18",
-              opacity: overlayOpacity,
-              stroke: "rgba(255, 255, 255, 0.14)",
-              strokeWidth: 1.5,
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.65)",
-                blur: 30,
-                offsetX: 0,
-                offsetY: 8,
-              }),
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(overlayCard);
-
-            const tagBg = new fabric.Rect({
-              left: 80,
-              top: darkCardY + 45,
-              originX: "left",
-              originY: "top",
-              rx: 8,
-              ry: 8,
-              fill: accentColor,
-              width: Math.min((slideItem.tag || "B2B").length * 15 + 32, 450),
-              height: 40,
-              selectable: true,
-            });
-            const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
-              left: 96,
-              top: darkCardY + 54,
-              originX: "left",
-              originY: "top",
-              fontSize: 18,
-              fontWeight: "bold",
-              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-            });
-            canvas.add(tagBg, tagText);
-
-            const titleObj = new fabric.Textbox(slideItem.title, {
-              left: 80,
-              top: darkCardY + 110,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 52,
-              lineHeight: 1.18,
-              fontWeight: "bold",
-              fill: "#ffffff",
-              fontFamily: "Outfit, sans-serif",
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.9)",
-                blur: 24,
-                offsetX: 0,
-                offsetY: 6,
-              }),
-            });
-            canvas.add(titleObj);
-
-            const subObj = new fabric.Textbox(slideItem.subtitle, {
-              left: 80,
-              top: darkCardY + 340,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.35,
-              fill: "rgba(226, 232, 240, 0.95)",
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(subObj);
-
-            if (editorMode === "carousel") {
-              const swipeBadge = new fabric.Rect({
-                left: currentW - 270,
-                top: darkCardY + darkCardH - 75,
-                width: 180,
-                height: 44,
-                originX: "left",
-                originY: "top",
-                rx: 22,
-                ry: 22,
-                fill: "rgba(255, 255, 255, 0.12)",
-                stroke: accentColor,
-                strokeWidth: 2,
-                selectable: true,
-              });
-              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
-                left: currentW - 245,
-                top: darkCardY + darkCardH - 64,
-                originX: "left",
-                originY: "top",
-                fontSize: 18,
-                fontWeight: "bold",
-                fill: accentColor,
-                fontFamily: "Inter, sans-serif",
-                selectable: true,
-              });
-              canvas.add(swipeBadge, swipeText);
-            }
-          }
-          // ========================================================
-          // --- PLANTILLA 2: CITA DE AUTORIDAD (Comillas grandes + Enfoque centrado)
-          // ========================================================
-          else if (currentTemplate === "authority_quote") {
-            // FONDO OSCURO TRANSPARENTE 100% EDITABLE PARA CITA (debe añadirse primero como fondo)
-            const quoteOverlay = new fabric.Rect({
-              name: "darkOverlay",
-              left: 50,
-              top: 80,
-              width: currentW - 100,
-              height: currentH - 160,
-              originX: "left",
-              originY: "top",
-              rx: 24,
-              ry: 24,
-              fill: "#090d18",
-              opacity: overlayOpacity,
-              stroke: "rgba(255, 255, 255, 0.12)",
-              strokeWidth: 1.5,
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.65)",
-                blur: 30,
-                offsetX: 0,
-                offsetY: 8,
-              }),
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(quoteOverlay);
-
-            // Tag superior centrado
-            const quoteTag = new fabric.Rect({
-              left: currentW / 2 - 130,
-              top: 110,
-              width: 260,
-              height: 38,
-              originX: "left",
-              originY: "top",
-              rx: 19,
-              ry: 19,
-              fill: "rgba(255, 255, 255, 0.08)",
-              stroke: accentColor,
-              strokeWidth: 1.5,
-              selectable: true,
-            });
-            const quoteTagText = new fabric.Textbox((slideItem.tag || "CITA DE AUTORIDAD").toUpperCase(), {
-              left: currentW / 2 - 130,
-              top: 119,
-              width: 260,
-              originX: "left",
-              originY: "top",
-              fontSize: 15,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: accentColor,
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-            });
-            canvas.add(quoteTag, quoteTagText);
-
-            // Comillas Gigantes
-            const quoteMark = new fabric.Textbox("“", {
-              left: currentW / 2 - 60,
-              top: 160,
-              width: 120,
-              originX: "left",
-              originY: "top",
-              fontSize: 140,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: accentColor,
-              fontFamily: "Playfair Display, Georgia, serif",
-              selectable: true,
-            });
-            canvas.add(quoteMark);
-
-            // Texto de la Cita (Titular)
-            const quoteStatement = new fabric.Textbox(`"${slideItem.title}"`, {
-              left: 90,
-              top: 300,
-              width: currentW - 180,
-              originX: "left",
-              originY: "top",
-              fontSize: 48,
-              lineHeight: 1.25,
-              fontStyle: "italic",
-              fontWeight: "600",
-              textAlign: "center",
-              fill: "#ffffff",
-              fontFamily: "Playfair Display, Georgia, serif",
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.9)",
-                blur: 20,
-                offsetX: 0,
-                offsetY: 6,
-              }),
-            });
-            canvas.add(quoteStatement);
-
-            // Subtítulo centrado
-            const quoteSub = new fabric.Textbox(slideItem.subtitle, {
-              left: 120,
-              top: 540,
-              width: currentW - 240,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.4,
-              textAlign: "center",
-              fill: "rgba(203, 213, 225, 0.95)",
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(quoteSub);
-
-            // Bloque de Autor Centrado en forma de Tarjeta
-            const authorCardW = 420;
-            const authorCard = new fabric.Rect({
-              left: currentW / 2 - authorCardW / 2,
-              top: currentH - 220,
-              width: authorCardW,
-              height: 84,
-              originX: "left",
-              originY: "top",
-              rx: 42,
-              ry: 42,
-              fill: "rgba(15, 23, 42, 0.85)",
-              stroke: "rgba(255, 255, 255, 0.15)",
-              strokeWidth: 1.5,
-              selectable: true,
-              evented: true,
-            });
-            const avatarCircle = new fabric.Circle({
-              left: currentW / 2 - authorCardW / 2 + 16,
-              top: currentH - 204,
-              radius: 26,
-              originX: "left",
-              originY: "top",
-              fill: accentColor,
-              selectable: true,
-              evented: true,
-            });
-            const initialsText = new fabric.Textbox(
-              (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
-              {
-                left: currentW / 2 - authorCardW / 2 + 16,
-                top: currentH - 190,
-                width: 52,
-                originX: "left",
-                originY: "top",
-                fontSize: 20,
-                fontWeight: "bold",
-                textAlign: "center",
-                fill: "#ffffff",
-                fontFamily: "Inter, sans-serif",
-                selectable: true,
-                evented: true,
-              }
-            );
-            const authName = new fabric.Textbox(nameText, {
-              left: currentW / 2 - authorCardW / 2 + 82,
-              top: currentH - 203,
-              width: 300,
-              originX: "left",
-              originY: "top",
-              fontSize: 20,
-              fontWeight: "bold",
-              fill: "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            const authHandle = new fabric.Textbox(handleText, {
-              left: currentW / 2 - authorCardW / 2 + 82,
-              top: currentH - 175,
-              width: 300,
-              originX: "left",
-              originY: "top",
-              fontSize: 16,
-              fill: accentColor,
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(authorCard, avatarCircle, initialsText, authName, authHandle);
-          }
-          // ========================================================
-          // --- PLANTILLA 3: TARJETA SOCIAL / FEED (Post viral con check azul y stats)
-          // ========================================================
-          else if (currentTemplate === "social_card") {
-            const cardW = currentW - 140;
-            const cardH = currentH - 250;
-            const card = new fabric.Rect({
-              name: "darkOverlay",
-              left: 70,
-              top: 110,
-              width: cardW,
-              height: cardH,
-              originX: "left",
-              originY: "top",
-              rx: 28,
-              ry: 28,
-              fill: "#0f172a",
-              opacity: overlayOpacity,
-              stroke: "rgba(255, 255, 255, 0.15)",
-              strokeWidth: 2,
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.8)",
-                blur: 35,
-                offsetX: 0,
-                offsetY: 15,
-              }),
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(card);
-
-            // Cabecera: Avatar + Nombre + Check Azul + Handle
-            const avatar = new fabric.Circle({
-              left: 110,
-              top: 150,
-              radius: 34,
-              originX: "left",
-              originY: "top",
-              fill: accentColor,
-              selectable: true,
-              evented: true,
-            });
-            const initials = new fabric.Textbox(
-              (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
-              {
-                left: 110,
-                top: 166,
-                width: 68,
-                originX: "left",
-                originY: "top",
-                fontSize: 26,
-                fontWeight: "bold",
-                textAlign: "center",
-                fill: "#ffffff",
-                fontFamily: "Inter, sans-serif",
-                selectable: true,
-                evented: true,
-              }
-            );
-            const authName = new fabric.Textbox(nameText, {
-              left: 195,
-              top: 155,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              fontWeight: "bold",
-              fill: "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            const badgeCheck = new fabric.Circle({
-              left: 195 + Math.min(nameText.length * 15 + 10, 340),
-              top: 160,
-              radius: 11,
-              originX: "left",
-              originY: "top",
-              fill: "#0099ff",
-              selectable: true,
-              evented: true,
-            });
-            const checkMark = new fabric.Textbox("✓", {
-              left: 195 + Math.min(nameText.length * 15 + 10, 340),
-              top: 161,
-              width: 22,
-              originX: "left",
-              originY: "top",
-              fontSize: 14,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            const authHandle = new fabric.Textbox(`${handleText} • LinkedIn Creator`, {
-              left: 195,
-              top: 190,
-              originX: "left",
-              originY: "top",
-              fontSize: 18,
-              fill: "#94a3b8",
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(avatar, initials, authName, badgeCheck, checkMark, authHandle);
-
-            // Tag Pill
-            const tagPill = new fabric.Rect({
-              left: 110,
-              top: 255,
-              width: Math.min((slideItem.tag || "B2B").length * 14 + 32, 380),
-              height: 36,
-              originX: "left",
-              originY: "top",
-              rx: 8,
-              fill: "rgba(0, 153, 255, 0.15)",
-              stroke: accentColor,
-              strokeWidth: 1.5,
-            });
-            const tagPillText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
-              left: 126,
-              top: 263,
-              originX: "left",
-              originY: "top",
-              fontSize: 16,
-              fontWeight: "bold",
-              fill: accentColor,
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(tagPill, tagPillText);
-
-            // Titular Gancho
-            const postTitle = new fabric.Textbox(slideItem.title, {
-              left: 110,
-              top: 315,
-              width: cardW - 80,
-              originX: "left",
-              originY: "top",
-              fontSize: 46,
-              lineHeight: 1.22,
-              fontWeight: "bold",
-              fill: "#ffffff",
-              fontFamily: "Outfit, sans-serif",
-            });
-            canvas.add(postTitle);
-
-            // Caja de Insight / Subtítulo con barra lateral de acento
-            const quoteBoxH = 160;
-            const quoteBox = new fabric.Rect({
-              left: 110,
-              top: 540,
-              width: cardW - 80,
-              height: quoteBoxH,
-              originX: "left",
-              originY: "top",
-              rx: 16,
-              fill: "rgba(255, 255, 255, 0.04)",
-              stroke: "rgba(255, 255, 255, 0.08)",
-              strokeWidth: 1,
-            });
-            const quoteBoxBar = new fabric.Rect({
-              left: 110,
-              top: 540,
-              width: 8,
-              height: quoteBoxH,
-              originX: "left",
-              originY: "top",
-              rx: 4,
-              fill: accentColor,
-            });
-            const quoteBoxText = new fabric.Textbox(slideItem.subtitle, {
-              left: 135,
-              top: 565,
-              width: cardW - 130,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.4,
-              fill: "#e2e8f0",
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(quoteBox, quoteBoxBar, quoteBoxText);
-
-            // Barra Social Inferior
-            const divider = new fabric.Rect({
-              left: 110,
-              top: 110 + cardH - 80,
-              width: cardW - 80,
-              height: 1,
-              originX: "left",
-              originY: "top",
-              fill: "rgba(255, 255, 255, 0.12)",
-            });
-            const socialStats = new fabric.Textbox(
-              "❤️ 1,428 me gusta    💬 189 comentarios    🔁 54 compartidos",
-              {
-                left: 110,
-                top: 110 + cardH - 62,
-                width: cardW - 80,
-                originX: "left",
-                originY: "top",
-                fontSize: 18,
-                fontWeight: "600",
-                fill: "#94a3b8",
-                fontFamily: "Inter, sans-serif",
-              }
-            );
-            canvas.add(divider, socialStats);
-          }
-          // ========================================================
-          // --- PLANTILLA 4: SPLIT FOCUS 50/50 (Foto arriba + Datos abajo)
-          // ========================================================
-          else if (currentTemplate === "split_focus") {
-            const splitTopY = currentH * 0.48;
-
-            const tagBg = new fabric.Rect({
-              left: 80,
-              top: splitTopY + 40,
-              originX: "left",
-              originY: "top",
-              rx: 8,
-              ry: 8,
-              fill: accentColor,
-              width: Math.min((slideItem.tag || "B2B").length * 15 + 32, 450),
-              height: 40,
-              selectable: true,
-            });
-            const tagText = new fabric.Textbox((slideItem.tag || "B2B").toUpperCase(), {
-              left: 96,
-              top: splitTopY + 49,
-              originX: "left",
-              originY: "top",
-              fontSize: 18,
-              fontWeight: "bold",
-              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-            });
-            canvas.add(tagBg, tagText);
-
-            const titleObj = new fabric.Textbox(slideItem.title, {
-              left: 80,
-              top: splitTopY + 105,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 50,
-              lineHeight: 1.18,
-              fontWeight: "bold",
-              fill: "#ffffff",
-              fontFamily: "Outfit, sans-serif",
-            });
-            canvas.add(titleObj);
-
-            const subObj = new fabric.Textbox(slideItem.subtitle, {
-              left: 80,
-              top: splitTopY + 285,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.35,
-              fill: "rgba(226, 232, 240, 0.95)",
-              fontFamily: "Inter, sans-serif",
-            });
-            canvas.add(subObj);
-
-            if (editorMode === "carousel") {
-              const swipeBadge = new fabric.Rect({
-                left: currentW - 260,
-                top: currentH - 120,
-                width: 180,
-                height: 44,
-                originX: "left",
-                originY: "top",
-                rx: 22,
-                ry: 22,
-                fill: "rgba(255, 255, 255, 0.12)",
-                stroke: accentColor,
-                strokeWidth: 2,
-                selectable: true,
-              });
-              const swipeText = new fabric.Textbox("DESLIZA  ➔", {
-                left: currentW - 235,
-                top: currentH - 109,
-                originX: "left",
-                originY: "top",
-                fontSize: 18,
-                fontWeight: "bold",
-                fill: accentColor,
-                fontFamily: "Inter, sans-serif",
-                selectable: true,
-              });
-              canvas.add(swipeBadge, swipeText);
-            }
-          }
-          // ========================================================
-          // --- PLANTILLA 5: MÉTRICA DE ALTO IMPACTO (+340% o Validación de Datos)
-          // ========================================================
-          else if (currentTemplate === "big_metric") {
-            // Fondo oscuro transparente 100% editable para métrica
-            const metricOverlay = new fabric.Rect({
-              name: "darkOverlay",
-              left: 50,
-              top: 70,
-              width: currentW - 100,
-              height: currentH - 170,
-              originX: "left",
-              originY: "top",
-              rx: 28,
-              ry: 28,
-              fill: "#090d18",
-              opacity: overlayOpacity,
-              stroke: "rgba(255, 255, 255, 0.12)",
-              strokeWidth: 1.5,
-              shadow: new fabric.Shadow({
-                color: "rgba(0,0,0,0.65)",
-                blur: 30,
-                offsetX: 0,
-                offsetY: 8,
-              }),
-              selectable: true,
-              evented: true,
-              hasControls: true,
-              hasBorders: true,
-              cornerColor: accentColor,
-              cornerStyle: "circle",
-              cornerSize: 13,
-              transparentCorners: false,
-            });
-            canvas.add(metricOverlay);
-
-            const metricTag = new fabric.Rect({
-              left: currentW / 2 - 170,
-              top: 95,
-              width: 340,
-              height: 38,
-              originX: "left",
-              originY: "top",
-              rx: 19,
-              ry: 19,
-              fill: "rgba(255, 255, 255, 0.08)",
-              stroke: accentColor,
-              strokeWidth: 1.5,
-              selectable: true,
-              evented: true,
-            });
-            const metricTagText = new fabric.Textbox((slideItem.tag || "MÉTRICA VALIDADA").toUpperCase(), {
-              left: currentW / 2 - 170,
-              top: 104,
-              width: 340,
-              originX: "left",
-              originY: "top",
-              fontSize: 15,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: accentColor,
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(metricTag, metricTagText);
-
-            // Gran Número de Métrica
-            const metricObj = new fabric.Textbox(initialMetric || "+340%", {
-              left: 60,
-              top: 155,
-              width: currentW - 120,
-              originX: "left",
-              originY: "top",
-              fontSize: 130,
-              fontWeight: "900",
-              textAlign: "center",
-              fill: accentColor,
-              fontFamily: "Outfit, sans-serif",
-              selectable: true,
-              evented: true,
-              shadow: new fabric.Shadow({
-                color: accentColor,
-                blur: 40,
-                offsetX: 0,
-                offsetY: 4,
-              }),
-            });
-            canvas.add(metricObj);
-
-            // Sub-etiqueta de métrica
-            const metricSubLabel = new fabric.Textbox("INCREMENTO COMPROBADO EN CONVERSIONES B2B", {
-              left: 80,
-              top: 310,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 18,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: "#94a3b8",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(metricSubLabel);
-
-            // Titular explicativo
-            const metricTitle = new fabric.Textbox(slideItem.title, {
-              left: 80,
-              top: 380,
-              width: currentW - 160,
-              originX: "left",
-              originY: "top",
-              fontSize: 46,
-              lineHeight: 1.2,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: "#ffffff",
-              fontFamily: "Outfit, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(metricTitle);
-
-            // Subtítulo
-            const metricSub = new fabric.Textbox(slideItem.subtitle, {
-              left: 100,
-              top: 550,
-              width: currentW - 200,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.4,
-              textAlign: "center",
-              fill: "rgba(226, 232, 240, 0.95)",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(metricSub);
-          }
-        } else if (slideItem.type === "problem" || slideItem.type === "solution") {
-          // ========================================================
-          // --- LÁMINAS INTERMEDIAS (DIAGNÓSTICO O FRAMEWORK DE SOLUCIÓN)
-          // ========================================================
-          const stepTag = new fabric.Textbox((slideItem.tag || "PASO ACCIONABLE").toUpperCase(), {
-            left: 70,
-            top: 100,
-            originX: "left",
-            originY: "top",
-            fontSize: 20,
-            fontWeight: "bold",
-            fill: accentColor,
-            fontFamily: "Inter, sans-serif",
-            selectable: true,
-            evented: true,
-          });
-          canvas.add(stepTag);
-
-          const slideTitle = new fabric.Textbox(slideItem.title, {
-            left: 70,
-            top: 150,
-            width: currentW - 140,
-            originX: "left",
-            originY: "top",
-            fontSize: 48,
-            lineHeight: 1.2,
-            fontWeight: "bold",
-            fill: "#ffffff",
-            fontFamily: "Outfit, sans-serif",
-            selectable: true,
-            evented: true,
-          });
-          canvas.add(slideTitle);
-
-          const cardY = 320;
-          const cardH = currentH - 460;
-          const contentCard = new fabric.Rect({
-            name: "darkOverlay",
-            left: 70,
-            top: cardY,
-            width: currentW - 140,
-            height: cardH,
-            originX: "left",
-            originY: "top",
-            rx: 24,
-            ry: 24,
-            fill: "#0f172a",
-            opacity: overlayOpacity,
-            stroke: "rgba(255, 255, 255, 0.12)",
-            strokeWidth: 1.5,
-            selectable: true,
-            evented: true,
-            hasControls: true,
-            hasBorders: true,
-            cornerColor: accentColor,
-            cornerStyle: "circle",
-            cornerSize: 13,
-            transparentCorners: false,
-          });
-          canvas.add(contentCard);
-
-          const bullets = slideItem.bullets || ["Punto clave número 1", "Punto clave número 2", "Punto clave número 3"];
-          let bulletY = cardY + 45;
-          bullets.forEach((bText, idx) => {
-            const numCircle = new fabric.Rect({
-              left: 105,
-              top: bulletY,
-              width: 40,
-              height: 40,
-              originX: "left",
-              originY: "top",
-              rx: 20,
-              ry: 20,
-              fill: accentColor,
-              selectable: true,
-              evented: true,
-            });
-            const numText = new fabric.Textbox(String(idx + 1), {
-              left: 105,
-              top: bulletY + 8,
-              width: 40,
-              originX: "left",
-              originY: "top",
-              fontSize: 20,
-              fontWeight: "bold",
-              textAlign: "center",
-              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            const bulletBody = new fabric.Textbox(bText, {
-              left: 165,
-              top: bulletY + 4,
-              width: currentW - 320,
-              originX: "left",
-              originY: "top",
-              fontSize: 26,
-              lineHeight: 1.35,
-              fill: "#f8fafc",
-              fontFamily: "Inter, sans-serif",
-              selectable: true,
-              evented: true,
-            });
-            canvas.add(numCircle, numText, bulletBody);
-            bulletY += 120;
-          });
-        } else if (slideItem.type === "cta") {
-          // ========================================================
-          // --- LÁMINA FINAL DE LLAMADA A LA ACCIÓN (LEAD MAGNET SENTINEL)
-          // ========================================================
-          const ctaCardW = currentW - 140;
-          const ctaCardH = currentH - 280;
-          const ctaCard = new fabric.Rect({
-            name: "darkOverlay",
-            left: 70,
-            top: 140,
-            width: ctaCardW,
-            height: ctaCardH,
-            originX: "left",
-            originY: "top",
-            rx: 28,
-            ry: 28,
-            fill: "#0a0f1a",
-            opacity: overlayOpacity,
-            stroke: accentColor,
-            strokeWidth: 2.5,
-            selectable: true,
-            evented: true,
-            hasControls: true,
-            hasBorders: true,
-            cornerColor: accentColor,
-            cornerStyle: "circle",
-            cornerSize: 13,
-            transparentCorners: false,
-          });
-          canvas.add(ctaCard);
-
-          const ctaTag = new fabric.Textbox("LLAMADA A LA ACCIÓN // ACCESO DIRECTO", {
-            left: 110,
-            top: 190,
-            originX: "left",
-            originY: "top",
-            fontSize: 20,
-            fontWeight: "bold",
-            fill: accentColor,
-            fontFamily: "Inter, sans-serif",
-            selectable: true,
-            evented: true,
-          });
-
-          const ctaTitle = new fabric.Textbox(slideItem.title, {
-            left: 110,
-            top: 240,
-            width: ctaCardW - 80,
-            originX: "left",
-            originY: "top",
-            fontSize: 48,
-            lineHeight: 1.2,
-            fontWeight: "bold",
-            fill: "#ffffff",
-            fontFamily: "Outfit, sans-serif",
-            selectable: true,
-            evented: true,
-          });
-
-          const ctaSub = new fabric.Textbox(slideItem.subtitle, {
-            left: 110,
-            top: 390,
-            width: ctaCardW - 80,
-            originX: "left",
-            originY: "top",
-            fontSize: 28,
-            lineHeight: 1.4,
-            fill: "rgba(226, 232, 240, 0.95)",
-            fontFamily: "Inter, sans-serif",
-            selectable: true,
-            evented: true,
-          });
-
-          // Caja de la Palabra Clave
-          const keywordBox = new fabric.Rect({
-            left: 110,
-            top: currentH - 420,
-            width: ctaCardW - 80,
-            height: 94,
-            originX: "left",
-            originY: "top",
-            rx: 18,
-            ry: 18,
-            fill: accentColor,
-            selectable: true,
-            evented: true,
-          });
-          const keywordText = new fabric.Textbox(
-            `Comenta "${slideItem.ctaKeyword || "SISTEMA"}" abajo`,
-            {
-              left: 140,
-              top: currentH - 395,
-              width: ctaCardW - 140,
-              originX: "left",
-              originY: "top",
-              fontSize: 34,
-              textAlign: "center",
-              fontWeight: "900",
-              fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
-              fontFamily: "Outfit, sans-serif",
-              selectable: true,
-              evented: true,
-            }
-          );
-          canvas.add(ctaCard, ctaTag, ctaTitle, ctaSub, keywordBox, keywordText);
-        }
-
-        // 3. PIE DE AUTOR COMÚN (Para plantillas con autor al pie, excluyendo authority_quote y social_card en portada)
-        if ((currentTemplate !== "authority_quote" && currentTemplate !== "social_card") || slideItem.type !== "cover") {
-          const authorLine = new fabric.Rect({
-            left: 70,
-            top: currentH - 75,
-            width: currentW - 140,
-            height: 1.5,
-            originX: "left",
-            originY: "top",
-            fill: "rgba(255, 255, 255, 0.15)",
-            selectable: true,
-            evented: true,
-          });
-          const authorFooterName = new fabric.Textbox(nameText, {
-            left: 70,
-            top: currentH - 60,
-            originX: "left",
-            originY: "top",
-            fontSize: 20,
-            fontWeight: "bold",
-            fill: "#ffffff",
-            fontFamily: "Inter, sans-serif",
-          });
-          const authorFooterHandle = new fabric.Textbox(handleText, {
-            left: currentW - 280,
-            top: currentH - 60,
-            originX: "left",
-            originY: "top",
-            fontSize: 18,
-            fill: accentColor,
-            fontFamily: "Inter, sans-serif",
-          });
-          canvas.add(authorLine, authorFooterName, authorFooterHandle);
-        }
-
-        canvas.renderAll();
-        if (typeof canvas.calcOffset === "function") {
-          canvas.calcOffset();
-        }
-      } catch (err) {
-        console.error("Error al renderizar lámina en Fabric:", err);
-      } finally {
-        setIsRendering(false);
-      }
-    },
-    [
-      selectedBgUrl,
-      overlayOpacity,
-      accentColor,
-      nameText,
-      handleText,
-      canvasWidth,
-      canvasHeight,
-      editorMode,
-      selectedTemplate,
-      initialMetric,
-    ]
-  );
-
-  // Manejar cambio de lámina en la tira inferior (Punto 3)
-  const handleSelectSlide = async (index: number) => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas || index === currentSlideIndex) return;
-
-    // Guardar estado de la lámina actual
-    try {
-      const updatedSlides = [...slides];
-      updatedSlides[currentSlideIndex].canvasData = canvas.toJSON();
-      updatedSlides[currentSlideIndex].thumbnailData = canvas.toDataURL({
-        format: "png",
-        multiplier: 0.25,
-      });
-      setSlides(updatedSlides);
-    } catch (e) {
-      console.warn("No se pudo cachear estado de la lámina", e);
-    }
-
-    setCurrentSlideIndex(index);
-
-    // Cargar o generar la nueva lámina
-    const targetSlide = slides[index];
-    if (targetSlide.canvasData) {
-      canvas.loadFromJSON(targetSlide.canvasData).then(() => {
-        canvas.renderAll();
-        if (typeof canvas.calcOffset === "function") {
-          canvas.calcOffset();
-        }
-      });
-    } else {
-      renderSlideOnCanvas(targetSlide);
-    }
   };
 
-  // Añadir nueva lámina al carrusel
   const handleAddSlide = () => {
     const newSlideNum = slides.length + 1;
     const newSlide: CarouselSlideItem = {
       id: `slide-${Date.now()}`,
       slideNumber: newSlideNum,
       type: "solution",
-      label: `Paso ${newSlideNum - 1}`,
-      title: `Paso ${newSlideNum - 1}: Estrategia Accionable`,
-      subtitle: "Detalla aquí la recomendación clave",
-      tag: `PASO 0${newSlideNum - 1} / IMPLEMENTACIÓN`,
+      label: `Lámina ${newSlideNum}`,
+      title: `Paso ${newSlideNum - 1}: Recomendación Clave`,
+      subtitle: "Describe aquí el método o insight accionable",
+      tag: `PASO 0${newSlideNum - 1} / ACCIÓN`,
       bullets: [
         "Aplica esta acción de inmediato en tu proceso comercial.",
         "Mide la tasa de apertura y respuesta cada semana.",
       ],
     };
-
     const updated = [...slides, newSlide];
     setSlides(updated);
-    handleSelectSlide(updated.length - 1);
+    setCurrentSlideIndex(updated.length - 1);
   };
 
-  // Eliminar lámina
-  const handleDeleteSlide = (indexToDelete: number, e: React.MouseEvent) => {
+  const handleDeleteSlide = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (slides.length <= 1) return;
-
-    const filtered = slides.filter((_, idx) => idx !== indexToDelete);
-    setSlides(filtered);
-    const nextIdx = Math.max(0, indexToDelete - 1);
-    setCurrentSlideIndex(nextIdx);
-    renderSlideOnCanvas(filtered[nextIdx]);
+    const updated = slides.filter((_, i) => i !== idx);
+    setSlides(updated);
+    setCurrentSlideIndex(Math.max(0, idx - 1));
   };
 
-  // --- CONTROLES DE LA BARRA FLOTANTE CONTEXTUAL (Punto 2) ---
-  const applyTextProperty = (property: string, value: any) => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!active) return;
-
-    active.set({ [property]: value });
-    canvas.requestRenderAll();
-
-    setSelectedObjectInfo((prev: any) => (prev ? { ...prev, [property]: value } : null));
+  const handleDuplicateSlide = (idx: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const target = slides[idx];
+    const newSlide: CarouselSlideItem = {
+      ...target,
+      id: `slide-${Date.now()}`,
+      label: `${target.label} (Copia)`,
+      slideNumber: slides.length + 1,
+    };
+    const updated = [...slides];
+    updated.splice(idx + 1, 0, newSlide);
+    setSlides(updated);
+    setCurrentSlideIndex(idx + 1);
   };
 
-  const applyShapeProperty = (property: string, value: any) => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!active) return;
-
-    active.set({ [property]: value });
-    if (property === "rx") {
-      active.set({ ry: value });
-    }
-    canvas.requestRenderAll();
-
-    setSelectedObjectInfo((prev: any) => (prev ? { ...prev, [property]: value } : null));
-  };
-
-  const handleSetOverlayMode = (mode: "fullscreen" | "card") => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    let target = canvas.getActiveObject();
-    if (!target || target.type !== "rect") {
-      target = canvas.getObjects().find((o: any) => o.name === "darkOverlay" || (o.type === "rect" && !o.text));
-    }
-    if (!target) return;
-
-    const currentW = canvas.width || canvasWidth;
-    const currentH = canvas.height || canvasHeight;
-
-    if (mode === "fullscreen") {
-      target.set({
-        left: 0,
-        top: 0,
-        width: currentW,
-        height: currentH,
-        originX: "left",
-        originY: "top",
-        rx: 0,
-        ry: 0,
-      });
-    } else {
-      target.set({
-        left: 50,
-        top: currentH - 680,
-        width: currentW - 100,
-        height: 580,
-        originX: "left",
-        originY: "top",
-        rx: 24,
-        ry: 24,
-      });
-    }
-    target.setCoords();
-    canvas.setActiveObject(target);
-    canvas.requestRenderAll();
-    setSelectedObjectInfo((prev: any) =>
-      prev ? { ...prev, rx: mode === "fullscreen" ? 0 : 24 } : null
-    );
-  };
-
-  const handleDuplicateSelected = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!active) return;
-
-    active.clone().then((cloned: any) => {
-      cloned.set({
-        left: (active.left || 0) + 30,
-        top: (active.top || 0) + 30,
-        originX: active.originX || "left",
-        originY: active.originY || "top",
-      });
-      canvas.add(cloned);
-      canvas.setActiveObject(cloned);
-      canvas.requestRenderAll();
-    });
-  };
-
-  const handleDeleteSelected = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!active) return;
-
-    canvas.remove(active);
-    canvas.discardActiveObject();
-    canvas.requestRenderAll();
-    setSelectedObjectInfo(null);
-  };
-
-  const handleBringForward = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (active) {
-      canvas.bringObjectToFront(active);
-      canvas.requestRenderAll();
-    }
-  };
-
-  const handleSendBackward = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (active) {
-      canvas.sendObjectToBack(active);
-      canvas.requestRenderAll();
-    }
-  };
-
-  // Reencuadrar y centrar la foto para que cubra el lienzo completo
-  const handleResetImageFit = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-    const active = canvas.getActiveObject();
-    if (!active) return;
-
-    const currentW = canvas.width || canvasWidth;
-    const currentH = canvas.height || canvasHeight;
-    const imgW = active.width || 1;
-    const imgH = active.height || 1;
-    const scale = Math.max(currentW / imgW, currentH / imgH);
-
-    active.set({
-      scaleX: scale,
-      scaleY: scale,
-      originX: "left",
-      originY: "top",
-      left: (currentW - imgW * scale) / 2,
-      top: (currentH - imgH * scale) / 2,
-      angle: 0,
-    });
-    active.setCoords();
-    canvas.requestRenderAll();
-  };
-
-  // Reemplazar foto activa o de fondo en tiempo real
-  const handleSelectBackground = async (newUrl: string) => {
-    setSelectedBgUrl(newUrl);
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-    const fabric = await import("fabric");
-
-    const objects = canvas.getObjects();
-    const bgImg = objects.find((obj: any) => obj.name === "backgroundImage" || obj.type === "image");
-    if (bgImg) {
-      try {
-        const newImg = await fabric.FabricImage.fromURL(newUrl, { crossOrigin: "anonymous" });
-        const currentW = canvas.width || canvasWidth;
-        const currentH = canvas.height || canvasHeight;
-        const imgW = newImg.width || 1;
-        const imgH = newImg.height || 1;
-        const scale = Math.max(currentW / imgW, currentH / imgH);
-
-        bgImg.set({
-          scaleX: scale,
-          scaleY: scale,
-          originX: "left",
-          originY: "top",
-          left: (currentW - imgW * scale) / 2,
-          top: (currentH - imgH * scale) / 2,
-        });
-        bgImg.setElement(newImg.getElement());
-        canvas.requestRenderAll();
-        return;
-      } catch (e) {
-        console.warn("Direct image swap failed, re-rendering slide:", e);
-      }
-    }
-
-    renderSlideOnCanvas(slides[currentSlideIndex], canvas, fabric, undefined, newUrl);
-  };
-
-  // Exportar PNG de la lámina actual
-  const handleDownloadPng = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    const dataUrl = canvas.toDataURL({ format: "png", multiplier: 1 });
-    const link = document.createElement("a");
-    link.download = `InHubFlow_Lamina_${currentSlideIndex + 1}_${Date.now()}.png`;
-    link.href = dataUrl;
-    link.click();
-  };
-
-  // Exportar Carrusel PDF multipágina completo (Punto 3)
-  const handleExportFullPdfCarousel = async () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    setIsExportingPdf(true);
-
-    try {
-      // Dimensiones en mm (200x200 para 1:1, o 160x200 para 4:5 vertical)
-      const isPortrait = aspectRatio === "4:5";
-      const docW = isPortrait ? 160 : 200;
-      const docH = 200;
-
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: [docW, docH],
-      });
-
-      // Capturar la diapositiva actual en memoria
-      const currentSnap = canvas.toDataURL({ format: "png", multiplier: 1 });
-      const renderedSnaps: string[] = [];
-
-      for (let i = 0; i < slides.length; i++) {
-        if (i === currentSlideIndex) {
-          renderedSnaps.push(currentSnap);
-        } else if (slides[i].canvasData) {
-          await canvas.loadFromJSON(slides[i].canvasData);
-          canvas.renderAll();
-        if (typeof canvas.calcOffset === "function") {
-          canvas.calcOffset();
-        }
-          renderedSnaps.push(canvas.toDataURL({ format: "png", multiplier: 1 }));
-        } else {
-          await renderSlideOnCanvas(slides[i]);
-          renderedSnaps.push(canvas.toDataURL({ format: "png", multiplier: 1 }));
-        }
-      }
-
-      // Reconstruir el PDF con cada página
-      renderedSnaps.forEach((dataUrl, idx) => {
-        if (idx > 0) doc.addPage([docW, docH]);
-        doc.addImage(dataUrl, "PNG", 0, 0, docW, docH);
-      });
-
-      doc.save(`InHubFlow_Carrusel_LinkedIn_${slides.length}_Paginas.pdf`);
-
-      // Restaurar la lámina en la que estábamos
-      renderSlideOnCanvas(slides[currentSlideIndex]);
-    } catch (err) {
-      console.error("Error al exportar carrusel PDF:", err);
-    } finally {
-      setIsExportingPdf(false);
-    }
-  };
-
-  // Aplicar diseño a la publicación
-  const handleApplyToPost = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    const dataUrl = canvas.toDataURL({ format: "png", multiplier: 1 });
-    if (onApplyImage) {
-      onApplyImage(dataUrl);
-    }
-    onClose();
-  };
-
-  // Subir imagen local
+  // Subir imagen personalizada
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          handleSelectBackground(reader.result);
+          setSelectedBgUrl(reader.result);
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
+  // EXPORTAR IMAGEN PNG EN ALTA DEFINICIÓN (1080px)
+  const handleExportPng = async () => {
+    if (!slideContainerRef.current) return;
+    setIsExporting(true);
+    setExportFeedback("Generando PNG en alta resolución...");
+    try {
+      const dataUrl = await toPng(slideContainerRef.current, {
+        cacheBust: true,
+        pixelRatio: 2.5,
+      });
+      const link = document.createElement("a");
+      link.download = `inhubflow-publicacion-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+      setExportFeedback("¡PNG descargado con éxito!");
+      setTimeout(() => setExportFeedback(null), 3000);
+    } catch (err) {
+      console.error("Error al exportar PNG:", err);
+      setExportFeedback("Error al generar la imagen");
+      setTimeout(() => setExportFeedback(null), 3000);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // APLICAR IMAGEN DIRECTAMENTE AL POST DRAFT
+  const handleApplyToPost = async () => {
+    if (!slideContainerRef.current) return;
+    setIsExporting(true);
+    setExportFeedback("Aplicando diseño a tu publicación...");
+    try {
+      const dataUrl = await toPng(slideContainerRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      if (onApplyImage) {
+        onApplyImage(dataUrl);
+      }
+      onClose();
+    } catch (err) {
+      console.error("Error al aplicar imagen:", err);
+      setExportFeedback("Error al aplicar");
+      setTimeout(() => setExportFeedback(null), 3000);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // EXPORTAR CARRUSEL COMPLETO A PDF PARA LINKEDIN
+  const handleExportPdf = async () => {
+    if (!slideContainerRef.current) return;
+    setIsExporting(true);
+    setExportFeedback("Preparando carrusel en PDF...");
+
+    const originalIdx = currentSlideIndex;
+    const pdfWidth = 1080;
+    const pdfHeight = aspectRatio === "4:5" ? 1350 : 1080;
+
+    const pdf = new jsPDF({
+      orientation: aspectRatio === "4:5" ? "portrait" : "landscape",
+      unit: "px",
+      format: [pdfWidth, pdfHeight],
+    });
+
+    try {
+      for (let i = 0; i < slides.length; i++) {
+        setCurrentSlideIndex(i);
+        setExportFeedback(`Renderizando lámina ${i + 1} de ${slides.length}...`);
+        // Pequeño timeout para permitir que React pinte la lámina en el DOM
+        await new Promise((r) => setTimeout(r, 200));
+
+        if (slideContainerRef.current) {
+          const imgData = await toPng(slideContainerRef.current, {
+            cacheBust: true,
+            pixelRatio: 2,
+          });
+          if (i > 0) pdf.addPage([pdfWidth, pdfHeight]);
+          pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        }
+      }
+
+      pdf.save(`carrusel-inhubflow-${Date.now()}.pdf`);
+      setExportFeedback("¡Carrusel PDF descargado con éxito!");
+      setTimeout(() => setExportFeedback(null), 3000);
+    } catch (err) {
+      console.error("Error al exportar PDF:", err);
+      setExportFeedback("Error al exportar carrusel");
+      setTimeout(() => setExportFeedback(null), 3000);
+    } finally {
+      setCurrentSlideIndex(originalIdx);
+      setIsExporting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 overflow-hidden">
-      {/* Cargar Tipografías Google Fonts para el Lienzo */}
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&family=Montserrat:wght@400;700;900&family=Outfit:wght@400;600;800;900&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
-      />
+  const currentSlide = slides[currentSlideIndex];
+  const isCover = currentSlide.type === "cover";
 
-      <div className="relative flex flex-col w-full max-w-[1520px] h-[95vh] rounded-2xl bg-gray-900 border border-gray-800 shadow-2xl overflow-hidden">
-        {/* BARRA SUPERIOR (HEADER ESTILO CANVA) */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800 bg-gray-950/90">
+  const filteredPhotos = CURATED_BACKGROUNDS.filter((photo) => {
+    const matchesTag = activePhotoTag === "all" || photo.tags.includes(activePhotoTag);
+    const query = photoSearchQuery.toLowerCase().trim();
+    const matchesQuery =
+      !query ||
+      photo.name.toLowerCase().includes(query) ||
+      photo.tags.some((t) => t.toLowerCase().includes(query));
+    return matchesTag && matchesQuery;
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 animate-in fade-in duration-200">
+      <div className="flex flex-col h-[95vh] w-full max-w-7xl rounded-2xl bg-gray-950 border border-gray-800 shadow-2xl overflow-hidden">
+        
+        {/* BARRA SUPERIOR DE CONTROL */}
+        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-800 bg-gray-900/90 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30">
+            <div className="size-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
               <Sparkles className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white">Estudio Gráfico InHubFlow</h2>
-                <span className="rounded-full bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 text-[10px] font-semibold text-brand-400 uppercase">
-                  Canva Pro Engine
+                <h2 className="text-sm font-bold text-white tracking-wide">
+                  Estudio Gráfico InHubFlow
+                </h2>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
+                  MOTOR AUTO-LAYOUT HD
                 </span>
               </div>
               <p className="text-[11px] text-gray-400">
-                {editorMode === "carousel"
-                  ? `Carrusel Activo (${slides.length} láminas) • Listo para exportar a PDF`
-                  : "Imagen Individual de Alto Impacto para LinkedIn"}
+                {editorMode === "single"
+                  ? "Publicación con Imagen Única (Feed de LinkedIn)"
+                  : `Carrusel Activo (${slides.length} láminas) • Listo para PDF o PNG`}
               </p>
             </div>
           </div>
 
-          {/* Selector de Modo: Imagen Única vs Carrusel */}
-          <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setEditorMode("single")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-                editorMode === "single"
-                  ? "bg-brand-500 text-white shadow-xs"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Imagen Única
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditorMode("carousel")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 ${
-                editorMode === "carousel"
-                  ? "bg-brand-500 text-white shadow-xs"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <FileDown className="size-3.5" />
-              <span>Carrusel PDF ({slides.length})</span>
-            </button>
+          {/* Switch Modo: Imagen Única vs Carrusel */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center p-1 rounded-xl bg-gray-800/80 border border-gray-700/60">
+              <button
+                type="button"
+                onClick={() => setEditorMode("single")}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                  editorMode === "single"
+                    ? "bg-brand-600 text-white shadow-sm"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Imagen Única
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditorMode("carousel")}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                  editorMode === "carousel"
+                    ? "bg-brand-600 text-white shadow-sm"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Carrusel PDF ({slides.length})
+              </button>
+            </div>
+
+            {/* Selector de Relación de Aspecto */}
+            <div className="flex items-center p-1 rounded-xl bg-gray-800/80 border border-gray-700/60">
+              <button
+                type="button"
+                onClick={() => setAspectRatio("4:5")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                  aspectRatio === "4:5"
+                    ? "bg-gray-700 text-white"
+                    : "text-gray-400 hover:text-white"
+                }`}
+                title="Vertical 4:5 (1080 × 1350px) - Máxima visibilidad en feed móvil"
+              >
+                Vertical 4:5
+              </button>
+              <button
+                type="button"
+                onClick={() => setAspectRatio("1:1")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                  aspectRatio === "1:1"
+                    ? "bg-gray-700 text-white"
+                    : "text-gray-400 hover:text-white"
+                }`}
+                title="Cuadrado 1:1 (1080 × 1080px)"
+              >
+                Cuadrado 1:1
+              </button>
+            </div>
           </div>
 
-          {/* Selector de Relación de Aspecto (4:5 vs 1:1) */}
-          <div className="hidden md:flex items-center gap-1 bg-gray-900 border border-gray-800 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setAspectRatio("4:5")}
-              className={`px-2.5 py-1 text-xs font-medium rounded-lg transition ${
-                aspectRatio === "4:5"
-                  ? "bg-gray-800 text-brand-400 font-bold"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              Vertical 4:5
-            </button>
-            <button
-              type="button"
-              onClick={() => setAspectRatio("1:1")}
-              className={`px-2.5 py-1 text-xs font-medium rounded-lg transition ${
-                aspectRatio === "1:1"
-                  ? "bg-gray-800 text-brand-400 font-bold"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              Cuadrado 1:1
-            </button>
-          </div>
-
-          {/* Acciones Finales */}
+          {/* Acciones de Exportación */}
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleDownloadPng}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5 text-xs font-medium text-gray-200 hover:bg-gray-700 transition"
-              title="Descargar lámina actual en PNG"
+              disabled={isExporting}
+              onClick={handleExportPng}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold border border-gray-700 transition"
+              title="Descargar lámina actual como PNG de alta resolución"
             >
-              <Download className="size-3.5" />
+              <Download className="size-3.5 text-brand-400" />
               <span>Lámina PNG</span>
             </button>
 
             {editorMode === "carousel" && (
               <button
                 type="button"
-                onClick={handleExportFullPdfCarousel}
-                disabled={isExportingPdf}
-                className="flex items-center gap-1.5 rounded-lg border border-brand-500/40 bg-brand-500/10 px-3 py-1.5 text-xs font-bold text-brand-400 hover:bg-brand-500/20 transition disabled:opacity-50"
+                disabled={isExporting}
+                onClick={handleExportPdf}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold border border-gray-700 transition"
+                title="Descargar carrusel completo en PDF para LinkedIn"
               >
-                <FileDown className="size-3.5" />
-                <span>{isExportingPdf ? "Compilando PDF..." : "Exportar PDF"}</span>
+                <FileDown className="size-3.5 text-indigo-400" />
+                <span>Exportar PDF</span>
               </button>
             )}
 
             <button
               type="button"
+              disabled={isExporting}
               onClick={handleApplyToPost}
-              className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md hover:brightness-110 transition"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-md transition"
+              title="Adjuntar este diseño al post de LinkedIn en el compositor"
             >
               <Check className="size-4" />
               <span>Aplicar al Post</span>
@@ -2163,408 +554,424 @@ export default function VisualEditorModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-800 hover:text-white transition"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition"
             >
               <X className="size-5" />
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* CUERPO PRINCIPAL DEL EDITOR */}
-        <div className="grid grid-cols-12 flex-1 min-h-0 overflow-hidden">
-          {/* PANEL LATERAL IZQUIERDO */}
-          <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex flex-col border-r border-gray-800 bg-gray-950/70 overflow-y-auto custom-scrollbar">
-            {/* Pestañas del Panel */}
-            <div className="flex border-b border-gray-800 bg-gray-900/60 sticky top-0 z-10">
+        {/* FEEDBACK TEMPORAL DE EXPORTACIÓN */}
+        {exportFeedback && (
+          <div className="bg-brand-500/20 border-b border-brand-500/30 px-5 py-1.5 text-center text-xs font-semibold text-brand-300 animate-pulse">
+            {exportFeedback}
+          </div>
+        )}
+
+        {/* CUERPO DEL EDITOR */}
+        <div className="flex-1 grid grid-cols-12 overflow-hidden">
+          
+          {/* PANEL LATERAL DE PERSONALIZACIÓN */}
+          <aside className="col-span-12 lg:col-span-4 xl:col-span-3 border-r border-gray-800 bg-gray-900/60 flex flex-col h-full overflow-hidden">
+            {/* Pestañas laterales */}
+            <div className="grid grid-cols-4 border-b border-gray-800 bg-gray-950/70 p-1 gap-1 text-xs font-medium shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveTab("templates")}
-                className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition ${
+                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
                   activeTab === "templates"
-                    ? "border-brand-500 text-brand-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "bg-brand-600 text-white shadow-sm font-bold"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
                 }`}
               >
-                <Layers className="size-3.5" />
-                <span>Plantillas</span>
+                <Layers className="size-4" />
+                <span className="text-[10px]">Plantillas</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("content")}
-                className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition ${
+                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
                   activeTab === "content"
-                    ? "border-brand-500 text-brand-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "bg-brand-600 text-white shadow-sm font-bold"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
                 }`}
               >
-                <Type className="size-3.5" />
-                <span>Lámina</span>
+                <Type className="size-4" />
+                <span className="text-[10px]">Lámina</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("backgrounds")}
-                className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition ${
+                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
                   activeTab === "backgrounds"
-                    ? "border-brand-500 text-brand-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "bg-brand-600 text-white shadow-sm font-bold"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
                 }`}
               >
-                <ImageIcon className="size-3.5" />
-                <span>Fotos</span>
+                <ImageIcon className="size-4" />
+                <span className="text-[10px]">Fotos</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("brand")}
-                className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition ${
+                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
                   activeTab === "brand"
-                    ? "border-brand-500 text-brand-400"
-                    : "border-transparent text-gray-400 hover:text-gray-200"
+                    ? "bg-brand-600 text-white shadow-sm font-bold"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
                 }`}
               >
-                <Palette className="size-3.5" />
-                <span>Marca</span>
+                <Palette className="size-4" />
+                <span className="text-[10px]">Marca</span>
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
-              {/* CONTENIDO DE LA PESTAÑA 1: PLANTILLAS */}
+            {/* Contenido de cada pestaña */}
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
+              
+              {/* TAB 1: PLANTILLAS PREDISEÑADAS */}
               {activeTab === "templates" && (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-400">
-                    Selecciona un estilo base. Tus textos se mantendrán intactos al alternar:
-                  </p>
+                  <div className="text-xs text-gray-400 font-medium pb-1">
+                    Selecciona un estilo. Tus textos y fotos se mantendrán intactos:
+                  </div>
 
                   {/* 1. Cinematic Editorial */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedTemplate("editorial");
-                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "editorial");
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                    onClick={() => setSelectedTemplate("editorial")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
                       selectedTemplate === "editorial"
-                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
-                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gradient-to-t from-gray-950 via-gray-900 to-blue-900/40 border border-gray-700 p-1.5 flex flex-col justify-end shrink-0">
-                      <div className="h-1.5 w-5 bg-brand-400 rounded-xs mb-1"></div>
-                      <div className="h-1 w-8 bg-white rounded-xs mb-0.5"></div>
-                      <div className="h-0.5 w-6 bg-gray-400 rounded-xs"></div>
+                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-slate-800 border border-gray-700 flex flex-col justify-end p-1.5 shrink-0">
+                      <div className="h-1.5 w-6 rounded-full bg-brand-400 mb-1"></div>
+                      <div className="h-1 w-4 rounded-full bg-gray-400"></div>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Cinematic Editorial</p>
-                      <p className="text-[11px] text-gray-400">Degradé oscuro + foto envolvente</p>
+                      <div className="text-xs font-bold text-white">Cinematic Editorial</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Tarjeta de cristal oscuro + titular B2B de alto impacto.
+                      </div>
                     </div>
                   </button>
 
                   {/* 2. Cita de Autoridad */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedTemplate("authority_quote");
-                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "authority_quote");
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                    onClick={() => setSelectedTemplate("authority_quote")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
                       selectedTemplate === "authority_quote"
-                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
-                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex items-center justify-center text-brand-400 font-serif text-2xl shrink-0">
-                      “
+                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-indigo-950 border border-gray-700 flex items-center justify-center shrink-0">
+                      <Quote className="size-5 text-indigo-400" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Cita de Autoridad</p>
-                      <p className="text-[11px] text-gray-400">Comillas grandes + frase centrada</p>
+                      <div className="text-xs font-bold text-white">Cita de Autoridad</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Comillas gigantes y frase centralizada con tarjeta de autor.
+                      </div>
                     </div>
                   </button>
 
                   {/* 3. Tarjeta Social / Feed */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedTemplate("social_card");
-                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "social_card");
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                    onClick={() => setSelectedTemplate("social_card")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
                       selectedTemplate === "social_card"
-                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
-                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-900 border border-gray-700 flex flex-col items-center justify-center p-1 shrink-0">
-                      <div className="size-3 rounded-full bg-brand-400 mb-1"></div>
-                      <div className="h-1 w-6 bg-gray-300 rounded-xs mb-0.5"></div>
-                      <div className="h-0.5 w-4 bg-gray-500 rounded-xs"></div>
+                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-blue-950 border border-gray-700 flex flex-col items-center justify-center shrink-0">
+                      <div className="size-3.5 rounded-full bg-blue-500 mb-1"></div>
+                      <div className="h-1 w-6 rounded-full bg-gray-400"></div>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Tarjeta Social / Feed</p>
-                      <p className="text-[11px] text-gray-400">Bordes redondeados + check azul</p>
+                      <div className="text-xs font-bold text-white">Tarjeta Social / Feed</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Formato publicación con avatar, check azul y métricas sociales.
+                      </div>
                     </div>
                   </button>
 
-                  {/* 4. Split Focus (50/50) */}
+                  {/* 4. Split Focus 50/50 */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedTemplate("split_focus");
-                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "split_focus");
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                    onClick={() => setSelectedTemplate("split_focus")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
                       selectedTemplate === "split_focus"
-                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
-                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex flex-col overflow-hidden shrink-0">
-                      <div className="h-1/2 bg-blue-600/30 border-b border-brand-500"></div>
-                      <div className="h-1/2 bg-gray-900 p-1 flex flex-col justify-center">
-                        <div className="h-1 w-5 bg-white rounded-xs"></div>
+                    <div className="size-11 rounded-lg bg-gray-900 border border-gray-700 flex flex-col overflow-hidden shrink-0">
+                      <div className="h-1/2 bg-blue-900/70"></div>
+                      <div className="h-1/2 bg-slate-950 p-1 flex items-center">
+                        <div className="h-1 w-4 rounded-full bg-white"></div>
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Split Focus (50/50)</p>
-                      <p className="text-[11px] text-gray-400">Foto arriba + datos abajo</p>
+                      <div className="text-xs font-bold text-white">Split Focus (50/50)</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Fotografía superior inmersiva + panel de datos inferior.
+                      </div>
                     </div>
                   </button>
 
                   {/* 5. Métrica de Alto Impacto */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedTemplate("big_metric");
-                      renderSlideOnCanvas(slides[currentSlideIndex], undefined, undefined, "big_metric");
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 ${
+                    onClick={() => setSelectedTemplate("big_metric")}
+                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
                       selectedTemplate === "big_metric"
-                        ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/50 shadow-md"
-                        : "border-gray-800 bg-gray-900/60 hover:bg-gray-800/40"
+                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
                     }`}
                   >
-                    <div className="size-12 rounded-lg bg-gray-950 border border-gray-700 flex flex-col items-center justify-center p-1 shrink-0 text-brand-400 font-mono font-bold text-xs">
-                      +340%
+                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-amber-950 border border-gray-700 flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-mono font-bold text-amber-400">+340%</span>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Métrica de Alto Impacto</p>
-                      <p className="text-[11px] text-gray-400">Número gigante + validación</p>
+                      <div className="text-xs font-bold text-white">Métrica de Alto Impacto</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Número gigante validado (+340%) con titular explicativo.
+                      </div>
                     </div>
                   </button>
                 </div>
               )}
 
-              {/* CONTENIDO DE LA PESTAÑA 2: CONTENIDO DE LA LÁMINA */}
+              {/* TAB 2: CONTENIDO DE LA LÁMINA */}
               {activeTab === "content" && (
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase text-brand-400">
-                      Editando: {slides[currentSlideIndex].label} (Lámina {currentSlideIndex + 1})
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      Tipo: {slides[currentSlideIndex].type}
-                    </span>
+                <div className="space-y-4">
+                  {/* Tipo de Lámina */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                      Tipo de Lámina
+                    </label>
+                    <select
+                      value={currentSlide.type}
+                      onChange={(e) => updateCurrentSlide({ type: e.target.value as any })}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
+                    >
+                      <option value="cover">Portada Principal</option>
+                      <option value="problem">Problema / Diagnóstico (Viñetas)</option>
+                      <option value="solution">Solución / Framework (Puntos de Acción)</option>
+                      <option value="cta">CTA Final (Palabra Clave Sentinel)</option>
+                    </select>
                   </div>
 
+                  {/* Etiqueta / Categoría */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-                      Tag / Categoría
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                      Categoría / Tag
                     </label>
                     <input
                       type="text"
-                      value={slides[currentSlideIndex].tag}
-                      onChange={(e) => {
-                        const updated = [...slides];
-                        updated[currentSlideIndex].tag = e.target.value;
-                        setSlides(updated);
-                        renderSlideOnCanvas(updated[currentSlideIndex]);
-                      }}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-hidden"
+                      value={currentSlide.tag}
+                      onChange={(e) => updateCurrentSlide({ tag: e.target.value })}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-hidden"
+                      placeholder="Ej. SOCIAL SELLING B2B"
                     />
                   </div>
 
+                  {/* Titular */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
                       Titular Principal
                     </label>
                     <textarea
-                      rows={2}
-                      value={slides[currentSlideIndex].title}
-                      onChange={(e) => {
-                        const updated = [...slides];
-                        updated[currentSlideIndex].title = e.target.value;
-                        setSlides(updated);
-                        renderSlideOnCanvas(updated[currentSlideIndex]);
-                      }}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 p-2.5 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
+                      rows={3}
+                      value={currentSlide.title}
+                      onChange={(e) => updateCurrentSlide({ title: e.target.value })}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
+                      placeholder="Escribe el gancho o título de alto impacto..."
                     />
                   </div>
 
-                  {slides[currentSlideIndex].bullets && (
+                  {/* Subtítulo */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                      Subtítulo / Contexto
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={currentSlide.subtitle}
+                      onChange={(e) => updateCurrentSlide({ subtitle: e.target.value })}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-300 focus:border-brand-500 focus:outline-hidden"
+                      placeholder="Agrega el framework o valor complementario..."
+                    />
+                  </div>
+
+                  {/* Métrica para template de Métrica */}
+                  {selectedTemplate === "big_metric" && isCover && (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-                        Puntos Clave (uno por línea)
+                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                        Número de Métrica
                       </label>
-                      <textarea
-                        rows={4}
-                        value={slides[currentSlideIndex].bullets?.join("\n")}
-                        onChange={(e) => {
-                          const updated = [...slides];
-                          updated[currentSlideIndex].bullets = e.target.value.split("\n");
-                          setSlides(updated);
-                          renderSlideOnCanvas(updated[currentSlideIndex]);
-                        }}
-                        className="w-full rounded-lg border border-gray-700 bg-gray-900 p-2.5 text-xs text-gray-200 focus:border-brand-500 focus:outline-hidden"
+                      <input
+                        type="text"
+                        value={currentSlide.metric || "+340%"}
+                        onChange={(e) => updateCurrentSlide({ metric: e.target.value })}
+                        className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-brand-400 font-mono font-bold focus:border-brand-500 focus:outline-hidden"
+                        placeholder="+340% o $1.2M"
                       />
                     </div>
                   )}
 
-                  {slides[currentSlideIndex].type === "cta" && (
+                  {/* Viñetas para láminas de problema o solución */}
+                  {(currentSlide.type === "problem" || currentSlide.type === "solution") && (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-                        Palabra Clave de Activación
+                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                        Puntos Clave (Viñetas)
+                      </label>
+                      <div className="space-y-2">
+                        {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((b, bIdx) => (
+                          <div key={bIdx} className="flex items-center gap-2">
+                            <span className="size-6 rounded-full bg-brand-500/20 text-brand-400 font-bold text-xs flex items-center justify-center shrink-0">
+                              {bIdx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={b}
+                              onChange={(e) => {
+                                const newBullets = [...(currentSlide.bullets || [])];
+                                newBullets[bIdx] = e.target.value;
+                                updateCurrentSlide({ bullets: newBullets });
+                              }}
+                              className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-hidden"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Palabra Clave para CTA Final */}
+                  {currentSlide.type === "cta" && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
+                        Palabra Clave de Activación (Inbound Sentinel)
                       </label>
                       <input
                         type="text"
-                        value={slides[currentSlideIndex].ctaKeyword || "SISTEMA"}
-                        onChange={(e) => {
-                          const updated = [...slides];
-                          updated[currentSlideIndex].ctaKeyword = e.target.value.toUpperCase();
-                          setSlides(updated);
-                          renderSlideOnCanvas(updated[currentSlideIndex]);
-                        }}
-                        className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-bold text-brand-400 focus:border-brand-500 focus:outline-hidden"
+                        value={currentSlide.ctaKeyword || "SISTEMA"}
+                        onChange={(e) => updateCurrentSlide({ ctaKeyword: e.target.value })}
+                        className="w-full rounded-lg border border-brand-500/50 bg-gray-900 px-3 py-2 text-xs text-brand-400 font-mono font-bold uppercase focus:border-brand-500 focus:outline-hidden"
+                        placeholder="SISTEMA"
                       />
                     </div>
                   )}
                 </div>
               )}
 
-              {/* CONTENIDO DE LA PESTAÑA 3: FOTOS Y FONDOS CON BUSCADOR EN VIVO (Feature #4) */}
+              {/* TAB 3: FOTOGRAFÍAS Y FONDOS */}
               {activeTab === "backgrounds" && (
-                <div className="space-y-3.5">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">
-                      Buscador de Fotos de Stock (Unsplash)
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Busca instantáneamente por temática o selecciona una categoría:
-                    </p>
-                  </div>
-
-                  {/* Barra de Búsqueda en Tiempo Real */}
+                <div className="space-y-4">
+                  {/* Buscador de fotos */}
                   <div className="relative">
-                    <Search className="absolute left-3 top-2.5 size-3.5 text-gray-400" />
+                    <Search className="size-3.5 absolute left-3 top-2.5 text-gray-400" />
                     <input
                       type="text"
                       value={photoSearchQuery}
                       onChange={(e) => setPhotoSearchQuery(e.target.value)}
-                      placeholder="Buscar: oficina, laptop, datos, reunión..."
-                      className="w-full rounded-xl border border-gray-700 bg-gray-900 pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-brand-500 focus:outline-hidden"
+                      placeholder="Buscar oficina, tech, datos, equipo..."
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-brand-500 focus:outline-hidden"
                     />
                   </div>
 
-                  {/* Chips de Categorías Populares */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                  {/* Subir foto propia */}
+                  <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-dashed border-gray-700 bg-gray-900/60 hover:bg-gray-800 text-gray-300 text-xs font-semibold cursor-pointer transition">
+                    <Upload className="size-4 text-brand-400" />
+                    <span>Subir mi propia foto o imagen</span>
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                  </label>
+
+                  {/* Filtro rápido por categoría */}
+                  <div className="flex flex-wrap gap-1.5">
                     {[
                       { id: "all", label: "Todas" },
-                      { id: "oficina", label: "🏢 Oficina" },
-                      { id: "laptop", label: "💻 Laptops" },
-                      { id: "datos", label: "📊 Datos" },
-                      { id: "ciudad", label: "🏙️ Ciudad" },
-                      { id: "ia", label: "🧠 Tech / IA" },
-                      { id: "equipo", label: "👥 Equipo" },
-                      { id: "cafe", label: "☕ Café" },
-                    ].map((chip) => (
+                      { id: "oficina", label: "Oficina" },
+                      { id: "tech", label: "Tech & IA" },
+                      { id: "datos", label: "Datos" },
+                      { id: "ciudad", label: "Ciudad" },
+                      { id: "equipo", label: "Equipo" },
+                    ].map((tag) => (
                       <button
-                        key={chip.id}
+                        key={tag.id}
                         type="button"
-                        onClick={() => setActivePhotoTag(chip.id)}
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg shrink-0 transition ${
-                          activePhotoTag === chip.id
-                            ? "bg-brand-500 text-white"
+                        onClick={() => setActivePhotoTag(tag.id)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                          activePhotoTag === tag.id
+                            ? "bg-brand-600 text-white"
                             : "bg-gray-800 text-gray-400 hover:text-white"
                         }`}
                       >
-                        {chip.label}
+                        {tag.label}
                       </button>
                     ))}
                   </div>
 
-                  {/* Resultados de la Búsqueda */}
-                  <div className="flex items-center justify-between text-[11px] text-gray-400">
-                    <span>{filteredPhotos.length} fotos encontradas</span>
-                    {photoSearchQuery && (
+                  {/* Grid de fotos curadas */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {filteredPhotos.map((photo) => (
                       <button
+                        key={photo.id}
                         type="button"
-                        onClick={() => setPhotoSearchQuery("")}
-                        className="text-brand-400 hover:underline"
-                      >
-                        Limpiar búsqueda
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
-                    {filteredPhotos.map((bg) => (
-                      <button
-                        key={bg.id}
-                        type="button"
-                        onClick={() => handleSelectBackground(bg.url)}
-                        className={`group relative rounded-xl overflow-hidden border aspect-video transition ${
-                          selectedBgUrl === bg.url
+                        onClick={() => setSelectedBgUrl(photo.url)}
+                        className={`group relative aspect-video rounded-lg overflow-hidden border transition ${
+                          selectedBgUrl === photo.url
                             ? "border-brand-500 ring-2 ring-brand-500"
                             : "border-gray-800 hover:border-gray-600"
                         }`}
                       >
                         <img
-                          src={bg.thumb}
-                          alt={bg.name}
-                          className="size-full object-cover group-hover:scale-105 transition duration-300"
+                          src={photo.thumb}
+                          alt={photo.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex items-end p-1.5">
-                          <span className="text-[10px] font-semibold text-white leading-tight drop-shadow-xs truncate">
-                            {bg.name}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
+                          <span className="text-[10px] text-white font-medium truncate">
+                            {photo.name}
                           </span>
                         </div>
                       </button>
                     ))}
                   </div>
-
-                  {/* Subir Foto Propia */}
-                  <div className="pt-2 border-t border-gray-800">
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-3 cursor-pointer hover:border-brand-500/70 transition">
-                      <Upload className="size-4 text-gray-400 mb-1" />
-                      <span className="text-[11px] text-gray-300">O sube tu propia fotografía (PNG / JPG)</span>
-                      <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                    </label>
-                  </div>
                 </div>
               )}
 
-              {/* CONTENIDO DE LA PESTAÑA 4: ESTILO Y MARCA */}
+              {/* TAB 4: MARCA Y ESTILO */}
               {activeTab === "brand" && (
                 <div className="space-y-4">
+                  {/* Color de Acento */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">
-                      Color de Acento
+                      Color de Acento de Marca
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {BRAND_COLORS.map((c) => (
                         <button
                           key={c.hex}
                           type="button"
-                          onClick={() => {
-                            setAccentColor(c.hex);
-                            renderSlideOnCanvas(slides[currentSlideIndex]);
-                          }}
-                          className={`flex items-center gap-1.5 p-1.5 rounded-lg border transition ${
+                          onClick={() => setAccentColor(c.hex)}
+                          className={`flex items-center gap-1.5 p-2 rounded-lg border transition ${
                             accentColor === c.hex
                               ? "border-brand-500 bg-gray-800"
-                              : "border-gray-800 bg-gray-900"
+                              : "border-gray-800 bg-gray-900/60 hover:bg-gray-800"
                           }`}
                         >
                           <span
-                            className="size-3.5 rounded-full border border-white/20"
+                            className="size-3.5 rounded-full border border-white/20 shrink-0"
                             style={{ backgroundColor: c.hex }}
                           ></span>
                           <span className="text-[11px] text-gray-200 truncate">{c.name.split(" ")[0]}</span>
@@ -2573,14 +980,34 @@ export default function VisualEditorModal({
                     </div>
                   </div>
 
-                  {/* Control del Fondo Oscuro Transparente */}
+                  {/* Tipografía */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">
+                      Tipografía Principal
+                    </label>
+                    <select
+                      value={selectedFont}
+                      onChange={(e) => setSelectedFont(e.target.value)}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
+                    >
+                      {AVAILABLE_FONTS.map((f) => (
+                        <option key={f.name} value={f.name}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Nivel de Transparencia del Fondo Oscuro */}
                   <div className="p-3 rounded-xl border border-gray-800 bg-gray-900/60 space-y-2.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-300 font-semibold uppercase flex items-center gap-1.5">
-                        <span className="size-2 rounded-full bg-brand-400"></span>
-                        Fondo Oscuro Transparente
+                        <span className="size-2 rounded-full" style={{ backgroundColor: accentColor }}></span>
+                        Opacidad Fondo Oscuro
                       </span>
-                      <span className="text-brand-400 font-mono font-bold">{Math.round(overlayOpacity * 100)}%</span>
+                      <span className="text-brand-400 font-mono font-bold">
+                        {Math.round(overlayOpacity * 100)}%
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -2588,579 +1015,465 @@ export default function VisualEditorModal({
                       max={0.95}
                       step={0.05}
                       value={overlayOpacity}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        setOverlayOpacity(val);
-                        applyShapeProperty("opacity", val);
-                      }}
+                      onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
                       className="w-full accent-brand-500 cursor-pointer"
-                      title="Regular nivel de opacidad y transparencia del fondo"
                     />
+
+                    {/* Modo Tarjeta vs Pantalla Completa */}
                     <div className="grid grid-cols-2 gap-1.5 pt-1">
                       <button
                         type="button"
-                        onClick={() => handleSetOverlayMode("card")}
-                        className="px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                        onClick={() => setOverlayMode("card")}
+                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition ${
+                          overlayMode === "card"
+                            ? "border-brand-500 bg-brand-500/20 text-white"
+                            : "border-gray-700 bg-gray-800 text-gray-400 hover:text-white"
+                        }`}
                       >
                         Modo Tarjeta
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleSetOverlayMode("fullscreen")}
-                        className="px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                        onClick={() => setOverlayMode("fullscreen")}
+                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition ${
+                          overlayMode === "fullscreen"
+                            ? "border-brand-500 bg-brand-500/20 text-white"
+                            : "border-gray-700 bg-gray-800 text-gray-400 hover:text-white"
+                        }`}
                       >
                         Pantalla Completa
                       </button>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-800 space-y-2">
+                  {/* Autor y Firma */}
+                  <div className="space-y-2 pt-2 border-t border-gray-800">
                     <label className="block text-xs font-semibold text-gray-300 uppercase">
-                      Autor de Marca
+                      Firma de Autor
                     </label>
                     <input
                       type="text"
                       value={nameText}
-                      onChange={(e) => {
-                        setNameText(e.target.value);
-                        renderSlideOnCanvas(slides[currentSlideIndex]);
-                      }}
+                      onChange={(e) => setNameText(e.target.value)}
+                      placeholder="Nombre del Autor"
                       className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-white"
-                      placeholder="Nombre"
                     />
                     <input
                       type="text"
                       value={handleText}
-                      onChange={(e) => {
-                        setHandleText(e.target.value);
-                        renderSlideOnCanvas(slides[currentSlideIndex]);
-                      }}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-gray-400"
+                      onChange={(e) => setHandleText(e.target.value)}
                       placeholder="@handle"
+                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-gray-400"
                     />
                   </div>
                 </div>
               )}
             </div>
-          </div>
+          </aside>
 
-          {/* ÁREA CENTRAL: LIENZO WYSIWYG + BARRA FLOTANTE CONTEXTUAL + NAVEGADOR DE CARRUSEL */}
-          <div className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col bg-slate-950 relative overflow-hidden">
-            {/* PUNTO 2: BARRA DE HERRAMIENTAS FLOTANTE CONTEXTUAL (ESTILO CANVA) */}
-            <div className="w-full px-4 py-2 border-b border-gray-800 bg-gray-900/90 backdrop-blur-md flex items-center justify-between min-h-[48px] z-20">
-              {selectedObjectInfo?.isText ? (
-                /* Controles cuando hay un Texto Seleccionado */
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* Selector de Fuente */}
-                  <select
-                    value={selectedObjectInfo.fontFamily}
-                    onChange={(e) => applyTextProperty("fontFamily", e.target.value)}
-                    className="rounded-lg border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
-                  >
-                    {AVAILABLE_FONTS.map((f) => (
-                      <option key={f.name} value={f.name}>
-                        {f.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Tamaño de Fuente - / + */}
-                  <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden bg-gray-800">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        applyTextProperty("fontSize", Math.max(12, selectedObjectInfo.fontSize - 4))
-                      }
-                      className="px-2 py-1 text-xs text-gray-300 hover:bg-gray-700"
-                      title="Reducir tamaño"
-                    >
-                      -
-                    </button>
-                    <span className="px-2 text-xs font-mono text-white">
-                      {selectedObjectInfo.fontSize}px
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        applyTextProperty("fontSize", Math.min(120, selectedObjectInfo.fontSize + 4))
-                      }
-                      className="px-2 py-1 text-xs text-gray-300 hover:bg-gray-700"
-                      title="Aumentar tamaño"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {/* Estilos: Negrita, Cursiva, Subrayado */}
-                  <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden bg-gray-800">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        applyTextProperty(
-                          "fontWeight",
-                          selectedObjectInfo.fontWeight === "bold" ? "normal" : "bold"
-                        )
-                      }
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.fontWeight === "bold"
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Negrita"
-                    >
-                      <Bold className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        applyTextProperty(
-                          "fontStyle",
-                          selectedObjectInfo.fontStyle === "italic" ? "normal" : "italic"
-                        )
-                      }
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.fontStyle === "italic"
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Cursiva"
-                    >
-                      <Italic className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyTextProperty("underline", !selectedObjectInfo.underline)}
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.underline
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Subrayado"
-                    >
-                      <Underline className="size-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Alineación de Texto */}
-                  <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden bg-gray-800">
-                    <button
-                      type="button"
-                      onClick={() => applyTextProperty("textAlign", "left")}
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.textAlign === "left"
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Alinear a la izquierda"
-                    >
-                      <AlignLeft className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyTextProperty("textAlign", "center")}
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.textAlign === "center"
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Centrar"
-                    >
-                      <AlignCenter className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyTextProperty("textAlign", "right")}
-                      className={`p-1.5 transition ${
-                        selectedObjectInfo.textAlign === "right"
-                          ? "bg-brand-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Alinear a la derecha"
-                    >
-                      <AlignRight className="size-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Resaltador de Fondo (Highlighter Box) */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      applyTextProperty(
-                        "backgroundColor",
-                        selectedObjectInfo.hasHighlight ? "" : accentColor
-                      )
-                    }
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-semibold transition ${
-                      selectedObjectInfo.hasHighlight
-                        ? "border-brand-500 bg-brand-500/20 text-brand-400"
-                        : "border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700"
-                    }`}
-                    title="Caja de resaltado estilo viral"
-                  >
-                    <Highlighter className="size-3.5" />
-                    <span>Resaltar</span>
-                  </button>
-
-                  {/* Color de Texto */}
-                  <div className="flex items-center gap-1.5 pl-1">
-                    <input
-                      type="color"
-                      value={selectedObjectInfo.fill}
-                      onChange={(e) => applyTextProperty("fill", e.target.value)}
-                      className="size-6 rounded-md border border-gray-700 bg-transparent cursor-pointer"
-                      title="Color del texto"
-                    />
-                  </div>
-
-                  {/* Duplicar, Capas y Eliminar */}
-                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
-                    <button
-                      type="button"
-                      onClick={handleDuplicateSelected}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Duplicar elemento"
-                    >
-                      <Copy className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleBringForward}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Traer al frente"
-                    >
-                      <ArrowUp className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSendBackward}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Enviar atrás"
-                    >
-                      <ArrowDown className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDeleteSelected}
-                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
-                      title="Eliminar elemento"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : selectedObjectInfo?.isImage ? (
-                /* Controles cuando hay una Imagen o Foto de Fondo Seleccionada (Punto Canva: Foto 100% Editable) */
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                    <span className="size-2 rounded-full bg-emerald-400"></span>
-                    📷 Fotografía / Imagen:
-                  </span>
-
-                  {/* Slider de Opacidad / Transparencia de la Foto */}
-                  <div className="flex items-center gap-1.5 pl-2 border-l border-gray-800" title="Regular nivel de opacidad de la foto">
-                    <span className="text-[11px] text-gray-400">Opacidad:</span>
-                    <input
-                      type="range"
-                      min={0.1}
-                      max={1}
-                      step={0.05}
-                      value={selectedObjectInfo.opacity}
-                      onChange={(e) => applyShapeProperty("opacity", parseFloat(e.target.value))}
-                      className="w-20 accent-emerald-500 cursor-pointer"
-                    />
-                    <span className="text-xs font-mono text-emerald-400 font-bold min-w-[32px]">
-                      {Math.round(selectedObjectInfo.opacity * 100)}%
-                    </span>
-                  </div>
-
-                  {/* Botón Reencuadrar Foto */}
-                  <button
-                    type="button"
-                    onClick={handleResetImageFit}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs transition"
-                    title="Restaurar escala y centrar la foto en el lienzo"
-                  >
-                    <Maximize2 className="size-3.5 text-emerald-400" />
-                    <span>Reencuadrar</span>
-                  </button>
-
-                  {/* Botón Cambiar Foto */}
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("backgrounds")}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 hover:bg-emerald-500/25 text-emerald-300 text-xs transition font-semibold"
-                    title="Explorar fotos de Unsplash para reemplazar"
-                  >
-                    <ImageIcon className="size-3.5 text-emerald-400" />
-                    <span>Cambiar Foto</span>
-                  </button>
-
-                  {/* Capas, Duplicar y Eliminar */}
-                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
-                    <button
-                      type="button"
-                      onClick={handleSendBackward}
-                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition"
-                      title="Enviar foto al fondo (detrás de los textos)"
-                    >
-                      <ArrowDown className="size-3.5" />
-                      <span>Al Fondo</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleBringForward}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Traer al frente"
-                    >
-                      <ArrowUp className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDuplicateSelected}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Duplicar foto"
-                    >
-                      <Copy className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDeleteSelected}
-                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
-                      title="Eliminar foto"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : selectedObjectInfo ? (
-                /* Controles cuando hay una Forma o Fondo Oscuro Seleccionado (Punto Canva: Fondo Editable) */
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-brand-400 flex items-center gap-1">
-                    <span className="size-2 rounded-full bg-brand-400"></span>
-                    Fondo Oscuro / Tarjeta:
-                  </span>
-
-                  {/* Color de Fondo */}
-                  <div className="flex items-center gap-1.5 pl-1" title="Color del Fondo">
-                    <span className="text-[11px] text-gray-400">Color:</span>
-                    <input
-                      type="color"
-                      value={selectedObjectInfo.fill && selectedObjectInfo.fill.startsWith("#") ? selectedObjectInfo.fill : "#090d18"}
-                      onChange={(e) => applyShapeProperty("fill", e.target.value)}
-                      className="size-6 rounded-md border border-gray-700 bg-transparent cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Slider de Opacidad / Transparencia */}
-                  <div className="flex items-center gap-1.5 pl-2 border-l border-gray-800">
-                    <span className="text-[11px] text-gray-400">Opacidad:</span>
-                    <input
-                      type="range"
-                      min={0.1}
-                      max={1}
-                      step={0.05}
-                      value={selectedObjectInfo.opacity}
-                      onChange={(e) => applyShapeProperty("opacity", parseFloat(e.target.value))}
-                      className="w-20 accent-brand-500 cursor-pointer"
-                      title="Nivel de transparencia del fondo"
-                    />
-                    <span className="text-xs font-mono text-brand-400 font-bold min-w-[32px]">
-                      {Math.round(selectedObjectInfo.opacity * 100)}%
-                    </span>
-                  </div>
-
-                  {/* Curvatura de Bordes (0px, 16px, 24px) */}
-                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
-                    <span className="text-[11px] text-gray-400">Bordes:</span>
-                    <button
-                      type="button"
-                      onClick={() => applyShapeProperty("rx", 0)}
-                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
-                        selectedObjectInfo.rx === 0 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Bordes Rectos (0px)"
-                    >
-                      0px
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyShapeProperty("rx", 16)}
-                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
-                        selectedObjectInfo.rx === 16 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Bordes Suaves (16px)"
-                    >
-                      16px
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyShapeProperty("rx", 24)}
-                      className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
-                        selectedObjectInfo.rx === 24 ? "bg-brand-500 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                      }`}
-                      title="Bordes Redondeados (24px)"
-                    >
-                      24px
-                    </button>
-                  </div>
-
-                  {/* Modos Rápidos de Tamaño: Tarjeta vs Pantalla Completa */}
-                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
-                    <button
-                      type="button"
-                      onClick={() => handleSetOverlayMode("fullscreen")}
-                      className="px-2 py-1 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
-                      title="Extender fondo a pantalla completa"
-                    >
-                      Pantalla Completa
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSetOverlayMode("card")}
-                      className="px-2 py-1 rounded-lg border border-gray-700 bg-gray-800 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition"
-                      title="Formato Tarjeta Flotante"
-                    >
-                      Modo Tarjeta
-                    </button>
-                  </div>
-
-                  {/* Capas, Duplicar y Eliminar */}
-                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
-                    <button
-                      type="button"
-                      onClick={handleBringForward}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Traer al frente"
-                    >
-                      <ArrowUp className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSendBackward}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Enviar atrás"
-                    >
-                      <ArrowDown className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDuplicateSelected}
-                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
-                      title="Duplicar"
-                    >
-                      <Copy className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDeleteSelected}
-                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Barra de estado en reposo */
-                <div className="flex items-center justify-between w-full text-xs text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>
-                      Modo Canva Activo: Haz clic en el fondo oscuro, textos o elementos para editarlos libremente.
-                    </span>
-                  </div>
-                  <span className="text-gray-500 text-[11px]">
-                    Lámina {currentSlideIndex + 1} de {slides.length}
-                  </span>
-                </div>
-              )}
+          {/* ESCENARIO CENTRAL DE VISUALIZACIÓN WYSIWYG */}
+          <main className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-950/80 relative overflow-hidden">
+            
+            {/* Aviso superior de edición interactiva */}
+            <div className="mb-3 flex items-center gap-2 text-xs text-gray-400">
+              <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Haz clic directamente sobre los textos para editarlos o usa los controles laterales.</span>
             </div>
 
-            {/* ESCENARIO CENTRAL DEL CANVAS (PREVIEW WYSIWYG ESTILO CANVA) */}
-            <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4 overflow-hidden relative bg-slate-950">
-              {/* Marco Contenedor con Dimensiones Escaladas Exactas */}
+            {/* CONTENEDOR DEL LIENZO MAQUETADO CON TAILWIND (EXPORTABLE 1:1 / 4:5) */}
+            <div
+              className={`relative shadow-2xl rounded-2xl border border-gray-800 bg-gray-950 overflow-hidden ring-1 ring-white/10 shrink-0 transition-all duration-300 ${
+                aspectRatio === "4:5" ? "w-[420px] h-[525px]" : "w-[440px] h-[440px]"
+              }`}
+            >
+              {/* Elemento DOM exacto que se captura con html-to-image */}
               <div
-                className="relative shadow-2xl rounded-2xl border border-gray-800 bg-gray-900 overflow-hidden ring-1 ring-white/10 shrink-0"
-                style={{
-                  width: `${previewWidth}px`,
-                  height: `${previewHeight}px`,
-                }}
+                ref={slideContainerRef}
+                style={{ fontFamily: selectedFont }}
+                className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none bg-slate-950"
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: `${canvasWidth}px`,
-                    height: `${canvasHeight}px`,
-                    transform: `scale(${previewScale})`,
-                    transformOrigin: "0 0",
-                  }}
-                >
-                  <canvas ref={canvasElRef} />
+                {/* 1. FOTO DE FONDO CON OBJECT-FIT COVER */}
+                <div className="absolute inset-0 z-0">
+                  <img
+                    src={selectedBgUrl}
+                    alt="Background"
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Filtro ambiental sutil de contraste */}
+                  <div className="absolute inset-0 bg-slate-950/40"></div>
                 </div>
-              </div>
 
-              {/* Barra inferior con resolución HD y porcentaje de escala */}
-              <div className="mt-2.5 flex items-center gap-3 text-[11px] text-gray-500 font-mono">
-                <span>{canvasWidth} × {canvasHeight}px ({aspectRatio})</span>
-                <span>•</span>
-                <span className="text-brand-400 font-bold">Escala: {Math.round(previewScale * 100)}% (Ajustado)</span>
-              </div>
-            </div>
+                {/* 2. RENDERIZADO POR PLANTILLA O TIPO DE LÁMINA */}
 
-            {/* PUNTO 3: TIRA INFERIOR DE CARRUSEL MULTIDIAPOSITIVA (ESTILO CANVA) */}
-            <div className="w-full px-5 py-3 border-t border-gray-800 bg-gray-950/90 flex items-center gap-3 overflow-x-auto custom-scrollbar z-20">
-              <span className="text-[11px] font-bold uppercase text-gray-400 shrink-0 flex items-center gap-1.5">
-                <Layers className="size-3.5 text-brand-400" />
-                Láminas:
-              </span>
+                {/* A) LÁMINA TIPO PORTADA SEGÚN PLANTILLA SELECCIONADA */}
+                {isCover ? (
+                  <>
+                    {/* PLANTILLA 1: CINEMATIC EDITORIAL */}
+                    {selectedTemplate === "editorial" && (
+                      <div className="relative z-10 w-full h-full flex flex-col justify-end p-5">
+                        <div
+                          style={{
+                            backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                          }}
+                          className={`w-full border border-white/15 shadow-2xl backdrop-blur-md flex flex-col justify-between transition-all ${
+                            overlayMode === "fullscreen"
+                              ? "h-full rounded-none p-6"
+                              : "rounded-3xl p-6"
+                          }`}
+                        >
+                          <div>
+                            {/* Píldora de Categoría */}
+                            <div className="inline-block mb-3">
+                              <span
+                                style={{ backgroundColor: accentColor }}
+                                className="px-3 py-1 rounded-md text-[11px] font-bold text-black uppercase tracking-wider shadow-sm"
+                              >
+                                {currentSlide.tag || "B2B"}
+                              </span>
+                            </div>
 
-              {slides.map((slide, idx) => (
-                <div
-                  key={slide.id}
-                  onClick={() => handleSelectSlide(idx)}
-                  className={`group relative flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition shrink-0 ${
-                    currentSlideIndex === idx
-                      ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/40 text-white"
-                      : "border-gray-800 bg-gray-900 hover:border-gray-700 text-gray-400 hover:text-gray-200"
-                  }`}
-                >
-                  <span className="size-5 rounded-md bg-gray-800 text-[11px] font-mono font-bold flex items-center justify-center text-brand-400 border border-gray-700">
-                    {idx + 1}
-                  </span>
+                            {/* Titular */}
+                            <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight break-words drop-shadow-md">
+                              {currentSlide.title}
+                            </h1>
 
-                  <div className="text-left">
-                    <p className="text-xs font-bold leading-none">{slide.label}</p>
-                    <p className="text-[10px] text-gray-500 truncate max-w-[90px]">
-                      {slide.title.substring(0, 18)}...
-                    </p>
-                  </div>
+                            {/* Subtítulo */}
+                            <p className="text-xs sm:text-sm text-slate-200 mt-2.5 leading-relaxed font-normal">
+                              {currentSlide.subtitle}
+                            </p>
+                          </div>
 
-                  {slides.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteSlide(idx, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 rounded transition"
-                      title="Eliminar lámina"
+                          {/* Pie con Swipe Badge y Autor */}
+                          <div className="pt-4 mt-3 border-t border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div
+                                style={{ backgroundColor: accentColor }}
+                                className="size-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black"
+                              >
+                                {nameText.substring(0, 2).toUpperCase()}
+                              </div>
+                              <span className="text-xs font-bold text-white">{nameText}</span>
+                            </div>
+
+                            {editorMode === "carousel" && (
+                              <div
+                                style={{ borderColor: accentColor, color: accentColor }}
+                                className="px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white/5"
+                              >
+                                <span>DESLIZA</span>
+                                <ArrowRight className="size-3" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PLANTILLA 2: CITA DE AUTORIDAD */}
+                    {selectedTemplate === "authority_quote" && (
+                      <div className="relative z-10 w-full h-full flex flex-col justify-between p-6">
+                        <div
+                          style={{
+                            backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                          }}
+                          className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center text-center"
+                        >
+                          {/* Tag superior */}
+                          <span
+                            style={{ borderColor: accentColor, color: accentColor }}
+                            className="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wider bg-white/5"
+                          >
+                            {currentSlide.tag || "CITA DE AUTORIDAD"}
+                          </span>
+
+                          {/* Frase entre comillas */}
+                          <div className="my-auto px-2">
+                            <Quote
+                              className="size-10 mx-auto mb-2 opacity-80"
+                              style={{ color: accentColor }}
+                            />
+                            <h1 className="text-lg sm:text-xl font-bold italic text-white leading-relaxed">
+                              "{currentSlide.title}"
+                            </h1>
+                            <p className="text-xs text-slate-300 mt-3 font-normal">
+                              {currentSlide.subtitle}
+                            </p>
+                          </div>
+
+                          {/* Tarjeta de autor */}
+                          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/90 border border-white/15 shadow-md">
+                            <div
+                              style={{ backgroundColor: accentColor }}
+                              className="size-7 rounded-full flex items-center justify-center text-xs font-bold text-black shrink-0"
+                            >
+                              {nameText.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs font-bold text-white leading-tight">{nameText}</div>
+                              <div className="text-[10px] text-brand-400 font-mono leading-tight">{handleText}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PLANTILLA 3: TARJETA SOCIAL / FEED */}
+                    {selectedTemplate === "social_card" && (
+                      <div className="relative z-10 w-full h-full flex flex-col justify-center p-5">
+                        <div
+                          style={{
+                            backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                          }}
+                          className="w-full rounded-3xl border border-white/15 p-5 shadow-2xl backdrop-blur-md flex flex-col justify-between"
+                        >
+                          {/* Cabecera estilo LinkedIn */}
+                          <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                            <div
+                              style={{ backgroundColor: accentColor }}
+                              className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-black shrink-0"
+                            >
+                              {nameText.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-white">{nameText}</span>
+                                <CheckCircle2 className="size-3.5 text-blue-400 shrink-0" />
+                              </div>
+                              <div className="text-[10px] text-gray-400">{handleText} • LinkedIn Creator</div>
+                            </div>
+                          </div>
+
+                          {/* Contenido del post */}
+                          <div className="py-3.5 space-y-2.5">
+                            <span
+                              style={{ borderColor: accentColor, color: accentColor }}
+                              className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border bg-white/5"
+                            >
+                              {currentSlide.tag || "B2B"}
+                            </span>
+                            <h1 className="text-base sm:text-lg font-bold text-white leading-snug">
+                              {currentSlide.title}
+                            </h1>
+                            <div
+                              style={{ borderLeftColor: accentColor }}
+                              className="p-3 rounded-r-xl bg-white/5 border-l-4 text-xs text-slate-200"
+                            >
+                              {currentSlide.subtitle}
+                            </div>
+                          </div>
+
+                          {/* Estadísticas de interacción social */}
+                          <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                            <span className="flex items-center gap-1">
+                              <Heart className="size-3 text-rose-400" /> 1,428
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="size-3 text-blue-400" /> 189
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Repeat2 className="size-3 text-emerald-400" /> 54
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PLANTILLA 4: SPLIT FOCUS 50/50 */}
+                    {selectedTemplate === "split_focus" && (
+                      <div className="relative z-10 w-full h-full flex flex-col justify-end">
+                        <div
+                          style={{ borderTopColor: accentColor }}
+                          className="h-[52%] w-full bg-slate-950/95 border-t-4 p-5 flex flex-col justify-between backdrop-blur-md"
+                        >
+                          <div>
+                            <span
+                              style={{ backgroundColor: accentColor }}
+                              className="inline-block px-2.5 py-1 rounded text-[10px] font-bold text-black uppercase mb-2"
+                            >
+                              {currentSlide.tag || "B2B"}
+                            </span>
+                            <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
+                              {currentSlide.title}
+                            </h1>
+                            <p className="text-xs text-slate-300 mt-2 font-normal line-clamp-3">
+                              {currentSlide.subtitle}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+                            <span className="font-bold text-white">{nameText}</span>
+                            {editorMode === "carousel" && (
+                              <span style={{ color: accentColor }} className="font-bold flex items-center gap-1">
+                                Desliza <ArrowRight className="size-3" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PLANTILLA 5: MÉTRICA DE ALTO IMPACTO */}
+                    {selectedTemplate === "big_metric" && (
+                      <div className="relative z-10 w-full h-full flex flex-col justify-center p-6 text-center">
+                        <div
+                          style={{
+                            backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                          }}
+                          className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center"
+                        >
+                          <span
+                            style={{ borderColor: accentColor, color: accentColor }}
+                            className="px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5"
+                          >
+                            {currentSlide.tag || "MÉTRICA VALIDADA"}
+                          </span>
+
+                          <div className="my-auto">
+                            <div
+                              style={{ color: accentColor }}
+                              className="text-5xl sm:text-6xl font-black tracking-tight font-mono drop-shadow-lg"
+                            >
+                              {currentSlide.metric || initialMetric || "+340%"}
+                            </div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                              RESULTADO COMPROBADO EN CONVERSIONES
+                            </div>
+                            <h1 className="text-base sm:text-lg font-bold text-white mt-3">
+                              {currentSlide.title}
+                            </h1>
+                            <p className="text-xs text-slate-300 mt-1 font-normal">
+                              {currentSlide.subtitle}
+                            </p>
+                          </div>
+
+                          <div className="text-xs text-gray-400 font-mono">
+                            {nameText} • <span style={{ color: accentColor }}>{handleText}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* B) LÁMINAS INTERMEDIAS (PROBLEMA, SOLUCIÓN, CTA) */
+                  <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
+                    <div
+                      style={{
+                        backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                      }}
+                      className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between"
                     >
-                      <Trash2 className="size-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                      {/* Cabecera de la lámina */}
+                      <div>
+                        <span
+                          style={{ borderColor: accentColor, color: accentColor }}
+                          className="inline-block px-3 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5 mb-2.5"
+                        >
+                          {currentSlide.tag || "PASO ACCIONABLE"}
+                        </span>
+                        <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">
+                          {currentSlide.title}
+                        </h2>
+                        <p className="text-xs text-slate-300 mt-1">
+                          {currentSlide.subtitle}
+                        </p>
+                      </div>
 
-              {/* Botón de Añadir Lámina (+) */}
-              <button
-                type="button"
-                onClick={handleAddSlide}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-gray-700 hover:border-brand-500 hover:bg-brand-500/10 text-xs font-semibold text-gray-400 hover:text-brand-400 transition shrink-0"
-              >
-                <Plus className="size-4" />
-                <span>Añadir Lámina</span>
-              </button>
+                      {/* Cuerpo de viñetas para problema o solución */}
+                      {(currentSlide.type === "problem" || currentSlide.type === "solution") && (
+                        <div className="my-auto space-y-2.5">
+                          {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((bullet, idx) => (
+                            <div key={idx} className="flex items-start gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
+                              <span
+                                style={{ backgroundColor: accentColor }}
+                                className="size-5 rounded-full text-[11px] font-black text-black flex items-center justify-center shrink-0 mt-0.5"
+                              >
+                                {idx + 1}
+                              </span>
+                              <span className="text-xs text-slate-200 leading-relaxed font-medium">
+                                {bullet}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Cuerpo de CTA Final */}
+                      {currentSlide.type === "cta" && (
+                        <div className="my-auto p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-3">
+                          <p className="text-xs text-slate-200 font-medium">
+                            Comenta abajo para enviarte el activo completo por mensaje directo:
+                          </p>
+                          <div
+                            style={{ backgroundColor: accentColor }}
+                            className="p-3 rounded-xl text-black font-mono font-black text-sm tracking-wider shadow-lg"
+                          >
+                            COMUNICAR "{currentSlide.ctaKeyword || "SISTEMA"}"
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pie de lámina */}
+                      <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+                        <span className="font-bold text-white">{nameText}</span>
+                        <span className="font-mono text-[10px]">
+                          Lámina {currentSlideIndex + 1} / {slides.length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* BARRA INFERIOR DE NAVEGACIÓN Y CARRUSEL MULTIDIAPOSITIVA */}
+            {editorMode === "carousel" && (
+              <div className="w-full max-w-2xl mt-4 px-4 py-2.5 rounded-xl border border-gray-800 bg-gray-900/80 backdrop-blur-md flex items-center gap-3 overflow-x-auto custom-scrollbar z-20">
+                <span className="text-[11px] font-bold uppercase text-gray-400 shrink-0 flex items-center gap-1.5">
+                  <Layers className="size-3.5 text-brand-400" />
+                  Láminas:
+                </span>
+
+                {slides.map((s, idx) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setCurrentSlideIndex(idx)}
+                    className={`group relative flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition shrink-0 ${
+                      currentSlideIndex === idx
+                        ? "border-brand-500 bg-brand-500/20 text-white"
+                        : "border-gray-800 bg-gray-950/60 text-gray-400 hover:text-white hover:bg-gray-800"
+                    }`}
+                  >
+                    <span className="size-4 rounded-full bg-gray-800 text-[10px] font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="truncate max-w-[90px]">{s.label}</span>
+
+                    {/* Acciones rápidas en miniatura */}
+                    {slides.length > 1 && (
+                      <span
+                        onClick={(e) => handleDeleteSlide(idx, e)}
+                        className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded transition"
+                        title="Eliminar lámina"
+                      >
+                        <Trash2 className="size-3" />
+                      </span>
+                    )}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={handleAddSlide}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-dashed border-gray-700 bg-gray-800/40 hover:bg-gray-800 text-gray-300 hover:text-white text-xs font-semibold shrink-0 transition"
+                >
+                  <Plus className="size-3.5 text-brand-400" />
+                  <span>Añadir</span>
+                </button>
+              </div>
+            )}
+          </main>
         </div>
       </div>
     </div>
