@@ -28,7 +28,8 @@ import {
   Highlighter,
   Sliders,
   Search,
-  Bot
+  Bot,
+  Maximize2
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 
@@ -313,6 +314,7 @@ export default function VisualEditorModal({
   const [selectedObjectInfo, setSelectedObjectInfo] = useState<{
     isText: boolean;
     isShape: boolean;
+    isImage: boolean;
     name?: string;
     fontFamily: string;
     fontSize: number;
@@ -369,12 +371,14 @@ export default function VisualEditorModal({
       }
 
       const isText = active.type === "textbox" || active.type === "i-text" || active.text !== undefined;
-      const isShape = active.type === "rect" || active.type === "circle" || active.name === "darkOverlay";
+      const isImage = active.type === "image" || active.name === "backgroundImage" || typeof active.getElement === "function";
+      const isShape = !isText && !isImage;
 
       if (isText) {
         setSelectedObjectInfo({
           isText: true,
           isShape: false,
+          isImage: false,
           name: active.name,
           fontFamily: active.fontFamily || "Outfit",
           fontSize: Math.round(active.fontSize || 40),
@@ -389,10 +393,30 @@ export default function VisualEditorModal({
           underline: Boolean(active.underline),
           hasHighlight: Boolean(active.backgroundColor && active.backgroundColor !== ""),
         });
+      } else if (isImage) {
+        setSelectedObjectInfo({
+          isText: false,
+          isShape: false,
+          isImage: true,
+          name: active.name || "backgroundImage",
+          fontFamily: "",
+          fontSize: 0,
+          fontWeight: "normal",
+          fontStyle: "normal",
+          textAlign: "left",
+          fill: "",
+          opacity: typeof active.opacity === "number" ? active.opacity : 1,
+          rx: 0,
+          stroke: "",
+          strokeWidth: 0,
+          underline: false,
+          hasHighlight: false,
+        });
       } else {
         setSelectedObjectInfo({
           isText: false,
-          isShape: isShape,
+          isShape: true,
+          isImage: false,
           name: active.name,
           fontFamily: "",
           fontSize: 0,
@@ -440,6 +464,9 @@ export default function VisualEditorModal({
 
       fabricCanvasRef.current = canvas;
       bindCanvasEvents(canvas);
+      if (typeof canvas.calcOffset === "function") {
+        canvas.calcOffset();
+      }
 
       renderSlideOnCanvas(slides[currentSlideIndex], canvas, fabric);
     });
@@ -461,12 +488,14 @@ export default function VisualEditorModal({
       slideItem: CarouselSlideItem,
       canvasInstance?: any,
       fabricModule?: any,
-      templateToUse?: TemplateId
+      templateToUse?: TemplateId,
+      bgUrlToUse?: string
     ) => {
       const canvas = canvasInstance || fabricCanvasRef.current;
       if (!canvas) return;
 
       const currentTemplate = templateToUse || selectedTemplate;
+      const currentBgUrl = bgUrlToUse || selectedBgUrl;
       const fabric = fabricModule || (await import("fabric"));
       setIsRendering(true);
 
@@ -481,7 +510,7 @@ export default function VisualEditorModal({
         if (currentTemplate === "split_focus" && slideItem.type === "cover") {
           // --- SPLIT FOCUS: 48% FOTO SUPERIOR + 52% PANEL INFERIOR ---
           try {
-            const img = await fabric.FabricImage.fromURL(selectedBgUrl, {
+            const img = await fabric.FabricImage.fromURL(currentBgUrl, {
               crossOrigin: "anonymous",
             });
             const imgW = img.width || 1;
@@ -490,26 +519,40 @@ export default function VisualEditorModal({
             const scale = Math.max(currentW / imgW, targetH / imgH);
 
             img.set({
+              name: "backgroundImage",
               scaleX: scale,
               scaleY: scale,
               originX: "center",
               originY: "top",
               left: currentW / 2,
               top: 0,
-              selectable: false,
-              evented: false,
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
             });
             canvas.add(img);
 
             // Overlay sutil sobre la foto superior
             const topOverlay = new fabric.Rect({
+              name: "splitOverlay",
               left: 0,
               top: 0,
               width: currentW,
               height: targetH,
               fill: "rgba(5, 10, 20, 0.25)",
-              selectable: false,
-              evented: false,
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 12,
+              transparentCorners: false,
             });
             canvas.add(topOverlay);
           } catch (err) {
@@ -523,23 +566,32 @@ export default function VisualEditorModal({
             width: currentW,
             height: 6,
             fill: accentColor,
-            selectable: false,
+            selectable: true,
+            evented: true,
           });
-          // Fondo oscuro inferior
+          // Fondo oscuro inferior editable
           const bottomBg = new fabric.Rect({
+            name: "darkOverlay",
             left: 0,
             top: currentH * 0.48,
             width: currentW,
             height: currentH * 0.52,
             fill: "#080c16",
-            selectable: false,
-            evented: false,
+            opacity: overlayOpacity,
+            selectable: true,
+            evented: true,
+            hasControls: true,
+            hasBorders: true,
+            cornerColor: accentColor,
+            cornerStyle: "circle",
+            cornerSize: 13,
+            transparentCorners: false,
           });
           canvas.add(divider, bottomBg);
         } else {
           // --- FONDO COMPLETO INMERSIVO (EDITORIAL, CITA, CARD, MÉTRICA) ---
           try {
-            const img = await fabric.FabricImage.fromURL(selectedBgUrl, {
+            const img = await fabric.FabricImage.fromURL(currentBgUrl, {
               crossOrigin: "anonymous",
             });
             const imgW = img.width || 1;
@@ -547,22 +599,30 @@ export default function VisualEditorModal({
             const scale = Math.max(currentW / imgW, currentH / imgH);
 
             img.set({
+              name: "backgroundImage",
               scaleX: scale,
               scaleY: scale,
               originX: "left",
               originY: "top",
               left: (currentW - imgW * scale) / 2,
               top: (currentH - imgH * scale) / 2,
-              selectable: false,
-              evented: false,
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
             });
             canvas.add(img);
           } catch (err) {
             console.warn("Fondo fallback:", err);
           }
 
-          // Filtro ambiental sutil de contraste para legibilidad
+          // Filtro ambiental sutil de contraste para legibilidad (no intercepta clics)
           const ambientDimmer = new fabric.Rect({
+            name: "ambientDimmer",
             left: 0,
             top: 0,
             width: currentW,
@@ -766,6 +826,36 @@ export default function VisualEditorModal({
             });
             canvas.add(quoteSub);
 
+            // FONDO OSCURO TRANSPARENTE 100% EDITABLE PARA CITA
+            const quoteOverlay = new fabric.Rect({
+              name: "darkOverlay",
+              left: 50,
+              top: 100,
+              width: currentW - 100,
+              height: currentH - 200,
+              rx: 24,
+              ry: 24,
+              fill: "#090d18",
+              opacity: overlayOpacity,
+              stroke: "rgba(255, 255, 255, 0.12)",
+              strokeWidth: 1.5,
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.65)",
+                blur: 30,
+                offsetX: 0,
+                offsetY: 8,
+              }),
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
+            });
+            canvas.add(quoteOverlay);
+
             // Bloque de Autor Centrado en forma de Tarjeta
             const authorCardW = 420;
             const authorCard = new fabric.Rect({
@@ -779,6 +869,7 @@ export default function VisualEditorModal({
               stroke: "rgba(255, 255, 255, 0.15)",
               strokeWidth: 1.5,
               selectable: true,
+              evented: true,
             });
             const avatarCircle = new fabric.Circle({
               left: currentW / 2 - authorCardW / 2 + 16,
@@ -786,6 +877,7 @@ export default function VisualEditorModal({
               radius: 26,
               fill: accentColor,
               selectable: true,
+              evented: true,
             });
             const initialsText = new fabric.Textbox(
               (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
@@ -798,7 +890,8 @@ export default function VisualEditorModal({
                 textAlign: "center",
                 fill: "#ffffff",
                 fontFamily: "Inter, sans-serif",
-                selectable: false,
+                selectable: true,
+                evented: true,
               }
             );
             const authName = new fabric.Textbox(nameText, {
@@ -809,6 +902,8 @@ export default function VisualEditorModal({
               fontWeight: "bold",
               fill: "#ffffff",
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             const authHandle = new fabric.Textbox(handleText, {
               left: currentW / 2 - authorCardW / 2 + 82,
@@ -817,6 +912,8 @@ export default function VisualEditorModal({
               fontSize: 16,
               fill: accentColor,
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             canvas.add(authorCard, avatarCircle, initialsText, authName, authHandle);
           }
@@ -827,13 +924,15 @@ export default function VisualEditorModal({
             const cardW = currentW - 140;
             const cardH = currentH - 250;
             const card = new fabric.Rect({
+              name: "darkOverlay",
               left: 70,
               top: 110,
               width: cardW,
               height: cardH,
               rx: 28,
               ry: 28,
-              fill: "rgba(15, 23, 42, 0.94)",
+              fill: "#0f172a",
+              opacity: overlayOpacity,
               stroke: "rgba(255, 255, 255, 0.15)",
               strokeWidth: 2,
               shadow: new fabric.Shadow({
@@ -843,6 +942,13 @@ export default function VisualEditorModal({
                 offsetY: 15,
               }),
               selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
             });
             canvas.add(card);
 
@@ -853,6 +959,7 @@ export default function VisualEditorModal({
               radius: 34,
               fill: accentColor,
               selectable: true,
+              evented: true,
             });
             const initials = new fabric.Textbox(
               (nameText || "IH").split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase(),
@@ -865,7 +972,8 @@ export default function VisualEditorModal({
                 textAlign: "center",
                 fill: "#ffffff",
                 fontFamily: "Inter, sans-serif",
-                selectable: false,
+                selectable: true,
+                evented: true,
               }
             );
             const authName = new fabric.Textbox(nameText, {
@@ -875,12 +983,16 @@ export default function VisualEditorModal({
               fontWeight: "bold",
               fill: "#ffffff",
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             const badgeCheck = new fabric.Circle({
               left: 195 + Math.min(nameText.length * 15 + 10, 340),
               top: 160,
               radius: 11,
               fill: "#0099ff",
+              selectable: true,
+              evented: true,
             });
             const checkMark = new fabric.Textbox("✓", {
               left: 195 + Math.min(nameText.length * 15 + 10, 340),
@@ -891,7 +1003,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: "#ffffff",
               fontFamily: "Inter, sans-serif",
-              selectable: false,
+              selectable: true,
+              evented: true,
             });
             const authHandle = new fabric.Textbox(`${handleText} • LinkedIn Creator`, {
               left: 195,
@@ -1068,6 +1181,36 @@ export default function VisualEditorModal({
           // --- PLANTILLA 5: MÉTRICA DE ALTO IMPACTO (+340% o Validación de Datos)
           // ========================================================
           else if (currentTemplate === "big_metric") {
+            // Fondo oscuro transparente 100% editable para métrica
+            const metricOverlay = new fabric.Rect({
+              name: "darkOverlay",
+              left: 50,
+              top: 80,
+              width: currentW - 100,
+              height: currentH - 160,
+              rx: 28,
+              ry: 28,
+              fill: "#090d18",
+              opacity: overlayOpacity,
+              stroke: "rgba(255, 255, 255, 0.12)",
+              strokeWidth: 1.5,
+              shadow: new fabric.Shadow({
+                color: "rgba(0,0,0,0.65)",
+                blur: 30,
+                offsetX: 0,
+                offsetY: 8,
+              }),
+              selectable: true,
+              evented: true,
+              hasControls: true,
+              hasBorders: true,
+              cornerColor: accentColor,
+              cornerStyle: "circle",
+              cornerSize: 13,
+              transparentCorners: false,
+            });
+            canvas.add(metricOverlay);
+
             const metricTag = new fabric.Rect({
               left: currentW / 2 - 170,
               top: 100,
@@ -1079,6 +1222,7 @@ export default function VisualEditorModal({
               stroke: accentColor,
               strokeWidth: 1.5,
               selectable: true,
+              evented: true,
             });
             const metricTagText = new fabric.Textbox((slideItem.tag || "MÉTRICA VALIDADA").toUpperCase(), {
               left: currentW / 2 - 170,
@@ -1090,6 +1234,7 @@ export default function VisualEditorModal({
               fill: accentColor,
               fontFamily: "Inter, sans-serif",
               selectable: true,
+              evented: true,
             });
             canvas.add(metricTag, metricTagText);
 
@@ -1103,6 +1248,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: accentColor,
               fontFamily: "Outfit, sans-serif",
+              selectable: true,
+              evented: true,
               shadow: new fabric.Shadow({
                 color: accentColor,
                 blur: 40,
@@ -1122,6 +1269,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: "#94a3b8",
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             canvas.add(metricSubLabel);
 
@@ -1136,6 +1285,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: "#ffffff",
               fontFamily: "Outfit, sans-serif",
+              selectable: true,
+              evented: true,
             });
             canvas.add(metricTitle);
 
@@ -1149,6 +1300,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: "rgba(226, 232, 240, 0.95)",
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             canvas.add(metricSub);
           }
@@ -1163,6 +1316,8 @@ export default function VisualEditorModal({
             fontWeight: "bold",
             fill: accentColor,
             fontFamily: "Inter, sans-serif",
+            selectable: true,
+            evented: true,
           });
           canvas.add(stepTag);
 
@@ -1175,21 +1330,33 @@ export default function VisualEditorModal({
             fontWeight: "bold",
             fill: "#ffffff",
             fontFamily: "Outfit, sans-serif",
+            selectable: true,
+            evented: true,
           });
           canvas.add(slideTitle);
 
           const cardY = 320;
           const cardH = currentH - 460;
           const contentCard = new fabric.Rect({
+            name: "darkOverlay",
             left: 70,
             top: cardY,
             width: currentW - 140,
             height: cardH,
             rx: 24,
             ry: 24,
-            fill: "rgba(15, 23, 42, 0.85)",
+            fill: "#0f172a",
+            opacity: overlayOpacity,
             stroke: "rgba(255, 255, 255, 0.12)",
             strokeWidth: 1.5,
+            selectable: true,
+            evented: true,
+            hasControls: true,
+            hasBorders: true,
+            cornerColor: accentColor,
+            cornerStyle: "circle",
+            cornerSize: 13,
+            transparentCorners: false,
           });
           canvas.add(contentCard);
 
@@ -1204,6 +1371,8 @@ export default function VisualEditorModal({
               rx: 20,
               ry: 20,
               fill: accentColor,
+              selectable: true,
+              evented: true,
             });
             const numText = new fabric.Textbox(String(idx + 1), {
               left: 105,
@@ -1214,7 +1383,8 @@ export default function VisualEditorModal({
               textAlign: "center",
               fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
               fontFamily: "Inter, sans-serif",
-              selectable: false,
+              selectable: true,
+              evented: true,
             });
             const bulletBody = new fabric.Textbox(bText, {
               left: 165,
@@ -1224,6 +1394,8 @@ export default function VisualEditorModal({
               lineHeight: 1.35,
               fill: "#f8fafc",
               fontFamily: "Inter, sans-serif",
+              selectable: true,
+              evented: true,
             });
             canvas.add(numCircle, numText, bulletBody);
             bulletY += 120;
@@ -1235,15 +1407,25 @@ export default function VisualEditorModal({
           const ctaCardW = currentW - 140;
           const ctaCardH = currentH - 280;
           const ctaCard = new fabric.Rect({
+            name: "darkOverlay",
             left: 70,
             top: 140,
             width: ctaCardW,
             height: ctaCardH,
             rx: 28,
             ry: 28,
-            fill: "rgba(10, 15, 26, 0.90)",
+            fill: "#0a0f1a",
+            opacity: overlayOpacity,
             stroke: accentColor,
             strokeWidth: 2.5,
+            selectable: true,
+            evented: true,
+            hasControls: true,
+            hasBorders: true,
+            cornerColor: accentColor,
+            cornerStyle: "circle",
+            cornerSize: 13,
+            transparentCorners: false,
           });
           canvas.add(ctaCard);
 
@@ -1254,6 +1436,8 @@ export default function VisualEditorModal({
             fontWeight: "bold",
             fill: accentColor,
             fontFamily: "Inter, sans-serif",
+            selectable: true,
+            evented: true,
           });
 
           const ctaTitle = new fabric.Textbox(slideItem.title, {
@@ -1265,6 +1449,8 @@ export default function VisualEditorModal({
             fontWeight: "bold",
             fill: "#ffffff",
             fontFamily: "Outfit, sans-serif",
+            selectable: true,
+            evented: true,
           });
 
           const ctaSub = new fabric.Textbox(slideItem.subtitle, {
@@ -1275,6 +1461,8 @@ export default function VisualEditorModal({
             lineHeight: 1.4,
             fill: "rgba(226, 232, 240, 0.95)",
             fontFamily: "Inter, sans-serif",
+            selectable: true,
+            evented: true,
           });
 
           // Caja de la Palabra Clave
@@ -1286,6 +1474,8 @@ export default function VisualEditorModal({
             rx: 18,
             ry: 18,
             fill: accentColor,
+            selectable: true,
+            evented: true,
           });
           const keywordText = new fabric.Textbox(
             `Comenta "${slideItem.ctaKeyword || "SISTEMA"}" abajo`,
@@ -1298,6 +1488,8 @@ export default function VisualEditorModal({
               fontWeight: "900",
               fill: accentColor === "#ffffff" ? "#000000" : "#ffffff",
               fontFamily: "Outfit, sans-serif",
+              selectable: true,
+              evented: true,
             }
           );
           canvas.add(ctaCard, ctaTag, ctaTitle, ctaSub, keywordBox, keywordText);
@@ -1311,7 +1503,8 @@ export default function VisualEditorModal({
             width: currentW - 140,
             height: 1.5,
             fill: "rgba(255, 255, 255, 0.15)",
-            selectable: false,
+            selectable: true,
+            evented: true,
           });
           const authorFooterName = new fabric.Textbox(nameText, {
             left: 70,
@@ -1332,6 +1525,9 @@ export default function VisualEditorModal({
         }
 
         canvas.renderAll();
+        if (typeof canvas.calcOffset === "function") {
+          canvas.calcOffset();
+        }
       } catch (err) {
         console.error("Error al renderizar lámina en Fabric:", err);
       } finally {
@@ -1377,6 +1573,9 @@ export default function VisualEditorModal({
     if (targetSlide.canvasData) {
       canvas.loadFromJSON(targetSlide.canvasData).then(() => {
         canvas.renderAll();
+        if (typeof canvas.calcOffset === "function") {
+          canvas.calcOffset();
+        }
       });
     } else {
       renderSlideOnCanvas(targetSlide);
@@ -1528,6 +1727,69 @@ export default function VisualEditorModal({
     }
   };
 
+  // Reencuadrar y centrar la foto para que cubra el lienzo completo
+  const handleResetImageFit = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const active = canvas.getActiveObject();
+    if (!active) return;
+
+    const currentW = canvas.width || canvasWidth;
+    const currentH = canvas.height || canvasHeight;
+    const imgW = active.width || 1;
+    const imgH = active.height || 1;
+    const scale = Math.max(currentW / imgW, currentH / imgH);
+
+    active.set({
+      scaleX: scale,
+      scaleY: scale,
+      originX: "left",
+      originY: "top",
+      left: (currentW - imgW * scale) / 2,
+      top: (currentH - imgH * scale) / 2,
+      angle: 0,
+    });
+    active.setCoords();
+    canvas.requestRenderAll();
+  };
+
+  // Reemplazar foto activa o de fondo en tiempo real
+  const handleSelectBackground = async (newUrl: string) => {
+    setSelectedBgUrl(newUrl);
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const fabric = await import("fabric");
+
+    const objects = canvas.getObjects();
+    const bgImg = objects.find((obj: any) => obj.name === "backgroundImage" || obj.type === "image");
+    if (bgImg) {
+      try {
+        const newImg = await fabric.FabricImage.fromURL(newUrl, { crossOrigin: "anonymous" });
+        const currentW = canvas.width || canvasWidth;
+        const currentH = canvas.height || canvasHeight;
+        const imgW = newImg.width || 1;
+        const imgH = newImg.height || 1;
+        const scale = Math.max(currentW / imgW, currentH / imgH);
+
+        bgImg.set({
+          scaleX: scale,
+          scaleY: scale,
+          originX: "left",
+          originY: "top",
+          left: (currentW - imgW * scale) / 2,
+          top: (currentH - imgH * scale) / 2,
+        });
+        bgImg.setElement(newImg.getElement());
+        canvas.requestRenderAll();
+        return;
+      } catch (e) {
+        console.warn("Direct image swap failed, re-rendering slide:", e);
+      }
+    }
+
+    renderSlideOnCanvas(slides[currentSlideIndex], canvas, fabric, undefined, newUrl);
+  };
+
   // Exportar PNG de la lámina actual
   const handleDownloadPng = () => {
     const canvas = fabricCanvasRef.current;
@@ -1569,6 +1831,9 @@ export default function VisualEditorModal({
         } else if (slides[i].canvasData) {
           await canvas.loadFromJSON(slides[i].canvasData);
           canvas.renderAll();
+        if (typeof canvas.calcOffset === "function") {
+          canvas.calcOffset();
+        }
           renderedSnaps.push(canvas.toDataURL({ format: "png", multiplier: 1 }));
         } else {
           await renderSlideOnCanvas(slides[i]);
@@ -1612,7 +1877,7 @@ export default function VisualEditorModal({
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          setSelectedBgUrl(reader.result);
+          handleSelectBackground(reader.result);
         }
       };
       reader.readAsDataURL(file);
@@ -2086,10 +2351,7 @@ export default function VisualEditorModal({
                       <button
                         key={bg.id}
                         type="button"
-                        onClick={() => {
-                          setSelectedBgUrl(bg.url);
-                          renderSlideOnCanvas(slides[currentSlideIndex]);
-                        }}
+                        onClick={() => handleSelectBackground(bg.url)}
                         className={`group relative rounded-xl overflow-hidden border aspect-video transition ${
                           selectedBgUrl === bg.url
                             ? "border-brand-500 ring-2 ring-brand-500"
@@ -2423,6 +2685,90 @@ export default function VisualEditorModal({
                       onClick={handleDeleteSelected}
                       className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
                       title="Eliminar elemento"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ) : selectedObjectInfo?.isImage ? (
+                /* Controles cuando hay una Imagen o Foto de Fondo Seleccionada (Punto Canva: Foto 100% Editable) */
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-emerald-400"></span>
+                    📷 Fotografía / Imagen:
+                  </span>
+
+                  {/* Slider de Opacidad / Transparencia de la Foto */}
+                  <div className="flex items-center gap-1.5 pl-2 border-l border-gray-800" title="Regular nivel de opacidad de la foto">
+                    <span className="text-[11px] text-gray-400">Opacidad:</span>
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={1}
+                      step={0.05}
+                      value={selectedObjectInfo.opacity}
+                      onChange={(e) => applyShapeProperty("opacity", parseFloat(e.target.value))}
+                      className="w-20 accent-emerald-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-mono text-emerald-400 font-bold min-w-[32px]">
+                      {Math.round(selectedObjectInfo.opacity * 100)}%
+                    </span>
+                  </div>
+
+                  {/* Botón Reencuadrar Foto */}
+                  <button
+                    type="button"
+                    onClick={handleResetImageFit}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs transition"
+                    title="Restaurar escala y centrar la foto en el lienzo"
+                  >
+                    <Maximize2 className="size-3.5 text-emerald-400" />
+                    <span>Reencuadrar</span>
+                  </button>
+
+                  {/* Botón Cambiar Foto */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("backgrounds")}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 hover:bg-emerald-500/25 text-emerald-300 text-xs transition font-semibold"
+                    title="Explorar fotos de Unsplash para reemplazar"
+                  >
+                    <ImageIcon className="size-3.5 text-emerald-400" />
+                    <span>Cambiar Foto</span>
+                  </button>
+
+                  {/* Capas, Duplicar y Eliminar */}
+                  <div className="flex items-center gap-1 pl-2 border-l border-gray-800">
+                    <button
+                      type="button"
+                      onClick={handleSendBackward}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition"
+                      title="Enviar foto al fondo (detrás de los textos)"
+                    >
+                      <ArrowDown className="size-3.5" />
+                      <span>Al Fondo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBringForward}
+                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+                      title="Traer al frente"
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDuplicateSelected}
+                      className="p-1.5 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+                      title="Duplicar foto"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+                      title="Eliminar foto"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
