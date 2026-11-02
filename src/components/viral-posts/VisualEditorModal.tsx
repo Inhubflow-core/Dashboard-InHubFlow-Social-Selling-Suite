@@ -150,6 +150,91 @@ const BRAND_COLORS = [
   { name: "Blanco Puro", hex: "#ffffff" },
 ];
 
+/**
+ * Componente de texto interactivo editable directamente en el lienzo (WYSIWYG)
+ * Permite hacer clic, escribir directamente y se sincroniza en vivo con el estado
+ */
+interface InlineEditableTextProps {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: "h1" | "h2" | "h3" | "p" | "span" | "div";
+  placeholder?: string;
+  elementKey: string;
+  selectedElement: string | null;
+  onSelect: (key: string) => void;
+  isExporting: boolean;
+  multiline?: boolean;
+}
+
+function InlineEditableText({
+  value,
+  onChange,
+  className = "",
+  style,
+  as: Component = "span",
+  placeholder = "Escribe aquí...",
+  elementKey,
+  selectedElement,
+  onSelect,
+  isExporting,
+  multiline = false,
+}: InlineEditableTextProps) {
+  const ref = useRef<HTMLElement>(null);
+  const isEditingRef = useRef(false);
+  const isSelected = selectedElement === elementKey && !isExporting;
+
+  // Sincronizar el contenido visual si el usuario no está activamente tecleando en él
+  useEffect(() => {
+    if (ref.current && !isEditingRef.current) {
+      if (ref.current.innerText !== (value || "")) {
+        ref.current.innerText = value || "";
+      }
+    }
+  }, [value]);
+
+  return (
+    <Component
+      ref={ref as any}
+      contentEditable={!isExporting}
+      suppressContentEditableWarning
+      spellCheck={false}
+      style={style}
+      data-element={elementKey}
+      onClick={(e: React.MouseEvent) => {
+        e.stopPropagation();
+        onSelect(elementKey);
+      }}
+      onFocus={() => {
+        isEditingRef.current = true;
+        onSelect(elementKey);
+      }}
+      onBlur={(e: React.FocusEvent<HTMLElement>) => {
+        isEditingRef.current = false;
+        const newText = e.currentTarget.innerText.trim();
+        onChange(newText || value);
+      }}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (!multiline && e.key === "Enter") {
+          e.preventDefault();
+          (e.target as HTMLElement).blur();
+        }
+      }}
+      className={`transition-all duration-150 outline-hidden select-text ${
+        isExporting
+          ? ""
+          : isSelected
+          ? "ring-2 ring-brand-400 bg-brand-500/20 rounded px-1.5 -mx-1.5 shadow-sm"
+          : "hover:ring-1 hover:ring-brand-400/60 hover:bg-white/10 rounded px-1.5 -mx-1.5 cursor-text"
+      } ${className}`}
+      title={isExporting ? undefined : "Haz clic para editar este texto directamente"}
+    >
+      {value || placeholder}
+    </Component>
+  );
+}
+
 export default function VisualEditorModal({
   isOpen,
   onClose,
@@ -173,6 +258,25 @@ export default function VisualEditorModal({
   const [overlayOpacity, setOverlayOpacity] = useState(0.8);
   const [overlayMode, setOverlayMode] = useState<"card" | "fullscreen">("card");
   const [selectedFont, setSelectedFont] = useState(AVAILABLE_FONTS[0].name);
+
+  // Estados de interactividad directa y formato en el lienzo
+  const [selectedElement, setSelectedElement] = useState<string | null>("title");
+  const [titleSize, setTitleSize] = useState<"sm" | "md" | "lg" | "xl">("lg");
+
+  const getTitleSizeClass = (size: "sm" | "md" | "lg" | "xl") => {
+    switch (size) {
+      case "sm":
+        return "text-base sm:text-lg";
+      case "md":
+        return "text-lg sm:text-xl";
+      case "lg":
+        return "text-xl sm:text-2xl";
+      case "xl":
+        return "text-2xl sm:text-3xl";
+      default:
+        return "text-xl sm:text-2xl";
+    }
+  };
   const [activeTab, setActiveTab] = useState<"templates" | "content" | "backgrounds" | "brand">("templates");
 
   // Estados de autor
@@ -1074,10 +1178,83 @@ export default function VisualEditorModal({
           {/* ESCENARIO CENTRAL DE VISUALIZACIÓN WYSIWYG */}
           <main className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-950/80 relative overflow-hidden">
             
-            {/* Aviso superior de edición interactiva */}
-            <div className="mb-3 flex items-center gap-2 text-xs text-gray-400">
-              <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Haz clic directamente sobre los textos para editarlos o usa los controles laterales.</span>
+            {/* BARRA DE HERRAMIENTAS CONTEXTUAL WYSIWYG (SOBRE EL LIENZO) */}
+            <div className="mb-3 w-full max-w-lg flex flex-wrap items-center justify-between gap-2 px-3.5 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 shadow-xl backdrop-blur-md text-xs">
+              <div className="flex items-center gap-2">
+                <span className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span className="font-semibold text-white">
+                  {selectedElement === "title"
+                    ? "Editando: Titular Principal"
+                    : selectedElement === "subtitle"
+                    ? "Editando: Subtítulo"
+                    : selectedElement === "tag"
+                    ? "Editando: Categoría / Tag"
+                    : selectedElement === "metric"
+                    ? "Editando: Métrica de Impacto"
+                    : selectedElement === "author-name"
+                    ? "Editando: Nombre de Autor"
+                    : selectedElement === "author-handle"
+                    ? "Editando: Handle (@)"
+                    : selectedElement?.startsWith("bullet")
+                    ? "Editando: Punto Clave (Viñeta)"
+                    : selectedElement === "cta-keyword"
+                    ? "Editando: Palabra Clave Sentinel"
+                    : selectedElement === "background"
+                    ? "Seleccionada: Foto de Fondo"
+                    : selectedElement === "brand"
+                    ? "Seleccionado: Fondo Oscuro y Marca"
+                    : "Haz clic directamente en cualquier texto o foto para editar"}
+                </span>
+              </div>
+
+              {/* Controles rápidos contextuales */}
+              <div className="flex items-center gap-1.5 ml-auto">
+                {selectedElement === "title" && (
+                  <div className="flex items-center gap-1 bg-gray-800/90 px-1.5 py-0.5 rounded-lg border border-gray-700">
+                    <span className="text-[10px] text-gray-400 font-semibold">Tamaño:</span>
+                    {(["sm", "md", "lg", "xl"] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setTitleSize(s)}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition ${
+                          titleSize === s
+                            ? "bg-brand-500 text-white"
+                            : "text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedElement("background");
+                    setActiveTab("backgrounds");
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[11px] font-medium border border-gray-700 transition"
+                  title="Cambiar fotografía de fondo"
+                >
+                  <ImageIcon className="size-3 text-brand-400" />
+                  <span>Foto</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedElement("brand");
+                    setActiveTab("brand");
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[11px] font-medium border border-gray-700 transition"
+                  title="Ajustar opacidad y estilo del fondo oscuro"
+                >
+                  <Sliders className="size-3 text-indigo-400" />
+                  <span>Fondo {Math.round(overlayOpacity * 100)}%</span>
+                </button>
+              </div>
             </div>
 
             {/* CONTENEDOR DEL LIENZO MAQUETADO CON TAILWIND (EXPORTABLE 1:1 / 4:5) */}
@@ -1090,7 +1267,8 @@ export default function VisualEditorModal({
               <div
                 ref={slideContainerRef}
                 style={{ fontFamily: selectedFont }}
-                className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none bg-slate-950"
+                onClick={() => setSelectedElement("background")}
+                className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
               >
                 {/* 1. FOTO DE FONDO CON OBJECT-FIT COVER */}
                 <div className="absolute inset-0 z-0">
@@ -1098,11 +1276,28 @@ export default function VisualEditorModal({
                     src={selectedBgUrl}
                     alt="Background"
                     crossOrigin="anonymous"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                   />
                   {/* Filtro ambiental sutil de contraste */}
-                  <div className="absolute inset-0 bg-slate-950/40"></div>
+                  <div className="absolute inset-0 bg-slate-950/40 pointer-events-none"></div>
                 </div>
+
+                {/* BOTÓN FLOTANTE: CAMBIAR FOTO (Oculto al exportar) */}
+                {!isExporting && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedElement("background");
+                      setActiveTab("backgrounds");
+                    }}
+                    className="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 hover:bg-black text-white text-xs font-semibold border border-white/20 shadow-xl backdrop-blur-md transition hover:scale-105"
+                    title="Cambiar fotografía de fondo"
+                  >
+                    <ImageIcon className="size-3.5 text-brand-400" />
+                    <span>Cambiar Foto</span>
+                  </button>
+                )}
 
                 {/* 2. RENDERIZADO POR PLANTILLA O TIPO DE LÁMINA */}
 
@@ -1116,7 +1311,11 @@ export default function VisualEditorModal({
                           style={{
                             backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
                           }}
-                          className={`w-full border border-white/15 shadow-2xl backdrop-blur-md flex flex-col justify-between transition-all ${
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className={`relative w-full border border-white/15 shadow-2xl backdrop-blur-md flex flex-col justify-between transition-all ${
                             overlayMode === "fullscreen"
                               ? "h-full rounded-none p-6"
                               : "rounded-3xl p-6"
@@ -1127,20 +1326,48 @@ export default function VisualEditorModal({
                             <div className="inline-block mb-3">
                               <span
                                 style={{ backgroundColor: accentColor }}
-                                className="px-3 py-1 rounded-md text-[11px] font-bold text-black uppercase tracking-wider shadow-sm"
+                                className="inline-block px-3 py-1 rounded-md text-[11px] font-bold text-black uppercase tracking-wider shadow-sm"
                               >
-                                {currentSlide.tag || "B2B"}
+                                <InlineEditableText
+                                  elementKey="tag"
+                                  value={currentSlide.tag || "B2B"}
+                                  onChange={(val) => updateCurrentSlide({ tag: val })}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  placeholder="CATEGORÍA"
+                                />
                               </span>
                             </div>
 
                             {/* Titular */}
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight break-words drop-shadow-md">
-                              {currentSlide.title}
+                            <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight break-words drop-shadow-md`}>
+                              <InlineEditableText
+                                elementKey="title"
+                                as="h1"
+                                value={currentSlide.title}
+                                onChange={(val) => updateCurrentSlide({ title: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe tu titular aquí..."
+                              />
                             </h1>
 
                             {/* Subtítulo */}
                             <p className="text-xs sm:text-sm text-slate-200 mt-2.5 leading-relaxed font-normal">
-                              {currentSlide.subtitle}
+                              <InlineEditableText
+                                elementKey="subtitle"
+                                as="p"
+                                value={currentSlide.subtitle}
+                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe el subtítulo aquí..."
+                              />
                             </p>
                           </div>
 
@@ -1153,7 +1380,17 @@ export default function VisualEditorModal({
                               >
                                 {nameText.substring(0, 2).toUpperCase()}
                               </div>
-                              <span className="text-xs font-bold text-white">{nameText}</span>
+                              <span className="text-xs font-bold text-white">
+                                <InlineEditableText
+                                  elementKey="author-name"
+                                  value={nameText}
+                                  onChange={setNameText}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  placeholder="Tu Nombre"
+                                />
+                              </span>
                             </div>
 
                             {editorMode === "carousel" && (
@@ -1177,14 +1414,26 @@ export default function VisualEditorModal({
                           style={{
                             backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
                           }}
-                          className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center text-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center text-center"
                         >
                           {/* Tag superior */}
                           <span
                             style={{ borderColor: accentColor, color: accentColor }}
                             className="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wider bg-white/5"
                           >
-                            {currentSlide.tag || "CITA DE AUTORIDAD"}
+                            <InlineEditableText
+                              elementKey="tag"
+                              value={currentSlide.tag || "CITA DE AUTORIDAD"}
+                              onChange={(val) => updateCurrentSlide({ tag: val })}
+                              selectedElement={selectedElement}
+                              onSelect={setSelectedElement}
+                              isExporting={isExporting}
+                              placeholder="CITA DE AUTORIDAD"
+                            />
                           </span>
 
                           {/* Frase entre comillas */}
@@ -1193,11 +1442,33 @@ export default function VisualEditorModal({
                               className="size-10 mx-auto mb-2 opacity-80"
                               style={{ color: accentColor }}
                             />
-                            <h1 className="text-lg sm:text-xl font-bold italic text-white leading-relaxed">
-                              "{currentSlide.title}"
+                            <h1 className={`${getTitleSizeClass(titleSize)} font-bold italic text-white leading-relaxed`}>
+                              "
+                              <InlineEditableText
+                                elementKey="title"
+                                as="h1"
+                                value={currentSlide.title}
+                                onChange={(val) => updateCurrentSlide({ title: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe la frase memorable aquí..."
+                              />
+                              "
                             </h1>
                             <p className="text-xs text-slate-300 mt-3 font-normal">
-                              {currentSlide.subtitle}
+                              <InlineEditableText
+                                elementKey="subtitle"
+                                as="p"
+                                value={currentSlide.subtitle}
+                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Contexto o explicación de la cita..."
+                              />
                             </p>
                           </div>
 
@@ -1210,8 +1481,28 @@ export default function VisualEditorModal({
                               {nameText.substring(0, 2).toUpperCase()}
                             </div>
                             <div className="text-left">
-                              <div className="text-xs font-bold text-white leading-tight">{nameText}</div>
-                              <div className="text-[10px] text-brand-400 font-mono leading-tight">{handleText}</div>
+                              <div className="text-xs font-bold text-white leading-tight">
+                                <InlineEditableText
+                                  elementKey="author-name"
+                                  value={nameText}
+                                  onChange={setNameText}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  placeholder="Tu Nombre"
+                                />
+                              </div>
+                              <div className="text-[10px] text-brand-400 font-mono leading-tight">
+                                <InlineEditableText
+                                  elementKey="author-handle"
+                                  value={handleText}
+                                  onChange={setHandleText}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  placeholder="@handle"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1225,7 +1516,11 @@ export default function VisualEditorModal({
                           style={{
                             backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
                           }}
-                          className="w-full rounded-3xl border border-white/15 p-5 shadow-2xl backdrop-blur-md flex flex-col justify-between"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className="relative w-full rounded-3xl border border-white/15 p-5 shadow-2xl backdrop-blur-md flex flex-col justify-between"
                         >
                           {/* Cabecera estilo LinkedIn */}
                           <div className="flex items-center gap-3 pb-3 border-b border-white/10">
@@ -1237,10 +1532,31 @@ export default function VisualEditorModal({
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-bold text-white">{nameText}</span>
+                                <span className="text-xs font-bold text-white">
+                                  <InlineEditableText
+                                    elementKey="author-name"
+                                    value={nameText}
+                                    onChange={setNameText}
+                                    selectedElement={selectedElement}
+                                    onSelect={setSelectedElement}
+                                    isExporting={isExporting}
+                                    placeholder="Tu Nombre"
+                                  />
+                                </span>
                                 <CheckCircle2 className="size-3.5 text-blue-400 shrink-0" />
                               </div>
-                              <div className="text-[10px] text-gray-400">{handleText} • LinkedIn Creator</div>
+                              <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                                <InlineEditableText
+                                  elementKey="author-handle"
+                                  value={handleText}
+                                  onChange={setHandleText}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  placeholder="@handle"
+                                />
+                                <span>• LinkedIn Creator</span>
+                              </div>
                             </div>
                           </div>
 
@@ -1250,16 +1566,44 @@ export default function VisualEditorModal({
                               style={{ borderColor: accentColor, color: accentColor }}
                               className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border bg-white/5"
                             >
-                              {currentSlide.tag || "B2B"}
+                              <InlineEditableText
+                                elementKey="tag"
+                                value={currentSlide.tag || "B2B"}
+                                onChange={(val) => updateCurrentSlide({ tag: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                placeholder="B2B"
+                              />
                             </span>
-                            <h1 className="text-base sm:text-lg font-bold text-white leading-snug">
-                              {currentSlide.title}
+                            <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
+                              <InlineEditableText
+                                elementKey="title"
+                                as="h1"
+                                value={currentSlide.title}
+                                onChange={(val) => updateCurrentSlide({ title: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe el titular aquí..."
+                              />
                             </h1>
                             <div
                               style={{ borderLeftColor: accentColor }}
                               className="p-3 rounded-r-xl bg-white/5 border-l-4 text-xs text-slate-200"
                             >
-                              {currentSlide.subtitle}
+                              <InlineEditableText
+                                elementKey="subtitle"
+                                as="p"
+                                value={currentSlide.subtitle}
+                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Desarrollo o cuerpo del post..."
+                              />
                             </div>
                           </div>
 
@@ -1284,25 +1628,67 @@ export default function VisualEditorModal({
                       <div className="relative z-10 w-full h-full flex flex-col justify-end">
                         <div
                           style={{ borderTopColor: accentColor }}
-                          className="h-[52%] w-full bg-slate-950/95 border-t-4 p-5 flex flex-col justify-between backdrop-blur-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className="relative h-[52%] w-full bg-slate-950/95 border-t-4 p-5 flex flex-col justify-between backdrop-blur-md"
                         >
                           <div>
                             <span
                               style={{ backgroundColor: accentColor }}
                               className="inline-block px-2.5 py-1 rounded text-[10px] font-bold text-black uppercase mb-2"
                             >
-                              {currentSlide.tag || "B2B"}
+                              <InlineEditableText
+                                elementKey="tag"
+                                value={currentSlide.tag || "B2B"}
+                                onChange={(val) => updateCurrentSlide({ tag: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                placeholder="B2B"
+                              />
                             </span>
-                            <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
-                              {currentSlide.title}
+                            <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight`}>
+                              <InlineEditableText
+                                elementKey="title"
+                                as="h1"
+                                value={currentSlide.title}
+                                onChange={(val) => updateCurrentSlide({ title: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe el titular aquí..."
+                              />
                             </h1>
                             <p className="text-xs text-slate-300 mt-2 font-normal line-clamp-3">
-                              {currentSlide.subtitle}
+                              <InlineEditableText
+                                elementKey="subtitle"
+                                as="p"
+                                value={currentSlide.subtitle}
+                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Escribe el subtítulo aquí..."
+                              />
                             </p>
                           </div>
 
                           <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-                            <span className="font-bold text-white">{nameText}</span>
+                            <span className="font-bold text-white">
+                              <InlineEditableText
+                                elementKey="author-name"
+                                value={nameText}
+                                onChange={setNameText}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                placeholder="Tu Nombre"
+                              />
+                            </span>
                             {editorMode === "carousel" && (
                               <span style={{ color: accentColor }} className="font-bold flex items-center gap-1">
                                 Desliza <ArrowRight className="size-3" />
@@ -1320,13 +1706,25 @@ export default function VisualEditorModal({
                           style={{
                             backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
                           }}
-                          className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement("brand");
+                          }}
+                          className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between items-center"
                         >
                           <span
                             style={{ borderColor: accentColor, color: accentColor }}
                             className="px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5"
                           >
-                            {currentSlide.tag || "MÉTRICA VALIDADA"}
+                            <InlineEditableText
+                              elementKey="tag"
+                              value={currentSlide.tag || "MÉTRICA VALIDADA"}
+                              onChange={(val) => updateCurrentSlide({ tag: val })}
+                              selectedElement={selectedElement}
+                              onSelect={setSelectedElement}
+                              isExporting={isExporting}
+                              placeholder="MÉTRICA VALIDADA"
+                            />
                           </span>
 
                           <div className="my-auto">
@@ -1334,21 +1732,70 @@ export default function VisualEditorModal({
                               style={{ color: accentColor }}
                               className="text-5xl sm:text-6xl font-black tracking-tight font-mono drop-shadow-lg"
                             >
-                              {currentSlide.metric || initialMetric || "+340%"}
+                              <InlineEditableText
+                                elementKey="metric"
+                                as="div"
+                                value={currentSlide.metric || initialMetric || "+340%"}
+                                onChange={(val) => updateCurrentSlide({ metric: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                placeholder="+340%"
+                              />
                             </div>
                             <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                               RESULTADO COMPROBADO EN CONVERSIONES
                             </div>
-                            <h1 className="text-base sm:text-lg font-bold text-white mt-3">
-                              {currentSlide.title}
+                            <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white mt-3`}>
+                              <InlineEditableText
+                                elementKey="title"
+                                as="h1"
+                                value={currentSlide.title}
+                                onChange={(val) => updateCurrentSlide({ title: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Explicación del resultado..."
+                              />
                             </h1>
                             <p className="text-xs text-slate-300 mt-1 font-normal">
-                              {currentSlide.subtitle}
+                              <InlineEditableText
+                                elementKey="subtitle"
+                                as="p"
+                                value={currentSlide.subtitle}
+                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Contexto o método utilizado..."
+                              />
                             </p>
                           </div>
 
                           <div className="text-xs text-gray-400 font-mono">
-                            {nameText} • <span style={{ color: accentColor }}>{handleText}</span>
+                            <InlineEditableText
+                              elementKey="author-name"
+                              value={nameText}
+                              onChange={setNameText}
+                              selectedElement={selectedElement}
+                              onSelect={setSelectedElement}
+                              isExporting={isExporting}
+                              placeholder="Tu Nombre"
+                            />
+                            {" • "}
+                            <span style={{ color: accentColor }}>
+                              <InlineEditableText
+                                elementKey="author-handle"
+                                value={handleText}
+                                onChange={setHandleText}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                placeholder="@handle"
+                              />
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1361,7 +1808,11 @@ export default function VisualEditorModal({
                       style={{
                         backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
                       }}
-                      className="w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedElement("brand");
+                      }}
+                      className="relative w-full h-full rounded-3xl border border-white/15 p-6 shadow-2xl backdrop-blur-md flex flex-col justify-between"
                     >
                       {/* Cabecera de la lámina */}
                       <div>
@@ -1369,13 +1820,41 @@ export default function VisualEditorModal({
                           style={{ borderColor: accentColor, color: accentColor }}
                           className="inline-block px-3 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5 mb-2.5"
                         >
-                          {currentSlide.tag || "PASO ACCIONABLE"}
+                          <InlineEditableText
+                            elementKey="tag"
+                            value={currentSlide.tag || "PASO ACCIONABLE"}
+                            onChange={(val) => updateCurrentSlide({ tag: val })}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            placeholder="PASO ACCIONABLE"
+                          />
                         </span>
-                        <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">
-                          {currentSlide.title}
+                        <h2 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
+                          <InlineEditableText
+                            elementKey="title"
+                            as="h2"
+                            value={currentSlide.title}
+                            onChange={(val) => updateCurrentSlide({ title: val })}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            multiline={true}
+                            placeholder="Título de la lámina..."
+                          />
                         </h2>
                         <p className="text-xs text-slate-300 mt-1">
-                          {currentSlide.subtitle}
+                          <InlineEditableText
+                            elementKey="subtitle"
+                            as="p"
+                            value={currentSlide.subtitle}
+                            onChange={(val) => updateCurrentSlide({ subtitle: val })}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            multiline={true}
+                            placeholder="Subtítulo descriptivo..."
+                          />
                         </p>
                       </div>
 
@@ -1390,9 +1869,22 @@ export default function VisualEditorModal({
                               >
                                 {idx + 1}
                               </span>
-                              <span className="text-xs text-slate-200 leading-relaxed font-medium">
-                                {bullet}
-                              </span>
+                              <div className="flex-1 text-xs text-slate-200 leading-relaxed font-medium">
+                                <InlineEditableText
+                                  elementKey={`bullet-${idx}`}
+                                  value={bullet}
+                                  onChange={(val) => {
+                                    const newBullets = [...(currentSlide.bullets || [])];
+                                    newBullets[idx] = val;
+                                    updateCurrentSlide({ bullets: newBullets });
+                                  }}
+                                  selectedElement={selectedElement}
+                                  onSelect={setSelectedElement}
+                                  isExporting={isExporting}
+                                  multiline={true}
+                                  placeholder={`Punto ${idx + 1}...`}
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1408,14 +1900,34 @@ export default function VisualEditorModal({
                             style={{ backgroundColor: accentColor }}
                             className="p-3 rounded-xl text-black font-mono font-black text-sm tracking-wider shadow-lg"
                           >
-                            COMUNICAR "{currentSlide.ctaKeyword || "SISTEMA"}"
+                            COMUNICAR "
+                            <InlineEditableText
+                              elementKey="cta-keyword"
+                              value={currentSlide.ctaKeyword || "SISTEMA"}
+                              onChange={(val) => updateCurrentSlide({ ctaKeyword: val })}
+                              selectedElement={selectedElement}
+                              onSelect={setSelectedElement}
+                              isExporting={isExporting}
+                              placeholder="SISTEMA"
+                            />
+                            "
                           </div>
                         </div>
                       )}
 
                       {/* Pie de lámina */}
                       <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-                        <span className="font-bold text-white">{nameText}</span>
+                        <span className="font-bold text-white">
+                          <InlineEditableText
+                            elementKey="author-name"
+                            value={nameText}
+                            onChange={setNameText}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            placeholder="Tu Nombre"
+                          />
+                        </span>
                         <span className="font-mono text-[10px]">
                           Lámina {currentSlideIndex + 1} / {slides.length}
                         </span>
