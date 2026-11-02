@@ -715,7 +715,7 @@ export default function InboxPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSendMeetingLink}
+                  onClick={handleSendConversionLink}
                   title={t("calLinkTitle")}
                   className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition flex items-center gap-1.5 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >

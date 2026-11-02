@@ -8,6 +8,7 @@ import {
   setActiveAccountId,
   accountMatchesUser,
   addStoredAccount,
+  updateStoredAccountStatus,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useAuth } from "@/context/AuthContext";

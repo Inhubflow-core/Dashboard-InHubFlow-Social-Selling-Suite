@@ -119,6 +119,8 @@ const FALLBACK_RECENT_LEADS: any[] = [
   },
 ];
 
+export const initialLeadsData = FALLBACK_RECENT_LEADS;
+
 const DEFAULT_STAGE_COUNTS: Record<PipelineStageId, number> = {
   lead_captured: 48,
   in_sequence: 32,
@@ -131,7 +133,7 @@ const DEFAULT_STAGE_COUNTS: Record<PipelineStageId, number> = {
 };
 
 export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
-  let leads = forceSsr ? initialLeadsData : getStoredLeads();
+  let leads: any[] = forceSsr ? initialLeadsData : getStoredLeads();
   if (typeof window !== "undefined" && !forceSsr && leads.length === 0) {
     const synced = syncSignalLeadsToCrm();
     leads = synced.leads;
@@ -143,9 +145,9 @@ export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
 
   // 1. Overview counts
   const totalLeads = leads.length;
-  const hotLeads = leads.filter((l) => l.intentScore >= 90).length;
-  const warmLeads = leads.filter((l) => l.intentScore >= 75 && l.intentScore < 90).length;
-  const coldLeads = leads.filter((l) => l.intentScore < 75).length;
+  const hotLeads = leads.filter((l: any) => l.intentScore >= 90).length;
+  const warmLeads = leads.filter((l: any) => l.intentScore >= 75 && l.intentScore < 90).length;
+  const coldLeads = leads.filter((l: any) => l.intentScore < 75).length;
 
   const activeDeals = deals.filter((d) => d.stageId !== "closed_lost").length;
   const scheduledMeetings = deals.filter((d) => d.stageId === "meeting_scheduled").length;
@@ -162,9 +164,9 @@ export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
   const connectedAccounts = accounts.filter((a) => a.status === "OK").length || 2;
 
   // 2. Distribución por Nivel de Señal
-  const level1Count = leads.filter((l) => l.signalLevel === "level_1").length;
-  const level2Count = leads.filter((l) => l.signalLevel === "level_2").length;
-  const level3Count = leads.filter((l) => l.signalLevel === "level_3" || l.signalLevel === "level_4").length;
+  const level1Count = leads.filter((l: any) => l.signalLevel === "level_1").length;
+  const level2Count = leads.filter((l: any) => l.signalLevel === "level_2").length;
+  const level3Count = leads.filter((l: any) => l.signalLevel === "level_3" || l.signalLevel === "level_4").length;
 
   // Fallback armónico si la base estuviera vacía en el primer render
   const safeL1 = level1Count || 48;
