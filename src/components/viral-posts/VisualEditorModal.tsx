@@ -128,6 +128,7 @@ export interface ElementFormatting {
   bgColor?: string;
   borderColor?: string;
   borderWidth?: number;
+  borderStyle?: "none" | "solid" | "dashed" | "dotted";
   borderRadius?: number;
   opacity?: number;
 }
@@ -156,6 +157,7 @@ export interface CustomCanvasElement {
   bgColor?: string;
   borderColor?: string;
   borderWidth?: number;
+  borderStyle?: "none" | "solid" | "dashed" | "dotted";
   borderRadius?: number;
   opacity?: number;
   fontFamily?: string;
@@ -798,7 +800,9 @@ export default function VisualEditorModal({
   const [activeDockTab, setActiveDockTab] = useState<CanvaDockTab>("templates");
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [canvasZoom, setCanvasZoom] = useState(0.82);
-  const [activeToolbarPopup, setActiveToolbarPopup] = useState<"color" | "spacing" | "shape_fill" | "shape_border" | null>(null);
+  const [activeToolbarPopup, setActiveToolbarPopup] = useState<
+    "color" | "spacing" | "shape_edit" | "shape_fill" | "shape_border" | "shape_stroke" | "shape_corner" | "shape_transparency" | null
+  >(null);
 
   // Estados de autor
   const [nameText, setNameText] = useState(authorName);
@@ -2504,28 +2508,106 @@ export default function VisualEditorModal({
                 </>
               )}
 
-              {/* CASO B: FORMA GEOMÉTRICA SELECCIONADA */}
+              {/* CASO B: FORMA GEOMÉTRICA SELECCIONADA (ESTILO CANVA) */}
               {isShape && (
                 <>
-                  {/* Relleno */}
+                  {/* 1. EDIT (Cambiar forma - Canva Screenshot 2) */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_edit" ? null : "shape_edit")}
+                      className={`h-7 px-2.5 rounded-md flex items-center gap-1.5 text-xs font-semibold border transition ${
+                        activeToolbarPopup === "shape_edit"
+                          ? "bg-slate-700 border-brand-500 text-white shadow-sm"
+                          : "bg-slate-800 border-slate-700 text-slate-200 hover:text-white hover:bg-slate-750"
+                      }`}
+                      title="Cambiar tipo de forma"
+                    >
+                      <Shapes className="size-3.5 text-brand-400" />
+                      <span>Edit</span>
+                    </button>
+
+                    {activeToolbarPopup === "shape_edit" && (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-64 animate-in fade-in zoom-in-95 select-none">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Transformar Forma
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { type: "shape_rect", label: "Rectángulo", icon: Square },
+                            { type: "shape_circle", label: "Círculo", icon: Circle },
+                            { type: "shape_star", label: "Estrella", icon: Star },
+                            { type: "shape_pill", label: "Píldora", icon: Minus },
+                            { type: "shape_line", label: "Línea", icon: Minus },
+                          ].map((s) => {
+                            const IconComp = s.icon;
+                            const isCurrent = customElem?.type === s.type;
+                            return (
+                              <button
+                                key={s.type}
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateCustomElement(selectedElement!, {
+                                    type: s.type as any,
+                                    borderRadius: s.type === "shape_circle" ? 9999 : s.type === "shape_rect" ? 16 : 9999,
+                                  });
+                                  setActiveToolbarPopup(null);
+                                }}
+                                className={`p-2 rounded-lg border flex flex-col items-center justify-center gap-1 transition ${
+                                  isCurrent
+                                    ? "border-brand-500 bg-brand-500/20 text-brand-300 font-bold"
+                                    : "border-slate-800 bg-slate-800/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white"
+                                }`}
+                              >
+                                <IconComp className="size-5" />
+                                <span className="text-[10px] truncate max-w-full">{s.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. COLOR (Relleno / Fill - Canva Screenshot 3) */}
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_fill" ? null : "shape_fill")}
-                      className="h-7 px-2 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-1.5 text-xs text-slate-200 hover:text-white"
+                      className={`size-7 rounded-md flex items-center justify-center transition border ${
+                        activeToolbarPopup === "shape_fill"
+                          ? "border-brand-500 bg-slate-700 shadow-sm"
+                          : "border-slate-700 bg-slate-800 hover:border-slate-600"
+                      }`}
                       title="Color de relleno"
                     >
-                      <div
-                        className="size-3.5 rounded border border-white/20"
-                        style={{ backgroundColor: customElem?.bgColor || "rgba(255, 255, 255, 0.2)" }}
+                      <span
+                        className="size-4.5 rounded-full border border-white/30 shadow-xs"
+                        style={{ backgroundColor: customElem?.bgColor || accentColor }}
                       />
-                      <span>Relleno</span>
                     </button>
+
                     {activeToolbarPopup === "shape_fill" && (
-                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Color de Relleno</p>
-                        <div className="grid grid-cols-6 gap-1.5 mb-2">
-                          {["rgba(255, 255, 255, 0.12)", "#0099ff", "#7058FE", "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#ffffff", "#000000", "transparent", accentColor].map((c, i) => (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56 animate-in fade-in zoom-in-95 select-none">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Color de Relleno
+                        </p>
+                        <div className="grid grid-cols-6 gap-1.5 mb-2.5">
+                          {[
+                            "transparent",
+                            "#0099ff",
+                            "#6366f1",
+                            "#10b981",
+                            "#f59e0b",
+                            "#ec4899",
+                            "#7058FE",
+                            "#ffffff",
+                            "#94a3b8",
+                            "#334155",
+                            "#0f172a",
+                            "#000000",
+                            accentColor,
+                          ].map((c, i) => (
                             <button
                               key={i}
                               type="button"
@@ -2534,34 +2616,80 @@ export default function VisualEditorModal({
                                 handleStyleChange(selectedElement!, { bgColor: c });
                                 setActiveToolbarPopup(null);
                               }}
-                              className="size-6 rounded-md border border-white/20 shadow-sm"
-                              style={{ backgroundColor: c }}
-                            />
+                              className={`size-6 rounded-md border shadow-sm transition hover:scale-110 flex items-center justify-center ${
+                                c === "transparent" ? "border-red-400/60 bg-slate-800 text-red-400 font-bold text-xs" : "border-white/20"
+                              }`}
+                              style={c !== "transparent" ? { backgroundColor: c } : {}}
+                              title={c === "transparent" ? "Sin relleno (transparente)" : c}
+                            >
+                              {c === "transparent" && "⊘"}
+                            </button>
                           ))}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
+                          <span className="text-[10px] text-slate-400 font-mono">Hex:</span>
+                          <input
+                            type="text"
+                            value={customElem?.bgColor || ""}
+                            placeholder="#0099ff"
+                            onChange={(e) => {
+                              handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
+                              handleStyleChange(selectedElement!, { bgColor: e.target.value });
+                            }}
+                            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-white focus:outline-none"
+                          />
+                          <input
+                            type="color"
+                            value={customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "#0099ff"}
+                            onChange={(e) => {
+                              handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
+                              handleStyleChange(selectedElement!, { bgColor: e.target.value });
+                            }}
+                            className="size-6 rounded cursor-pointer bg-transparent border-0"
+                          />
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Borde */}
+                  {/* 3. STROKE COLOR (Color del Borde) */}
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_border" ? null : "shape_border")}
-                      className="h-7 px-2 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-1.5 text-xs text-slate-200 hover:text-white"
-                      title="Color de borde"
+                      className={`size-7 rounded-md flex items-center justify-center transition border ${
+                        activeToolbarPopup === "shape_border"
+                          ? "border-brand-500 bg-slate-700 shadow-sm"
+                          : "border-slate-700 bg-slate-800 hover:border-slate-600"
+                      }`}
+                      title="Color del trazo / borde"
                     >
-                      <div
-                        className="size-3.5 rounded border-2"
+                      <span
+                        className="size-4.5 rounded-full border-2 border-dashed shadow-xs"
                         style={{ borderColor: customElem?.borderColor || accentColor }}
                       />
-                      <span>Borde</span>
                     </button>
+
                     {activeToolbarPopup === "shape_border" && (
-                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Color de Borde</p>
-                        <div className="grid grid-cols-6 gap-1.5 mb-2">
-                          {["transparent", "#ffffff", "#0099ff", "#7058FE", "#6366f1", "#10b981", "#f59e0b", "#ec4899", accentColor].map((c, i) => (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56 animate-in fade-in zoom-in-95 select-none">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Color del Trazo (Borde)
+                        </p>
+                        <div className="grid grid-cols-6 gap-1.5 mb-2.5">
+                          {[
+                            "transparent",
+                            "#ffffff",
+                            "#0099ff",
+                            "#6366f1",
+                            "#10b981",
+                            "#f59e0b",
+                            "#ec4899",
+                            "#7058FE",
+                            "#94a3b8",
+                            "#000000",
+                            accentColor,
+                          ].map((c, i) => (
                             <button
                               key={i}
                               type="button"
@@ -2570,84 +2698,288 @@ export default function VisualEditorModal({
                                 handleStyleChange(selectedElement!, { borderColor: c });
                                 setActiveToolbarPopup(null);
                               }}
-                              className="size-6 rounded-md border border-white/20 shadow-sm"
-                              style={{ backgroundColor: c }}
-                            />
+                              className={`size-6 rounded-md border shadow-sm transition hover:scale-110 flex items-center justify-center ${
+                                c === "transparent" ? "border-red-400/60 bg-slate-800 text-red-400 font-bold text-xs" : "border-white/20"
+                              }`}
+                              style={c !== "transparent" ? { backgroundColor: c } : {}}
+                              title={c === "transparent" ? "Sin borde" : c}
+                            >
+                              {c === "transparent" && "⊘"}
+                            </button>
                           ))}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
+                          <span className="text-[10px] text-slate-400 font-mono">Hex:</span>
+                          <input
+                            type="text"
+                            value={customElem?.borderColor || ""}
+                            placeholder="#ffffff"
+                            onChange={(e) => {
+                              handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
+                              handleStyleChange(selectedElement!, { borderColor: e.target.value });
+                            }}
+                            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-white focus:outline-none"
+                          />
+                          <input
+                            type="color"
+                            value={customElem?.borderColor && customElem.borderColor !== "transparent" ? customElem.borderColor : "#ffffff"}
+                            onChange={(e) => {
+                              handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
+                              handleStyleChange(selectedElement!, { borderColor: e.target.value });
+                            }}
+                            className="size-6 rounded cursor-pointer bg-transparent border-0"
+                          />
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Grosor de borde */}
-                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
-                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Borde:</span>
+                  {/* 4. STROKE STYLE & WEIGHT (Canva Screenshot 4) */}
+                  <div className="relative">
                     <button
                       type="button"
-                      onClick={() => {
-                        const cur = customElem?.borderWidth ?? 2;
-                        const next = Math.max(0, cur - 1);
-                        handleUpdateCustomElement(selectedElement!, { borderWidth: next });
-                        handleStyleChange(selectedElement!, { borderWidth: next });
-                      }}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_stroke" ? null : "shape_stroke")}
+                      className={`size-7 rounded-md flex items-center justify-center transition border ${
+                        activeToolbarPopup === "shape_stroke"
+                          ? "border-brand-500 bg-slate-700 text-white shadow-sm"
+                          : "border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:border-slate-600"
+                      }`}
+                      title="Estilo y grosor del trazo (Stroke style)"
                     >
-                      -
+                      <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6" strokeWidth="4" />
+                        <line x1="3" y1="12" x2="21" y2="12" strokeWidth="2.5" />
+                        <line x1="3" y1="18" x2="21" y2="18" strokeWidth="1" />
+                      </svg>
                     </button>
-                    <span className="w-7 text-center font-mono text-xs font-bold text-white">
-                      {customElem?.borderWidth ?? 2}px
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = customElem?.borderWidth ?? 2;
-                        const next = Math.min(20, cur + 1);
-                        handleUpdateCustomElement(selectedElement!, { borderWidth: next });
-                        handleStyleChange(selectedElement!, { borderWidth: next });
-                      }}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                    >
-                      +
-                    </button>
+
+                    {activeToolbarPopup === "shape_stroke" && (
+                      <div className="absolute top-9 left-0 z-50 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-64 animate-in fade-in zoom-in-95 select-none space-y-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                            Tipo de Trazo
+                          </p>
+                          <div className="grid grid-cols-4 gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, { borderStyle: "none" });
+                                handleStyleChange(selectedElement!, { borderStyle: "none" });
+                              }}
+                              className={`h-8 rounded flex items-center justify-center transition ${
+                                customElem?.borderStyle === "none"
+                                  ? "bg-brand-500/20 text-brand-400 border border-brand-500 font-bold"
+                                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              title="Sin trazo"
+                            >
+                              ⊘
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, {
+                                  borderStyle: "solid",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                                handleStyleChange(selectedElement!, {
+                                  borderStyle: "solid",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                              }}
+                              className={`h-8 rounded flex items-center justify-center transition ${
+                                customElem?.borderStyle === "solid" || (!customElem?.borderStyle && (customElem?.borderWidth || 0) > 0)
+                                  ? "bg-brand-500/20 text-brand-400 border border-brand-500"
+                                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              title="Línea continua"
+                            >
+                              <span className="w-4 h-0.5 bg-current rounded-full" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, {
+                                  borderStyle: "dashed",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                                handleStyleChange(selectedElement!, {
+                                  borderStyle: "dashed",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                              }}
+                              className={`h-8 rounded flex items-center justify-center transition ${
+                                customElem?.borderStyle === "dashed"
+                                  ? "bg-brand-500/20 text-brand-400 border border-brand-500"
+                                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              title="Línea de guiones"
+                            >
+                              <span className="text-[11px] font-mono tracking-tighter">- - -</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, {
+                                  borderStyle: "dotted",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                                handleStyleChange(selectedElement!, {
+                                  borderStyle: "dotted",
+                                  borderWidth: customElem?.borderWidth || 2,
+                                });
+                              }}
+                              className={`h-8 rounded flex items-center justify-center transition ${
+                                customElem?.borderStyle === "dotted"
+                                  ? "bg-brand-500/20 text-brand-400 border border-brand-500"
+                                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              title="Línea de puntos"
+                            >
+                              <span className="text-xs font-mono tracking-tight font-black leading-none">····</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center text-xs font-semibold text-slate-300 mb-1.5">
+                            <span>Stroke weight (Grosor)</span>
+                            <span className="w-8 py-0.5 rounded bg-slate-800 text-center font-mono text-brand-400 font-bold border border-slate-700">
+                              {customElem?.borderWidth ?? 2}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="40"
+                            step="1"
+                            value={customElem?.borderWidth ?? 2}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              handleUpdateCustomElement(selectedElement!, {
+                                borderWidth: val,
+                                borderStyle: val === 0 ? "none" : (customElem?.borderStyle && customElem.borderStyle !== "none" ? customElem.borderStyle : "solid"),
+                              });
+                              handleStyleChange(selectedElement!, {
+                                borderWidth: val,
+                                borderStyle: val === 0 ? "none" : (customElem?.borderStyle && customElem.borderStyle !== "none" ? customElem.borderStyle : "solid"),
+                              });
+                            }}
+                            className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Radio de esquinas */}
+                  {/* 5. CORNER (Redondeo de Esquinas - Canva Screenshot 5) */}
                   {(customElem?.type === "shape_rect" || customElem?.type === "shape_pill") && (
-                    <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
-                      <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Radio:</span>
+                    <div className="relative">
                       <button
                         type="button"
-                        onClick={() => {
-                          const cur = customElem?.borderRadius ?? 16;
-                          const next = Math.max(0, cur - 4);
-                          handleUpdateCustomElement(selectedElement!, { borderRadius: next });
-                          handleStyleChange(selectedElement!, { borderRadius: next });
-                        }}
-                        className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                        onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_corner" ? null : "shape_corner")}
+                        className={`size-7 rounded-md flex items-center justify-center transition border ${
+                          activeToolbarPopup === "shape_corner"
+                            ? "border-brand-500 bg-slate-700 text-white shadow-sm"
+                            : "border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:border-slate-600"
+                        }`}
+                        title="Redondeo de esquinas (Corner rounding)"
                       >
-                        -
+                        <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 20V10a6 6 0 0 1 6-6h10" />
+                        </svg>
                       </button>
-                      <span className="w-7 text-center font-mono text-xs font-bold text-white">
-                        {customElem?.borderRadius ?? 16}px
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const cur = customElem?.borderRadius ?? 16;
-                          const next = Math.min(60, cur + 4);
-                          handleUpdateCustomElement(selectedElement!, { borderRadius: next });
-                          handleStyleChange(selectedElement!, { borderRadius: next });
-                        }}
-                        className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                      >
-                        +
-                      </button>
+
+                      {activeToolbarPopup === "shape_corner" && (
+                        <div className="absolute top-9 left-0 z-50 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-60 animate-in fade-in zoom-in-95 select-none space-y-3">
+                          <div className="flex justify-between items-center text-xs font-semibold text-slate-300 mb-1">
+                            <span>Corner rounding</span>
+                            <span className="w-9 py-0.5 rounded bg-slate-800 text-center font-mono text-brand-400 font-bold border border-slate-700">
+                              {customElem?.borderRadius ?? 16}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="60"
+                            step="1"
+                            value={customElem?.borderRadius ?? 16}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              handleUpdateCustomElement(selectedElement!, { borderRadius: val });
+                              handleStyleChange(selectedElement!, { borderRadius: val });
+                            }}
+                            className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
+                  {/* 6. TRANSPARENCY (Opacidad / Transparencia - Canva Screenshot 1) */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_transparency" ? null : "shape_transparency")}
+                      className={`size-7 rounded-md flex items-center justify-center transition border ${
+                        activeToolbarPopup === "shape_transparency"
+                          ? "border-brand-500 bg-slate-700 text-white shadow-sm"
+                          : "border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:border-slate-600"
+                      }`}
+                      title="Transparencia / Opacidad"
+                    >
+                      <svg className="size-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="2" y="2" width="5" height="5" opacity="0.4" />
+                        <rect x="7" y="2" width="5" height="5" opacity="0.9" />
+                        <rect x="12" y="2" width="5" height="5" opacity="0.4" />
+                        <rect x="17" y="2" width="5" height="5" opacity="0.9" />
+                        <rect x="2" y="7" width="5" height="5" opacity="0.9" />
+                        <rect x="7" y="7" width="5" height="5" opacity="0.4" />
+                        <rect x="12" y="7" width="5" height="5" opacity="0.9" />
+                        <rect x="17" y="7" width="5" height="5" opacity="0.4" />
+                        <rect x="2" y="12" width="5" height="5" opacity="0.4" />
+                        <rect x="7" y="12" width="5" height="5" opacity="0.9" />
+                        <rect x="12" y="12" width="5" height="5" opacity="0.4" />
+                        <rect x="17" y="12" width="5" height="5" opacity="0.9" />
+                        <rect x="2" y="17" width="5" height="5" opacity="0.9" />
+                        <rect x="7" y="17" width="5" height="5" opacity="0.4" />
+                        <rect x="12" y="17" width="5" height="5" opacity="0.9" />
+                        <rect x="17" y="17" width="5" height="5" opacity="0.4" />
+                      </svg>
+                    </button>
+
+                    {activeToolbarPopup === "shape_transparency" && (
+                      <div className="absolute top-9 left-0 z-50 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-60 animate-in fade-in zoom-in-95 select-none space-y-3">
+                        <div className="flex justify-between items-center text-xs font-semibold text-slate-300 mb-1">
+                          <span>Transparencia</span>
+                          <span className="w-12 py-0.5 rounded bg-slate-800 text-center font-mono text-brand-400 font-bold border border-slate-700">
+                            {Math.round((customElem?.opacity ?? 1) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={Math.round((customElem?.opacity ?? 1) * 100)}
+                          onChange={(e) => {
+                            const val = Number((parseInt(e.target.value, 10) / 100).toFixed(2));
+                            handleUpdateCustomElement(selectedElement!, { opacity: val });
+                            handleStyleChange(selectedElement!, { opacity: val });
+                          }}
+                          className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   <span className="h-4 w-px bg-slate-700 mx-1" />
 
-                  {/* Duplicar y Eliminar Forma */}
+                  {/* 7. DUPLICAR Y ELIMINAR */}
                   <button
                     type="button"
                     onClick={() => handleDuplicateElement(selectedElement!)}
@@ -4219,8 +4551,8 @@ export default function VisualEditorModal({
                             height: `${elem.height || 90}px`,
                             backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.12)",
                             borderColor: elem.borderColor || accentColor,
-                            borderWidth: `${elem.borderWidth ?? 2}px`,
-                            borderStyle: "solid",
+                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 2}px`,
+                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
                             borderRadius: `${elem.borderRadius ?? 16}px`,
                             opacity: elem.opacity ?? 1,
                           }}
@@ -4236,8 +4568,8 @@ export default function VisualEditorModal({
                             height: `${elem.height || 90}px`,
                             backgroundColor: elem.bgColor || accentColor,
                             borderColor: elem.borderColor || "rgba(255, 255, 255, 0.3)",
-                            borderWidth: `${elem.borderWidth ?? 0}px`,
-                            borderStyle: "solid",
+                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
+                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
                             borderRadius: "9999px",
                             opacity: elem.opacity ?? 0.9,
                           }}
@@ -4258,8 +4590,9 @@ export default function VisualEditorModal({
                         >
                           <Star
                             style={{
-                              color: elem.bgColor || "#f59e0b",
+                              color: elem.borderStyle === "none" ? "transparent" : (elem.borderColor || "#f59e0b"),
                               fill: elem.bgColor || "#f59e0b",
+                              strokeWidth: elem.borderStyle === "none" ? 0 : (elem.borderWidth ?? 2),
                             }}
                             className="size-full drop-shadow-lg"
                           />
@@ -4271,12 +4604,13 @@ export default function VisualEditorModal({
                           style={{
                             backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.15)",
                             borderColor: elem.borderColor || accentColor,
-                            borderWidth: `${elem.borderWidth ?? 1}px`,
-                            borderStyle: "solid",
-                            borderRadius: "9999px",
+                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 1}px`,
+                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
+                            borderRadius: `${elem.borderRadius ?? 9999}px`,
                             opacity: elem.opacity ?? 1,
                           }}
                           className="px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer"
+                          onClick={() => setSelectedElement(elem.id)}
                         >
                           <InlineEditableText
                             elementKey={elem.id}
@@ -4295,8 +4629,14 @@ export default function VisualEditorModal({
                         <div
                           style={{
                             width: `${elem.width || 220}px`,
-                            height: `${elem.borderWidth ?? elem.height ?? 3}px`,
-                            backgroundColor: elem.bgColor || accentColor,
+                            height: `${elem.borderWidth ?? 3}px`,
+                            backgroundColor: elem.borderStyle === "none" ? "transparent" : (elem.bgColor || accentColor),
+                            borderTop:
+                              elem.borderStyle === "dashed"
+                                ? `${elem.borderWidth ?? 3}px dashed ${elem.borderColor || accentColor}`
+                                : elem.borderStyle === "dotted"
+                                ? `${elem.borderWidth ?? 3}px dotted ${elem.borderColor || accentColor}`
+                                : "none",
                             opacity: elem.opacity ?? 0.8,
                           }}
                           className="rounded-full shadow-sm transition-all cursor-pointer"
