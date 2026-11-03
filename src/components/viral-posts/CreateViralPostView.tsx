@@ -821,8 +821,11 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           >
             <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
               {/* Cabecera de perfil */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
+              <div suppressHydrationWarning className="flex items-center gap-3 mb-4">
+                <div
+                  suppressHydrationWarning
+                  className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm"
+                >
                   {(activeAccObj?.name || currentUser.name)
                     .split(" ")
                     .map((n) => n[0])
@@ -830,11 +833,11 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     .slice(0, 2)
                     .toUpperCase()}
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+                <div suppressHydrationWarning>
+                  <h4 suppressHydrationWarning className="text-xs font-bold text-gray-900 dark:text-white">
                     {activeAccObj ? activeAccObj.name : currentUser.name}
                   </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p suppressHydrationWarning className="text-xs text-gray-500 dark:text-gray-400">
                     {activeAccObj ? t("connectedProfileBadge") : t("defaultProfileBadge")}
                   </p>
                   <p className="text-xs text-gray-400">{t("nowPublic")}</p>
