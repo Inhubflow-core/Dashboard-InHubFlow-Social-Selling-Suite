@@ -937,7 +937,8 @@ export default function VisualEditorModal({
   const [titleSize, setTitleSize] = useState<"sm" | "md" | "lg" | "xl">("lg");
 
   // Modo Híbrido: Auto-Layout (false) vs Modo Libre Arrastrable (true)
-  const [isFreeMode, setIsFreeMode] = useState(false);
+  // Modo Libre activo permanentemente (estilo Canva nativo)
+  const [isFreeMode, setIsFreeMode] = useState(true);
 
   const getTitleSizeClass = (size: "sm" | "md" | "lg" | "xl") => {
     switch (size) {
@@ -1871,7 +1872,7 @@ export default function VisualEditorModal({
                 Estudio Gráfico InHubFlow
               </h1>
               <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
-                MOTOR AUTO-LAYOUT HD
+                CANVA ENGINE HD
               </span>
             </div>
           </div>
@@ -3812,38 +3813,6 @@ export default function VisualEditorModal({
                   )}
                 </>
               )}
-            </div>
-
-            {/* Selector de Modo: Auto-Layout vs Modo Libre */}
-            <div className="flex items-center gap-1 shrink-0 ml-auto">
-              <div className="flex items-center p-0.5 rounded-lg bg-slate-800 border border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setIsFreeMode(false)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition ${
-                    !isFreeMode
-                      ? "bg-brand-600 text-white shadow-xs"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                  title="Alineación automática limpia y equilibrada por Flexbox"
-                >
-                  <LayoutGrid className="size-3" />
-                  <span>Auto-Layout</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsFreeMode(true)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition ${
-                    isFreeMode
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                  title="Arrastra cualquier elemento libremente con el ratón por la lámina"
-                >
-                  <Move className="size-3" />
-                  <span>Modo Libre</span>
-                </button>
-              </div>
             </div>
           </div>
 
