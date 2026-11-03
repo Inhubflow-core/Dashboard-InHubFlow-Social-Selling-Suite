@@ -567,6 +567,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const initialDimsRef = useRef({ width: 100, height: 60 });
   const initialOffsetRef = useRef({ x: 0, y: 0 });
   const initialFontSizeRef = useRef(28);
+  const anchorVRef = useRef<"top" | "bottom" | "center">("top");
 
   if (isHidden) {
     return null;
@@ -631,9 +632,10 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     resizeStartPos.current = { x: e.clientX, y: e.clientY };
 
     const zoom = (ctx?.canvasZoom || 1);
+    const scaleZoom = zoom * (scale ?? 1);
     const domRect = wrapperRef.current ? wrapperRef.current.getBoundingClientRect() : null;
-    const domW = domRect ? domRect.width / zoom : 120;
-    const domH = domRect ? domRect.height / zoom : 80;
+    const domW = domRect ? domRect.width / scaleZoom : 120;
+    const domH = domRect ? domRect.height / scaleZoom : 80;
 
     const resolvedW = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width ?? domW;
     const resolvedH = props.height ?? ctx?.currentSlide.dimensions?.[id]?.height ?? domH;
@@ -646,6 +648,33 @@ function DraggableWrapper(props: DraggableWrapperProps) {
       x: offset?.x || 0,
       y: offset?.y || 0,
     };
+
+    // Detectar anclaje vertical del elemento en su contenedor padre
+    const parent = wrapperRef.current?.parentElement;
+    let anchorV: "top" | "bottom" | "center" = "top";
+
+    if (id === "editorial-card" || id === "split-card") {
+      anchorV = "bottom";
+    } else if (id === "social-card") {
+      anchorV = "center";
+    } else if (parent) {
+      const pStyle = window.getComputedStyle(parent);
+      const isCol = pStyle.flexDirection === "column" || pStyle.flexDirection === "column-reverse";
+      if (isCol) {
+        if (pStyle.justifyContent === "flex-end" || pStyle.justifyContent === "end") {
+          anchorV = "bottom";
+        } else if (pStyle.justifyContent === "center") {
+          anchorV = "center";
+        }
+      } else {
+        if (pStyle.alignItems === "flex-end" || pStyle.alignItems === "end") {
+          anchorV = "bottom";
+        } else if (pStyle.alignItems === "center") {
+          anchorV = "center";
+        }
+      }
+    }
+    anchorVRef.current = anchorV;
 
     if (isTextElement) {
       const targetKey = getTargetKey();
@@ -724,67 +753,57 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     let newX = initialOffsetRef.current.x;
     let newY = initialOffsetRef.current.y;
 
-    if (activeHandle === "e") {
+    const hasE = activeHandle.includes("e");
+    const hasW = activeHandle.includes("w");
+    const hasN = activeHandle.includes("n");
+    const hasS = activeHandle.includes("s");
+
+    // Horizontal (ancho / X)
+    if (hasE) {
       newW = Math.max(minW, initialDimsRef.current.width + dx);
-    } else if (activeHandle === "w") {
+    } else if (hasW) {
       const tentativeW = initialDimsRef.current.width - dx;
-      if (tentativeW >= minW) {
-        newW = tentativeW;
-        newX = initialOffsetRef.current.x + dx;
-      } else {
-        newW = minW;
-        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
-      }
-    } else if (activeHandle === "s") {
-      newH = Math.max(minH, initialDimsRef.current.height + dy);
-    } else if (activeHandle === "n") {
+      const actualW = Math.max(minW, tentativeW);
+      const clampedDx = initialDimsRef.current.width - actualW;
+      newW = actualW;
+      newX = initialOffsetRef.current.x + clampedDx;
+    }
+
+    // Vertical (alto / Y) respetando el punto de anclaje (top, bottom, center)
+    const anchorV = anchorVRef.current;
+    if (hasN) {
       const tentativeH = initialDimsRef.current.height - dy;
-      if (tentativeH >= minH) {
-        newH = tentativeH;
-        newY = initialOffsetRef.current.y + dy;
+      const actualH = Math.max(minH, tentativeH);
+      const clampedDy = initialDimsRef.current.height - actualH;
+      newH = actualH;
+
+      if (anchorV === "bottom") {
+        // Elemento anclado abajo (ej. fondo de tarjeta editorial):
+        // En flexbox justify-end, aumentar o reducir la altura mueve naturalmente el borde superior
+        // 1:1 con el cursor del mouse, sin tocar el offset Y (el borde inferior permanece intacto).
+        newY = initialOffsetRef.current.y;
+      } else if (anchorV === "center") {
+        // Elemento centrado: la expansión de flexbox distribuye la mitad arriba y la mitad abajo.
+        newY = initialOffsetRef.current.y + clampedDy / 2;
       } else {
-        newH = minH;
-        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
+        // Elemento estándar anclado arriba: el desplazamiento dy compensa la posición para fijar el fondo.
+        newY = initialOffsetRef.current.y + clampedDy;
       }
-    } else if (activeHandle === "se") {
-      newW = Math.max(minW, initialDimsRef.current.width + dx);
-      newH = Math.max(minH, initialDimsRef.current.height + dy);
-    } else if (activeHandle === "sw") {
-      const tentativeW = initialDimsRef.current.width - dx;
-      if (tentativeW >= minW) {
-        newW = tentativeW;
-        newX = initialOffsetRef.current.x + dx;
+    } else if (hasS) {
+      const tentativeH = initialDimsRef.current.height + dy;
+      const actualH = Math.max(minH, tentativeH);
+      const clampedDy = actualH - initialDimsRef.current.height;
+      newH = actualH;
+
+      if (anchorV === "bottom") {
+        // Elemento anclado abajo: para expandir hacia abajo sin mover el borde superior,
+        // se traslada el offset Y junto con la altura.
+        newY = initialOffsetRef.current.y + clampedDy;
+      } else if (anchorV === "center") {
+        newY = initialOffsetRef.current.y + clampedDy / 2;
       } else {
-        newW = minW;
-        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
-      }
-      newH = Math.max(minH, initialDimsRef.current.height + dy);
-    } else if (activeHandle === "ne") {
-      newW = Math.max(minW, initialDimsRef.current.width + dx);
-      const tentativeH = initialDimsRef.current.height - dy;
-      if (tentativeH >= minH) {
-        newH = tentativeH;
-        newY = initialOffsetRef.current.y + dy;
-      } else {
-        newH = minH;
-        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
-      }
-    } else if (activeHandle === "nw") {
-      const tentativeW = initialDimsRef.current.width - dx;
-      if (tentativeW >= minW) {
-        newW = tentativeW;
-        newX = initialOffsetRef.current.x + dx;
-      } else {
-        newW = minW;
-        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
-      }
-      const tentativeH = initialDimsRef.current.height - dy;
-      if (tentativeH >= minH) {
-        newH = tentativeH;
-        newY = initialOffsetRef.current.y + dy;
-      } else {
-        newH = minH;
-        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
+        // Elemento anclado arriba: el borde superior está fijo, el inferior crece naturalmente.
+        newY = initialOffsetRef.current.y;
       }
     }
 
@@ -818,6 +837,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   const resolvedWidth = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width;
   const resolvedHeight = !isTextElement ? (props.height ?? ctx?.currentSlide.dimensions?.[id]?.height) : undefined;
+  const isTransforming = isDragging || Boolean(activeHandle);
 
   const transformParts: string[] = [];
   if (hasMoved) {
@@ -845,7 +865,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
         transformOrigin: isCentered ? "center center" : "top left",
         touchAction: isFreeMode ? "none" : undefined,
       }}
-      className={`${positionClass} transition-transform duration-75 ${
+      className={`${positionClass} ${isTransforming ? "" : "transition-transform duration-75"} ${
         isFreeMode && !isExporting
           ? `group/drag ${
               isDragging
@@ -4022,6 +4042,16 @@ export default function VisualEditorModal({
                             isFreeMode={isFreeMode}
                             offset={currentSlide.offsets?.["editorial-card"]}
                             onOffsetChange={handleOffsetChange}
+                            height={
+                              currentSlide.dimensions?.["editorial-card"]?.height ??
+                              (overlayMode === "fullscreen" ? 485 : aspectRatio === "4:5" ? 300 : 250)
+                            }
+                            width={currentSlide.dimensions?.["editorial-card"]?.width}
+                            onSizeChange={handleSizeChange}
+                            scale={currentSlide.scales?.["editorial-card"]}
+                            onScaleChange={handleScaleChange}
+                            onDelete={handleDeleteElement}
+                            onDuplicate={handleDuplicateElement}
                             isExporting={isExporting}
                             isSelected={selectedElement === "brand"}
                             onSelect={() => setSelectedElement("brand")}
@@ -4035,12 +4065,10 @@ export default function VisualEditorModal({
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className={`w-full border border-white/15 shadow-2xl backdrop-blur-md transition-all ${
+                              className={`w-full h-full border border-white/15 shadow-2xl backdrop-blur-md ${
                                 overlayMode === "fullscreen"
-                                  ? "h-[485px] rounded-none"
-                                  : aspectRatio === "4:5"
-                                  ? "h-[300px] rounded-3xl"
-                                  : "h-[250px] rounded-3xl"
+                                  ? "rounded-none"
+                                  : "rounded-3xl"
                               }`}
                             />
                           </DraggableWrapper>
@@ -4353,6 +4381,16 @@ export default function VisualEditorModal({
                             isFreeMode={isFreeMode}
                             offset={currentSlide.offsets?.["social-card"]}
                             onOffsetChange={handleOffsetChange}
+                            height={
+                              currentSlide.dimensions?.["social-card"]?.height ??
+                              (aspectRatio === "4:5" ? 390 : 350)
+                            }
+                            width={currentSlide.dimensions?.["social-card"]?.width}
+                            onSizeChange={handleSizeChange}
+                            scale={currentSlide.scales?.["social-card"]}
+                            onScaleChange={handleScaleChange}
+                            onDelete={handleDeleteElement}
+                            onDuplicate={handleDuplicateElement}
                             isExporting={isExporting}
                             isSelected={selectedElement === "brand"}
                             onSelect={() => setSelectedElement("brand")}
@@ -4366,9 +4404,7 @@ export default function VisualEditorModal({
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className={`w-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md ${
-                                aspectRatio === "4:5" ? "h-[390px]" : "h-[350px]"
-                              }`}
+                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
                             />
                           </DraggableWrapper>
                         </div>
