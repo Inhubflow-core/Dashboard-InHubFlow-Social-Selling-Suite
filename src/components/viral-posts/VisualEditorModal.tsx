@@ -51,7 +51,8 @@ import {
   Maximize2,
   ZoomIn,
   ZoomOut,
-  SplitSquareVertical
+  SplitSquareVertical,
+  Sun
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
