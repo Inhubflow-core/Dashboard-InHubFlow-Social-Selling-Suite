@@ -538,10 +538,12 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return;
+    e.stopPropagation();
     setIsDragging(false);
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {}
+    onSelect?.();
   };
 
   // Manejo de arrastre de esquinas para escalar el elemento (Estilo Canva)
@@ -581,10 +583,12 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   const handleCornerResizeUp = (e: React.PointerEvent) => {
     if (!resizingCorner) return;
+    e.stopPropagation();
     setResizingCorner(null);
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {}
+    onSelect?.();
   };
 
   const posX = offset?.x || 0;
@@ -608,6 +612,10 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   return (
     <div
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect?.();
+      }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -3159,9 +3167,13 @@ export default function VisualEditorModal({
                 <div
                   ref={slideContainerRef}
                   style={{ fontFamily: selectedFont }}
-                onClick={() => setSelectedElement("background")}
-                className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
-              >
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      setSelectedElement("background");
+                    }
+                  }}
+                  className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
+                >
                 {/* 1. FOTO DE FONDO (Capa independiente z-0, draggable y escalable con zoom) */}
                 <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                   <DraggableWrapper
@@ -4557,7 +4569,10 @@ export default function VisualEditorModal({
                             opacity: elem.opacity ?? 1,
                           }}
                           className="backdrop-blur-sm shadow-xl transition-all cursor-pointer"
-                          onClick={() => setSelectedElement(elem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
                         />
                       )}
 
@@ -4574,7 +4589,10 @@ export default function VisualEditorModal({
                             opacity: elem.opacity ?? 0.9,
                           }}
                           className="shadow-xl transition-all cursor-pointer"
-                          onClick={() => setSelectedElement(elem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
                         />
                       )}
 
@@ -4586,7 +4604,10 @@ export default function VisualEditorModal({
                             opacity: elem.opacity ?? 1,
                           }}
                           className="flex items-center justify-center transition-all cursor-pointer"
-                          onClick={() => setSelectedElement(elem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
                         >
                           <Star
                             style={{
@@ -4610,7 +4631,10 @@ export default function VisualEditorModal({
                             opacity: elem.opacity ?? 1,
                           }}
                           className="px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer"
-                          onClick={() => setSelectedElement(elem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
                         >
                           <InlineEditableText
                             elementKey={elem.id}
@@ -4640,7 +4664,10 @@ export default function VisualEditorModal({
                             opacity: elem.opacity ?? 0.8,
                           }}
                           className="rounded-full shadow-sm transition-all cursor-pointer"
-                          onClick={() => setSelectedElement(elem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
                         />
                       )}
 
