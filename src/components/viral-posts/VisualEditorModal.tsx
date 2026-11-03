@@ -202,6 +202,23 @@ export interface CarouselSlideItem {
   elementStyles?: Record<string, ElementFormatting>;
 }
 
+/** Descompone y gestiona degradados lineales hacia transparente para figuras y fondos */
+function parseGradientOrColor(bg?: string): { isGradient: boolean; direction: string; color: string } {
+  if (!bg) return { isGradient: false, direction: "to bottom", color: "#ffffff" };
+  if (bg.startsWith("linear-gradient")) {
+    const match = bg.match(/linear-gradient\(\s*([^,]+),\s*([^,]+),\s*transparent\s*\)/i);
+    if (match) {
+      return {
+        isGradient: true,
+        direction: match[1].trim(),
+        color: match[2].trim(),
+      };
+    }
+    return { isGradient: true, direction: "to bottom", color: "#ffffff" };
+  }
+  return { isGradient: false, direction: "to bottom", color: bg };
+}
+
 /** Extrae de forma inteligente las tres partes del titular para la plantilla Bold Highlighter */
 function getTitleParts(slide: CarouselSlideItem) {
   if (slide.highlightText) {
@@ -1010,7 +1027,7 @@ export default function VisualEditorModal({
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [canvasZoom, setCanvasZoom] = useState(0.82);
   const [activeToolbarPopup, setActiveToolbarPopup] = useState<
-    "color" | "spacing" | "shape_edit" | "shape_fill" | "shape_border" | "shape_stroke" | "shape_corner" | "shape_transparency" | null
+    "color" | "spacing" | "shape_edit" | "shape_fill" | "shape_border" | "shape_stroke" | "shape_corner" | "shape_transparency" | "shape_gradient" | null
   >(null);
 
   // Estados de autor
@@ -2501,7 +2518,7 @@ export default function VisualEditorModal({
                 {/* Estilos Rápidos de Formas */}
                 <div className="pt-2 border-t border-slate-800 space-y-2">
                   <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Acabados Rápidos</span>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => handleAddShape("shape_rect")}
@@ -2552,7 +2569,50 @@ export default function VisualEditorModal({
                       <div className="size-5 rounded-md bg-white/20 border border-white/50 backdrop-blur-sm shrink-0" />
                       <div>
                         <span className="text-xs font-bold text-white block leading-tight">Efecto Vidrio</span>
-                        <span className="text-[10px] text-slate-400">Translúcido blur</span>
+                        <span className="text-[10px] text-slate-400">Translúcido</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFreeMode(true);
+                        const newId = `elem-${Date.now()}`;
+                        const gradShape: CustomCanvasElement = {
+                          id: newId,
+                          type: "shape_rect",
+                          x: 50,
+                          y: 150,
+                          width: 140,
+                          height: 90,
+                          scale: 1,
+                          bgColor: "linear-gradient(to bottom, #ffffff, transparent)",
+                          borderColor: "transparent",
+                          borderWidth: 0,
+                          borderRadius: 16,
+                          opacity: 1,
+                        };
+                        setSlides((prev) => {
+                          const next = [...prev];
+                          const cur = next[currentSlideIndex];
+                          next[currentSlideIndex] = {
+                            ...cur,
+                            customElements: [...(cur.customElements || []), gradShape],
+                          };
+                          return next;
+                        });
+                        setSelectedElement(newId);
+                      }}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-400/50 flex items-center gap-2 transition text-left"
+                      title="Insertar rectángulo con degradado de blanco a transparente"
+                    >
+                      <div
+                        className="size-5 rounded-md border border-white/30 shrink-0"
+                        style={{ background: "linear-gradient(to bottom, #ffffff, transparent)" }}
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-white block leading-tight">Degradado</span>
+                        <span className="text-[10px] text-slate-400">Fade suave</span>
                       </div>
                     </button>
                   </div>
@@ -3082,53 +3142,142 @@ export default function VisualEditorModal({
 
                 {/* Colores de la Forma (Shape colors) */}
                 <div>
-                  <span className="text-xs font-bold text-slate-300 block mb-2">Colores de la forma</span>
+                  <span className="text-xs font-bold text-slate-300 block mb-2">Acabado y Color</span>
                   {activeDockTab === "shape_color" && (
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleUpdateCustomElement(selectedElement!, {
-                            bgColor: "#ffffff",
-                            borderColor: "transparent",
-                            borderWidth: 0,
-                            opacity: 1,
-                          });
-                          handleStyleChange(selectedElement!, {
-                            bgColor: "#ffffff",
-                            borderColor: "transparent",
-                            borderWidth: 0,
-                            opacity: 1,
-                          });
-                        }}
-                        className="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-semibold flex items-center justify-center gap-2 transition"
-                      >
-                        <span className="size-3.5 rounded-full bg-white border border-slate-400 shadow-xs" />
-                        <span>Blanco Sólido</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleUpdateCustomElement(selectedElement!, {
-                            bgColor: "rgba(255, 255, 255, 0.15)",
-                            borderColor: "rgba(255, 255, 255, 0.35)",
-                            borderWidth: 1,
-                            borderStyle: "solid",
-                            opacity: 1,
-                          });
-                          handleStyleChange(selectedElement!, {
-                            bgColor: "rgba(255, 255, 255, 0.15)",
-                            borderColor: "rgba(255, 255, 255, 0.35)",
-                            borderWidth: 1,
-                            borderStyle: "solid",
-                            opacity: 1,
-                          });
-                        }}
-                        className="py-1.5 px-2.5 rounded-lg bg-brand-500/15 hover:bg-brand-500/25 border border-brand-500/40 text-brand-300 text-[11px] font-semibold flex items-center justify-center gap-2 transition"
-                      >
-                        <span className="size-3.5 rounded-full bg-white/20 border border-white/60 backdrop-blur-sm" />
-                        <span>✨ Efecto Vidrio</span>
-                      </button>
+                    <div className="space-y-2.5 mb-3">
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {/* 1. Blanco Sólido */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const curColor = parseGradientOrColor(customElem?.bgColor).color || "#ffffff";
+                            handleUpdateCustomElement(selectedElement!, {
+                              bgColor: curColor,
+                              borderColor: "transparent",
+                              borderWidth: 0,
+                              opacity: 1,
+                            });
+                            handleStyleChange(selectedElement!, {
+                              bgColor: curColor,
+                              borderColor: "transparent",
+                              borderWidth: 0,
+                              opacity: 1,
+                            });
+                          }}
+                          className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-semibold flex items-center justify-center gap-1.5 transition ${
+                            !customElem?.bgColor?.includes("linear-gradient") && !customElem?.bgColor?.includes("rgba(255, 255, 255, 0.15)")
+                              ? "bg-slate-700 border-white/40 text-white font-bold ring-1 ring-white/30"
+                              : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750"
+                          }`}
+                          title="Color plano sólido"
+                        >
+                          <span className="size-3 rounded-full bg-white border border-slate-400 shrink-0" />
+                          <span className="truncate">Sólido</span>
+                        </button>
+
+                        {/* 2. Efecto Vidrio */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleUpdateCustomElement(selectedElement!, {
+                              bgColor: "rgba(255, 255, 255, 0.15)",
+                              borderColor: "rgba(255, 255, 255, 0.35)",
+                              borderWidth: 1,
+                              borderStyle: "solid",
+                              opacity: 1,
+                            });
+                            handleStyleChange(selectedElement!, {
+                              bgColor: "rgba(255, 255, 255, 0.15)",
+                              borderColor: "rgba(255, 255, 255, 0.35)",
+                              borderWidth: 1,
+                              borderStyle: "solid",
+                              opacity: 1,
+                            });
+                          }}
+                          className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-semibold flex items-center justify-center gap-1.5 transition ${
+                            customElem?.bgColor?.includes("rgba(255, 255, 255, 0.15)")
+                              ? "bg-brand-500/25 border-brand-400 text-brand-300 font-bold ring-1 ring-brand-400/40"
+                              : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750"
+                          }`}
+                          title="Efecto de vidrio translúcido con desenfoque"
+                        >
+                          <span className="size-3 rounded-full bg-white/20 border border-white/60 backdrop-blur-sm shrink-0" />
+                          <span className="truncate">Vidrio</span>
+                        </button>
+
+                        {/* 3. Degradado a Transparente */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const curColor = parseGradientOrColor(customElem?.bgColor).color || "#ffffff";
+                            const newBg = `linear-gradient(to bottom, ${curColor}, transparent)`;
+                            handleUpdateCustomElement(selectedElement!, {
+                              bgColor: newBg,
+                              borderColor: "transparent",
+                              borderWidth: 0,
+                              opacity: 1,
+                            });
+                            handleStyleChange(selectedElement!, {
+                              bgColor: newBg,
+                              borderColor: "transparent",
+                              borderWidth: 0,
+                              opacity: 1,
+                            });
+                          }}
+                          className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-semibold flex items-center justify-center gap-1.5 transition ${
+                            customElem?.bgColor?.includes("linear-gradient")
+                              ? "bg-amber-500/20 border-amber-400 text-amber-300 font-bold ring-1 ring-amber-400/40"
+                              : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750"
+                          }`}
+                          title="Degradado suave del color original a transparente"
+                        >
+                          <span
+                            className="size-3 rounded-full border border-white/40 shrink-0"
+                            style={{ background: "linear-gradient(to bottom, #ffffff, transparent)" }}
+                          />
+                          <span className="truncate">Degradado</span>
+                        </button>
+                      </div>
+
+                      {/* Selector de 4 direcciones cuando el degradado está activo */}
+                      {customElem?.bgColor?.includes("linear-gradient") && (
+                        <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 animate-in fade-in">
+                          <span className="text-[10px] text-amber-300/90 font-semibold block">
+                            Dirección hacia transparente:
+                          </span>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[
+                              { dir: "to bottom", label: "Abajo", icon: "↓" },
+                              { dir: "to top", label: "Arriba", icon: "↑" },
+                              { dir: "to right", label: "Derecha", icon: "→" },
+                              { dir: "to left", label: "Izquierda", icon: "←" },
+                            ].map((d) => {
+                              const curInfo = parseGradientOrColor(customElem?.bgColor);
+                              const isCurrentDir = curInfo.direction === d.dir;
+                              return (
+                                <button
+                                  key={d.dir}
+                                  type="button"
+                                  onClick={() => {
+                                    const newBg = `linear-gradient(${d.dir}, ${curInfo.color}, transparent)`;
+                                    handleUpdateCustomElement(selectedElement!, { bgColor: newBg });
+                                    handleStyleChange(selectedElement!, { bgColor: newBg });
+                                  }}
+                                  className={`py-1 rounded-lg border text-xs font-mono font-bold flex flex-col items-center justify-center transition ${
+                                    isCurrentDir
+                                      ? "bg-amber-500 text-black border-amber-400 shadow-sm font-black"
+                                      : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-750"
+                                  }`}
+                                  title={`Degradado hacia ${d.label}`}
+                                >
+                                  <span className="text-sm leading-none">{d.icon}</span>
+                                  <span className="text-[8px] font-sans font-medium mt-0.5">{d.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="flex items-center gap-2">
@@ -3139,16 +3288,21 @@ export default function VisualEditorModal({
                         type="color"
                         value={
                           activeDockTab === "shape_color"
-                            ? (customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "#0099ff")
+                            ? parseGradientOrColor(customElem?.bgColor).color || "#ffffff"
                             : (customElem?.borderColor && customElem.borderColor !== "transparent" ? customElem.borderColor : "#ffffff")
                         }
                         onChange={(e) => {
+                          const picked = e.target.value;
                           if (activeDockTab === "shape_color") {
-                            handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
-                            handleStyleChange(selectedElement!, { bgColor: e.target.value });
+                            const curInfo = parseGradientOrColor(customElem?.bgColor);
+                            const newBg = curInfo.isGradient
+                              ? `linear-gradient(${curInfo.direction}, ${picked}, transparent)`
+                              : picked;
+                            handleUpdateCustomElement(selectedElement!, { bgColor: newBg });
+                            handleStyleChange(selectedElement!, { bgColor: newBg });
                           } else {
-                            handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
-                            handleStyleChange(selectedElement!, { borderColor: e.target.value });
+                            handleUpdateCustomElement(selectedElement!, { borderColor: picked });
+                            handleStyleChange(selectedElement!, { borderColor: picked });
                           }
                         }}
                         className="absolute inset-0 opacity-0 cursor-pointer"
@@ -3238,8 +3392,12 @@ export default function VisualEditorModal({
                         type="button"
                         onClick={() => {
                           if (activeDockTab === "shape_color") {
-                            handleUpdateCustomElement(selectedElement!, { bgColor: c });
-                            handleStyleChange(selectedElement!, { bgColor: c });
+                            const curInfo = parseGradientOrColor(customElem?.bgColor);
+                            const newBg = curInfo.isGradient
+                              ? `linear-gradient(${curInfo.direction}, ${c}, transparent)`
+                              : c;
+                            handleUpdateCustomElement(selectedElement!, { bgColor: newBg });
+                            handleStyleChange(selectedElement!, { bgColor: newBg });
                           } else {
                             handleUpdateCustomElement(selectedElement!, { borderColor: c });
                             handleStyleChange(selectedElement!, { borderColor: c });
