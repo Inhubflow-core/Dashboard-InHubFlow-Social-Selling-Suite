@@ -47,7 +47,8 @@ import {
   Tag,
   Maximize2,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  SplitSquareVertical
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -63,6 +64,55 @@ export type TemplateId =
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
 export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds";
+
+export interface TemplateDefinition {
+  id: TemplateId;
+  name: string;
+  desc: string;
+}
+
+export const TEMPLATES: TemplateDefinition[] = [
+  {
+    id: "editorial",
+    name: "Cinematic Editorial",
+    desc: "Tarjeta de cristal oscuro + titular B2B de alto impacto.",
+  },
+  {
+    id: "authority_quote",
+    name: "Cita de Autoridad",
+    desc: "Comillas gigantes y frase centralizada con tarjeta de autor.",
+  },
+  {
+    id: "social_card",
+    name: "Tarjeta Social / Feed",
+    desc: "Formato publicación con avatar, check azul y métricas sociales.",
+  },
+  {
+    id: "split_focus",
+    name: "Split Focus (50/50)",
+    desc: "Fotografía superior inmersiva + panel de datos inferior.",
+  },
+  {
+    id: "big_metric",
+    name: "Métrica de Alto Impacto",
+    desc: "Número gigante validado (+340%) con titular explicativo.",
+  },
+  {
+    id: "bold_highlighter",
+    name: "Bold Highlighter B2B",
+    desc: "Titular masivo con cinta violeta / highlight al estilo Pinterest.",
+  },
+];
+
+export const BRAND_PRESETS = [
+  { name: "InHubFlow Cyan", color: "#0099ff" },
+  { name: "Indigo Tech", color: "#6366f1" },
+  { name: "Esmeralda B2B", color: "#10b981" },
+  { name: "Ámbar Viral", color: "#f59e0b" },
+  { name: "Fucsia Creator", color: "#ec4899" },
+  { name: "Violeta Canva", color: "#7058FE" },
+  { name: "Blanco Puro", color: "#ffffff" },
+];
 
 export interface ElementFormatting {
   fontFamily?: string;
