@@ -484,6 +484,9 @@ interface DraggableWrapperProps {
   label?: string;
   isSelected?: boolean;
   onSelect?: () => void;
+  isText?: boolean;
+  elementKey?: string;
+  onStyleChange?: (id: string, styles: Partial<ElementFormatting>) => void;
 }
 
 type CanvaResizeHandle = "nw" | "ne" | "se" | "sw" | "n" | "s" | "e" | "w";
@@ -499,10 +502,42 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const onOffsetChange = props.onOffsetChange ?? ctx?.onOffsetChange;
   const onScaleChange = props.onScaleChange ?? ctx?.onScaleChange;
   const onSizeChange = props.onSizeChange ?? ctx?.onSizeChange;
+  const onStyleChange = props.onStyleChange ?? ctx?.onStyleChange;
   const onDelete = props.onDelete ?? ctx?.onDeleteElement;
   const onDuplicate = props.onDuplicate ?? ctx?.onDuplicateElement;
   const onSelect = props.onSelect ?? (() => ctx?.onSelectElement?.(id));
   const isSelected = props.isSelected ?? (ctx?.selectedElement === id);
+
+  const isTextElement = Boolean(
+    props.isText ||
+    id.includes("title") ||
+    id.includes("subtitle") ||
+    id.includes("tag") ||
+    id.includes("body") ||
+    id.includes("quote") ||
+    id.includes("footer") ||
+    id.includes("metric") ||
+    id.includes("bullets") ||
+    id.includes("cta") ||
+    id === "heading" ||
+    id === "subheading" ||
+    id === "text" ||
+    (ctx?.currentSlide.customElements?.some((e) => e.id === id && ["heading", "subheading", "text"].includes(e.type)))
+  );
+
+  const getTargetKey = (): string => {
+    if (props.elementKey) return props.elementKey;
+    if (ctx?.selectedElement && isSelected) return ctx.selectedElement;
+    if (id.includes("title")) return "title";
+    if (id.includes("subtitle")) return "subtitle";
+    if (id.includes("tag")) return "tag";
+    if (id.includes("body") || id.includes("quote")) return "quote";
+    if (id.includes("author") || id.includes("footer")) return "author";
+    if (id.includes("metric")) return "metric";
+    if (id.includes("bullets")) return "bullets";
+    if (id.includes("cta")) return "cta";
+    return id;
+  };
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -514,6 +549,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const resizeStartPos = useRef({ x: 0, y: 0 });
   const initialDimsRef = useRef({ width: 100, height: 60 });
   const initialOffsetRef = useRef({ x: 0, y: 0 });
+  const initialFontSizeRef = useRef(28);
 
   if (isHidden) {
     return null;
@@ -593,6 +629,23 @@ function DraggableWrapper(props: DraggableWrapperProps) {
       x: offset?.x || 0,
       y: offset?.y || 0,
     };
+
+    if (isTextElement) {
+      const targetKey = getTargetKey();
+      const currentFormat = ctx?.currentSlide.elementStyles?.[targetKey] || {};
+      const customElem = ctx?.currentSlide.customElements?.find((el) => el.id === id);
+
+      const defaultFontSize = (
+        targetKey.includes("metric") ? 42 :
+        targetKey.includes("title") ? 28 :
+        targetKey.includes("subtitle") ? 18 :
+        targetKey.includes("tag") ? 12 :
+        customElem?.fontSize ? customElem.fontSize :
+        16
+      );
+
+      initialFontSizeRef.current = currentFormat.fontSize || defaultFontSize;
+    }
   };
 
   const handleResizeMove = (e: React.PointerEvent) => {
@@ -604,6 +657,48 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     const dx = (e.clientX - resizeStartPos.current.x) / zoom;
     const dy = (e.clientY - resizeStartPos.current.y) / zoom;
 
+    const isCorner = activeHandle === "nw" || activeHandle === "ne" || activeHandle === "se" || activeHandle === "sw";
+
+    // Si es un elemento de texto y se redimensiona desde cualquiera de las 4 esquinas:
+    // ESCALAR EL TAMAÑO DE LA FUENTE EN TIEMPO REAL (Estilo Canva nativo)
+    if (isTextElement && isCorner) {
+      const targetKey = getTargetKey();
+      let delta = 0;
+      if (activeHandle === "se") {
+        delta = (dx + dy) / 2;
+      } else if (activeHandle === "nw") {
+        delta = -(dx + dy) / 2;
+      } else if (activeHandle === "ne") {
+        delta = (dx - dy) / 2;
+      } else if (activeHandle === "sw") {
+        delta = -(dx - dy) / 2;
+      }
+
+      // Factor de redimensionamiento proporcional
+      const factor = Math.max(0.25, Math.min(3.5, 1 + delta / 120));
+      const nextFontSize = Math.max(8, Math.min(120, Math.round(initialFontSizeRef.current * factor)));
+
+      // 1. Modificar el tamaño de fuente inmediatamente
+      onStyleChange?.(targetKey, { fontSize: nextFontSize });
+
+      // 2. Modificar el ancho de la caja de texto proporcionalmente (mantiene el salto de línea perfecto)
+      const nextW = Math.max(40, Math.round(initialDimsRef.current.width * factor));
+
+      let newX = initialOffsetRef.current.x;
+      let newY = initialOffsetRef.current.y;
+      if (activeHandle === "nw" || activeHandle === "sw") {
+        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - nextW);
+      }
+
+      onSizeChange?.(
+        id,
+        { width: nextW },
+        { x: Math.round(newX), y: Math.round(newY) }
+      );
+      return;
+    }
+
+    // Redimensionamiento estándar de ancho/alto (para manijas laterales y formas no-texto)
     const minW = 20;
     const minH = 15;
 
@@ -705,7 +800,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     props.className?.includes("items-center");
 
   const resolvedWidth = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width;
-  const resolvedHeight = props.height ?? ctx?.currentSlide.dimensions?.[id]?.height;
+  const resolvedHeight = !isTextElement ? (props.height ?? ctx?.currentSlide.dimensions?.[id]?.height) : undefined;
 
   const transformParts: string[] = [];
   if (hasMoved) {
