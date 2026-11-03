@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, createContext, useContext } from "react";
 import {
   X,
   Download,
@@ -59,6 +59,8 @@ export interface CarouselSlideItem {
   highlightText?: string;
   titleSuffix?: string;
   offsets?: Record<string, { x: number; y: number }>;
+  scales?: Record<string, number>;
+  hiddenElements?: Record<string, boolean>;
 }
 
 /** Extrae de forma inteligente las tres partes del titular para la plantilla Bold Highlighter */
@@ -283,15 +285,33 @@ function InlineEditableText({
   );
 }
 
+/** Contexto de lienzo para sincronizar transformaciones, escalas y visibilidad */
+interface SlideCanvasContextType {
+  isFreeMode: boolean;
+  isExporting: boolean;
+  currentSlide: CarouselSlideItem;
+  selectedElement: string | null;
+  onSelectElement?: (id: string) => void;
+  onOffsetChange?: (id: string, offset: { x: number; y: number }) => void;
+  onScaleChange?: (id: string, scale: number) => void;
+  onDeleteElement?: (id: string) => void;
+}
+
+const SlideCanvasContext = createContext<SlideCanvasContextType | null>(null);
+
 /**
  * Componente envoltorio de Capa Arrastrable (Drag & Drop nativo con PointerEvents)
- * Permite mover cualquier elemento o caja libremente por el lienzo
+ * Permite mover, escalar y ocultar cualquier elemento o caja libremente por el lienzo
  */
 interface DraggableWrapperProps {
   id: string;
-  isFreeMode: boolean;
+  isFreeMode?: boolean;
   offset?: { x: number; y: number };
-  onOffsetChange: (id: string, newOffset: { x: number; y: number }) => void;
+  onOffsetChange?: (id: string, newOffset: { x: number; y: number }) => void;
+  scale?: number;
+  onScaleChange?: (id: string, newScale: number) => void;
+  isHidden?: boolean;
+  onDelete?: (id: string) => void;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -301,30 +321,37 @@ interface DraggableWrapperProps {
   onSelect?: () => void;
 }
 
-function DraggableWrapper({
-  id,
-  isFreeMode,
-  offset = { x: 0, y: 0 },
-  onOffsetChange,
-  children,
-  className = "",
-  style,
-  isExporting = false,
-  label,
-  isSelected,
-  onSelect,
-}: DraggableWrapperProps) {
+function DraggableWrapper(props: DraggableWrapperProps) {
+  const ctx = useContext(SlideCanvasContext);
+  const id = props.id;
+  const isFreeMode = props.isFreeMode ?? ctx?.isFreeMode ?? false;
+  const isExporting = props.isExporting ?? ctx?.isExporting ?? false;
+  const offset = props.offset ?? ctx?.currentSlide.offsets?.[id] ?? { x: 0, y: 0 };
+  const scale = props.scale ?? ctx?.currentSlide.scales?.[id] ?? 1;
+  const isHidden = props.isHidden ?? Boolean(ctx?.currentSlide.hiddenElements?.[id]);
+  const onOffsetChange = props.onOffsetChange ?? ctx?.onOffsetChange;
+  const onScaleChange = props.onScaleChange ?? ctx?.onScaleChange;
+  const onDelete = props.onDelete ?? ctx?.onDeleteElement;
+  const onSelect = props.onSelect ?? (() => ctx?.onSelectElement?.(id));
+  const isSelected = props.isSelected ?? (ctx?.selectedElement === id);
+
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialOffset = useRef({ x: 0, y: 0 });
+
+  if (isHidden) {
+    return null;
+  }
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!isFreeMode || isExporting) return;
     const target = e.target as HTMLElement;
     const isHandle = target.closest('[data-drag-handle="true"]');
+    const isControl = target.closest("button") || target.tagName === "BUTTON";
     const isContent = target.isContentEditable;
 
-    // Si el usuario hace clic dentro de un texto contentEditable sin usar el asa, permitimos edición de texto
+    if (isControl) return;
+
     if (isContent && !isHandle) {
       onSelect?.();
       return;
@@ -346,7 +373,7 @@ function DraggableWrapper({
     e.preventDefault();
     const dx = e.clientX - dragStartPos.current.x;
     const dy = e.clientY - dragStartPos.current.y;
-    onOffsetChange(id, {
+    onOffsetChange?.(id, {
       x: initialOffset.current.x + dx,
       y: initialOffset.current.y + dy,
     });
@@ -362,8 +389,22 @@ function DraggableWrapper({
 
   const posX = offset?.x || 0;
   const posY = offset?.y || 0;
+  const currentScale = scale ?? 1;
   const hasMoved = posX !== 0 || posY !== 0;
-  const positionClass = className.includes("absolute") ? "" : "relative";
+  const hasScaled = currentScale !== 1;
+  const positionClass = props.className?.includes("absolute") ? "" : "relative";
+  const isCentered =
+    props.className?.includes("center") ||
+    props.className?.includes("mx-auto") ||
+    props.className?.includes("items-center");
+
+  const transformParts: string[] = [];
+  if (hasMoved) {
+    transformParts.push(`translate(${posX}px, ${posY}px)`);
+  }
+  if (hasScaled) {
+    transformParts.push(`scale(${currentScale})`);
+  }
 
   return (
     <div
@@ -371,8 +412,9 @@ function DraggableWrapper({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       style={{
-        ...style,
-        transform: hasMoved ? `translate(${posX}px, ${posY}px)` : undefined,
+        ...props.style,
+        transform: transformParts.join(" ") || undefined,
+        transformOrigin: isCentered ? "center center" : "top left",
         touchAction: isFreeMode ? "none" : undefined,
       }}
       className={`${positionClass} transition-transform duration-75 ${
@@ -385,24 +427,77 @@ function DraggableWrapper({
                 : "hover:ring-1 hover:ring-brand-400/50 hover:bg-white/5 z-20"
             }`
           : ""
-      } ${className}`}
+      } ${props.className || ""}`}
     >
       {/* Asa de arrastre visible solo en modo libre */}
       {isFreeMode && !isExporting && (
         <div
           data-drag-handle="true"
-          title="Arrastra para mover este elemento libremente por la lámina"
-          className={`absolute -top-3 left-2 px-2 py-0.5 rounded-full bg-slate-900/95 border border-brand-400/80 text-[9px] font-bold text-brand-300 flex items-center gap-1 shadow-lg cursor-grab active:cursor-grabbing select-none transition-all z-40 ${
+          className={`absolute -top-3.5 left-2 px-2 py-0.5 rounded-full bg-slate-900/95 border border-brand-400/80 text-[9px] font-bold text-brand-300 flex items-center gap-1.5 shadow-xl select-none transition-all z-40 ${
             isSelected || isDragging
               ? "opacity-100 scale-100 ring-1 ring-brand-400"
               : "opacity-0 group-hover/drag:opacity-100 scale-95 hover:scale-100"
           }`}
         >
-          <GripHorizontal className="size-2.5 text-brand-400" />
-          <span>{label || "Mover"}</span>
+          <GripHorizontal className="size-2.5 text-brand-400 cursor-grab active:cursor-grabbing" />
+          <span
+            className="cursor-grab active:cursor-grabbing"
+            title="Arrastra para mover este elemento libremente"
+          >
+            {props.label || "Mover"}
+          </span>
+
+          {/* Botones de tamaño y eliminación */}
+          <div className="flex items-center gap-1 ml-1 pl-1.5 border-l border-white/20">
+            {onScaleChange && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = Math.max(0.4, Number((currentScale - 0.1).toFixed(2)));
+                    onScaleChange(id, next);
+                  }}
+                  className="size-4 rounded hover:bg-white/20 flex items-center justify-center text-[11px] font-black text-white hover:text-brand-300 transition"
+                  title="Achicar tamaño (-10%)"
+                >
+                  -
+                </button>
+                <span className="text-[9px] font-mono text-gray-300 min-w-[28px] text-center">
+                  {Math.round(currentScale * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = Math.min(2.5, Number((currentScale + 0.1).toFixed(2)));
+                    onScaleChange(id, next);
+                  }}
+                  className="size-4 rounded hover:bg-white/20 flex items-center justify-center text-[11px] font-black text-white hover:text-brand-300 transition"
+                  title="Agrandar tamaño (+10%)"
+                >
+                  +
+                </button>
+              </>
+            )}
+
+            {onDelete && id !== "bg-photo" && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(id);
+                }}
+                className="size-4 rounded hover:bg-red-500/30 text-gray-400 hover:text-red-400 flex items-center justify-center transition ml-0.5"
+                title="Eliminar / ocultar este elemento"
+              >
+                <Trash2 className="size-2.5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
-      {children}
+      {props.children}
     </div>
   );
 }
@@ -562,8 +657,59 @@ export default function VisualEditorModal({
     });
   };
 
+  // Manejador de escala / tamaño para elementos individuales
+  const handleScaleChange = (elementId: string, newScale: number) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const current = next[currentSlideIndex];
+      const prevScales = current.scales || {};
+      next[currentSlideIndex] = {
+        ...current,
+        scales: {
+          ...prevScales,
+          [elementId]: newScale,
+        },
+      };
+      return next;
+    });
+  };
+
+  // Manejador para eliminar / ocultar elementos individuales
+  const handleDeleteElement = (elementId: string) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const current = next[currentSlideIndex];
+      const prevHidden = current.hiddenElements || {};
+      next[currentSlideIndex] = {
+        ...current,
+        hiddenElements: {
+          ...prevHidden,
+          [elementId]: true,
+        },
+      };
+      return next;
+    });
+    if (selectedElement === elementId) {
+      setSelectedElement(null);
+    }
+  };
+
+  // Restaurar elementos que fueron eliminados u ocultados
+  const handleRestoreHiddenElements = () => {
+    updateCurrentSlide({ hiddenElements: {} });
+  };
+
+  // Restablecer todas las personalizaciones (posiciones, escalas y visibilidad)
+  const handleResetSlideCustomizations = () => {
+    updateCurrentSlide({
+      offsets: {},
+      scales: {},
+      hiddenElements: {},
+    });
+  };
+
   const handleResetOffsets = () => {
-    updateCurrentSlide({ offsets: {} });
+    handleResetSlideCustomizations();
   };
 
   const handleAddSlide = () => {
@@ -1483,16 +1629,31 @@ export default function VisualEditorModal({
                   </button>
                 </div>
 
-                {/* Botón Restablecer si se movieron elementos */}
-                {Object.keys(currentSlide.offsets || {}).length > 0 && (
+                {/* Botón Restablecer si se movieron elementos, cambiaron tamaños o se ocultaron */}
+                {(Object.keys(currentSlide.offsets || {}).length > 0 ||
+                  Object.keys(currentSlide.scales || {}).length > 0 ||
+                  Object.keys(currentSlide.hiddenElements || {}).length > 0) && (
                   <button
                     type="button"
-                    onClick={handleResetOffsets}
+                    onClick={handleResetSlideCustomizations}
                     className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-amber-300 text-[10px] font-semibold border border-amber-500/30 transition"
-                    title="Restablecer posiciones al orden inicial"
+                    title="Restablecer posiciones, tamaños y elementos eliminados al estado inicial"
                   >
                     <RotateCcw className="size-2.5" />
                     <span>Restablecer</span>
+                  </button>
+                )}
+
+                {/* Si hay elementos ocultos, botón rápido para restaurarlos */}
+                {Object.keys(currentSlide.hiddenElements || {}).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleRestoreHiddenElements}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/60 text-red-300 text-[10px] font-semibold border border-red-500/30 transition"
+                    title="Restaurar todos los objetos que fueron eliminados"
+                  >
+                    <RotateCcw className="size-2.5 text-red-400" />
+                    <span>Restaurar ({Object.keys(currentSlide.hiddenElements || {}).length})</span>
                   </button>
                 )}
               </div>
@@ -1501,11 +1662,11 @@ export default function VisualEditorModal({
               <div className="flex items-center gap-2">
                 <span className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                 <span className="font-semibold text-white truncate max-w-[170px]">
-                  {selectedElement === "title"
+                  {selectedElement === "title" || selectedElement === "bold-title"
                     ? "Titular Principal"
-                    : selectedElement === "subtitle"
+                    : selectedElement === "subtitle" || selectedElement === "bold-subtitle"
                     ? "Subtítulo"
-                    : selectedElement === "tag"
+                    : selectedElement === "tag" || selectedElement === "bold-tag"
                     ? "Categoría / Tag"
                     : selectedElement === "metric"
                     ? "Métrica de Impacto"
@@ -1529,9 +1690,52 @@ export default function VisualEditorModal({
 
               {/* Controles rápidos contextuales */}
               <div className="flex items-center gap-1.5 ml-auto">
-                {selectedElement === "title" && (
-                  <div className="flex items-center gap-1 bg-gray-800/90 px-1.5 py-0.5 rounded-lg border border-gray-700">
+                {/* Control de tamaño global y eliminación de cualquier objeto seleccionado */}
+                {selectedElement && selectedElement !== "background" && selectedElement !== "brand" && (
+                  <div className="flex items-center gap-1 bg-gray-800/90 px-2 py-0.5 rounded-lg border border-gray-700">
                     <span className="text-[10px] text-gray-400 font-semibold">Tamaño:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = currentSlide.scales?.[selectedElement] ?? 1;
+                        const next = Math.max(0.4, Number((cur - 0.1).toFixed(2)));
+                        handleScaleChange(selectedElement, next);
+                      }}
+                      className="size-5 rounded hover:bg-gray-700 text-white font-bold text-xs flex items-center justify-center transition"
+                      title="Achicar tamaño (-10%)"
+                    >
+                      -
+                    </button>
+                    <span className="text-[10px] font-mono text-brand-300 font-bold min-w-[32px] text-center">
+                      {Math.round((currentSlide.scales?.[selectedElement] ?? 1) * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = currentSlide.scales?.[selectedElement] ?? 1;
+                        const next = Math.min(2.5, Number((cur + 0.1).toFixed(2)));
+                        handleScaleChange(selectedElement, next);
+                      }}
+                      className="size-5 rounded hover:bg-gray-700 text-white font-bold text-xs flex items-center justify-center transition"
+                      title="Agrandar tamaño (+10%)"
+                    >
+                      +
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteElement(selectedElement)}
+                      className="size-5 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex items-center justify-center transition ml-1 pl-1 border-l border-gray-700"
+                      title="Eliminar este objeto de la lámina"
+                    >
+                      <Trash2 className="size-3" />
+                    </button>
+                  </div>
+                )}
+
+                {(selectedElement === "title" || selectedElement === "bold-title") && (
+                  <div className="flex items-center gap-1 bg-gray-800/90 px-1.5 py-0.5 rounded-lg border border-gray-700">
+                    <span className="text-[10px] text-gray-400 font-semibold">Preset:</span>
                     {(["sm", "md", "lg", "xl"] as const).map((s) => (
                       <button
                         key={s}
@@ -1583,10 +1787,23 @@ export default function VisualEditorModal({
                 aspectRatio === "4:5" ? "w-[420px] h-[525px]" : "w-[440px] h-[440px]"
               }`}
             >
-              {/* Elemento DOM exacto que se captura con html-to-image */}
-              <div
-                ref={slideContainerRef}
-                style={{ fontFamily: selectedFont }}
+              {/* Proveedor de Contexto para todas las Capas Arrastrables, Escalables y Eliminables */}
+              <SlideCanvasContext.Provider
+                value={{
+                  isFreeMode,
+                  isExporting,
+                  currentSlide,
+                  selectedElement,
+                  onSelectElement: setSelectedElement,
+                  onOffsetChange: handleOffsetChange,
+                  onScaleChange: handleScaleChange,
+                  onDeleteElement: handleDeleteElement,
+                }}
+              >
+                {/* Elemento DOM exacto que se captura con html-to-image */}
+                <div
+                  ref={slideContainerRef}
+                  style={{ fontFamily: selectedFont }}
                 onClick={() => setSelectedElement("background")}
                 className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
               >
@@ -2482,6 +2699,23 @@ export default function VisualEditorModal({
                     {/* PLANTILLA 6: BOLD HIGHLIGHTER B2B (Estilo Pinterest / Klowt) */}
                     {selectedTemplate === "bold_highlighter" && (() => {
                       const parts = getTitleParts(currentSlide);
+                      const headlineSizeClass = (() => {
+                        const isPortrait = aspectRatio === "4:5";
+                        if (isPortrait) {
+                          switch (titleSize) {
+                            case "sm": return "text-xl sm:text-2xl";
+                            case "md": return "text-2xl sm:text-[28px]";
+                            case "lg": return "text-3xl sm:text-[34px]";
+                            case "xl": return "text-3xl sm:text-[40px]";
+                          }
+                        }
+                        switch (titleSize) {
+                          case "sm": return "text-lg sm:text-xl";
+                          case "md": return "text-xl sm:text-2xl";
+                          case "lg": return "text-2xl sm:text-[26px]";
+                          case "xl": return "text-2xl sm:text-3xl";
+                        }
+                      })();
                       return (
                         <>
                           {/* Capa z-10: Degradado inteligente lateral para lectura perfecta sobre fotos */}
@@ -2548,7 +2782,7 @@ export default function VisualEditorModal({
                               >
                                 <div className="font-extrabold text-white tracking-tight leading-[1.08] select-text">
                                   {/* Prefijo en minúsculas */}
-                                  <div className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} drop-shadow-md`}>
+                                  <div className={`${headlineSizeClass} drop-shadow-md`}>
                                     <InlineEditableText
                                       elementKey="title-prefix"
                                       as="span"
@@ -2572,7 +2806,7 @@ export default function VisualEditorModal({
                                       style={{ backgroundColor: accentColor === "#0099ff" ? "#7058FE" : accentColor }}
                                       className="inline-block px-3.5 py-0.5 rounded-xl text-white font-extrabold italic shadow-2xl -rotate-[2deg] transform origin-left"
                                     >
-                                      <span className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} tracking-tight`}>
+                                      <span className={`${headlineSizeClass} tracking-tight`}>
                                         <InlineEditableText
                                           elementKey="title-highlight"
                                           as="span"
@@ -2593,7 +2827,7 @@ export default function VisualEditorModal({
                                   </div>
 
                                   {/* Sufijo con punto final magenta neón */}
-                                  <div className={`${aspectRatio === "4:5" ? "text-3xl sm:text-[38px]" : "text-2xl sm:text-3xl"} drop-shadow-md flex items-baseline flex-wrap`}>
+                                  <div className={`${headlineSizeClass} drop-shadow-md flex items-baseline flex-wrap`}>
                                     <InlineEditableText
                                       elementKey="title-suffix"
                                       as="span"
@@ -2870,6 +3104,7 @@ export default function VisualEditorModal({
                   </>
                 )}
               </div>
+              </SlideCanvasContext.Provider>
             </div>
 
             {/* BARRA INFERIOR DE NAVEGACIÓN Y CARRUSEL MULTIDIAPOSITIVA */}
