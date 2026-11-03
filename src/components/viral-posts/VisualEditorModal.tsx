@@ -1076,6 +1076,10 @@ export default function VisualEditorModal({
 
   const [templateToDelete, setTemplateToDelete] = useState<CustomVisualTemplate | null>(null);
 
+  // Estados de Búsqueda y Filtros de Plantillas (Estilo Canva)
+  const [templateSearchQuery, setTemplateSearchQuery] = useState("");
+  const [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>("all");
+
   // Handlers de Guardado, Edición y Eliminación de Templates
   const handleOpenSaveModal = () => {
     const activeTpl = customTemplates.find((t) => t.id === activeCustomTemplateId);
@@ -1092,8 +1096,21 @@ export default function VisualEditorModal({
     setIsSaveModalOpen(true);
   };
 
-  const handleConfirmSaveTemplate = () => {
+  const handleConfirmSaveTemplate = async () => {
     if (!saveForm.name.trim()) return;
+
+    // Generar captura de miniatura rápida estilo Canva (pixelRatio liviano para almacenamiento)
+    let thumbnailDataUrl: string | undefined = undefined;
+    if (slideContainerRef.current) {
+      try {
+        thumbnailDataUrl = await toPng(slideContainerRef.current, {
+          pixelRatio: 0.35,
+          quality: 0.6,
+        });
+      } catch (err) {
+        console.warn("No se pudo generar miniatura automática:", err);
+      }
+    }
 
     const targetId = !saveForm.saveAsNew && activeCustomTemplateId
       ? activeCustomTemplateId
@@ -1114,6 +1131,7 @@ export default function VisualEditorModal({
       brandColor: accentColor,
       fontFamily: selectedFont,
       slides: JSON.parse(JSON.stringify(slides)),
+      thumbnail: thumbnailDataUrl,
     });
 
     setActiveCustomTemplateId(saved.id);
@@ -2442,7 +2460,7 @@ export default function VisualEditorModal({
         {/* 2. FLYOUT DRAWER DESPLEGABLE (ESTILO CANVA - 330px) */}
         <div
           className={`relative bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 z-20 transition-all duration-200 select-text ${
-            isDrawerOpen ? "w-[330px] min-w-[330px]" : "w-0 min-w-0 overflow-hidden border-none"
+            isDrawerOpen ? "w-[350px] min-w-[350px]" : "w-0 min-w-0 overflow-hidden border-none"
           }`}
         >
           {/* Botón flotante para colapsar/desplegar el panel lateral */}

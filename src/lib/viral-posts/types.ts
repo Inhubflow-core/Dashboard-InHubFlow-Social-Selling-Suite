@@ -190,5 +190,6 @@ export interface CustomVisualTemplate {
   brandColor: string;
   fontFamily: string;
   slides: CarouselSlideItem[];
+  thumbnail?: string;
 }
 
