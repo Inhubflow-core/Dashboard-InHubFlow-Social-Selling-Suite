@@ -63,7 +63,7 @@ export type TemplateId =
 
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
-export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds";
+export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds" | "shape_edit" | "shape_color" | "shape_border_color";
 
 export interface TemplateDefinition {
   id: TemplateId;
@@ -823,6 +823,7 @@ export default function VisualEditorModal({
   // Búsqueda de fotos
   const [photoSearchQuery, setPhotoSearchQuery] = useState("");
   const [activePhotoTag, setActivePhotoTag] = useState("all");
+  const [colorSearchQuery, setColorSearchQuery] = useState("");
 
   // Diapositivas
   const [slides, setSlides] = useState<CarouselSlideItem[]>([
@@ -1729,7 +1730,13 @@ export default function VisualEditorModal({
           <button
             type="button"
             onClick={() => {
-              if (activeDockTab === "elements" && isDrawerOpen) {
+              if (
+                (activeDockTab === "elements" ||
+                  activeDockTab === "shape_edit" ||
+                  activeDockTab === "shape_color" ||
+                  activeDockTab === "shape_border_color") &&
+                isDrawerOpen
+              ) {
                 setIsDrawerOpen(false);
               } else {
                 setActiveDockTab("elements");
@@ -1737,7 +1744,11 @@ export default function VisualEditorModal({
               }
             }}
             className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
-              activeDockTab === "elements" && isDrawerOpen
+              (activeDockTab === "elements" ||
+                activeDockTab === "shape_edit" ||
+                activeDockTab === "shape_color" ||
+                activeDockTab === "shape_border_color") &&
+              isDrawerOpen
                 ? "bg-brand-600 text-white shadow-md font-bold"
                 : "text-slate-400 hover:text-white hover:bg-slate-900"
             }`}
@@ -2206,6 +2217,295 @@ export default function VisualEditorModal({
                 </div>
               </div>
             )}
+
+            {/* PESTAÑA: EDITAR FORMA (ESTILO CANVA SCREENSHOT 2) */}
+            {activeDockTab === "shape_edit" && isShape && (
+              <div className="space-y-5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Shapes className="size-4 text-brand-400" />
+                    <h3 className="text-sm font-bold text-white">Editar Forma</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDockTab("elements")}
+                    className="size-7 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+                    title="Volver a Elementos"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                {/* Formas Básicas */}
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">Formas básicas</span>
+                    <span className="text-[10px] text-brand-400 font-semibold cursor-pointer">Ver todas</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { type: "shape_rect", radius: 0, label: "Rectángulo", icon: Square },
+                      { type: "shape_rect", radius: 16, label: "Redondeado", icon: Square },
+                      { type: "shape_circle", radius: 9999, label: "Círculo", icon: Circle },
+                      { type: "shape_star", radius: 0, label: "Estrella", icon: Star },
+                      { type: "shape_pill", radius: 9999, label: "Píldora", icon: Minus },
+                      { type: "shape_line", radius: 0, label: "Línea", icon: Minus },
+                    ].map((s, idx) => {
+                      const IconComp = s.icon;
+                      const isCurrent =
+                        customElem?.type === s.type &&
+                        (s.type !== "shape_rect" || (s.radius === 0 ? (customElem.borderRadius || 0) <= 4 : (customElem.borderRadius || 0) > 4));
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            handleUpdateCustomElement(selectedElement!, {
+                              type: s.type as any,
+                              borderRadius: s.radius,
+                            });
+                          }}
+                          className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition ${
+                            isCurrent
+                              ? "border-brand-500 bg-brand-500/20 text-brand-300 ring-2 ring-brand-500/40 font-bold"
+                              : "border-slate-800 bg-slate-800/60 hover:bg-slate-850 hover:border-slate-700 text-slate-300 hover:text-white"
+                          }`}
+                          title={`Transformar a ${s.label}`}
+                        >
+                          <IconComp className={`size-6 ${s.radius === 16 ? "rounded-md" : ""}`} />
+                          <span className="text-[10px] truncate max-w-full">{s.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Acciones Rápidas */}
+                <div className="pt-3 border-t border-slate-800 space-y-2">
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Acciones</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDuplicateElement(selectedElement!)}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                    >
+                      <Copy className="size-3.5 text-brand-400" />
+                      <span>Duplicar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteElement(selectedElement!)}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-300 hover:text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>Eliminar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PESTAÑA: COLOR DE FORMA O BORDE (ESTILO CANVA SCREENSHOT 3) */}
+            {(activeDockTab === "shape_color" || activeDockTab === "shape_border_color") && isShape && (
+              <div className="space-y-4 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Palette className="size-4 text-brand-400" />
+                    <h3 className="text-sm font-bold text-white">
+                      {activeDockTab === "shape_color" ? "Color de Forma" : "Color del Trazo"}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDockTab("elements")}
+                    className="size-7 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+                    title="Volver a Elementos"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                {/* Buscador de Color estilo Canva */}
+                <div className="relative">
+                  <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Prueba 'azul', 'indigo' o '#00c4cc'"
+                    value={colorSearchQuery}
+                    onChange={(e) => setColorSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 font-sans"
+                  />
+                </div>
+
+                {/* Colores de la Forma (Shape colors) */}
+                <div>
+                  <span className="text-xs font-bold text-slate-300 block mb-2">Colores de la forma</span>
+                  <div className="flex items-center gap-2">
+                    {/* Selector Nativo (+) */}
+                    <label className="size-8 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 flex items-center justify-center cursor-pointer transition relative group shrink-0" title="Añadir color personalizado">
+                      <Plus className="size-4 text-brand-400 group-hover:scale-110 transition-transform" />
+                      <input
+                        type="color"
+                        value={
+                          activeDockTab === "shape_color"
+                            ? (customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "#0099ff")
+                            : (customElem?.borderColor && customElem.borderColor !== "transparent" ? customElem.borderColor : "#ffffff")
+                        }
+                        onChange={(e) => {
+                          if (activeDockTab === "shape_color") {
+                            handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
+                            handleStyleChange(selectedElement!, { bgColor: e.target.value });
+                          } else {
+                            handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
+                            handleStyleChange(selectedElement!, { borderColor: e.target.value });
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </label>
+
+                    {/* Sin Color / Transparente (⊘) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activeDockTab === "shape_color") {
+                          handleUpdateCustomElement(selectedElement!, { bgColor: "transparent" });
+                          handleStyleChange(selectedElement!, { bgColor: "transparent" });
+                        } else {
+                          handleUpdateCustomElement(selectedElement!, { borderColor: "transparent" });
+                          handleStyleChange(selectedElement!, { borderColor: "transparent" });
+                        }
+                      }}
+                      className={`size-8 rounded-lg border flex items-center justify-center font-black text-sm shrink-0 transition ${
+                        (activeDockTab === "shape_color" ? customElem?.bgColor : customElem?.borderColor) === "transparent"
+                          ? "border-red-500 bg-red-500/20 text-red-400 ring-2 ring-red-500/30"
+                          : "border-slate-700 bg-slate-800 text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                      }`}
+                      title="Sin color (Transparente)"
+                    >
+                      ⊘
+                    </button>
+
+                    {/* Muestra del color actual */}
+                    <div
+                      className="size-8 rounded-lg border-2 border-white/60 shadow-md flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor:
+                          activeDockTab === "shape_color"
+                            ? (customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "transparent")
+                            : (customElem?.borderColor && customElem.borderColor !== "transparent" ? customElem.borderColor : "transparent"),
+                      }}
+                      title="Color activo"
+                    >
+                      {(activeDockTab === "shape_color" ? customElem?.bgColor : customElem?.borderColor) === "transparent" && (
+                        <span className="text-red-400 font-bold text-xs">⊘</span>
+                      )}
+                    </div>
+
+                    {/* Código Hex en vivo */}
+                    <div className="flex-1 flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 min-w-0">
+                      <span className="text-[10px] text-slate-400 font-mono mr-1 shrink-0">HEX</span>
+                      <input
+                        type="text"
+                        value={
+                          activeDockTab === "shape_color"
+                            ? (customElem?.bgColor || "")
+                            : (customElem?.borderColor || "")
+                        }
+                        placeholder="#0099ff"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (activeDockTab === "shape_color") {
+                            handleUpdateCustomElement(selectedElement!, { bgColor: val });
+                            handleStyleChange(selectedElement!, { bgColor: val });
+                          } else {
+                            handleUpdateCustomElement(selectedElement!, { borderColor: val });
+                            handleStyleChange(selectedElement!, { borderColor: val });
+                          }
+                        }}
+                        className="w-full bg-transparent text-xs font-mono text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Colores en este diseño */}
+                <div>
+                  <span className="text-xs font-bold text-slate-300 block mb-2">Colores en este diseño</span>
+                  <div className="grid grid-cols-7 gap-2">
+                    {[
+                      accentColor,
+                      "#0099ff",
+                      "#6366f1",
+                      "#10b981",
+                      "#f59e0b",
+                      "#ec4899",
+                      "#ffffff",
+                    ].map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          if (activeDockTab === "shape_color") {
+                            handleUpdateCustomElement(selectedElement!, { bgColor: c });
+                            handleStyleChange(selectedElement!, { bgColor: c });
+                          } else {
+                            handleUpdateCustomElement(selectedElement!, { borderColor: c });
+                            handleStyleChange(selectedElement!, { borderColor: c });
+                          }
+                        }}
+                        className="size-8 rounded-full border border-white/20 shadow-sm transition hover:scale-110 hover:ring-2 hover:ring-white/40"
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Kit de Marca B2B (Brand Kit) */}
+                <div className="pt-2 border-t border-slate-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-300">Brand Kit</span>
+                    <span className="text-[10px] text-brand-400 font-semibold cursor-pointer">B2B Suite</span>
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {[
+                      "#0099ff",
+                      "#4f46e5",
+                      "#059669",
+                      "#d97706",
+                      "#db2777",
+                      "#0f172a",
+                      "#1e293b",
+                      "#334155",
+                      "#475569",
+                      "#94a3b8",
+                      "#cbd5e1",
+                      "#f8fafc",
+                      "#ffffff",
+                      "#000000",
+                    ].map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          if (activeDockTab === "shape_color") {
+                            handleUpdateCustomElement(selectedElement!, { bgColor: c });
+                            handleStyleChange(selectedElement!, { bgColor: c });
+                          } else {
+                            handleUpdateCustomElement(selectedElement!, { borderColor: c });
+                            handleStyleChange(selectedElement!, { borderColor: c });
+                          }
+                        }}
+                        className="size-8 rounded-full border border-white/10 shadow-sm transition hover:scale-110 hover:ring-2 hover:ring-brand-400"
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2213,10 +2513,10 @@ export default function VisualEditorModal({
         <main className="flex-1 flex flex-col bg-[#080c14] overflow-hidden relative min-w-0">
           
           {/* BARRA SUPERIOR DE HERRAMIENTAS CONTEXTUALES (CANVA TOOLBAR - 44px) */}
-          <div className="h-11 bg-slate-900/95 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-10 select-none text-xs gap-2">
+          <div className="h-11 bg-slate-900/95 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-30 select-none text-xs gap-2 relative">
             
             {/* HERRAMIENTAS CONTEXTUALES SEGÚN ELEMENTO SELECCIONADO */}
-            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1">
+            <div className="flex items-center gap-1.5 py-1">
               
               {/* CASO A: ELEMENTO DE TEXTO SELECCIONADO */}
               {isText && (
@@ -2519,228 +2819,94 @@ export default function VisualEditorModal({
               {/* CASO B: FORMA GEOMÉTRICA SELECCIONADA (ESTILO CANVA) */}
               {isShape && (
                 <>
-                  {/* 1. EDIT (Cambiar forma - Canva Screenshot 2) */}
+                  {/* 1. EDIT (Abre panel lateral izquierdo - Canva Screenshot 2) */}
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_edit" ? null : "shape_edit")}
+                      onClick={() => {
+                        setActiveToolbarPopup(null);
+                        if (activeDockTab === "shape_edit" && isDrawerOpen) {
+                          setIsDrawerOpen(false);
+                        } else {
+                          setActiveDockTab("shape_edit");
+                          setIsDrawerOpen(true);
+                        }
+                      }}
                       className={`h-7 px-2.5 rounded-md flex items-center gap-1.5 text-xs font-semibold border transition ${
-                        activeToolbarPopup === "shape_edit"
-                          ? "bg-slate-700 border-brand-500 text-white shadow-sm"
+                        activeDockTab === "shape_edit" && isDrawerOpen
+                          ? "bg-brand-600 border-brand-500 text-white shadow-sm font-bold"
                           : "bg-slate-800 border-slate-700 text-slate-200 hover:text-white hover:bg-slate-750"
                       }`}
-                      title="Cambiar tipo de forma"
+                      title="Abrir panel de edición de forma (Transformar)"
                     >
                       <Shapes className="size-3.5 text-brand-400" />
                       <span>Edit</span>
+                      {activeDockTab === "shape_edit" && isDrawerOpen && (
+                        <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+                      )}
                     </button>
-
-                    {activeToolbarPopup === "shape_edit" && (
-                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-64 animate-in fade-in zoom-in-95 select-none">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                          Transformar Forma
-                        </p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { type: "shape_rect", label: "Rectángulo", icon: Square },
-                            { type: "shape_circle", label: "Círculo", icon: Circle },
-                            { type: "shape_star", label: "Estrella", icon: Star },
-                            { type: "shape_pill", label: "Píldora", icon: Minus },
-                            { type: "shape_line", label: "Línea", icon: Minus },
-                          ].map((s) => {
-                            const IconComp = s.icon;
-                            const isCurrent = customElem?.type === s.type;
-                            return (
-                              <button
-                                key={s.type}
-                                type="button"
-                                onClick={() => {
-                                  handleUpdateCustomElement(selectedElement!, {
-                                    type: s.type as any,
-                                    borderRadius: s.type === "shape_circle" ? 9999 : s.type === "shape_rect" ? 16 : 9999,
-                                  });
-                                  setActiveToolbarPopup(null);
-                                }}
-                                className={`p-2 rounded-lg border flex flex-col items-center justify-center gap-1 transition ${
-                                  isCurrent
-                                    ? "border-brand-500 bg-brand-500/20 text-brand-300 font-bold"
-                                    : "border-slate-800 bg-slate-800/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white"
-                                }`}
-                              >
-                                <IconComp className="size-5" />
-                                <span className="text-[10px] truncate max-w-full">{s.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* 2. COLOR (Relleno / Fill - Canva Screenshot 3) */}
+                  {/* 2. COLOR (Relleno / Fill - Abre panel lateral izquierdo - Canva Screenshot 3) */}
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_fill" ? null : "shape_fill")}
+                      onClick={() => {
+                        setActiveToolbarPopup(null);
+                        if (activeDockTab === "shape_color" && isDrawerOpen) {
+                          setIsDrawerOpen(false);
+                        } else {
+                          setActiveDockTab("shape_color");
+                          setIsDrawerOpen(true);
+                        }
+                      }}
                       className={`size-7 rounded-md flex items-center justify-center transition border ${
-                        activeToolbarPopup === "shape_fill"
-                          ? "border-brand-500 bg-slate-700 shadow-sm"
+                        activeDockTab === "shape_color" && isDrawerOpen
+                          ? "border-brand-500 bg-slate-700 ring-2 ring-brand-500 ring-offset-1 ring-offset-slate-900"
                           : "border-slate-700 bg-slate-800 hover:border-slate-600"
                       }`}
-                      title="Color de relleno"
+                      title="Color de relleno (abre panel lateral)"
                     >
                       <span
-                        className="size-4.5 rounded-full border border-white/30 shadow-xs"
-                        style={{ backgroundColor: customElem?.bgColor || accentColor }}
-                      />
+                        className="size-4.5 rounded-full border border-white/30 shadow-xs flex items-center justify-center"
+                        style={{ backgroundColor: customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "transparent" }}
+                      >
+                        {(!customElem?.bgColor || customElem.bgColor === "transparent") && (
+                          <span className="text-red-400 font-bold text-[9px] leading-none">⊘</span>
+                        )}
+                      </span>
                     </button>
-
-                    {activeToolbarPopup === "shape_fill" && (
-                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56 animate-in fade-in zoom-in-95 select-none">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                          Color de Relleno
-                        </p>
-                        <div className="grid grid-cols-6 gap-1.5 mb-2.5">
-                          {[
-                            "transparent",
-                            "#0099ff",
-                            "#6366f1",
-                            "#10b981",
-                            "#f59e0b",
-                            "#ec4899",
-                            "#7058FE",
-                            "#ffffff",
-                            "#94a3b8",
-                            "#334155",
-                            "#0f172a",
-                            "#000000",
-                            accentColor,
-                          ].map((c, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => {
-                                handleUpdateCustomElement(selectedElement!, { bgColor: c });
-                                handleStyleChange(selectedElement!, { bgColor: c });
-                                setActiveToolbarPopup(null);
-                              }}
-                              className={`size-6 rounded-md border shadow-sm transition hover:scale-110 flex items-center justify-center ${
-                                c === "transparent" ? "border-red-400/60 bg-slate-800 text-red-400 font-bold text-xs" : "border-white/20"
-                              }`}
-                              style={c !== "transparent" ? { backgroundColor: c } : {}}
-                              title={c === "transparent" ? "Sin relleno (transparente)" : c}
-                            >
-                              {c === "transparent" && "⊘"}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
-                          <span className="text-[10px] text-slate-400 font-mono">Hex:</span>
-                          <input
-                            type="text"
-                            value={customElem?.bgColor || ""}
-                            placeholder="#0099ff"
-                            onChange={(e) => {
-                              handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
-                              handleStyleChange(selectedElement!, { bgColor: e.target.value });
-                            }}
-                            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-white focus:outline-none"
-                          />
-                          <input
-                            type="color"
-                            value={customElem?.bgColor && customElem.bgColor !== "transparent" ? customElem.bgColor : "#0099ff"}
-                            onChange={(e) => {
-                              handleUpdateCustomElement(selectedElement!, { bgColor: e.target.value });
-                              handleStyleChange(selectedElement!, { bgColor: e.target.value });
-                            }}
-                            className="size-6 rounded cursor-pointer bg-transparent border-0"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* 3. STROKE COLOR (Color del Borde) */}
+                  {/* 3. STROKE COLOR (Color del Borde - Abre panel lateral izquierdo) */}
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_border" ? null : "shape_border")}
+                      onClick={() => {
+                        setActiveToolbarPopup(null);
+                        if (activeDockTab === "shape_border_color" && isDrawerOpen) {
+                          setIsDrawerOpen(false);
+                        } else {
+                          setActiveDockTab("shape_border_color");
+                          setIsDrawerOpen(true);
+                        }
+                      }}
                       className={`size-7 rounded-md flex items-center justify-center transition border ${
-                        activeToolbarPopup === "shape_border"
-                          ? "border-brand-500 bg-slate-700 shadow-sm"
+                        activeDockTab === "shape_border_color" && isDrawerOpen
+                          ? "border-brand-500 bg-slate-700 ring-2 ring-brand-500 ring-offset-1 ring-offset-slate-900"
                           : "border-slate-700 bg-slate-800 hover:border-slate-600"
                       }`}
-                      title="Color del trazo / borde"
+                      title="Color del trazo / borde (abre panel lateral)"
                     >
                       <span
-                        className="size-4.5 rounded-full border-2 border-dashed shadow-xs"
+                        className="size-4.5 rounded-full border-2 border-dashed shadow-xs flex items-center justify-center"
                         style={{ borderColor: customElem?.borderColor || accentColor }}
-                      />
+                      >
+                        {customElem?.borderColor === "transparent" && (
+                          <span className="text-red-400 font-bold text-[9px] leading-none">⊘</span>
+                        )}
+                      </span>
                     </button>
-
-                    {activeToolbarPopup === "shape_border" && (
-                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56 animate-in fade-in zoom-in-95 select-none">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                          Color del Trazo (Borde)
-                        </p>
-                        <div className="grid grid-cols-6 gap-1.5 mb-2.5">
-                          {[
-                            "transparent",
-                            "#ffffff",
-                            "#0099ff",
-                            "#6366f1",
-                            "#10b981",
-                            "#f59e0b",
-                            "#ec4899",
-                            "#7058FE",
-                            "#94a3b8",
-                            "#000000",
-                            accentColor,
-                          ].map((c, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => {
-                                handleUpdateCustomElement(selectedElement!, { borderColor: c });
-                                handleStyleChange(selectedElement!, { borderColor: c });
-                                setActiveToolbarPopup(null);
-                              }}
-                              className={`size-6 rounded-md border shadow-sm transition hover:scale-110 flex items-center justify-center ${
-                                c === "transparent" ? "border-red-400/60 bg-slate-800 text-red-400 font-bold text-xs" : "border-white/20"
-                              }`}
-                              style={c !== "transparent" ? { backgroundColor: c } : {}}
-                              title={c === "transparent" ? "Sin borde" : c}
-                            >
-                              {c === "transparent" && "⊘"}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
-                          <span className="text-[10px] text-slate-400 font-mono">Hex:</span>
-                          <input
-                            type="text"
-                            value={customElem?.borderColor || ""}
-                            placeholder="#ffffff"
-                            onChange={(e) => {
-                              handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
-                              handleStyleChange(selectedElement!, { borderColor: e.target.value });
-                            }}
-                            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-white focus:outline-none"
-                          />
-                          <input
-                            type="color"
-                            value={customElem?.borderColor && customElem.borderColor !== "transparent" ? customElem.borderColor : "#ffffff"}
-                            onChange={(e) => {
-                              handleUpdateCustomElement(selectedElement!, { borderColor: e.target.value });
-                              handleStyleChange(selectedElement!, { borderColor: e.target.value });
-                            }}
-                            className="size-6 rounded cursor-pointer bg-transparent border-0"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* 4. STROKE STYLE & WEIGHT (Canva Screenshot 4) */}
@@ -4490,7 +4656,17 @@ export default function VisualEditorModal({
                           ? "Cinta Resaltador"
                           : elem.type === "badge"
                           ? "Badge B2B"
-                          : "Flecha Swipe"
+                          : elem.type === "shape_rect"
+                          ? "Rectángulo"
+                          : elem.type === "shape_circle"
+                          ? "Círculo"
+                          : elem.type === "shape_star"
+                          ? "Estrella"
+                          : elem.type === "shape_pill"
+                          ? "Píldora"
+                          : elem.type === "shape_line"
+                          ? "Línea"
+                          : "Elemento"
                       }
                       isFreeMode={isFreeMode}
                       offset={currentSlide.offsets?.[elem.id] || { x: elem.x, y: elem.y }}
