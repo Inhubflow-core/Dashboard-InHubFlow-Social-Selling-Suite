@@ -72,3 +72,123 @@ export interface CreatedPost {
     leadsCaptured: number;
   };
 }
+
+// -------------------------------------------------------------
+// TIPOS DEL ESTUDIO VISUAL Y GESTIÓN DE PLANTILLAS PERSONALIZADAS
+// -------------------------------------------------------------
+
+export type TemplateId =
+  | "editorial"
+  | "authority_quote"
+  | "social_card"
+  | "split_focus"
+  | "big_metric"
+  | "bold_highlighter";
+
+export type AspectRatio = "4:5" | "1:1";
+export type EditorMode = "single" | "carousel";
+
+export interface ElementFormatting {
+  fontFamily?: string;
+  fontSize?: number;
+  color?: string;
+  fontWeight?: string;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  textTransform?: "none" | "uppercase" | "lowercase";
+  textAlign?: "left" | "center" | "right";
+  lineHeight?: number;
+  letterSpacing?: number;
+  bgColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: "none" | "solid" | "dashed" | "dotted";
+  borderRadius?: number;
+  opacity?: number;
+}
+
+export interface CustomCanvasElement {
+  id: string;
+  type:
+    | "heading"
+    | "subheading"
+    | "text"
+    | "highlight"
+    | "badge"
+    | "arrow"
+    | "shape_rect"
+    | "shape_circle"
+    | "shape_star"
+    | "shape_pill"
+    | "shape_line"
+    | "image"
+    | "video";
+  content?: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  scale?: number;
+  color?: string;
+  bgColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: "none" | "solid" | "dashed" | "dotted";
+  borderRadius?: number;
+  opacity?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  textTransform?: "none" | "uppercase" | "lowercase";
+  textAlign?: "left" | "center" | "right";
+  lineHeight?: number;
+  letterSpacing?: number;
+}
+
+export interface CarouselSlideItem {
+  id: string;
+  slideNumber: number;
+  type: "cover" | "problem" | "solution" | "cta";
+  label: string;
+  title: string;
+  subtitle: string;
+  tag: string;
+  bullets?: string[];
+  ctaKeyword?: string;
+  metric?: string;
+  metricLabel?: string;
+  ctaPrompt?: string;
+  swipeText?: string;
+  titlePrefix?: string;
+  highlightText?: string;
+  titleSuffix?: string;
+  offsets?: Record<string, { x: number; y: number }>;
+  scales?: Record<string, number>;
+  dimensions?: Record<string, { width?: number; height?: number }>;
+  hiddenElements?: Record<string, boolean>;
+  customElements?: CustomCanvasElement[];
+  elementStyles?: Record<string, ElementFormatting>;
+}
+
+export interface CustomVisualTemplate {
+  id: string;
+  name: string;
+  desc?: string;
+  category?: string;
+  isCustom: true;
+  createdAt: string;
+  updatedAt: string;
+  authorName?: string;
+  baseTemplate: TemplateId;
+  aspectRatio: AspectRatio;
+  editorMode: EditorMode;
+  selectedBgUrl: string;
+  bgDim: number;
+  bgBlur: number;
+  brandColor: string;
+  fontFamily: string;
+  slides: CarouselSlideItem[];
+}
+

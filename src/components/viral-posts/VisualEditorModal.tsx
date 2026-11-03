@@ -52,8 +52,15 @@ import {
   ZoomIn,
   ZoomOut,
   SplitSquareVertical,
-  Sun
+  Sun,
+  BookmarkPlus,
+  Bookmark,
+  Pencil,
+  FolderPlus,
+  AlertCircle
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useVisualTemplates, type CustomVisualTemplate } from "@/lib/viral-posts/visual-templates-store";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
@@ -1025,6 +1032,158 @@ export default function VisualEditorModal({
   };
   const [activeDockTab, setActiveDockTab] = useState<CanvaDockTab>("templates");
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+
+  // Hook de autenticación para rol SuperAdmin
+  const { isSuperAdmin, currentUser } = useAuth();
+
+  // Hook del gestor de plantillas personalizadas (Biblioteca)
+  const {
+    templates: customTemplates,
+    saveTemplate,
+    deleteTemplate,
+    updateMeta,
+  } = useVisualTemplates();
+
+  // Seguimiento de plantilla activa cargada en lienzo
+  const [activeCustomTemplateId, setActiveCustomTemplateId] = useState<string | null>(null);
+
+  // Modales de Gestión de Templates
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [saveForm, setSaveForm] = useState<{
+    name: string;
+    desc: string;
+    category: string;
+    saveAsNew: boolean;
+  }>({
+    name: "",
+    desc: "",
+    category: "B2B",
+    saveAsNew: true,
+  });
+
+  const [editingTemplate, setEditingTemplate] = useState<CustomVisualTemplate | null>(null);
+  const [editMetaForm, setEditMetaForm] = useState<{
+    name: string;
+    desc: string;
+    category: string;
+    overwriteWithCurrentCanvas: boolean;
+  }>({
+    name: "",
+    desc: "",
+    category: "B2B",
+    overwriteWithCurrentCanvas: false,
+  });
+
+  const [templateToDelete, setTemplateToDelete] = useState<CustomVisualTemplate | null>(null);
+
+  // Handlers de Guardado, Edición y Eliminación de Templates
+  const handleOpenSaveModal = () => {
+    const activeTpl = customTemplates.find((t) => t.id === activeCustomTemplateId);
+    const defaultName = slides[0]?.title
+      ? slides[0].title.slice(0, 32).trim()
+      : "Plantilla Personalizada B2B";
+
+    setSaveForm({
+      name: activeTpl ? activeTpl.name : defaultName,
+      desc: activeTpl?.desc || "",
+      category: activeTpl?.category || "B2B",
+      saveAsNew: !activeTpl,
+    });
+    setIsSaveModalOpen(true);
+  };
+
+  const handleConfirmSaveTemplate = () => {
+    if (!saveForm.name.trim()) return;
+
+    const targetId = !saveForm.saveAsNew && activeCustomTemplateId
+      ? activeCustomTemplateId
+      : undefined;
+
+    const saved = saveTemplate({
+      id: targetId,
+      name: saveForm.name.trim(),
+      desc: saveForm.desc.trim() || undefined,
+      category: saveForm.category.trim() || "B2B",
+      authorName: currentUser?.name || "SuperAdmin",
+      baseTemplate: selectedTemplate,
+      aspectRatio,
+      editorMode,
+      selectedBgUrl,
+      bgDim: 0.5,
+      bgBlur: 0,
+      brandColor: accentColor,
+      fontFamily: selectedFont,
+      slides: JSON.parse(JSON.stringify(slides)),
+    });
+
+    setActiveCustomTemplateId(saved.id);
+    setIsSaveModalOpen(false);
+    setExportFeedback(`Plantilla "${saved.name}" guardada con éxito en la biblioteca`);
+    setTimeout(() => setExportFeedback(null), 3500);
+
+    setActiveDockTab("templates");
+    setIsDrawerOpen(true);
+  };
+
+  const handleApplyCustomTemplate = (tpl: CustomVisualTemplate) => {
+    setSelectedTemplate(tpl.baseTemplate);
+    setAspectRatio(tpl.aspectRatio);
+    setEditorMode(tpl.editorMode);
+    if (tpl.selectedBgUrl) setSelectedBgUrl(tpl.selectedBgUrl);
+    if (tpl.brandColor) setAccentColor(tpl.brandColor);
+    if (tpl.fontFamily) setSelectedFont(tpl.fontFamily);
+    if (tpl.slides && tpl.slides.length > 0) {
+      setSlides(JSON.parse(JSON.stringify(tpl.slides)));
+      setCurrentSlideIndex(0);
+    }
+    setActiveCustomTemplateId(tpl.id);
+    setExportFeedback(`Plantilla "${tpl.name}" aplicada al lienzo`);
+    setTimeout(() => setExportFeedback(null), 3000);
+  };
+
+  const handleConfirmDeleteTemplate = () => {
+    if (!templateToDelete) return;
+    deleteTemplate(templateToDelete.id);
+    if (activeCustomTemplateId === templateToDelete.id) {
+      setActiveCustomTemplateId(null);
+    }
+    setExportFeedback(`Plantilla "${templateToDelete.name}" eliminada`);
+    setTimeout(() => setExportFeedback(null), 3000);
+    setTemplateToDelete(null);
+  };
+
+  const handleConfirmEditMeta = () => {
+    if (!editingTemplate || !editMetaForm.name.trim()) return;
+
+    if (editMetaForm.overwriteWithCurrentCanvas) {
+      saveTemplate({
+        id: editingTemplate.id,
+        name: editMetaForm.name.trim(),
+        desc: editMetaForm.desc.trim() || undefined,
+        category: editMetaForm.category.trim() || "B2B",
+        authorName: currentUser?.name || editingTemplate.authorName || "SuperAdmin",
+        baseTemplate: selectedTemplate,
+        aspectRatio,
+        editorMode,
+        selectedBgUrl,
+        bgDim: 0.5,
+        bgBlur: 0,
+        brandColor: accentColor,
+        fontFamily: selectedFont,
+        slides: JSON.parse(JSON.stringify(slides)),
+      });
+    } else {
+      updateMeta(editingTemplate.id, {
+        name: editMetaForm.name.trim(),
+        desc: editMetaForm.desc.trim() || undefined,
+        category: editMetaForm.category.trim() || undefined,
+      });
+    }
+
+    setExportFeedback(`Plantilla "${editMetaForm.name}" actualizada`);
+    setTimeout(() => setExportFeedback(null), 3000);
+    setEditingTemplate(null);
+  };
   const [canvasZoom, setCanvasZoom] = useState(0.82);
   const [activeToolbarPopup, setActiveToolbarPopup] = useState<
     "color" | "spacing" | "shape_edit" | "shape_fill" | "shape_border" | "shape_stroke" | "shape_corner" | "shape_transparency" | "shape_gradient" | null
@@ -2303,45 +2462,188 @@ export default function VisualEditorModal({
             {activeDockTab === "templates" && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Plantillas para LinkedIn</h3>
-                  <p className="text-xs text-slate-400">
-                    Cambia la estructura visual. Tus textos y fotos se mantendrán intactos.
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <Layers className="size-4 text-brand-400" />
+                      <span>Biblioteca de Plantillas</span>
+                    </h3>
+                    {isSuperAdmin && (
+                      <span className="text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
+                        SUPERADMIN
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Crea, edita y administra plantillas reutilizables para LinkedIn.
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  {TEMPLATES.map((tpl) => (
-                    <button
-                      key={tpl.id}
-                      type="button"
-                      onClick={() => setSelectedTemplate(tpl.id)}
-                      className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                        selectedTemplate === tpl.id
-                          ? "border-brand-500 bg-brand-500/15 shadow-sm ring-1 ring-brand-500/30"
-                          : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 hover:border-slate-700"
-                      }`}
-                    >
-                      <div className="size-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 shrink-0">
-                        {tpl.id === "editorial" && <Layers className="size-4" />}
-                        {tpl.id === "authority_quote" && <Quote className="size-4" />}
-                        {tpl.id === "social_card" && <User className="size-4" />}
-                        {tpl.id === "split_focus" && <SplitSquareVertical className="size-4" />}
-                        {tpl.id === "big_metric" && <Sparkles className="size-4" />}
-                        {tpl.id === "bold_highlighter" && <Tag className="size-4 text-purple-400" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white text-xs">{tpl.name}</span>
-                          {tpl.id === "bold_highlighter" && (
-                            <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-bold">NUEVO</span>
-                          )}
+                {/* Botón directo de creación */}
+                <button
+                  type="button"
+                  onClick={handleOpenSaveModal}
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm group"
+                >
+                  <BookmarkPlus className="size-4 text-amber-400 group-hover:scale-110 transition" />
+                  <span>+ Guardar diseño actual como Template</span>
+                </button>
+
+                {/* SECCIÓN 1: MIS PLANTILLAS CREADAS */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Sparkles className="size-3 text-amber-400" />
+                      Mis Plantillas Creadas ({customTemplates.length})
+                    </span>
+                    {activeCustomTemplateId && (
+                      <span className="text-[10px] text-amber-300 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">
+                        1 Activa
+                      </span>
+                    )}
+                  </div>
+
+                  {customTemplates.length === 0 ? (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-700/80 bg-slate-900/40 text-center space-y-1.5">
+                      <Bookmark className="size-5 text-slate-500 mx-auto" />
+                      <p className="text-xs font-semibold text-slate-300">Aún no tienes plantillas creadas</p>
+                      <p className="text-[11px] text-slate-400 leading-tight">
+                        Personaliza tu diseño en el lienzo y pulsa "Guardar como Template" para reutilizarlo.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {customTemplates.map((tpl) => {
+                        const isActive = activeCustomTemplateId === tpl.id;
+                        return (
+                          <div
+                            key={tpl.id}
+                            className={`w-full p-2.5 rounded-xl border transition group relative ${
+                              isActive
+                                ? "border-amber-400 bg-amber-500/15 shadow-md ring-1 ring-amber-400/30"
+                                : "border-slate-800 bg-slate-900/70 hover:bg-slate-800/80 hover:border-slate-700"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              {/* Clic para cargar y aplicar la plantilla */}
+                              <button
+                                type="button"
+                                onClick={() => handleApplyCustomTemplate(tpl)}
+                                className="flex-1 text-left min-w-0"
+                                title={`Aplicar plantilla "${tpl.name}"`}
+                              >
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-white text-xs truncate max-w-[145px]">
+                                    {tpl.name}
+                                  </span>
+                                  {tpl.category && (
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-slate-700 text-slate-300 border border-slate-600">
+                                      {tpl.category}
+                                    </span>
+                                  )}
+                                  {isActive && (
+                                    <span className="text-[9px] font-bold bg-amber-500 text-black px-1.5 rounded">
+                                      ACTIVA
+                                    </span>
+                                  )}
+                                </div>
+                                {tpl.desc && (
+                                  <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 leading-snug">
+                                    {tpl.desc}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2 mt-1.5 text-[9px] text-slate-400 font-medium">
+                                  <span className="font-mono bg-slate-800 px-1 py-0.5 rounded border border-slate-700 text-slate-300">
+                                    {tpl.aspectRatio}
+                                  </span>
+                                  <span>•</span>
+                                  <span>{tpl.slides?.length || 1} láminas</span>
+                                  <span>•</span>
+                                  <span className="capitalize">{tpl.baseTemplate.replace("_", " ")}</span>
+                                </div>
+                              </button>
+
+                              {/* Botones de Editar y Eliminar */}
+                              <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingTemplate(tpl);
+                                    setEditMetaForm({
+                                      name: tpl.name,
+                                      desc: tpl.desc || "",
+                                      category: tpl.category || "B2B",
+                                      overwriteWithCurrentCanvas: false,
+                                    });
+                                  }}
+                                  className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-750 transition"
+                                  title="Editar datos o actualizar plantilla"
+                                >
+                                  <Pencil className="size-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTemplateToDelete(tpl);
+                                  }}
+                                  className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                                  title="Eliminar plantilla"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* SECCIÓN 2: PLANTILLAS PREDISEÑADAS OFICIALES */}
+                <div className="space-y-2 pt-2 border-t border-slate-800">
+                  <span className="text-xs font-bold text-slate-400 block mb-1">
+                    Plantillas Prediseñadas Oficiales ({TEMPLATES.length})
+                  </span>
+
+                  <div className="space-y-2">
+                    {TEMPLATES.map((tpl) => (
+                      <button
+                        key={tpl.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTemplate(tpl.id);
+                          setActiveCustomTemplateId(null);
+                        }}
+                        className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
+                          selectedTemplate === tpl.id && !activeCustomTemplateId
+                            ? "border-brand-500 bg-brand-500/15 shadow-sm ring-1 ring-brand-500/30"
+                            : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="size-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 shrink-0">
+                          {tpl.id === "editorial" && <Layers className="size-4" />}
+                          {tpl.id === "authority_quote" && <Quote className="size-4" />}
+                          {tpl.id === "social_card" && <User className="size-4" />}
+                          {tpl.id === "split_focus" && <SplitSquareVertical className="size-4" />}
+                          {tpl.id === "big_metric" && <Sparkles className="size-4" />}
+                          {tpl.id === "bold_highlighter" && <Tag className="size-4 text-purple-400" />}
                         </div>
-                        <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
-                          {tpl.desc}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-white text-xs">{tpl.name}</span>
+                            {tpl.id === "bold_highlighter" && (
+                              <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-bold">NUEVO</span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
+                            {tpl.desc}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -6102,6 +6404,300 @@ export default function VisualEditorModal({
         </footer>
       </main>
     </div>
+
+    {/* ============================================================ */}
+    {/* MODAL 1: GUARDAR COMO TEMPLATE */}
+    {/* ============================================================ */}
+    {isSaveModalOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in select-none">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 space-y-5 animate-in zoom-in-95">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="size-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                <BookmarkPlus className="size-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white leading-tight">
+                  Guardar como Template
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Crea una plantilla reutilizable en tu biblioteca
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsSaveModalOpen(false)}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Nombre de la Plantilla <span className="text-amber-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={saveForm.name}
+                onChange={(e) => setSaveForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Ej. Pitch B2B Minimalista, Carrusel High-Ticket"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-400 transition"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Categoría
+              </label>
+              <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                {["B2B", "Citas", "Métricas", "Lead Magnet", "Educativo", "Oferta"].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSaveForm((prev) => ({ ...prev, category: cat }))}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                      saveForm.category === cat
+                        ? "bg-amber-500 text-black border-amber-400 font-bold"
+                        : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Descripción (opcional)
+              </label>
+              <input
+                type="text"
+                value={saveForm.desc}
+                onChange={(e) => setSaveForm((prev) => ({ ...prev, desc: e.target.value }))}
+                placeholder="Ej. Ideal para carruseles de métricas de crecimiento"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-400 transition"
+              />
+            </div>
+
+            {/* Resumen de elementos a guardar */}
+            <div className="p-3 rounded-xl bg-slate-850 border border-slate-800 text-xs text-slate-400 space-y-1.5">
+              <span className="font-bold text-slate-300 block text-[11px] uppercase tracking-wider">
+                Resumen del diseño a guardar:
+              </span>
+              <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                <span className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200">
+                  Formato: {aspectRatio}
+                </span>
+                <span className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200">
+                  {slides.length} {slides.length === 1 ? "lámina" : "láminas"}
+                </span>
+                <span className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200 capitalize">
+                  Base: {selectedTemplate.replace("_", " ")}
+                </span>
+              </div>
+            </div>
+
+            {/* Opción si ya había una plantilla activa */}
+            {activeCustomTemplateId && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                <span className="text-xs font-bold text-amber-300 block">
+                  Ya estabas trabajando sobre una plantilla existente:
+                </span>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="saveMode"
+                      checked={!saveForm.saveAsNew}
+                      onChange={() => setSaveForm((prev) => ({ ...prev, saveAsNew: false }))}
+                      className="accent-amber-400"
+                    />
+                    <span>Actualizar plantilla actual ("{customTemplates.find(t => t.id === activeCustomTemplateId)?.name || 'Activa'}")</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="saveMode"
+                      checked={saveForm.saveAsNew}
+                      onChange={() => setSaveForm((prev) => ({ ...prev, saveAsNew: true }))}
+                      className="accent-amber-400"
+                    />
+                    <span>Guardar como una NUEVA plantilla independiente</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsSaveModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={!saveForm.name.trim()}
+              onClick={handleConfirmSaveTemplate}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-extrabold shadow-md transition disabled:opacity-50"
+            >
+              Guardar en Biblioteca
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ============================================================ */}
+    {/* MODAL 2: EDITAR METADATOS O ACTUALIZAR PLANTILLA */}
+    {/* ============================================================ */}
+    {editingTemplate && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in select-none">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 space-y-5 animate-in zoom-in-95">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="size-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
+                <Pencil className="size-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white leading-tight">
+                  Editar Plantilla
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Modifica el nombre o actualiza el diseño visual
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEditingTemplate(null)}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Nombre de la Plantilla <span className="text-amber-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={editMetaForm.name}
+                onChange={(e) => setEditMetaForm((prev) => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-400 transition"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Categoría
+              </label>
+              <input
+                type="text"
+                value={editMetaForm.category}
+                onChange={(e) => setEditMetaForm((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-400 transition"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Descripción
+              </label>
+              <input
+                type="text"
+                value={editMetaForm.desc}
+                onChange={(e) => setEditMetaForm((prev) => ({ ...prev, desc: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-400 transition"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs space-y-1.5">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editMetaForm.overwriteWithCurrentCanvas}
+                  onChange={(e) => setEditMetaForm((prev) => ({ ...prev, overwriteWithCurrentCanvas: e.target.checked }))}
+                  className="mt-0.5 accent-amber-400 rounded"
+                />
+                <span className="text-slate-300 leading-tight">
+                  <strong className="text-white block font-semibold mb-0.5">Sobrescribir también diseño visual</strong>
+                  Reemplazar las láminas y figuras de esta plantilla con el diseño actual del lienzo.
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setEditingTemplate(null)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={!editMetaForm.name.trim()}
+              onClick={handleConfirmEditMeta}
+              className="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition disabled:opacity-50"
+            >
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ============================================================ */}
+    {/* MODAL 3: CONFIRMACIÓN PARA ELIMINAR PLANTILLA */}
+    {/* ============================================================ */}
+    {templateToDelete && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in select-none">
+        <div className="w-full max-w-sm bg-slate-900 border border-red-500/40 rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in-95">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+              <Trash2 className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white">¿Eliminar Plantilla?</h3>
+              <p className="text-xs text-slate-400">Esta acción no se puede revertir</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Se eliminará definitivamente la plantilla <strong className="text-white font-bold">"{templateToDelete.name}"</strong> de tu biblioteca de templates.
+          </p>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setTemplateToDelete(null)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDeleteTemplate}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition shadow-md"
+            >
+              Eliminar Plantilla
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
   );
 }
