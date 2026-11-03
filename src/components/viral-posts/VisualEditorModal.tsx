@@ -31,7 +31,23 @@ import {
   LayoutGrid,
   Shapes,
   AlignLeft,
-  Tag
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Square,
+  Circle,
+  Star,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  Tag,
+  Maximize2,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -46,16 +62,61 @@ export type TemplateId =
 
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
+export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds";
+
+export interface ElementFormatting {
+  fontFamily?: string;
+  fontSize?: number;
+  color?: string;
+  fontWeight?: string;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  textTransform?: "none" | "uppercase" | "lowercase";
+  textAlign?: "left" | "center" | "right";
+  lineHeight?: number;
+  letterSpacing?: number;
+  bgColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  opacity?: number;
+}
 
 export interface CustomCanvasElement {
   id: string;
-  type: "heading" | "text" | "highlight" | "badge" | "arrow";
-  content: string;
+  type:
+    | "heading"
+    | "subheading"
+    | "text"
+    | "highlight"
+    | "badge"
+    | "arrow"
+    | "shape_rect"
+    | "shape_circle"
+    | "shape_star"
+    | "shape_pill"
+    | "shape_line";
+  content?: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   scale?: number;
   color?: string;
   bgColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  opacity?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  textTransform?: "none" | "uppercase" | "lowercase";
+  textAlign?: "left" | "center" | "right";
+  lineHeight?: number;
+  letterSpacing?: number;
 }
 
 export interface CarouselSlideItem {
@@ -76,6 +137,7 @@ export interface CarouselSlideItem {
   scales?: Record<string, number>;
   hiddenElements?: Record<string, boolean>;
   customElements?: CustomCanvasElement[];
+  elementStyles?: Record<string, ElementFormatting>;
 }
 
 /** Extrae de forma inteligente las tres partes del titular para la plantilla Bold Highlighter */
@@ -259,13 +321,31 @@ function InlineEditableText({
     }
   }, [value]);
 
+  const ctx = useContext(SlideCanvasContext);
+  const format = ctx?.currentSlide.elementStyles?.[elementKey];
+
+  const computedStyle: React.CSSProperties = {
+    ...style,
+    ...(format?.fontFamily ? { fontFamily: format.fontFamily } : {}),
+    ...(format?.fontSize ? { fontSize: `${format.fontSize}px` } : {}),
+    ...(format?.color ? { color: format.color } : {}),
+    ...(format?.fontWeight ? { fontWeight: format.fontWeight } : {}),
+    ...(format?.fontStyle ? { fontStyle: format.fontStyle } : {}),
+    ...(format?.textDecoration ? { textDecoration: format.textDecoration } : {}),
+    ...(format?.textTransform ? { textTransform: format.textTransform } : {}),
+    ...(format?.textAlign ? { textAlign: format.textAlign } : {}),
+    ...(format?.lineHeight ? { lineHeight: format.lineHeight } : {}),
+    ...(format?.letterSpacing !== undefined ? { letterSpacing: `${format.letterSpacing}px` } : {}),
+    ...(format?.bgColor ? { backgroundColor: format.bgColor } : {}),
+  };
+
   return (
     <Component
       ref={ref as any}
       contentEditable={!isExporting}
       suppressContentEditableWarning
       spellCheck={false}
-      style={style}
+      style={computedStyle}
       data-element={elementKey}
       onClick={(e: React.MouseEvent) => {
         e.stopPropagation();
@@ -311,6 +391,7 @@ interface SlideCanvasContextType {
   onScaleChange?: (id: string, scale: number) => void;
   onDeleteElement?: (id: string) => void;
   onDuplicateElement?: (id: string) => void;
+  onStyleChange?: (id: string, styles: Partial<ElementFormatting>) => void;
 }
 
 const SlideCanvasContext = createContext<SlideCanvasContextType | null>(null);
@@ -664,7 +745,10 @@ export default function VisualEditorModal({
         return "text-xl sm:text-2xl";
     }
   };
-  const [activeTab, setActiveTab] = useState<"templates" | "elements" | "content" | "backgrounds" | "brand">("templates");
+  const [activeDockTab, setActiveDockTab] = useState<CanvaDockTab>("templates");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [canvasZoom, setCanvasZoom] = useState(0.82);
+  const [activeToolbarPopup, setActiveToolbarPopup] = useState<"color" | "spacing" | "shape_fill" | "shape_border" | null>(null);
 
   // Estados de autor
   const [nameText, setNameText] = useState(authorName);
@@ -790,6 +874,144 @@ export default function VisualEditorModal({
     });
   };
 
+  // Manejador para aplicar estilos / formato a cualquier elemento seleccionado (Texto o Formas)
+  const handleStyleChange = (elementId: string, newStyles: Partial<ElementFormatting>) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const prevStyles = cur.elementStyles || {};
+      const existing = prevStyles[elementId] || {};
+      next[currentSlideIndex] = {
+        ...cur,
+        elementStyles: {
+          ...prevStyles,
+          [elementId]: {
+            ...existing,
+            ...newStyles,
+          },
+        },
+      };
+      return next;
+    });
+
+    // Si es un elemento personalizado, también sincronizamos sus propiedades directas
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const custom = cur.customElements?.find((e) => e.id === elementId);
+      if (custom) {
+        const updatedList = (cur.customElements || []).map((el) => {
+          if (el.id === elementId) {
+            return {
+              ...el,
+              ...newStyles,
+            };
+          }
+          return el;
+        });
+        next[currentSlideIndex] = {
+          ...cur,
+          customElements: updatedList,
+        };
+      }
+      return next;
+    });
+  };
+
+  // Manejador para añadir formas geométricas básicas (estilo Canva)
+  const handleAddShape = (shapeType: "shape_rect" | "shape_circle" | "shape_star" | "shape_pill" | "shape_line") => {
+    setIsFreeMode(true);
+    const newId = `elem-${Date.now()}`;
+    let newShape: CustomCanvasElement;
+
+    if (shapeType === "shape_rect") {
+      newShape = {
+        id: newId,
+        type: "shape_rect",
+        x: 50,
+        y: 150,
+        width: 140,
+        height: 90,
+        scale: 1,
+        bgColor: "rgba(255, 255, 255, 0.12)",
+        borderColor: accentColor,
+        borderWidth: 2,
+        borderRadius: 16,
+        opacity: 1,
+      };
+    } else if (shapeType === "shape_circle") {
+      newShape = {
+        id: newId,
+        type: "shape_circle",
+        x: 80,
+        y: 150,
+        width: 90,
+        height: 90,
+        scale: 1,
+        bgColor: accentColor,
+        borderColor: "rgba(255, 255, 255, 0.3)",
+        borderWidth: 0,
+        borderRadius: 9999,
+        opacity: 0.9,
+      };
+    } else if (shapeType === "shape_star") {
+      newShape = {
+        id: newId,
+        type: "shape_star",
+        x: 90,
+        y: 150,
+        width: 64,
+        height: 64,
+        scale: 1,
+        bgColor: "#f59e0b",
+        borderColor: "transparent",
+        borderWidth: 0,
+        opacity: 1,
+      };
+    } else if (shapeType === "shape_pill") {
+      newShape = {
+        id: newId,
+        type: "shape_pill",
+        content: "DESTACADO B2B",
+        x: 50,
+        y: 120,
+        width: 150,
+        height: 38,
+        scale: 1,
+        bgColor: "rgba(255, 255, 255, 0.15)",
+        borderColor: accentColor,
+        borderWidth: 1,
+        borderRadius: 9999,
+        opacity: 1,
+      };
+    } else {
+      newShape = {
+        id: newId,
+        type: "shape_line",
+        x: 50,
+        y: 200,
+        width: 220,
+        height: 3,
+        scale: 1,
+        bgColor: accentColor,
+        borderWidth: 3,
+        opacity: 0.8,
+      };
+    }
+
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const curList = cur.customElements || [];
+      next[currentSlideIndex] = {
+        ...cur,
+        customElements: [...curList, newShape],
+      };
+      return next;
+    });
+    setSelectedElement(newId);
+  };
+
   // Manejador para añadir un nuevo elemento personalizado al lienzo (estilo Canva)
   const handleAddCustomElement = (type: CustomCanvasElement["type"]) => {
     setIsFreeMode(true);
@@ -804,7 +1026,21 @@ export default function VisualEditorModal({
         x: 35,
         y: 120,
         scale: 1,
+        fontSize: 26,
+        fontWeight: "bold",
         color: "#ffffff",
+      };
+    } else if (type === "subheading") {
+      newElement = {
+        id: newId,
+        type: "subheading",
+        content: "Subtítulo explicativo de alto impacto",
+        x: 35,
+        y: 180,
+        scale: 1,
+        fontSize: 17,
+        fontWeight: "600",
+        color: "#cbd5e1",
       };
     } else if (type === "text") {
       newElement = {
@@ -812,9 +1048,10 @@ export default function VisualEditorModal({
         type: "text",
         content: "Escribe aquí una explicación, dato clave o reflexión para tu audiencia...",
         x: 35,
-        y: 200,
+        y: 220,
         scale: 1,
-        color: "#cbd5e1",
+        fontSize: 13,
+        color: "#94a3b8",
       };
     } else if (type === "highlight") {
       newElement = {
@@ -824,6 +1061,8 @@ export default function VisualEditorModal({
         x: 35,
         y: 160,
         scale: 1,
+        fontSize: 20,
+        fontWeight: "bold",
         color: "#ffffff",
         bgColor: accentColor === "#0099ff" ? "#7058FE" : accentColor,
       };
@@ -835,6 +1074,8 @@ export default function VisualEditorModal({
         x: 35,
         y: 40,
         scale: 1,
+        fontSize: 11,
+        fontWeight: "bold",
         color: "#000000",
         bgColor: accentColor,
       };
@@ -846,6 +1087,8 @@ export default function VisualEditorModal({
         x: 280,
         y: 450,
         scale: 1,
+        fontSize: 11,
+        fontWeight: "bold",
         color: "#ffffff",
       };
     }
@@ -1212,1113 +1455,1303 @@ export default function VisualEditorModal({
     return matchesTag && matchesQuery;
   });
 
+  // Helpers contextuales para la barra de herramientas superior estilo Canva
+  const isCustom = Boolean(selectedElement?.startsWith("elem-"));
+  const customElem = isCustom ? currentSlide.customElements?.find((e) => e.id === selectedElement) : null;
+  const isShape = Boolean(
+    customElem &&
+    (customElem.type === "shape_rect" ||
+      customElem.type === "shape_circle" ||
+      customElem.type === "shape_star" ||
+      customElem.type === "shape_pill" ||
+      customElem.type === "shape_line")
+  );
+  const isText = Boolean(
+    !isShape &&
+    selectedElement &&
+    selectedElement !== "background" &&
+    selectedElement !== "brand" &&
+    selectedElement !== "bg-photo" &&
+    selectedElement !== "editorial-card" &&
+    selectedElement !== "quote-card" &&
+    selectedElement !== "feed-card"
+  );
+  const currentFormat: ElementFormatting = (selectedElement && currentSlide.elementStyles?.[selectedElement]) || {};
+  const defaultFontSize = (
+    selectedElement?.includes("title") ? 28 :
+    selectedElement?.includes("subtitle") ? 18 :
+    selectedElement?.includes("tag") ? 12 :
+    selectedElement?.includes("metric") ? 42 :
+    customElem?.fontSize ? customElem.fontSize :
+    14
+  );
+  const currentFontSize = currentFormat.fontSize || defaultFontSize;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="flex flex-col h-[95vh] w-full max-w-7xl rounded-2xl bg-gray-950 border border-gray-800 shadow-2xl overflow-hidden">
-        
-        {/* BARRA SUPERIOR DE CONTROL */}
-        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-800 bg-gray-900/90 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
-              <Sparkles className="size-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white tracking-wide">
-                  Estudio Gráfico InHubFlow
-                </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
-                  MOTOR AUTO-LAYOUT HD
-                </span>
-              </div>
-              <p className="text-[11px] text-gray-400">
-                {editorMode === "single"
-                  ? "Publicación con Imagen Única (Feed de LinkedIn)"
-                  : `Carrusel Activo (${slides.length} láminas) • Listo para PDF o PNG`}
-              </p>
+    <div className="fixed inset-0 z-50 w-screen h-screen overflow-hidden flex flex-col bg-slate-950 text-white select-none animate-in fade-in duration-150">
+      
+      {/* 1. BARRA SUPERIOR CANVA (HEADER SLIM - 48px) */}
+      <header className="h-12 border-b border-slate-800 bg-slate-900/95 px-4 flex items-center justify-between shrink-0 select-none z-30">
+        <div className="flex items-center gap-3">
+          <div className="size-8 rounded-lg bg-gradient-to-tr from-brand-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+            <Sparkles className="size-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-bold text-white tracking-wide">
+                Estudio Gráfico InHubFlow
+              </h1>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
+                MOTOR AUTO-LAYOUT HD
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Switch Modo: Imagen Única vs Carrusel */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center p-1 rounded-xl bg-gray-800/80 border border-gray-700/60">
-              <button
-                type="button"
-                onClick={() => setEditorMode("single")}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                  editorMode === "single"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Imagen Única
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditorMode("carousel")}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                  editorMode === "carousel"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Carrusel PDF ({slides.length})
-              </button>
-            </div>
-
-            {/* Selector de Relación de Aspecto */}
-            <div className="flex items-center p-1 rounded-xl bg-gray-800/80 border border-gray-700/60">
-              <button
-                type="button"
-                onClick={() => setAspectRatio("4:5")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
-                  aspectRatio === "4:5"
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-                title="Vertical 4:5 (1080 × 1350px) - Máxima visibilidad en feed móvil"
-              >
-                Vertical 4:5
-              </button>
-              <button
-                type="button"
-                onClick={() => setAspectRatio("1:1")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
-                  aspectRatio === "1:1"
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-                title="Cuadrado 1:1 (1080 × 1080px)"
-              >
-                Cuadrado 1:1
-              </button>
-            </div>
+        {/* Switch Modo: Imagen Única vs Carrusel & Selector Aspecto */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center p-0.5 rounded-lg bg-slate-800 border border-slate-700">
+            <button
+              type="button"
+              onClick={() => setEditorMode("single")}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition ${
+                editorMode === "single"
+                  ? "bg-brand-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Imagen Única
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorMode("carousel")}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition ${
+                editorMode === "carousel"
+                  ? "bg-brand-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Carrusel PDF ({slides.length})
+            </button>
           </div>
 
-          {/* Acciones de Exportación */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center p-0.5 rounded-lg bg-slate-800 border border-slate-700">
+            <button
+              type="button"
+              onClick={() => setAspectRatio("4:5")}
+              className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold transition ${
+                aspectRatio === "4:5"
+                  ? "bg-slate-700 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Vertical 4:5 (1080 × 1350px) - Máxima visibilidad móvil"
+            >
+              Vertical 4:5
+            </button>
+            <button
+              type="button"
+              onClick={() => setAspectRatio("1:1")}
+              className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold transition ${
+                aspectRatio === "1:1"
+                  ? "bg-slate-700 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Cuadrado 1:1 (1080 × 1080px)"
+            >
+              Cuadrado 1:1
+            </button>
+          </div>
+        </div>
+
+        {/* Acciones de Exportación */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={isExporting}
+            onClick={handleExportPng}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold border border-slate-700 transition"
+            title="Descargar lámina como PNG de alta resolución"
+          >
+            <Download className="size-3.5 text-brand-400" />
+            <span>Lámina PNG</span>
+          </button>
+
+          {editorMode === "carousel" && (
             <button
               type="button"
               disabled={isExporting}
-              onClick={handleExportPng}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold border border-gray-700 transition"
-              title="Descargar lámina actual como PNG de alta resolución"
+              onClick={handleExportPdf}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold border border-slate-700 transition"
+              title="Descargar carrusel completo en PDF para LinkedIn"
             >
-              <Download className="size-3.5 text-brand-400" />
-              <span>Lámina PNG</span>
+              <FileDown className="size-3.5 text-indigo-400" />
+              <span>Exportar PDF</span>
             </button>
+          )}
 
-            {editorMode === "carousel" && (
-              <button
-                type="button"
-                disabled={isExporting}
-                onClick={handleExportPdf}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold border border-gray-700 transition"
-                title="Descargar carrusel completo en PDF para LinkedIn"
-              >
-                <FileDown className="size-3.5 text-indigo-400" />
-                <span>Exportar PDF</span>
-              </button>
+          <button
+            type="button"
+            disabled={isExporting}
+            onClick={handleApplyToPost}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-md transition"
+            title="Adjuntar este diseño al post de LinkedIn en el compositor"
+          >
+            <Check className="size-4" />
+            <span>Aplicar al Post</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition ml-1"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* FEEDBACK TEMPORAL DE EXPORTACIÓN */}
+      {exportFeedback && (
+        <div className="bg-brand-500/20 border-b border-brand-500/30 px-5 py-1.5 text-center text-xs font-semibold text-brand-300 animate-pulse">
+          {exportFeedback}
+        </div>
+      )}
+
+      {/* CUERPO PRINCIPAL DEL ESTUDIO GRÁFICO (HORIZONTAL: DOCK + DRAWER + STAGE) */}
+      <div className="flex-1 flex overflow-hidden relative">
+        
+        {/* 1. DOCK VERTICAL IZQUIERDO DE ICONOS (ESTILO CANVA - 68px) */}
+        <aside className="w-[68px] min-w-[68px] bg-slate-950 border-r border-slate-800 flex flex-col items-center py-3 gap-1 shrink-0 z-30 select-none">
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "templates" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("templates");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "templates" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Plantillas prediseñadas"
+          >
+            <Layers className="size-5" />
+            <span className="text-[10px] tracking-tight">Templates</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "text" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("text");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "text" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Tipografías y textos"
+          >
+            <Type className="size-5" />
+            <span className="text-[10px] tracking-tight">Texto</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "elements" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("elements");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "elements" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Formas y elementos geométricos"
+          >
+            <Shapes className="size-5" />
+            <span className="text-[10px] tracking-tight">Elementos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "photos" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("photos");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "photos" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Galería de fotos curadas"
+          >
+            <ImageIcon className="size-5" />
+            <span className="text-[10px] tracking-tight">Fotos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "backgrounds" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("backgrounds");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "backgrounds" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Fondos, degradados y colores de marca"
+          >
+            <Palette className="size-5" />
+            <span className="text-[10px] tracking-tight">Fondos</span>
+          </button>
+        </aside>
+
+        {/* 2. FLYOUT DRAWER DESPLEGABLE (ESTILO CANVA - 330px) */}
+        <div
+          className={`relative bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 z-20 transition-all duration-200 select-text ${
+            isDrawerOpen ? "w-[330px] min-w-[330px]" : "w-0 min-w-0 overflow-hidden border-none"
+          }`}
+        >
+          {/* Botón flotante para colapsar/desplegar el panel lateral */}
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+            className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-40 size-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-600 shadow-xl flex items-center justify-center transition"
+            title={isDrawerOpen ? "Ocultar panel lateral" : "Mostrar panel lateral"}
+          >
+            {isDrawerOpen ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
+          </button>
+
+          {/* CONTENIDO DEL DRAWER SEGÚN LA PESTAÑA ACTIVA */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+            
+            {/* PESTAÑA 1: TEMPLATES */}
+            {activeDockTab === "templates" && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Plantillas para LinkedIn</h3>
+                  <p className="text-xs text-slate-400">
+                    Cambia la estructura visual. Tus textos y fotos se mantendrán intactos.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  {TEMPLATES.map((tpl) => (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setSelectedTemplate(tpl.id)}
+                      className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
+                        selectedTemplate === tpl.id
+                          ? "border-brand-500 bg-brand-500/15 shadow-sm ring-1 ring-brand-500/30"
+                          : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 hover:border-slate-700"
+                      }`}
+                    >
+                      <div className="size-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 shrink-0">
+                        {tpl.id === "editorial" && <Layers className="size-4" />}
+                        {tpl.id === "authority_quote" && <Quote className="size-4" />}
+                        {tpl.id === "social_card" && <User className="size-4" />}
+                        {tpl.id === "split_focus" && <SplitSquareVertical className="size-4" />}
+                        {tpl.id === "big_metric" && <Sparkles className="size-4" />}
+                        {tpl.id === "bold_highlighter" && <Tag className="size-4 text-purple-400" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-white text-xs">{tpl.name}</span>
+                          {tpl.id === "bold_highlighter" && (
+                            <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-bold">NUEVO</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
+                          {tpl.desc}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
-            <button
-              type="button"
-              disabled={isExporting}
-              onClick={handleApplyToPost}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-md transition"
-              title="Adjuntar este diseño al post de LinkedIn en el compositor"
-            >
-              <Check className="size-4" />
-              <span>Aplicar al Post</span>
-            </button>
+            {/* PESTAÑA 2: TEXTO */}
+            {activeDockTab === "text" && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Añadir Texto al Diseño</h3>
+                  <p className="text-xs text-slate-400">
+                    Inserta nuevos titulares, párrafos o etiquetas de alto impacto con un clic.
+                  </p>
+                </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition"
-            >
-              <X className="size-5" />
-            </button>
-          </div>
-        </header>
-
-        {/* FEEDBACK TEMPORAL DE EXPORTACIÓN */}
-        {exportFeedback && (
-          <div className="bg-brand-500/20 border-b border-brand-500/30 px-5 py-1.5 text-center text-xs font-semibold text-brand-300 animate-pulse">
-            {exportFeedback}
-          </div>
-        )}
-
-        {/* CUERPO DEL EDITOR */}
-        <div className="flex-1 grid grid-cols-12 overflow-hidden">
-          
-          {/* PANEL LATERAL DE PERSONALIZACIÓN */}
-          <aside className="col-span-12 lg:col-span-4 xl:col-span-3 border-r border-gray-800 bg-gray-900/60 flex flex-col h-full overflow-hidden">
-            {/* Pestañas laterales */}
-            <div className="grid grid-cols-5 border-b border-gray-800 bg-gray-950/70 p-1 gap-1 text-xs font-medium shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveTab("templates")}
-                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
-                  activeTab === "templates"
-                    ? "bg-brand-600 text-white shadow-sm font-bold"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-                }`}
-              >
-                <Layers className="size-4" />
-                <span className="text-[10px]">Plantillas</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("elements")}
-                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
-                  activeTab === "elements"
-                    ? "bg-brand-600 text-white shadow-sm font-bold"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-                }`}
-              >
-                <Shapes className="size-4" />
-                <span className="text-[10px]">Elementos</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("content")}
-                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
-                  activeTab === "content"
-                    ? "bg-brand-600 text-white shadow-sm font-bold"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-                }`}
-              >
-                <Type className="size-4" />
-                <span className="text-[10px]">Lámina</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("backgrounds")}
-                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
-                  activeTab === "backgrounds"
-                    ? "bg-brand-600 text-white shadow-sm font-bold"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-                }`}
-              >
-                <ImageIcon className="size-4" />
-                <span className="text-[10px]">Fotos</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("brand")}
-                className={`py-2 px-1 text-center rounded-lg flex flex-col items-center gap-1 transition ${
-                  activeTab === "brand"
-                    ? "bg-brand-600 text-white shadow-sm font-bold"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-                }`}
-              >
-                <Palette className="size-4" />
-                <span className="text-[10px]">Marca</span>
-              </button>
-            </div>
-
-            {/* Contenido de cada pestaña */}
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
-              
-              {/* TAB 1: PLANTILLAS PREDISEÑADAS */}
-              {activeTab === "templates" && (
-                <div className="space-y-3">
-                  <div className="text-xs text-gray-400 font-medium pb-1">
-                    Selecciona un estilo. Tus textos y fotos se mantendrán intactos:
-                  </div>
-
-                  {/* 1. Cinematic Editorial */}
+                {/* Botones de acción rápida estilo Canva Text Panel */}
+                <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("editorial")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "editorial"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("heading")}
+                    className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-extrabold text-left text-base border border-slate-700 hover:border-slate-600 transition shadow-sm flex items-center justify-between group"
                   >
-                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-slate-800 border border-gray-700 flex flex-col justify-end p-1.5 shrink-0">
-                      <div className="h-1.5 w-6 rounded-full bg-brand-400 mb-1"></div>
-                      <div className="h-1 w-4 rounded-full bg-gray-400"></div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Cinematic Editorial</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Tarjeta de cristal oscuro + titular B2B de alto impacto.
-                      </div>
-                    </div>
+                    <span>+ Añadir un título</span>
+                    <Type className="size-4 text-slate-400 group-hover:text-white" />
                   </button>
 
-                  {/* 2. Cita de Autoridad */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("authority_quote")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "authority_quote"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("subheading")}
+                    className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-left text-sm border border-slate-700 hover:border-slate-600 transition shadow-sm flex items-center justify-between group"
                   >
-                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-indigo-950 border border-gray-700 flex items-center justify-center shrink-0">
-                      <Quote className="size-5 text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Cita de Autoridad</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Comillas gigantes y frase centralizada con tarjeta de autor.
-                      </div>
-                    </div>
+                    <span>+ Añadir un subtítulo</span>
+                    <Type className="size-3.5 text-slate-400 group-hover:text-white" />
                   </button>
 
-                  {/* 3. Tarjeta Social / Feed */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("social_card")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "social_card"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("text")}
+                    className="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-normal text-left text-xs border border-slate-700 hover:border-slate-600 transition shadow-sm flex items-center justify-between group"
                   >
-                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-blue-950 border border-gray-700 flex flex-col items-center justify-center shrink-0">
-                      <div className="size-3.5 rounded-full bg-blue-500 mb-1"></div>
-                      <div className="h-1 w-6 rounded-full bg-gray-400"></div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Tarjeta Social / Feed</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Formato publicación con avatar, check azul y métricas sociales.
-                      </div>
-                    </div>
+                    <span>+ Añadir texto de párrafo</span>
+                    <AlignLeft className="size-3.5 text-slate-400 group-hover:text-white" />
                   </button>
 
-                  {/* 4. Split Focus 50/50 */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("split_focus")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "split_focus"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("highlight")}
+                    className="w-full py-2.5 px-4 rounded-xl bg-purple-950/40 hover:bg-purple-900/40 text-purple-200 font-bold text-left text-xs border border-purple-800/60 transition shadow-sm flex items-center justify-between group"
                   >
-                    <div className="size-11 rounded-lg bg-gray-900 border border-gray-700 flex flex-col overflow-hidden shrink-0">
-                      <div className="h-1/2 bg-blue-900/70"></div>
-                      <div className="h-1/2 bg-slate-950 p-1 flex items-center">
-                        <div className="h-1 w-4 rounded-full bg-white"></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Split Focus (50/50)</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Fotografía superior inmersiva + panel de datos inferior.
-                      </div>
-                    </div>
+                    <span>+ Resaltador con fondo violeta</span>
+                    <Tag className="size-3.5 text-purple-400" />
                   </button>
 
-                  {/* 5. Métrica de Alto Impacto */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("big_metric")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "big_metric"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("badge")}
+                    className="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-left text-xs border border-slate-700 transition flex items-center justify-between"
                   >
-                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-900 to-amber-950 border border-gray-700 flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-mono font-bold text-amber-400">+340%</span>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Métrica de Alto Impacto</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Número gigante validado (+340%) con titular explicativo.
-                      </div>
-                    </div>
+                    <span>+ Píldora / Etiqueta B2B</span>
+                    <Sparkles className="size-3.5 text-brand-400" />
                   </button>
 
-                  {/* 6. Bold Highlighter B2B */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate("bold_highlighter")}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                      selectedTemplate === "bold_highlighter"
-                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
-                        : "border-gray-800 bg-gray-900/50 hover:bg-gray-800"
-                    }`}
+                    onClick={() => handleAddCustomElement("arrow")}
+                    className="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-left text-xs border border-slate-700 transition flex items-center justify-between"
                   >
-                    <div className="size-11 rounded-lg bg-gradient-to-tr from-slate-950 to-indigo-950 border border-gray-700 flex flex-col justify-center p-1.5 shrink-0 overflow-hidden">
-                      <div className="h-1.5 w-6 rounded-full bg-white mb-1"></div>
-                      <div className="h-2 w-8 rounded-sm bg-[#7058FE] -rotate-3 mb-1"></div>
-                      <div className="h-1.5 w-5 rounded-full bg-white"></div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                        <span>Bold Highlighter B2B</span>
-                        <span className="px-1.5 py-0.2 rounded text-[9px] bg-brand-500/20 text-brand-300 font-mono">NUEVO</span>
-                      </div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        Titular masivo con cinta violeta inclinada y punto magenta neón.
-                      </div>
-                    </div>
+                    <span>+ Flecha / Indicador "DESLIZA"</span>
+                    <ArrowRight className="size-3.5 text-slate-400" />
                   </button>
                 </div>
-              )}
 
-              {/* TAB NUEVO ESTILO CANVA: ELEMENTOS DINÁMICOS */}
-              {activeTab === "elements" && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-1">
-                    <span className="text-xs text-gray-400 font-medium">
-                      Añade capas personalizadas al lienzo:
-                    </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 font-bold border border-brand-500/30">
-                      CANVA ENGINE
-                    </span>
-                  </div>
-
-                  {/* Botones de creación rápida de elementos */}
-                  <div className="grid grid-cols-1 gap-2">
-                    {/* 1. Titular H1 */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddCustomElement("heading")}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:border-brand-500/50 text-left transition group"
-                    >
-                      <div className="size-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition">
-                        <Type className="size-5 text-brand-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white flex items-center justify-between">
-                          <span>Titular H1 (Bold)</span>
-                          <Plus className="size-3.5 text-gray-400 group-hover:text-brand-400 transition" />
-                        </div>
-                        <div className="text-[11px] text-gray-400 truncate">
-                          Texto principal de gran tamaño y jerarquía
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* 2. Párrafo de Texto */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddCustomElement("text")}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:border-brand-500/50 text-left transition group"
-                    >
-                      <div className="size-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition">
-                        <AlignLeft className="size-5 text-indigo-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white flex items-center justify-between">
-                          <span>Bloque de Texto / Bajada</span>
-                          <Plus className="size-3.5 text-gray-400 group-hover:text-brand-400 transition" />
-                        </div>
-                        <div className="text-[11px] text-gray-400 truncate">
-                          Párrafo multilínea para explicar conceptos
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* 3. Cinta Resaltadora */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddCustomElement("highlight")}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:bg-purple-900/30 text-left transition group"
-                    >
-                      <div className="size-9 rounded-lg bg-[#7058FE] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition -rotate-3">
-                        <Sparkles className="size-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-purple-200 flex items-center justify-between">
-                          <span>Cinta Resaltadora Inclinada</span>
-                          <Plus className="size-3.5 text-purple-400 group-hover:text-purple-300 transition" />
-                        </div>
-                        <div className="text-[11px] text-purple-300/70 truncate">
-                          Cinta viral de color con rotación dinámica
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* 4. Insignia / Badge B2B */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddCustomElement("badge")}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:border-brand-500/50 text-left transition group"
-                    >
-                      <div className="size-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition">
-                        <Tag className="size-5 text-emerald-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white flex items-center justify-between">
-                          <span>Insignia / Badge Pill</span>
-                          <Plus className="size-3.5 text-gray-400 group-hover:text-brand-400 transition" />
-                        </div>
-                        <div className="text-[11px] text-gray-400 truncate">
-                          Etiqueta pill redondeada para categorías
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* 5. Flecha Swipe / Deslizar */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddCustomElement("arrow")}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-gray-900/60 hover:bg-gray-800 hover:border-brand-500/50 text-left transition group"
-                    >
-                      <div className="size-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition">
-                        <ArrowRight className="size-5 text-amber-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white flex items-center justify-between">
-                          <span>Flecha Swipe (Carrusel)</span>
-                          <Plus className="size-3.5 text-gray-400 group-hover:text-brand-400 transition" />
-                        </div>
-                        <div className="text-[11px] text-gray-400 truncate">
-                          Indicador de deslizamiento para LinkedIn
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Lista de elementos presentes en esta lámina */}
-                  <div className="pt-3 border-t border-gray-800 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-gray-400 font-semibold">
-                      <span>Capas en esta lámina ({(currentSlide.customElements || []).length}):</span>
-                      {(currentSlide.customElements || []).length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => updateCurrentSlide({ customElements: [] })}
-                          className="text-[10px] text-red-400 hover:underline"
-                        >
-                          Limpiar todas
-                        </button>
-                      )}
-                    </div>
-
-                    {(currentSlide.customElements || []).length === 0 ? (
-                      <p className="text-[11px] text-gray-500 italic p-3 bg-gray-950/40 rounded-xl border border-gray-800 text-center">
-                        No hay capas adicionales. Haz clic en cualquiera de los botones de arriba para añadir titulares, cintas o badges.
-                      </p>
-                    ) : (
-                      <div className="space-y-1.5 max-h-[200px] overflow-y-auto custom-scrollbar">
-                        {(currentSlide.customElements || []).map((el, idx) => (
-                          <div
-                            key={el.id}
-                            onClick={() => setSelectedElement(el.id)}
-                            className={`flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition ${
-                              selectedElement === el.id
-                                ? "border-brand-500 bg-brand-500/20 text-white font-bold"
-                                : "border-gray-800 bg-gray-900/60 text-gray-300 hover:bg-gray-800"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <span className="text-[10px] font-mono text-gray-500">#{idx + 1}</span>
-                              <span className="truncate max-w-[130px]">{el.content || el.type}</span>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDuplicateElement(el.id);
-                                }}
-                                className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition"
-                                title="Duplicar"
-                              >
-                                <Copy className="size-3" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCustomElement(el.id);
-                                }}
-                                className="p-1 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition"
-                                title="Eliminar"
-                              >
-                                <Trash2 className="size-3" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: CONTENIDO DE LA LÁMINA */}
-              {activeTab === "content" && (
-                <div className="space-y-4">
-                  {/* Tipo de Lámina */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                      Tipo de Lámina
-                    </label>
-                    <select
-                      value={currentSlide.type}
-                      onChange={(e) => updateCurrentSlide({ type: e.target.value as any })}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
-                    >
-                      <option value="cover">Portada Principal</option>
-                      <option value="problem">Problema / Diagnóstico (Viñetas)</option>
-                      <option value="solution">Solución / Framework (Puntos de Acción)</option>
-                      <option value="cta">CTA Final (Palabra Clave Sentinel)</option>
-                    </select>
-                  </div>
-
-                  {/* Etiqueta / Categoría */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                      Categoría / Tag
-                    </label>
-                    <input
-                      type="text"
-                      value={currentSlide.tag}
-                      onChange={(e) => updateCurrentSlide({ tag: e.target.value })}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-hidden"
-                      placeholder="Ej. SOCIAL SELLING B2B"
-                    />
-                  </div>
-
-                  {/* Titular */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                      Titular Principal
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={currentSlide.title}
-                      onChange={(e) => updateCurrentSlide({ title: e.target.value })}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
-                      placeholder="Escribe el gancho o título de alto impacto..."
-                    />
-                  </div>
-
-                  {/* Subtítulo */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                      Subtítulo / Contexto
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={currentSlide.subtitle}
-                      onChange={(e) => updateCurrentSlide({ subtitle: e.target.value })}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-300 focus:border-brand-500 focus:outline-hidden"
-                      placeholder="Agrega el framework o valor complementario..."
-                    />
-                  </div>
-
-                  {/* Métrica para template de Métrica */}
-                  {selectedTemplate === "big_metric" && isCover && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                        Número de Métrica
-                      </label>
-                      <input
-                        type="text"
-                        value={currentSlide.metric || "+340%"}
-                        onChange={(e) => updateCurrentSlide({ metric: e.target.value })}
-                        className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-brand-400 font-mono font-bold focus:border-brand-500 focus:outline-hidden"
-                        placeholder="+340% o $1.2M"
-                      />
-                    </div>
-                  )}
-
-                  {/* Frase resaltada para Bold Highlighter */}
-                  {selectedTemplate === "bold_highlighter" && isCover && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5 flex items-center justify-between">
-                        <span>Palabra Clave Resaltada</span>
-                        <span className="text-[10px] text-purple-400 font-mono">Cinta Violeta</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={currentSlide.highlightText || "mensajes b2b"}
-                        onChange={(e) => {
-                          const parts = getTitleParts(currentSlide);
-                          updateCurrentSlide({
-                            highlightText: e.target.value,
-                            title: `${parts.prefix} [${e.target.value}] ${parts.suffix}.`,
-                          });
-                        }}
-                        className="w-full rounded-lg border border-purple-500/40 bg-purple-950/20 px-3 py-2 text-xs text-purple-300 font-bold focus:border-purple-400 focus:outline-hidden"
-                        placeholder="Ej: mensajes b2b"
-                      />
-                    </div>
-                  )}
-
-                  {/* Viñetas para láminas de problema o solución */}
-                  {(currentSlide.type === "problem" || currentSlide.type === "solution") && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                        Puntos Clave (Viñetas)
-                      </label>
-                      <div className="space-y-2">
-                        {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((b, bIdx) => (
-                          <div key={bIdx} className="flex items-center gap-2">
-                            <span className="size-6 rounded-full bg-brand-500/20 text-brand-400 font-bold text-xs flex items-center justify-center shrink-0">
-                              {bIdx + 1}
-                            </span>
-                            <input
-                              type="text"
-                              value={b}
-                              onChange={(e) => {
-                                const newBullets = [...(currentSlide.bullets || [])];
-                                newBullets[bIdx] = e.target.value;
-                                updateCurrentSlide({ bullets: newBullets });
-                              }}
-                              className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-hidden"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Palabra Clave para CTA Final */}
-                  {currentSlide.type === "cta" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 uppercase mb-1.5">
-                        Palabra Clave de Activación (Inbound Sentinel)
-                      </label>
-                      <input
-                        type="text"
-                        value={currentSlide.ctaKeyword || "SISTEMA"}
-                        onChange={(e) => updateCurrentSlide({ ctaKeyword: e.target.value })}
-                        className="w-full rounded-lg border border-brand-500/50 bg-gray-900 px-3 py-2 text-xs text-brand-400 font-mono font-bold uppercase focus:border-brand-500 focus:outline-hidden"
-                        placeholder="SISTEMA"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 3: FOTOGRAFÍAS Y FONDOS */}
-              {activeTab === "backgrounds" && (
-                <div className="space-y-4">
-                  {/* Buscador de fotos */}
-                  <div className="relative">
-                    <Search className="size-3.5 absolute left-3 top-2.5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={photoSearchQuery}
-                      onChange={(e) => setPhotoSearchQuery(e.target.value)}
-                      placeholder="Buscar oficina, tech, datos, equipo..."
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-brand-500 focus:outline-hidden"
-                    />
-                  </div>
-
-                  {/* Subir foto propia */}
-                  <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-dashed border-gray-700 bg-gray-900/60 hover:bg-gray-800 text-gray-300 text-xs font-semibold cursor-pointer transition">
-                    <Upload className="size-4 text-brand-400" />
-                    <span>Subir mi propia foto o imagen</span>
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                  </label>
-
-                  {/* Zoom y Escala de la Fotografía */}
-                  <div className="p-3 rounded-xl border border-gray-800 bg-gray-900/60 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300 font-semibold uppercase flex items-center gap-1.5">
-                        <ImageIcon className="size-3 text-brand-400" />
-                        Escala / Zoom de Foto
-                      </span>
-                      <span className="text-brand-400 font-mono font-bold">
-                        {Math.round(bgScale * 100)}%
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={1.0}
-                      max={2.0}
-                      step={0.05}
-                      value={bgScale}
-                      onChange={(e) => setBgScale(parseFloat(e.target.value))}
-                      className="w-full accent-brand-500 cursor-pointer"
-                    />
-                    <div className="text-[10px] text-gray-400">
-                      En <span className="text-indigo-400 font-bold">Modo Libre</span> puedes arrastrar la foto para reencuadrar el ángulo.
-                    </div>
-                  </div>
-
-                  {/* Filtro rápido por categoría */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { id: "all", label: "Todas" },
-                      { id: "oficina", label: "Oficina" },
-                      { id: "tech", label: "Tech & IA" },
-                      { id: "datos", label: "Datos" },
-                      { id: "ciudad", label: "Ciudad" },
-                      { id: "equipo", label: "Equipo" },
-                    ].map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => setActivePhotoTag(tag.id)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
-                          activePhotoTag === tag.id
-                            ? "bg-brand-600 text-white"
-                            : "bg-gray-800 text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        {tag.label}
-                      </button>
+                {/* Tipografía Global del Diseño */}
+                <div className="pt-3 border-t border-slate-800 space-y-2">
+                  <label className="text-xs font-semibold text-slate-300">Tipografía Global de Lámina</label>
+                  <select
+                    value={selectedFont}
+                    onChange={(e) => setSelectedFont(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-medium text-white focus:outline-none focus:border-brand-500"
+                  >
+                    {AVAILABLE_FONTS.map((font) => (
+                      <option key={font.name} value={font.name}>
+                        {font.label}
+                      </option>
                     ))}
-                  </div>
-
-                  {/* Grid de fotos curadas */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {filteredPhotos.map((photo) => (
-                      <button
-                        key={photo.id}
-                        type="button"
-                        onClick={() => setSelectedBgUrl(photo.url)}
-                        className={`group relative aspect-video rounded-lg overflow-hidden border transition ${
-                          selectedBgUrl === photo.url
-                            ? "border-brand-500 ring-2 ring-brand-500"
-                            : "border-gray-800 hover:border-gray-600"
-                        }`}
-                      >
-                        <img
-                          src={photo.thumb}
-                          alt={photo.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
-                          <span className="text-[10px] text-white font-medium truncate">
-                            {photo.name}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  </select>
                 </div>
-              )}
 
-              {/* TAB 4: MARCA Y ESTILO */}
-              {activeTab === "brand" && (
-                <div className="space-y-4">
-                  {/* Color de Acento */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">
-                      Color de Acento de Marca
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {BRAND_COLORS.map((c) => (
-                        <button
-                          key={c.hex}
-                          type="button"
-                          onClick={() => setAccentColor(c.hex)}
-                          className={`flex items-center gap-1.5 p-2 rounded-lg border transition ${
-                            accentColor === c.hex
-                              ? "border-brand-500 bg-gray-800"
-                              : "border-gray-800 bg-gray-900/60 hover:bg-gray-800"
-                          }`}
-                        >
-                          <span
-                            className="size-3.5 rounded-full border border-white/20 shrink-0"
-                            style={{ backgroundColor: c.hex }}
-                          ></span>
-                          <span className="text-[11px] text-gray-200 truncate">{c.name.split(" ")[0]}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tipografía */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">
-                      Tipografía Principal
-                    </label>
-                    <select
-                      value={selectedFont}
-                      onChange={(e) => setSelectedFont(e.target.value)}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-white font-medium focus:border-brand-500 focus:outline-hidden"
-                    >
-                      {AVAILABLE_FONTS.map((f) => (
-                        <option key={f.name} value={f.name}>
-                          {f.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Nivel de Transparencia del Fondo Oscuro */}
-                  <div className="p-3 rounded-xl border border-gray-800 bg-gray-900/60 space-y-2.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300 font-semibold uppercase flex items-center gap-1.5">
-                        <span className="size-2 rounded-full" style={{ backgroundColor: accentColor }}></span>
-                        Opacidad Fondo Oscuro
-                      </span>
-                      <span className="text-brand-400 font-mono font-bold">
-                        {Math.round(overlayOpacity * 100)}%
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0.1}
-                      max={0.95}
-                      step={0.05}
-                      value={overlayOpacity}
-                      onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
-                      className="w-full accent-brand-500 cursor-pointer"
-                    />
-
-                    {/* Modo Tarjeta vs Pantalla Completa */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setOverlayMode("card")}
-                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition ${
-                          overlayMode === "card"
-                            ? "border-brand-500 bg-brand-500/20 text-white"
-                            : "border-gray-700 bg-gray-800 text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        Modo Tarjeta
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOverlayMode("fullscreen")}
-                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition ${
-                          overlayMode === "fullscreen"
-                            ? "border-brand-500 bg-brand-500/20 text-white"
-                            : "border-gray-700 bg-gray-800 text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        Pantalla Completa
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Autor y Firma */}
-                  <div className="space-y-2 pt-2 border-t border-gray-800">
-                    <label className="block text-xs font-semibold text-gray-300 uppercase">
-                      Firma de Autor
-                    </label>
+                {/* Firma de Autor */}
+                <div className="pt-3 border-t border-slate-800 space-y-3">
+                  <label className="text-xs font-semibold text-slate-300">Firma de Autor en Láminas</label>
+                  <div className="space-y-2">
                     <input
                       type="text"
                       value={nameText}
-                      onChange={(e) => setNameText(e.target.value)}
-                      placeholder="Nombre del Autor"
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-white"
+                      onChange={(e) => {
+                        setNameText(e.target.value);
+                        updateCurrentSlide({ authorName: e.target.value });
+                      }}
+                      placeholder="Nombre del autor"
+                      className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none"
                     />
                     <input
                       type="text"
                       value={handleText}
-                      onChange={(e) => setHandleText(e.target.value)}
-                      placeholder="@handle"
-                      className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-gray-400"
+                      onChange={(e) => {
+                        setHandleText(e.target.value);
+                        updateCurrentSlide({ authorHandle: e.target.value });
+                      }}
+                      placeholder="@usuario"
+                      className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none"
                     />
                   </div>
                 </div>
-              )}
-            </div>
-          </aside>
+              </div>
+            )}
 
-          {/* ESCENARIO CENTRAL DE VISUALIZACIÓN WYSIWYG */}
-          <main className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-950/80 relative overflow-hidden">
-            
-            {/* BARRA DE HERRAMIENTAS CONTEXTUAL WYSIWYG (SOBRE EL LIENZO) */}
-            <div className="mb-3 w-full max-w-2xl flex flex-wrap items-center justify-between gap-2 px-3.5 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 shadow-xl backdrop-blur-md text-xs">
-              
-              {/* Selector de Modo: Auto-Layout vs Modo Libre */}
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center p-0.5 rounded-lg bg-gray-800 border border-gray-700">
+            {/* PESTAÑA 3: ELEMENTOS */}
+            {activeDockTab === "elements" && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Formas y Elementos</h3>
+                  <p className="text-xs text-slate-400">
+                    Inserta figuras geométricas vectoriales y personaliza su relleno o bordes.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
-                    onClick={() => setIsFreeMode(false)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
-                      !isFreeMode
-                        ? "bg-brand-600 text-white shadow-xs"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                    title="Alineación automática limpia y equilibrada por Flexbox"
+                    onClick={() => handleAddShape("shape_rect")}
+                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
                   >
-                    <LayoutGrid className="size-3" />
-                    <span>Auto-Layout</span>
+                    <Square className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
+                    <span className="text-xs font-semibold text-slate-200">Rectángulo</span>
                   </button>
+
                   <button
                     type="button"
-                    onClick={() => setIsFreeMode(true)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
-                      isFreeMode
-                        ? "bg-indigo-600 text-white shadow-xs"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                    title="Arrastra cualquier elemento libremente con el ratón por la lámina"
+                    onClick={() => handleAddShape("shape_circle")}
+                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
                   >
-                    <Move className="size-3" />
-                    <span>Modo Libre</span>
+                    <Circle className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
+                    <span className="text-xs font-semibold text-slate-200">Círculo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddShape("shape_star")}
+                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                  >
+                    <Star className="size-7 text-amber-400 group-hover:scale-110 transition" />
+                    <span className="text-xs font-semibold text-slate-200">Estrella</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddShape("shape_pill")}
+                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                  >
+                    <div className="w-10 h-4 rounded-full border border-brand-400 bg-brand-500/20" />
+                    <span className="text-xs font-semibold text-slate-200">Píldora</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddShape("shape_line")}
+                    className="col-span-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex items-center justify-center gap-3 group transition"
+                  >
+                    <Minus className="size-5 text-brand-400" />
+                    <span className="text-xs font-semibold text-slate-200">Línea Divisoria</span>
                   </button>
                 </div>
 
-                {/* Botón Restablecer si se movieron elementos, cambiaron tamaños o se ocultaron */}
-                {(Object.keys(currentSlide.offsets || {}).length > 0 ||
-                  Object.keys(currentSlide.scales || {}).length > 0 ||
-                  Object.keys(currentSlide.hiddenElements || {}).length > 0) && (
-                  <button
-                    type="button"
-                    onClick={handleResetSlideCustomizations}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-amber-300 text-[10px] font-semibold border border-amber-500/30 transition"
-                    title="Restablecer posiciones, tamaños y elementos eliminados al estado inicial"
-                  >
-                    <RotateCcw className="size-2.5" />
-                    <span>Restablecer</span>
-                  </button>
-                )}
-
-                {/* Si hay elementos ocultos, botón rápido para restaurarlos */}
-                {Object.keys(currentSlide.hiddenElements || {}).length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleRestoreHiddenElements}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-950/60 hover:bg-red-900/60 text-red-300 text-[10px] font-semibold border border-red-500/30 transition"
-                    title="Restaurar todos los objetos que fueron eliminados"
-                  >
-                    <RotateCcw className="size-2.5 text-red-400" />
-                    <span>Restaurar ({Object.keys(currentSlide.hiddenElements || {}).length})</span>
-                  </button>
-                )}
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+                  💡 <strong className="text-slate-300">Tip Canva:</strong> Haz clic en cualquier forma en el lienzo para ajustar su relleno, grosor de borde, radio de esquinas u opacidad en la barra superior.
+                </div>
               </div>
+            )}
 
-              {/* Indicador de elemento seleccionado */}
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                <span className="font-semibold text-white truncate max-w-[170px]">
-                  {selectedElement === "title" || selectedElement === "bold-title"
-                    ? "Titular Principal"
-                    : selectedElement === "subtitle" || selectedElement === "bold-subtitle"
-                    ? "Subtítulo"
-                    : selectedElement === "tag" || selectedElement === "bold-tag"
-                    ? "Categoría / Tag"
-                    : selectedElement === "metric"
-                    ? "Métrica de Impacto"
-                    : selectedElement === "author-name"
-                    ? "Nombre de Autor"
-                    : selectedElement === "author-handle"
-                    ? "Handle (@)"
-                    : selectedElement?.startsWith("bullet")
-                    ? "Viñeta"
-                    : selectedElement === "cta-keyword"
-                    ? "Palabra Sentinel"
-                    : selectedElement === "background"
-                    ? "Foto de Fondo"
-                    : selectedElement === "brand"
-                    ? "Fondo Oscuro"
-                    : isFreeMode
-                    ? "Arrastra elementos"
-                    : "Haz clic para editar texto"}
-                </span>
-              </div>
+            {/* PESTAÑA 4: FOTOS */}
+            {activeDockTab === "photos" && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Fotografías Curadas</h3>
+                  <p className="text-xs text-slate-400">
+                    Selecciona una fotografía de fondo con estética corporativa de alto impacto.
+                  </p>
+                </div>
 
-              {/* Controles rápidos contextuales */}
-              <div className="flex items-center gap-1.5 ml-auto">
-                {/* Control de tamaño global y eliminación de cualquier objeto seleccionado */}
-                {selectedElement && selectedElement !== "background" && selectedElement !== "brand" && (
-                  <div className="flex items-center gap-1 bg-gray-800/90 px-2 py-0.5 rounded-lg border border-gray-700">
-                    <span className="text-[10px] text-gray-400 font-semibold">Tamaño:</span>
+                {/* Buscador */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={photoSearchQuery}
+                    onChange={(e) => setPhotoSearchQuery(e.target.value)}
+                    placeholder="Buscar fotos corporativas..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none"
+                  />
+                </div>
+
+                {/* Filtros de Categoría */}
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { id: "all", label: "Todas" },
+                    { id: "office", label: "Oficina" },
+                    { id: "meeting", label: "Reunión" },
+                    { id: "founder", label: "Fundador" },
+                    { id: "abstract", label: "Minimal" },
+                  ].map((tag) => (
                     <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => setActivePhotoTag(tag.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${
+                        activePhotoTag === tag.id
+                          ? "bg-brand-600 text-white"
+                          : "bg-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Grid de Fotos */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {filteredPhotos.map((photo) => (
+                    <button
+                      key={photo.id}
                       type="button"
                       onClick={() => {
-                        const cur = currentSlide.scales?.[selectedElement] ?? 1;
-                        const next = Math.max(0.4, Number((cur - 0.1).toFixed(2)));
-                        handleScaleChange(selectedElement, next);
+                        setSelectedBgUrl(photo.url);
+                        updateCurrentSlide({ bgUrl: photo.url });
                       }}
-                      className="size-5 rounded hover:bg-gray-700 text-white font-bold text-xs flex items-center justify-center transition"
-                      title="Achicar tamaño (-10%)"
+                      className={`group relative aspect-[4/3] rounded-xl overflow-hidden border transition ${
+                        selectedBgUrl === photo.url
+                          ? "border-brand-500 ring-2 ring-brand-500/40"
+                          : "border-slate-800 hover:border-slate-600"
+                      }`}
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.name}
+                        crossOrigin="anonymous"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
+                        <span className="text-[10px] font-semibold text-white truncate drop-shadow">
+                          {photo.name}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PESTAÑA 5: FONDOS Y MARCA */}
+            {activeDockTab === "backgrounds" && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Fondos y Marca</h3>
+                  <p className="text-xs text-slate-400">
+                    Ajusta el modo de visualización, la opacidad del fondo y los colores de acento.
+                  </p>
+                </div>
+
+                {/* Modo de Fondo */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Modo de Fondo</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOverlayMode("card")}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition ${
+                        overlayMode === "card"
+                          ? "bg-brand-600 text-white border-brand-500"
+                          : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                      }`}
+                    >
+                      Modo Tarjeta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOverlayMode("fullscreen")}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition ${
+                        overlayMode === "fullscreen"
+                          ? "bg-brand-600 text-white border-brand-500"
+                          : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                      }`}
+                    >
+                      Pantalla Completa
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opacidad del Fondo Oscuro */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-slate-300">Opacidad Fondo Oscuro</span>
+                    <span className="font-mono text-brand-400 font-bold">{Math.round(overlayOpacity * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="0.95"
+                    step="0.05"
+                    value={overlayOpacity}
+                    onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
+                    className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                {/* Zoom de la Foto de Fondo */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-slate-300">Escala Foto de Fondo</span>
+                    <span className="font-mono text-brand-400 font-bold">{Math.round(bgScale * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1.0"
+                    max="2.5"
+                    step="0.05"
+                    value={bgScale}
+                    onChange={(e) => setBgScale(parseFloat(e.target.value))}
+                    className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                {/* Colores de Acento de Marca */}
+                <div className="space-y-2 pt-2 border-t border-slate-800">
+                  <label className="text-xs font-semibold text-slate-300">Color de Acento de Marca</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {BRAND_PRESETS.map((p) => (
+                      <button
+                        key={p.name}
+                        type="button"
+                        onClick={() => setAccentColor(p.color)}
+                        className={`p-2 rounded-xl border flex items-center gap-2 transition ${
+                          accentColor === p.color
+                            ? "border-white bg-slate-800 shadow-sm"
+                            : "border-slate-800 bg-slate-950/60 hover:bg-slate-800"
+                        }`}
+                      >
+                        <span className="size-4 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: p.color }} />
+                        <span className="text-[11px] font-semibold text-slate-200 truncate">{p.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. ESCENARIO CENTRAL DE DISEÑO (ESTILO CANVA) */}
+        <main className="flex-1 flex flex-col bg-[#080c14] overflow-hidden relative min-w-0">
+          
+          {/* BARRA SUPERIOR DE HERRAMIENTAS CONTEXTUALES (CANVA TOOLBAR - 44px) */}
+          <div className="h-11 bg-slate-900/95 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-10 select-none text-xs gap-2">
+            
+            {/* HERRAMIENTAS CONTEXTUALES SEGÚN ELEMENTO SELECCIONADO */}
+            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1">
+              
+              {/* CASO A: ELEMENTO DE TEXTO SELECCIONADO */}
+              {isText && (
+                <>
+                  {/* Selector de Fuente para el elemento */}
+                  <select
+                    value={currentFormat.fontFamily || selectedFont}
+                    onChange={(e) => handleStyleChange(selectedElement!, { fontFamily: e.target.value })}
+                    className="h-7 px-2 bg-slate-800 text-slate-100 rounded-md border border-slate-700 text-xs font-medium focus:outline-none focus:border-brand-500 cursor-pointer max-w-[130px]"
+                  >
+                    {AVAILABLE_FONTS.map((f) => (
+                      <option key={f.name} value={f.name}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Tamaño de Fuente - [size] + */}
+                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => handleStyleChange(selectedElement!, { fontSize: Math.max(8, currentFontSize - 2) })}
+                      className="px-2 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                      title="Achicar texto"
                     >
                       -
                     </button>
-                    <span className="text-[10px] font-mono text-brand-300 font-bold min-w-[32px] text-center">
-                      {Math.round((currentSlide.scales?.[selectedElement] ?? 1) * 100)}%
+                    <span className="w-9 text-center font-mono text-xs font-bold text-white">
+                      {currentFontSize}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleStyleChange(selectedElement!, { fontSize: Math.min(120, currentFontSize + 2) })}
+                      className="px-2 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                      title="Agrandar texto"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Color de Texto (A con barra de color) */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "color" ? null : "color")}
+                      className={`h-7 px-2 rounded-md flex flex-col items-center justify-center transition border ${
+                        activeToolbarPopup === "color"
+                          ? "bg-slate-700 border-brand-500 text-white"
+                          : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                      }`}
+                      title="Color del texto"
+                    >
+                      <span className="font-extrabold text-[11px] leading-none">A</span>
+                      <span
+                        className="h-1 w-3 rounded-full mt-0.5"
+                        style={{ backgroundColor: currentFormat.color || "#ffffff" }}
+                      />
+                    </button>
+
+                    {activeToolbarPopup === "color" && (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56 animate-in fade-in zoom-in-95">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Color de Texto</p>
+                        <div className="grid grid-cols-6 gap-1.5 mb-3">
+                          {["#ffffff", "#cbd5e1", "#94a3b8", "#000000", "#0099ff", "#7058FE", "#6366f1", "#10b981", "#f59e0b", "#ec4899", accentColor].map((c, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => {
+                                handleStyleChange(selectedElement!, { color: c });
+                                setActiveToolbarPopup(null);
+                              }}
+                              className="size-6 rounded-md border border-white/20 shadow-sm transition hover:scale-110"
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
+                          <span className="text-[10px] text-slate-400 font-mono">Hex:</span>
+                          <input
+                            type="text"
+                            value={currentFormat.color || "#ffffff"}
+                            onChange={(e) => handleStyleChange(selectedElement!, { color: e.target.value })}
+                            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-white"
+                          />
+                          <input
+                            type="color"
+                            value={currentFormat.color || "#ffffff"}
+                            onChange={(e) => handleStyleChange(selectedElement!, { color: e.target.value })}
+                            className="size-6 rounded cursor-pointer bg-transparent border-0"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Negrita B */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isBold = currentFormat.fontWeight === "bold";
+                      handleStyleChange(selectedElement!, { fontWeight: isBold ? "normal" : "bold" });
+                    }}
+                    className={`size-7 rounded-md flex items-center justify-center font-bold text-xs border transition ${
+                      currentFormat.fontWeight === "bold"
+                        ? "bg-brand-500/20 border-brand-500 text-brand-400"
+                        : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                    }`}
+                    title="Negrita (Bold)"
+                  >
+                    <Bold className="size-3.5" />
+                  </button>
+
+                  {/* Cursiva I */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isItalic = currentFormat.fontStyle === "italic";
+                      handleStyleChange(selectedElement!, { fontStyle: isItalic ? "normal" : "italic" });
+                    }}
+                    className={`size-7 rounded-md flex items-center justify-center text-xs border transition ${
+                      currentFormat.fontStyle === "italic"
+                        ? "bg-brand-500/20 border-brand-500 text-brand-400"
+                        : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                    }`}
+                    title="Cursiva (Italic)"
+                  >
+                    <Italic className="size-3.5" />
+                  </button>
+
+                  {/* Subrayado U */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isUnder = currentFormat.textDecoration === "underline";
+                      handleStyleChange(selectedElement!, { textDecoration: isUnder ? "none" : "underline" });
+                    }}
+                    className={`size-7 rounded-md flex items-center justify-center text-xs border transition ${
+                      currentFormat.textDecoration === "underline"
+                        ? "bg-brand-500/20 border-brand-500 text-brand-400"
+                        : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                    }`}
+                    title="Subrayado"
+                  >
+                    <Underline className="size-3.5" />
+                  </button>
+
+                  {/* Tachado S */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isStrike = currentFormat.textDecoration === "line-through";
+                      handleStyleChange(selectedElement!, { textDecoration: isStrike ? "none" : "line-through" });
+                    }}
+                    className={`size-7 rounded-md flex items-center justify-center text-xs border transition ${
+                      currentFormat.textDecoration === "line-through"
+                        ? "bg-brand-500/20 border-brand-500 text-brand-400"
+                        : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                    }`}
+                    title="Tachado"
+                  >
+                    <Strikethrough className="size-3.5" />
+                  </button>
+
+                  {/* Mayúsculas aA */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isUpper = currentFormat.textTransform === "uppercase";
+                      handleStyleChange(selectedElement!, { textTransform: isUpper ? "none" : "uppercase" });
+                    }}
+                    className={`h-7 px-1.5 rounded-md flex items-center justify-center text-xs font-semibold border transition ${
+                      currentFormat.textTransform === "uppercase"
+                        ? "bg-brand-500/20 border-brand-500 text-brand-400"
+                        : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                    }`}
+                    title="Alternar Mayúsculas (aA)"
+                  >
+                    aA
+                  </button>
+
+                  {/* Alineación */}
+                  <div className="flex items-center bg-slate-800 rounded-md border border-slate-700 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleStyleChange(selectedElement!, { textAlign: "left" })}
+                      className={`size-6 rounded flex items-center justify-center transition ${
+                        currentFormat.textAlign === "left" || !currentFormat.textAlign
+                          ? "bg-slate-700 text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Alinear izquierda"
+                    >
+                      <AlignLeft className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStyleChange(selectedElement!, { textAlign: "center" })}
+                      className={`size-6 rounded flex items-center justify-center transition ${
+                        currentFormat.textAlign === "center"
+                          ? "bg-slate-700 text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Centrar"
+                    >
+                      <AlignCenter className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStyleChange(selectedElement!, { textAlign: "right" })}
+                      className={`size-6 rounded flex items-center justify-center transition ${
+                        currentFormat.textAlign === "right"
+                          ? "bg-slate-700 text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Alinear derecha"
+                    >
+                      <AlignRight className="size-3" />
+                    </button>
+                  </div>
+
+                  {/* Interlineado y Espaciado Popover */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "spacing" ? null : "spacing")}
+                      className={`size-7 rounded-md flex items-center justify-center border transition ${
+                        activeToolbarPopup === "spacing"
+                          ? "bg-slate-700 border-brand-500 text-white"
+                          : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                      }`}
+                      title="Espaciado e Interlineado"
+                    >
+                      <SlidersHorizontal className="size-3.5" />
+                    </button>
+
+                    {activeToolbarPopup === "spacing" && (
+                      <div className="absolute top-9 left-0 z-50 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-60 animate-in fade-in zoom-in-95 space-y-3">
+                        <div>
+                          <div className="flex justify-between text-[11px] font-semibold text-slate-300 mb-1">
+                            <span>Interlineado</span>
+                            <span className="font-mono text-brand-400">
+                              {(currentFormat.lineHeight ?? 1.2).toFixed(2)}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0.8"
+                            max="2.5"
+                            step="0.05"
+                            value={currentFormat.lineHeight ?? 1.2}
+                            onChange={(e) => handleStyleChange(selectedElement!, { lineHeight: parseFloat(e.target.value) })}
+                            className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[11px] font-semibold text-slate-300 mb-1">
+                            <span>Interletrado</span>
+                            <span className="font-mono text-brand-400">
+                              {currentFormat.letterSpacing ?? 0}px
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="-2"
+                            max="12"
+                            step="0.5"
+                            value={currentFormat.letterSpacing ?? 0}
+                            onChange={(e) => handleStyleChange(selectedElement!, { letterSpacing: parseFloat(e.target.value) })}
+                            className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="h-4 w-px bg-slate-700 mx-1" />
+
+                  {/* Duplicar y Eliminar */}
+                  <button
+                    type="button"
+                    onClick={() => handleDuplicateElement(selectedElement!)}
+                    className="size-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"
+                    title="Duplicar texto"
+                  >
+                    <Copy className="size-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteElement(selectedElement!)}
+                    className="size-7 rounded-md bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-400 hover:text-red-400 flex items-center justify-center transition"
+                    title="Eliminar texto"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </>
+              )}
+
+              {/* CASO B: FORMA GEOMÉTRICA SELECCIONADA */}
+              {isShape && (
+                <>
+                  {/* Relleno */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_fill" ? null : "shape_fill")}
+                      className="h-7 px-2 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-1.5 text-xs text-slate-200 hover:text-white"
+                      title="Color de relleno"
+                    >
+                      <div
+                        className="size-3.5 rounded border border-white/20"
+                        style={{ backgroundColor: customElem?.bgColor || "rgba(255, 255, 255, 0.2)" }}
+                      />
+                      <span>Relleno</span>
+                    </button>
+                    {activeToolbarPopup === "shape_fill" && (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Color de Relleno</p>
+                        <div className="grid grid-cols-6 gap-1.5 mb-2">
+                          {["rgba(255, 255, 255, 0.12)", "#0099ff", "#7058FE", "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#ffffff", "#000000", "transparent", accentColor].map((c, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, { bgColor: c });
+                                handleStyleChange(selectedElement!, { bgColor: c });
+                                setActiveToolbarPopup(null);
+                              }}
+                              className="size-6 rounded-md border border-white/20 shadow-sm"
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Borde */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveToolbarPopup(activeToolbarPopup === "shape_border" ? null : "shape_border")}
+                      className="h-7 px-2 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-1.5 text-xs text-slate-200 hover:text-white"
+                      title="Color de borde"
+                    >
+                      <div
+                        className="size-3.5 rounded border-2"
+                        style={{ borderColor: customElem?.borderColor || accentColor }}
+                      />
+                      <span>Borde</span>
+                    </button>
+                    {activeToolbarPopup === "shape_border" && (
+                      <div className="absolute top-9 left-0 z-50 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-56">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Color de Borde</p>
+                        <div className="grid grid-cols-6 gap-1.5 mb-2">
+                          {["transparent", "#ffffff", "#0099ff", "#7058FE", "#6366f1", "#10b981", "#f59e0b", "#ec4899", accentColor].map((c, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCustomElement(selectedElement!, { borderColor: c });
+                                handleStyleChange(selectedElement!, { borderColor: c });
+                                setActiveToolbarPopup(null);
+                              }}
+                              className="size-6 rounded-md border border-white/20 shadow-sm"
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Grosor de borde */}
+                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Borde:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = customElem?.borderWidth ?? 2;
+                        const next = Math.max(0, cur - 1);
+                        handleUpdateCustomElement(selectedElement!, { borderWidth: next });
+                        handleStyleChange(selectedElement!, { borderWidth: next });
+                      }}
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="w-7 text-center font-mono text-xs font-bold text-white">
+                      {customElem?.borderWidth ?? 2}px
                     </span>
                     <button
                       type="button"
                       onClick={() => {
-                        const cur = currentSlide.scales?.[selectedElement] ?? 1;
-                        const next = Math.min(2.5, Number((cur + 0.1).toFixed(2)));
-                        handleScaleChange(selectedElement, next);
+                        const cur = customElem?.borderWidth ?? 2;
+                        const next = Math.min(20, cur + 1);
+                        handleUpdateCustomElement(selectedElement!, { borderWidth: next });
+                        handleStyleChange(selectedElement!, { borderWidth: next });
                       }}
-                      className="size-5 rounded hover:bg-gray-700 text-white font-bold text-xs flex items-center justify-center transition"
-                      title="Agrandar tamaño (+10%)"
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
                     >
                       +
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleDuplicateElement(selectedElement)}
-                      className="size-5 rounded hover:bg-white/20 text-gray-400 hover:text-white flex items-center justify-center transition ml-1 pl-1 border-l border-gray-700"
-                      title="Duplicar este objeto (Estilo Canva)"
-                    >
-                      <Copy className="size-3" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteElement(selectedElement)}
-                      className="size-5 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex items-center justify-center transition ml-1 pl-1 border-l border-gray-700"
-                      title="Eliminar este objeto de la lámina"
-                    >
-                      <Trash2 className="size-3" />
-                    </button>
                   </div>
-                )}
 
-                {(selectedElement === "title" || selectedElement === "bold-title") && (
-                  <div className="flex items-center gap-1 bg-gray-800/90 px-1.5 py-0.5 rounded-lg border border-gray-700">
-                    <span className="text-[10px] text-gray-400 font-semibold">Preset:</span>
-                    {(["sm", "md", "lg", "xl"] as const).map((s) => (
+                  {/* Radio de esquinas */}
+                  {(customElem?.type === "shape_rect" || customElem?.type === "shape_pill") && (
+                    <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                      <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Radio:</span>
                       <button
-                        key={s}
                         type="button"
-                        onClick={() => setTitleSize(s)}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition ${
-                          titleSize === s
-                            ? "bg-brand-500 text-white"
-                            : "text-gray-400 hover:text-white"
-                        }`}
+                        onClick={() => {
+                          const cur = customElem?.borderRadius ?? 16;
+                          const next = Math.max(0, cur - 4);
+                          handleUpdateCustomElement(selectedElement!, { borderRadius: next });
+                          handleStyleChange(selectedElement!, { borderRadius: next });
+                        }}
+                        className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
                       >
-                        {s}
+                        -
                       </button>
-                    ))}
+                      <span className="w-7 text-center font-mono text-xs font-bold text-white">
+                        {customElem?.borderRadius ?? 16}px
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = customElem?.borderRadius ?? 16;
+                          const next = Math.min(60, cur + 4);
+                          handleUpdateCustomElement(selectedElement!, { borderRadius: next });
+                          handleStyleChange(selectedElement!, { borderRadius: next });
+                        }}
+                        className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+
+                  <span className="h-4 w-px bg-slate-700 mx-1" />
+
+                  {/* Duplicar y Eliminar Forma */}
+                  <button
+                    type="button"
+                    onClick={() => handleDuplicateElement(selectedElement!)}
+                    className="size-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"
+                    title="Duplicar forma"
+                  >
+                    <Copy className="size-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteElement(selectedElement!)}
+                    className="size-7 rounded-md bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-400 hover:text-red-400 flex items-center justify-center transition"
+                    title="Eliminar forma"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </>
+              )}
+
+              {/* CASO C: FONDO O NADA SELECCIONADO */}
+              {!isText && !isShape && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedElement("background");
+                      setActiveDockTab("photos");
+                      setIsDrawerOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+                  >
+                    <ImageIcon className="size-3 text-brand-400" />
+                    <span>Cambiar Foto</span>
+                  </button>
+
+                  {/* Zoom Foto de Fondo */}
+                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Zoom Foto:</span>
+                    <button
+                      type="button"
+                      onClick={() => setBgScale(Math.max(1.0, Number((bgScale - 0.1).toFixed(2))))}
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center font-mono text-xs font-bold text-white">
+                      {Math.round(bgScale * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setBgScale(Math.min(2.5, Number((bgScale + 0.1).toFixed(2))))}
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      +
+                    </button>
                   </div>
-                )}
 
+                  {/* Opacidad Fondo Oscuro */}
+                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Opacidad:</span>
+                    <button
+                      type="button"
+                      onClick={() => setOverlayOpacity(Math.max(0.2, Number((overlayOpacity - 0.05).toFixed(2))))}
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center font-mono text-xs font-bold text-white">
+                      {Math.round(overlayOpacity * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOverlayOpacity(Math.min(0.95, Number((overlayOpacity + 0.05).toFixed(2))))}
+                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Restaurar elementos si hay alguno oculto */}
+                  {Object.keys(currentSlide.hiddenElements || {}).length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleRestoreHiddenElements}
+                      className="flex items-center gap-1 px-2 h-7 rounded-md bg-red-950/60 hover:bg-red-900/60 text-red-300 text-[10px] font-semibold border border-red-500/30 transition"
+                      title="Restaurar objetos eliminados"
+                    >
+                      <RotateCcw className="size-2.5 text-red-400" />
+                      <span>Restaurar ({Object.keys(currentSlide.hiddenElements || {}).length})</span>
+                    </button>
+                  )}
+
+                  {/* Restablecer si hay modificaciones */}
+                  {(Object.keys(currentSlide.offsets || {}).length > 0 ||
+                    Object.keys(currentSlide.scales || {}).length > 0 ||
+                    Object.keys(currentSlide.hiddenElements || {}).length > 0) && (
+                    <button
+                      type="button"
+                      onClick={handleResetSlideCustomizations}
+                      className="flex items-center gap-1 px-2 h-7 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 text-[10px] font-semibold border border-amber-500/30 transition"
+                      title="Restablecer posición inicial"
+                    >
+                      <RotateCcw className="size-2.5" />
+                      <span>Restablecer</span>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Selector de Modo: Auto-Layout vs Modo Libre */}
+            <div className="flex items-center gap-1 shrink-0 ml-auto">
+              <div className="flex items-center p-0.5 rounded-lg bg-slate-800 border border-slate-700">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedElement("background");
-                    setActiveTab("backgrounds");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[11px] font-medium border border-gray-700 transition"
-                  title="Cambiar fotografía de fondo"
+                  onClick={() => setIsFreeMode(false)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition ${
+                    !isFreeMode
+                      ? "bg-brand-600 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Alineación automática limpia y equilibrada por Flexbox"
                 >
-                  <ImageIcon className="size-3 text-brand-400" />
-                  <span>Foto</span>
+                  <LayoutGrid className="size-3" />
+                  <span>Auto-Layout</span>
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedElement("brand");
-                    setActiveTab("brand");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[11px] font-medium border border-gray-700 transition"
-                  title="Ajustar opacidad y estilo del fondo oscuro"
+                  onClick={() => setIsFreeMode(true)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition ${
+                    isFreeMode
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Arrastra cualquier elemento libremente con el ratón por la lámina"
                 >
-                  <Sliders className="size-3 text-indigo-400" />
-                  <span>{Math.round(overlayOpacity * 100)}%</span>
+                  <Move className="size-3" />
+                  <span>Modo Libre</span>
                 </button>
               </div>
             </div>
+          </div>
 
+          {/* VIEWPORT DEL LIENZO CON ZOOM Y CENTRADO VISUAL (ZERO WINDOW SCROLL) */}
+          <div className="flex-1 flex items-center justify-center overflow-hidden p-2 relative bg-[#080c14]">
+            <div
+              style={{
+                transform: `scale(${canvasZoom})`,
+                transformOrigin: "center center",
+                transition: "transform 0.12s ease-out",
+              }}
+              className="shrink-0"
+            >
             {/* CONTENEDOR DEL LIENZO MAQUETADO CON TAILWIND (EXPORTABLE 1:1 / 4:5) */}
             <div
               className={`relative shadow-2xl rounded-2xl border border-gray-800 bg-gray-950 overflow-hidden ring-1 ring-white/10 shrink-0 transition-all duration-300 ${
@@ -2337,6 +2770,7 @@ export default function VisualEditorModal({
                   onScaleChange: handleScaleChange,
                   onDeleteElement: handleDeleteElement,
                   onDuplicateElement: handleDuplicateElement,
+                  onStyleChange: handleStyleChange,
                 }}
               >
                 {/* Elemento DOM exacto que se captura con html-to-image */}
@@ -3696,6 +4130,22 @@ export default function VisualEditorModal({
                         </h2>
                       )}
 
+                      {elem.type === "subheading" && (
+                        <h3 className="text-lg font-bold text-slate-200 tracking-tight leading-snug select-text drop-shadow-sm max-w-[340px]">
+                          <InlineEditableText
+                            elementKey={elem.id}
+                            as="span"
+                            value={elem.content}
+                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            multiline={true}
+                            placeholder="Escribe subtítulo..."
+                          />
+                        </h3>
+                      )}
+
                       {elem.type === "text" && (
                         <p className="text-sm text-slate-200 leading-relaxed font-normal select-text drop-shadow-sm max-w-[320px]">
                           <InlineEditableText
@@ -3710,6 +4160,98 @@ export default function VisualEditorModal({
                             placeholder="Escribe texto..."
                           />
                         </p>
+                      )}
+
+                      {elem.type === "shape_rect" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 140}px`,
+                            height: `${elem.height || 90}px`,
+                            backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.12)",
+                            borderColor: elem.borderColor || accentColor,
+                            borderWidth: `${elem.borderWidth ?? 2}px`,
+                            borderStyle: "solid",
+                            borderRadius: `${elem.borderRadius ?? 16}px`,
+                            opacity: elem.opacity ?? 1,
+                          }}
+                          className="backdrop-blur-sm shadow-xl transition-all cursor-pointer"
+                          onClick={() => setSelectedElement(elem.id)}
+                        />
+                      )}
+
+                      {elem.type === "shape_circle" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 90}px`,
+                            height: `${elem.height || 90}px`,
+                            backgroundColor: elem.bgColor || accentColor,
+                            borderColor: elem.borderColor || "rgba(255, 255, 255, 0.3)",
+                            borderWidth: `${elem.borderWidth ?? 0}px`,
+                            borderStyle: "solid",
+                            borderRadius: "9999px",
+                            opacity: elem.opacity ?? 0.9,
+                          }}
+                          className="shadow-xl transition-all cursor-pointer"
+                          onClick={() => setSelectedElement(elem.id)}
+                        />
+                      )}
+
+                      {elem.type === "shape_star" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 64}px`,
+                            height: `${elem.height || 64}px`,
+                            opacity: elem.opacity ?? 1,
+                          }}
+                          className="flex items-center justify-center transition-all cursor-pointer"
+                          onClick={() => setSelectedElement(elem.id)}
+                        >
+                          <Star
+                            style={{
+                              color: elem.bgColor || "#f59e0b",
+                              fill: elem.bgColor || "#f59e0b",
+                            }}
+                            className="size-full drop-shadow-lg"
+                          />
+                        </div>
+                      )}
+
+                      {elem.type === "shape_pill" && (
+                        <div
+                          style={{
+                            backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.15)",
+                            borderColor: elem.borderColor || accentColor,
+                            borderWidth: `${elem.borderWidth ?? 1}px`,
+                            borderStyle: "solid",
+                            borderRadius: "9999px",
+                            opacity: elem.opacity ?? 1,
+                          }}
+                          className="px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer"
+                        >
+                          <InlineEditableText
+                            elementKey={elem.id}
+                            as="span"
+                            value={elem.content}
+                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
+                            selectedElement={selectedElement}
+                            onSelect={setSelectedElement}
+                            isExporting={isExporting}
+                            placeholder="PÍLDORA B2B"
+                          />
+                        </div>
+                      )}
+
+                      {elem.type === "shape_line" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 220}px`,
+                            height: `${elem.borderWidth ?? elem.height ?? 3}px`,
+                            backgroundColor: elem.bgColor || accentColor,
+                            opacity: elem.opacity ?? 0.8,
+                          }}
+                          className="rounded-full shadow-sm transition-all cursor-pointer"
+                          onClick={() => setSelectedElement(elem.id)}
+                        />
                       )}
 
                       {elem.type === "highlight" && (
@@ -3775,32 +4317,34 @@ export default function VisualEditorModal({
               </div>
               </SlideCanvasContext.Provider>
             </div>
+          </div>
+        </div>
 
-            {/* BARRA INFERIOR DE NAVEGACIÓN Y CARRUSEL MULTIDIAPOSITIVA */}
-            {editorMode === "carousel" && (
-              <div className="w-full max-w-2xl mt-4 px-4 py-2.5 rounded-xl border border-gray-800 bg-gray-900/80 backdrop-blur-md flex items-center gap-3 overflow-x-auto custom-scrollbar z-20">
-                <span className="text-[11px] font-bold uppercase text-gray-400 shrink-0 flex items-center gap-1.5">
+        {/* BARRA INFERIOR DE PÁGINAS Y ZOOM (CANVA STRIP - 48px) */}
+        <footer className="h-12 bg-slate-900 border-t border-slate-800 px-4 flex items-center justify-between shrink-0 select-none z-20 text-xs">
+          {/* Lado izquierdo: Pestañas de láminas (carrusel) */}
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1">
+            {editorMode === "carousel" ? (
+              <>
+                <span className="text-[11px] font-bold uppercase text-slate-400 shrink-0 flex items-center gap-1 mr-1">
                   <Layers className="size-3.5 text-brand-400" />
                   Láminas:
                 </span>
-
                 {slides.map((s, idx) => (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => setCurrentSlideIndex(idx)}
-                    className={`group relative flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition shrink-0 ${
+                    className={`group relative flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium transition shrink-0 ${
                       currentSlideIndex === idx
-                        ? "border-brand-500 bg-brand-500/20 text-white"
-                        : "border-gray-800 bg-gray-950/60 text-gray-400 hover:text-white hover:bg-gray-800"
+                        ? "border-brand-500 bg-brand-500/20 text-white font-bold"
+                        : "border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800"
                     }`}
                   >
-                    <span className="size-4 rounded-full bg-gray-800 text-[10px] font-bold flex items-center justify-center">
+                    <span className="size-4 rounded-full bg-slate-800 text-[10px] font-bold flex items-center justify-center">
                       {idx + 1}
                     </span>
-                    <span className="truncate max-w-[90px]">{s.label}</span>
-
-                    {/* Acciones rápidas en miniatura */}
+                    <span className="truncate max-w-[80px]">{s.label}</span>
                     {slides.length > 1 && (
                       <span
                         onClick={(e) => handleDeleteSlide(idx, e)}
@@ -3812,20 +4356,68 @@ export default function VisualEditorModal({
                     )}
                   </button>
                 ))}
-
                 <button
                   type="button"
                   onClick={handleAddSlide}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-dashed border-gray-700 bg-gray-800/40 hover:bg-gray-800 text-gray-300 hover:text-white text-xs font-semibold shrink-0 transition"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-slate-700 bg-slate-800/40 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold shrink-0 transition"
                 >
-                  <Plus className="size-3.5 text-brand-400" />
+                  <Plus className="size-3 text-brand-400" />
                   <span>Añadir</span>
                 </button>
-              </div>
+              </>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium">
+                Publicación con Imagen Única (Feed de LinkedIn)
+              </span>
             )}
-          </main>
-        </div>
-      </div>
+          </div>
+
+          {/* Lado derecho: Control de Zoom Estilo Canva */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
+            <button
+              type="button"
+              onClick={() => setCanvasZoom(Math.max(0.4, Number((canvasZoom - 0.05).toFixed(2))))}
+              className="size-7 rounded hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+              title="Reducir zoom"
+            >
+              <ZoomOut className="size-3.5" />
+            </button>
+
+            <input
+              type="range"
+              min="0.4"
+              max="1.6"
+              step="0.05"
+              value={canvasZoom}
+              onChange={(e) => setCanvasZoom(parseFloat(e.target.value))}
+              className="w-24 accent-brand-500 h-1 bg-slate-700 rounded cursor-pointer"
+            />
+
+            <button
+              type="button"
+              onClick={() => setCanvasZoom(Math.min(1.6, Number((canvasZoom + 0.05).toFixed(2))))}
+              className="size-7 rounded hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+              title="Aumentar zoom"
+            >
+              <ZoomIn className="size-3.5" />
+            </button>
+
+            <span className="font-mono text-xs text-brand-400 font-bold min-w-[36px] text-center">
+              {Math.round(canvasZoom * 100)}%
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setCanvasZoom(aspectRatio === "4:5" ? 0.82 : 0.88)}
+              className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-[11px] font-semibold border border-slate-700 transition"
+              title="Ajustar tamaño a la pantalla"
+            >
+              Ajustar
+            </button>
+          </div>
+        </footer>
+      </main>
     </div>
+  </div>
   );
 }
