@@ -55,12 +55,15 @@ import {
   Sun,
   BookmarkPlus,
   Bookmark,
+  Wand2,
+  Loader2,
   Pencil,
   FolderPlus,
   AlertCircle
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useVisualTemplates, type CustomVisualTemplate } from "@/lib/viral-posts/visual-templates-store";
+import { removeImageBackground } from "@/lib/viral-posts/bg-remover";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
@@ -286,6 +289,60 @@ export interface UnsplashPhotoItem {
   thumb: string;
   url: string;
 }
+
+
+export interface CutoutPresetItem {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+  defaultWidth?: number;
+  defaultHeight?: number;
+}
+
+// Catálogo curado de sujetos y personajes sin fondo (PNG transparente listos para Canva)
+export const CUTOUT_PRESETS: CutoutPresetItem[] = [
+  {
+    id: "cutout-vr-girl",
+    name: "Innovación VR & Tech",
+    category: "Tech",
+    url: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvczkzLXBtLTA2OC10ZWNoLTAwMi5wbmc.png",
+    defaultWidth: 220,
+    defaultHeight: 250,
+  },
+  {
+    id: "cutout-exec-laptop",
+    name: "Ejecutivo B2B Laptop",
+    category: "Negocios",
+    url: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvczkzLXBtLTA2OC10ZWNoLTAwMS5wbmc.png",
+    defaultWidth: 210,
+    defaultHeight: 250,
+  },
+  {
+    id: "cutout-leader-point",
+    name: "Líder Señalando Arriba",
+    category: "Liderazgo",
+    url: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvczkzLXBtLTA2OC10ZWNoLTAwMy5wbmc.png",
+    defaultWidth: 200,
+    defaultHeight: 260,
+  },
+  {
+    id: "cutout-target-3d",
+    name: "Diana 3D Resultados",
+    category: "3D",
+    url: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvczkzLXBtLTA2OC10ZWNoLTAwNC5wbmc.png",
+    defaultWidth: 160,
+    defaultHeight: 160,
+  },
+  {
+    id: "cutout-rocket-3d",
+    name: "Cohete 3D Escala",
+    category: "3D",
+    url: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvczkzLXBtLTA2OC10ZWNoLTAwNS5wbmc.png",
+    defaultWidth: 170,
+    defaultHeight: 170,
+  },
+];
 
 // Catálogo curado de fondos de alta resolución
 const CURATED_BACKGROUNDS: UnsplashPhotoItem[] = [
@@ -1079,6 +1136,162 @@ export default function VisualEditorModal({
   // Estados de Búsqueda y Filtros de Plantillas (Estilo Canva)
   const [templateSearchQuery, setTemplateSearchQuery] = useState("");
   const [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>("all");
+
+  // Estados del Motor Magic BG Remover (Quitar Fondo con IA)
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [bgRemoverProgress, setBgRemoverProgress] = useState<{ message: string; percent: number } | null>(null);
+  const [bgRemoverTargetId, setBgRemoverTargetId] = useState<string | null>(null);
+
+  // Remueve el fondo de un elemento de imagen en el lienzo
+  const handleRemoveBackgroundFromElement = async (elementId: string) => {
+    const elem = currentSlide.customElements?.find((e) => e.id === elementId);
+    if (!elem || (elem.type !== "image" && elem.type !== "video") || !elem.content) return;
+
+    setIsRemovingBg(true);
+    setBgRemoverTargetId(elementId);
+    setBgRemoverProgress({ message: "Iniciando motor de segmentación...", percent: 15 });
+
+    try {
+      const cutoutDataUrl = await removeImageBackground(elem.content, (prog) => {
+        setBgRemoverProgress({ message: prog.message, percent: prog.percent });
+      });
+
+      handleUpdateCustomElement(elementId, {
+        content: cutoutDataUrl,
+        bgColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 0,
+      });
+
+      setExportFeedback("¡Fondo removido con éxito! Sujeto recortado en PNG transparente.");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } catch (err: any) {
+      console.error("Error al quitar fondo:", err);
+      setExportFeedback("No se pudo remover el fondo de esta foto.");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } finally {
+      setIsRemovingBg(false);
+      setBgRemoverTargetId(null);
+      setBgRemoverProgress(null);
+    }
+  };
+
+  // Inserta una foto directamente como sujeto recortado en el lienzo
+  const handleInsertPhotoAsCutout = async (photoUrl: string) => {
+    setIsRemovingBg(true);
+    setBgRemoverTargetId("new");
+    setBgRemoverProgress({ message: "Procesando sujeto con IA...", percent: 20 });
+
+    try {
+      const cutoutDataUrl = await removeImageBackground(photoUrl, (prog) => {
+        setBgRemoverProgress({ message: prog.message, percent: prog.percent });
+      });
+
+      setIsFreeMode(true);
+      const newId = `elem-${Date.now()}`;
+      const cutoutElem: CustomCanvasElement = {
+        id: newId,
+        type: "image",
+        content: cutoutDataUrl,
+        x: 60,
+        y: 100,
+        width: 220,
+        height: 240,
+        scale: 1,
+        bgColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 0,
+        opacity: 1,
+      };
+
+      setSlides((prev) => {
+        const next = [...prev];
+        const cur = next[currentSlideIndex];
+        next[currentSlideIndex] = {
+          ...cur,
+          customElements: [...(cur.customElements || []), cutoutElem],
+        };
+        return next;
+      });
+
+      setSelectedElement(newId);
+      setExportFeedback("¡Sujeto recortado insertado en el lienzo!");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } catch (err: any) {
+      console.error("Error al recortar e insertar:", err);
+      setExportFeedback("Error al procesar el recorte de la foto");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } finally {
+      setIsRemovingBg(false);
+      setBgRemoverTargetId(null);
+      setBgRemoverProgress(null);
+    }
+  };
+
+  // Remueve el fondo de un item de la galería de Uploads
+  const handleRemoveBackgroundFromUploadItem = async (item: { id: string; name: string; url: string }) => {
+    setIsRemovingBg(true);
+    setBgRemoverTargetId(item.id);
+    setBgRemoverProgress({ message: "Recortando imagen subida...", percent: 20 });
+
+    try {
+      const cutoutDataUrl = await removeImageBackground(item.url, (prog) => {
+        setBgRemoverProgress({ message: prog.message, percent: prog.percent });
+      });
+
+      const newCutoutId = `cutout-${Date.now()}`;
+      const newUploadItem = {
+        id: newCutoutId,
+        name: `[Sin Fondo] ${item.name}`,
+        type: "image" as const,
+        url: cutoutDataUrl,
+        format: "PNG",
+        uploadedAt: Date.now(),
+      };
+
+      setUploadedMedia((prev) => [newUploadItem, ...prev]);
+
+      // También lo insertamos en el lienzo de trabajo
+      setIsFreeMode(true);
+      const newElemId = `elem-${Date.now()}`;
+      const cutoutElem: CustomCanvasElement = {
+        id: newElemId,
+        type: "image",
+        content: cutoutDataUrl,
+        x: 60,
+        y: 100,
+        width: 220,
+        height: 240,
+        scale: 1,
+        bgColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 0,
+        opacity: 1,
+      };
+
+      setSlides((prev) => {
+        const next = [...prev];
+        const cur = next[currentSlideIndex];
+        next[currentSlideIndex] = {
+          ...cur,
+          customElements: [...(cur.customElements || []), cutoutElem],
+        };
+        return next;
+      });
+
+      setSelectedElement(newElemId);
+      setExportFeedback("¡Foto recortada y agregada a tus archivos!");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } catch (err: any) {
+      console.error("Error al recortar item:", err);
+      setExportFeedback("Error al remover el fondo del archivo");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } finally {
+      setIsRemovingBg(false);
+      setBgRemoverTargetId(null);
+      setBgRemoverProgress(null);
+    }
+  };
 
   // Handlers de Guardado, Edición y Eliminación de Templates
   const handleOpenSaveModal = () => {
@@ -2163,8 +2376,13 @@ export default function VisualEditorModal({
       customElem.type === "shape_pill" ||
       customElem.type === "shape_line")
   );
+  const isImage = Boolean(
+    customElem &&
+    (customElem.type === "image" || customElem.type === "video")
+  );
   const isText = Boolean(
     !isShape &&
+    !isImage &&
     selectedElement &&
     selectedElement !== "background" &&
     selectedElement !== "brand" &&
@@ -3390,17 +3608,32 @@ export default function VisualEditorModal({
                             </span>
                             <div className="flex items-center gap-1">
                               {item.type === "image" && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedBgUrl(item.url);
-                                  }}
-                                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white transition font-bold text-[9px]"
-                                  title="Establecer como fondo de la lámina"
-                                >
-                                  Fondo
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedBgUrl(item.url);
+                                    }}
+                                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white transition font-bold text-[9px]"
+                                    title="Establecer como fondo de la lámina"
+                                  >
+                                    Fondo
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isRemovingBg}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveBackgroundFromUploadItem(item);
+                                    }}
+                                    className="px-1.5 py-0.5 rounded bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white transition font-bold text-[9px] flex items-center gap-0.5"
+                                    title="Remover fondo con IA y dejar solo el sujeto"
+                                  >
+                                    <Wand2 className="size-2.5 text-amber-300" />
+                                    <span>Sin Fondo</span>
+                                  </button>
+                                </>
                               )}
                               <button
                                 type="button"
