@@ -1355,9 +1355,9 @@ export default function VisualEditorModal({
         width: 140,
         height: 90,
         scale: 1,
-        bgColor: "rgba(255, 255, 255, 0.12)",
-        borderColor: accentColor,
-        borderWidth: 2,
+        bgColor: "#ffffff",
+        borderColor: "transparent",
+        borderWidth: 0,
         borderRadius: 16,
         opacity: 1,
       };
@@ -1370,11 +1370,11 @@ export default function VisualEditorModal({
         width: 90,
         height: 90,
         scale: 1,
-        bgColor: accentColor,
-        borderColor: "rgba(255, 255, 255, 0.3)",
+        bgColor: "#ffffff",
+        borderColor: "transparent",
         borderWidth: 0,
         borderRadius: 9999,
-        opacity: 0.9,
+        opacity: 1,
       };
     } else if (shapeType === "shape_star") {
       newShape = {
@@ -1385,7 +1385,7 @@ export default function VisualEditorModal({
         width: 64,
         height: 64,
         scale: 1,
-        bgColor: "#f59e0b",
+        bgColor: "#ffffff",
         borderColor: "transparent",
         borderWidth: 0,
         opacity: 1,
@@ -1400,9 +1400,10 @@ export default function VisualEditorModal({
         width: 150,
         height: 38,
         scale: 1,
-        bgColor: "rgba(255, 255, 255, 0.15)",
-        borderColor: accentColor,
-        borderWidth: 1,
+        bgColor: "#ffffff",
+        color: "#0f172a",
+        borderColor: "transparent",
+        borderWidth: 0,
         borderRadius: 9999,
         opacity: 1,
       };
@@ -1415,22 +1416,23 @@ export default function VisualEditorModal({
         width: 220,
         height: 3,
         scale: 1,
-        bgColor: accentColor,
+        bgColor: "#ffffff",
         borderWidth: 3,
-        opacity: 0.8,
+        opacity: 1,
       };
     }
 
     setSlides((prev) => {
       const next = [...prev];
       const cur = next[currentSlideIndex];
-      const curList = cur.customElements || [];
+      const currentList = cur.customElements || [];
       next[currentSlideIndex] = {
         ...cur,
-        customElements: [...curList, newShape],
+        customElements: [...currentList, newShape],
       };
       return next;
     });
+
     setSelectedElement(newId);
   };
 
@@ -2480,24 +2482,84 @@ export default function VisualEditorModal({
                   <button
                     type="button"
                     onClick={() => handleAddShape("shape_pill")}
-                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex flex-col items-center justify-center gap-2 group transition"
                   >
-                    <div className="w-10 h-4 rounded-full border border-brand-400 bg-brand-500/20" />
+                    <div className="w-10 h-4 rounded-full bg-white shadow-sm" />
                     <span className="text-xs font-semibold text-slate-200">Píldora</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleAddShape("shape_line")}
-                    className="col-span-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex items-center justify-center gap-3 group transition"
+                    className="col-span-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center justify-center gap-3 group transition"
                   >
-                    <Minus className="size-5 text-brand-400" />
+                    <Minus className="size-5 text-white" />
                     <span className="text-xs font-semibold text-slate-200">Línea Divisoria</span>
                   </button>
                 </div>
 
+                {/* Estilos Rápidos de Formas */}
+                <div className="pt-2 border-t border-slate-800 space-y-2">
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Acabados Rápidos</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAddShape("shape_rect")}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center gap-2 transition text-left"
+                      title="Insertar rectángulo blanco sólido (opacidad 100%)"
+                    >
+                      <div className="size-5 rounded-md bg-white border border-white/40 shadow-xs shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-white block leading-tight">Blanco Sólido</span>
+                        <span className="text-[10px] text-slate-400">100% Opaco</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFreeMode(true);
+                        const newId = `elem-${Date.now()}`;
+                        const glassShape: CustomCanvasElement = {
+                          id: newId,
+                          type: "shape_rect",
+                          x: 50,
+                          y: 150,
+                          width: 140,
+                          height: 90,
+                          scale: 1,
+                          bgColor: "rgba(255, 255, 255, 0.15)",
+                          borderColor: "rgba(255, 255, 255, 0.35)",
+                          borderWidth: 1,
+                          borderStyle: "solid",
+                          borderRadius: 16,
+                          opacity: 1,
+                        };
+                        setSlides((prev) => {
+                          const next = [...prev];
+                          const cur = next[currentSlideIndex];
+                          next[currentSlideIndex] = {
+                            ...cur,
+                            customElements: [...(cur.customElements || []), glassShape],
+                          };
+                          return next;
+                        });
+                        setSelectedElement(newId);
+                      }}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex items-center gap-2 transition text-left"
+                      title="Insertar rectángulo con efecto vidrio translúcido (Glassmorphism)"
+                    >
+                      <div className="size-5 rounded-md bg-white/20 border border-white/50 backdrop-blur-sm shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-white block leading-tight">Efecto Vidrio</span>
+                        <span className="text-[10px] text-slate-400">Translúcido blur</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-                  💡 <strong className="text-slate-300">Tip Canva:</strong> Haz clic en cualquier forma en el lienzo para ajustar su relleno, grosor de borde, radio de esquinas u opacidad en la barra superior.
+                  💡 <strong className="text-slate-300">Tip Canva:</strong> Todas las formas se insertan en <strong className="text-white">blanco sólido</strong>. Para darles el efecto vidrio translúcido, usa el botón "Efecto Vidrio" en el panel de Color o ajusta la Transparencia al 15-20%.
                 </div>
               </div>
             )}
@@ -3021,6 +3083,54 @@ export default function VisualEditorModal({
                 {/* Colores de la Forma (Shape colors) */}
                 <div>
                   <span className="text-xs font-bold text-slate-300 block mb-2">Colores de la forma</span>
+                  {activeDockTab === "shape_color" && (
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateCustomElement(selectedElement!, {
+                            bgColor: "#ffffff",
+                            borderColor: "transparent",
+                            borderWidth: 0,
+                            opacity: 1,
+                          });
+                          handleStyleChange(selectedElement!, {
+                            bgColor: "#ffffff",
+                            borderColor: "transparent",
+                            borderWidth: 0,
+                            opacity: 1,
+                          });
+                        }}
+                        className="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-semibold flex items-center justify-center gap-2 transition"
+                      >
+                        <span className="size-3.5 rounded-full bg-white border border-slate-400 shadow-xs" />
+                        <span>Blanco Sólido</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateCustomElement(selectedElement!, {
+                            bgColor: "rgba(255, 255, 255, 0.15)",
+                            borderColor: "rgba(255, 255, 255, 0.35)",
+                            borderWidth: 1,
+                            borderStyle: "solid",
+                            opacity: 1,
+                          });
+                          handleStyleChange(selectedElement!, {
+                            bgColor: "rgba(255, 255, 255, 0.15)",
+                            borderColor: "rgba(255, 255, 255, 0.35)",
+                            borderWidth: 1,
+                            borderStyle: "solid",
+                            opacity: 1,
+                          });
+                        }}
+                        className="py-1.5 px-2.5 rounded-lg bg-brand-500/15 hover:bg-brand-500/25 border border-brand-500/40 text-brand-300 text-[11px] font-semibold flex items-center justify-center gap-2 transition"
+                      >
+                        <span className="size-3.5 rounded-full bg-white/20 border border-white/60 backdrop-blur-sm" />
+                        <span>✨ Efecto Vidrio</span>
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     {/* Selector Nativo (+) */}
                     <label className="size-8 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 flex items-center justify-center cursor-pointer transition relative group shrink-0" title="Añadir color personalizado">
@@ -3828,6 +3938,40 @@ export default function VisualEditorModal({
                           }}
                           className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
                         />
+                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleUpdateCustomElement(selectedElement!, { opacity: 1, bgColor: "#ffffff" });
+                              handleStyleChange(selectedElement!, { opacity: 1, bgColor: "#ffffff" });
+                            }}
+                            className="flex-1 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-300 hover:text-white transition"
+                          >
+                            100% Sólido
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleUpdateCustomElement(selectedElement!, {
+                                bgColor: "rgba(255, 255, 255, 0.15)",
+                                borderColor: "rgba(255, 255, 255, 0.35)",
+                                borderWidth: 1,
+                                borderStyle: "solid",
+                                opacity: 1,
+                              });
+                              handleStyleChange(selectedElement!, {
+                                bgColor: "rgba(255, 255, 255, 0.15)",
+                                borderColor: "rgba(255, 255, 255, 0.35)",
+                                borderWidth: 1,
+                                borderStyle: "solid",
+                                opacity: 1,
+                              });
+                            }}
+                            className="flex-1 py-1 rounded-md bg-brand-500/20 hover:bg-brand-500/30 text-[10px] font-semibold text-brand-300 border border-brand-500/40 transition"
+                          >
+                            ✨ Efecto Vidrio
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -5470,14 +5614,16 @@ export default function VisualEditorModal({
                           style={{
                             width: `${elem.width || 140}px`,
                             height: `${elem.height || 90}px`,
-                            backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.12)",
-                            borderColor: elem.borderColor || accentColor,
-                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 2}px`,
+                            backgroundColor: elem.bgColor || "#ffffff",
+                            borderColor: elem.borderColor || "transparent",
+                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
                             borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
                             borderRadius: `${elem.borderRadius ?? 16}px`,
                             opacity: elem.opacity ?? 1,
                           }}
-                          className="backdrop-blur-sm shadow-xl transition-all cursor-pointer"
+                          className={`shadow-xl transition-all cursor-pointer ${
+                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement(elem.id);
@@ -5490,14 +5636,16 @@ export default function VisualEditorModal({
                           style={{
                             width: `${elem.width || 90}px`,
                             height: `${elem.height || 90}px`,
-                            backgroundColor: elem.bgColor || accentColor,
-                            borderColor: elem.borderColor || "rgba(255, 255, 255, 0.3)",
+                            backgroundColor: elem.bgColor || "#ffffff",
+                            borderColor: elem.borderColor || "transparent",
                             borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
                             borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
                             borderRadius: "9999px",
-                            opacity: elem.opacity ?? 0.9,
+                            opacity: elem.opacity ?? 1,
                           }}
-                          className="shadow-xl transition-all cursor-pointer"
+                          className={`shadow-xl transition-all cursor-pointer ${
+                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement(elem.id);
@@ -5521,7 +5669,7 @@ export default function VisualEditorModal({
                           <Star
                             style={{
                               color: elem.borderStyle === "none" ? "transparent" : (elem.borderColor || "#f59e0b"),
-                              fill: elem.bgColor || "#f59e0b",
+                              fill: elem.bgColor || "#ffffff",
                               strokeWidth: elem.borderStyle === "none" ? 0 : (elem.borderWidth ?? 2),
                             }}
                             className="size-full drop-shadow-lg"
@@ -5534,14 +5682,17 @@ export default function VisualEditorModal({
                           style={{
                             width: elem.width ? `${elem.width}px` : undefined,
                             height: elem.height ? `${elem.height}px` : undefined,
-                            backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.15)",
-                            borderColor: elem.borderColor || accentColor,
-                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 1}px`,
+                            backgroundColor: elem.bgColor || "#ffffff",
+                            borderColor: elem.borderColor || "transparent",
+                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
                             borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
                             borderRadius: `${elem.borderRadius ?? 9999}px`,
                             opacity: elem.opacity ?? 1,
+                            color: elem.color || (elem.bgColor === "#ffffff" || !elem.bgColor || elem.bgColor === "#fff" ? "#0f172a" : "#ffffff"),
                           }}
-                          className="px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer"
+                          className={`px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer ${
+                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement(elem.id);
