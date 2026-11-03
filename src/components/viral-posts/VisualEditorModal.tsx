@@ -187,6 +187,9 @@ export interface CarouselSlideItem {
   bullets?: string[];
   ctaKeyword?: string;
   metric?: string;
+  metricLabel?: string;
+  ctaPrompt?: string;
+  swipeText?: string;
   titlePrefix?: string;
   highlightText?: string;
   titleSuffix?: string;
@@ -498,7 +501,21 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const isExporting = props.isExporting ?? ctx?.isExporting ?? false;
   const offset = props.offset ?? ctx?.currentSlide.offsets?.[id] ?? { x: 0, y: 0 };
   const scale = props.scale ?? ctx?.currentSlide.scales?.[id] ?? 1;
-  const isHidden = props.isHidden ?? Boolean(ctx?.currentSlide.hiddenElements?.[id]);
+  const isHidden = props.isHidden ?? Boolean(
+    ctx?.currentSlide.hiddenElements?.[id] ||
+    (props.elementKey && ctx?.currentSlide.hiddenElements?.[props.elementKey]) ||
+    (id.includes("title") && ctx?.currentSlide.hiddenElements?.["title"]) ||
+    (id.includes("subtitle") && ctx?.currentSlide.hiddenElements?.["subtitle"]) ||
+    (id.includes("tag") && ctx?.currentSlide.hiddenElements?.["tag"]) ||
+    (id.includes("metric") && (ctx?.currentSlide.hiddenElements?.["metric"] || ctx?.currentSlide.hiddenElements?.["title"])) ||
+    (id.includes("card") && (ctx?.currentSlide.hiddenElements?.["brand"] || ctx?.currentSlide.hiddenElements?.[id])) ||
+    (id.includes("footer") && (ctx?.currentSlide.hiddenElements?.["author-name"] || ctx?.currentSlide.hiddenElements?.[id] || ctx?.currentSlide.hiddenElements?.["footer"])) ||
+    (id.includes("author") && (ctx?.currentSlide.hiddenElements?.["author-name"] || ctx?.currentSlide.hiddenElements?.[id])) ||
+    (id.includes("bullets") && (ctx?.currentSlide.hiddenElements?.["bullets"] || ctx?.currentSlide.hiddenElements?.[id])) ||
+    (id.includes("cta") && (ctx?.currentSlide.hiddenElements?.["cta"] || ctx?.currentSlide.hiddenElements?.[id])) ||
+    (id.includes("stats") && (ctx?.currentSlide.hiddenElements?.["social-stats"] || ctx?.currentSlide.hiddenElements?.[id])) ||
+    (id.includes("logo") && (ctx?.currentSlide.hiddenElements?.["bold-logo"] || ctx?.currentSlide.hiddenElements?.[id]))
+  );
   const onOffsetChange = props.onOffsetChange ?? ctx?.onOffsetChange;
   const onScaleChange = props.onScaleChange ?? ctx?.onScaleChange;
   const onSizeChange = props.onSizeChange ?? ctx?.onSizeChange;
@@ -1631,26 +1648,85 @@ export default function VisualEditorModal({
     }
   };
 
-  // Manejador para eliminar / ocultar elementos individuales
+  // Manejador para eliminar / ocultar elementos individuales (Plantillas predefinidas y capas libres)
   const handleDeleteElement = (elementId: string) => {
+    if (!elementId) return;
+
     if (elementId.startsWith("elem-")) {
       handleDeleteCustomElement(elementId);
+      if (selectedElement === elementId) {
+        setSelectedElement(null);
+      }
       return;
     }
+
+    // Mapeo bidireccional entre IDs de DraggableWrapper y selectedElement de plantillas
+    const idMap: Record<string, string[]> = {
+      title: ["editorial-title", "social-title", "split-title", "bold-title", "inter-title", "metric-text", "title"],
+      subtitle: ["editorial-subtitle", "social-subtitle", "split-subtitle", "bold-subtitle", "subtitle"],
+      tag: ["editorial-tag", "quote-tag", "social-tag", "split-tag", "metric-tag", "bold-tag", "inter-tag", "tag"],
+      brand: ["editorial-card", "quote-card", "social-card", "split-card", "metric-card", "inter-card", "bold-logo", "brand"],
+      "editorial-card": ["editorial-card", "brand"],
+      "quote-card": ["quote-card", "brand"],
+      "social-card": ["social-card", "brand"],
+      "split-card": ["split-card", "brand"],
+      "metric-card": ["metric-card", "brand"],
+      "inter-card": ["inter-card", "brand"],
+      "editorial-title": ["editorial-title", "title"],
+      "social-title": ["social-title", "title"],
+      "split-title": ["split-title", "title"],
+      "bold-title": ["bold-title", "title"],
+      "inter-title": ["inter-title", "title"],
+      "metric-text": ["metric-text", "title"],
+      "editorial-subtitle": ["editorial-subtitle", "subtitle"],
+      "social-subtitle": ["social-subtitle", "subtitle"],
+      "split-subtitle": ["split-subtitle", "subtitle"],
+      "bold-subtitle": ["bold-subtitle", "subtitle"],
+      "editorial-tag": ["editorial-tag", "tag"],
+      "quote-tag": ["quote-tag", "tag"],
+      "social-tag": ["social-tag", "tag"],
+      "split-tag": ["split-tag", "tag"],
+      "metric-tag": ["metric-tag", "tag"],
+      "bold-tag": ["bold-tag", "tag"],
+      "inter-tag": ["inter-tag", "tag"],
+      "editorial-footer": ["editorial-footer", "author-name", "author"],
+      "quote-author": ["quote-author", "author-name", "author"],
+      "social-header": ["social-header", "author-name", "author"],
+      "split-footer": ["split-footer", "author-name", "author"],
+      "metric-author": ["metric-author", "author-name", "author"],
+      "inter-footer": ["inter-footer", "author-name", "author"],
+      "author-name": ["editorial-footer", "quote-author", "social-header", "split-footer", "metric-author", "inter-footer", "author-name"],
+      "quote-body": ["quote-body", "title", "quote"],
+      "metric-number": ["metric-number", "metric"],
+      metric: ["metric-number", "metric"],
+      "social-stats": ["social-stats", "stats"],
+      stats: ["social-stats", "stats"],
+      "inter-bullets": ["inter-bullets", "bullets"],
+      bullets: ["inter-bullets", "bullets"],
+      "inter-cta": ["inter-cta", "cta"],
+      cta: ["inter-cta", "cta"],
+      "bold-logo": ["bold-logo", "brand"],
+      "bold-footer": ["bold-footer", "footer"],
+    };
+
+    const keysToHide = idMap[elementId] || [elementId];
+
     setSlides((prev) => {
       const next = [...prev];
       const current = next[currentSlideIndex];
       const prevHidden = current.hiddenElements || {};
+      const newHidden = { ...prevHidden };
+      keysToHide.forEach((k) => {
+        newHidden[k] = true;
+      });
       next[currentSlideIndex] = {
         ...current,
-        hiddenElements: {
-          ...prevHidden,
-          [elementId]: true,
-        },
+        hiddenElements: newHidden,
       };
       return next;
     });
-    if (selectedElement === elementId) {
+
+    if (selectedElement === elementId || keysToHide.includes(selectedElement || "")) {
       setSelectedElement(null);
     }
   };
@@ -1661,6 +1737,26 @@ export default function VisualEditorModal({
   };
 
   // Restablecer todas las personalizaciones (posiciones, escalas y visibilidad)
+  // Atajo de teclado: Eliminar elemento seleccionado con tecla Delete o Backspace (estilo Canva)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedElement && selectedElement !== "background") {
+        const activeEl = document.activeElement;
+        const isEditing =
+          activeEl?.tagName === "INPUT" ||
+          activeEl?.tagName === "TEXTAREA" ||
+          (activeEl as HTMLElement)?.isContentEditable;
+        if (!isEditing) {
+          e.preventDefault();
+          handleDeleteElement(selectedElement);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, selectedElement, handleDeleteElement]);
+
   const handleResetSlideCustomizations = () => {
     updateCurrentSlide({
       offsets: {},
@@ -3738,92 +3834,84 @@ export default function VisualEditorModal({
                 </>
               )}
 
-              {/* CASO C: FONDO O NADA SELECCIONADO */}
+              {/* CASO C: FONDO O ELEMENTO GENÉRICO (TARJETAS, BLOQUES, ESTADÍSTICAS) */}
               {!isText && !isShape && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedElement("background");
-                      setActiveDockTab("photos");
-                      setIsDrawerOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
-                  >
-                    <ImageIcon className="size-3 text-brand-400" />
-                    <span>Cambiar Foto</span>
-                  </button>
+                  {selectedElement && selectedElement !== "background" ? (
+                    <>
+                      {/* Botones de acción para cualquier elemento seleccionado (tarjetas, citas, etc.) */}
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicateElement(selectedElement!)}
+                        className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition"
+                        title="Duplicar elemento"
+                      >
+                        <Copy className="size-3 text-brand-400" />
+                        <span>Duplicar</span>
+                      </button>
 
-                  {/* Zoom Foto de Fondo */}
-                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
-                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Zoom Foto:</span>
-                    <button
-                      type="button"
-                      onClick={() => setBgScale(Math.max(1.0, Number((bgScale - 0.1).toFixed(2))))}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="w-10 text-center font-mono text-xs font-bold text-white">
-                      {Math.round(bgScale * 100)}%
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setBgScale(Math.min(2.5, Number((bgScale + 0.1).toFixed(2))))}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteElement(selectedElement!)}
+                        className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-300 hover:text-red-400 text-xs font-semibold transition"
+                        title="Eliminar elemento de la plantilla"
+                      >
+                        <Trash2 className="size-3" />
+                        <span>Eliminar</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedElement("background");
+                          setActiveDockTab("photos");
+                          setIsDrawerOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+                      >
+                        <ImageIcon className="size-3 text-brand-400" />
+                        <span>Cambiar Foto</span>
+                      </button>
 
-                  {/* Opacidad Fondo Oscuro */}
-                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
-                    <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Opacidad:</span>
-                    <button
-                      type="button"
-                      onClick={() => setOverlayOpacity(Math.max(0.2, Number((overlayOpacity - 0.05).toFixed(2))))}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="w-10 text-center font-mono text-xs font-bold text-white">
-                      {Math.round(overlayOpacity * 100)}%
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setOverlayOpacity(Math.min(0.95, Number((overlayOpacity + 0.05).toFixed(2))))}
-                      className="px-1.5 h-full hover:bg-slate-700 text-slate-300 font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
+                      {/* Zoom Foto de Fondo */}
+                      <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                        <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Zoom Foto:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleBgZoomChange(-0.1)}
+                          className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
+                        >
+                          -
+                        </button>
+                        <span className="text-[10px] font-mono font-bold text-white px-1">
+                          {Math.round(bgScale * 100)}%
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleBgZoomChange(0.1)}
+                          className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
+                        >
+                          +
+                        </button>
+                      </div>
 
-                  {/* Restaurar elementos si hay alguno oculto */}
-                  {Object.keys(currentSlide.hiddenElements || {}).length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleRestoreHiddenElements}
-                      className="flex items-center gap-1 px-2 h-7 rounded-md bg-red-950/60 hover:bg-red-900/60 text-red-300 text-[10px] font-semibold border border-red-500/30 transition"
-                      title="Restaurar objetos eliminados"
-                    >
-                      <RotateCcw className="size-2.5 text-red-400" />
-                      <span>Restaurar ({Object.keys(currentSlide.hiddenElements || {}).length})</span>
-                    </button>
-                  )}
-
-                  {/* Restablecer si hay modificaciones */}
-                  {(Object.keys(currentSlide.offsets || {}).length > 0 ||
-                    Object.keys(currentSlide.scales || {}).length > 0 ||
-                    Object.keys(currentSlide.hiddenElements || {}).length > 0) && (
-                    <button
-                      type="button"
-                      onClick={handleResetSlideCustomizations}
-                      className="flex items-center gap-1 px-2 h-7 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 text-[10px] font-semibold border border-amber-500/30 transition"
-                      title="Restablecer posición inicial"
-                    >
-                      <RotateCcw className="size-2.5" />
-                      <span>Restablecer</span>
-                    </button>
+                      {/* Brillo / Oscurecimiento */}
+                      <div className="flex items-center gap-1.5 h-7 bg-slate-800 rounded-md border border-slate-700 px-2">
+                        <Sun className="size-3 text-amber-400 shrink-0" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="80"
+                          step="5"
+                          value={bgDimming}
+                          onChange={(e) => setBgDimming(Number(e.target.value))}
+                          className="w-16 accent-amber-400 h-1 bg-slate-700 rounded-lg cursor-pointer"
+                          title="Filtro de oscuridad para contraste de texto"
+                        />
+                      </div>
+                    </>
                   )}
                 </>
               )}
@@ -4335,7 +4423,19 @@ export default function VisualEditorModal({
                                     isExporting={isExporting}
                                     placeholder="@handle"
                                   />
-                                  <span>• LinkedIn Creator</span>
+                                  <span className="flex items-center gap-1">
+                                    •
+                                    <InlineEditableText
+                                      elementKey="social-role"
+                                      as="span"
+                                      value={currentSlide.titlePrefix || "LinkedIn Creator"}
+                                      onChange={(val) => updateCurrentSlide({ titlePrefix: val })}
+                                      selectedElement={selectedElement}
+                                      onSelect={setSelectedElement}
+                                      isExporting={isExporting}
+                                      placeholder="LinkedIn Creator"
+                                    />
+                                  </span>
                                 </div>
                               </div>
                             </DraggableWrapper>
@@ -4432,6 +4532,12 @@ export default function VisualEditorModal({
                               isFreeMode={isFreeMode}
                               offset={currentSlide.offsets?.["social-stats"]}
                               onOffsetChange={handleOffsetChange}
+                              scale={currentSlide.scales?.["social-stats"]}
+                              onScaleChange={handleScaleChange}
+                              isSelected={selectedElement === "social-stats"}
+                              onSelect={() => setSelectedElement("social-stats")}
+                              onDelete={handleDeleteElement}
+                              onDuplicate={handleDuplicateElement}
                               isExporting={isExporting}
                               className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium pointer-events-auto"
                             >
@@ -4681,7 +4787,16 @@ export default function VisualEditorModal({
                                   />
                                 </div>
                                 <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
-                                  RESULTADO COMPROBADO EN CONVERSIONES
+                                  <InlineEditableText
+                                    elementKey="metric-label"
+                                    as="span"
+                                    value={currentSlide.metricLabel || "RESULTADO COMPROBADO EN CONVERSIONES"}
+                                    onChange={(val) => updateCurrentSlide({ metricLabel: val })}
+                                    selectedElement={selectedElement}
+                                    onSelect={setSelectedElement}
+                                    isExporting={isExporting}
+                                    placeholder="RESULTADO COMPROBADO EN CONVERSIONES"
+                                  />
                                 </div>
                               </DraggableWrapper>
 
@@ -4799,6 +4914,12 @@ export default function VisualEditorModal({
                                 isFreeMode={isFreeMode}
                                 offset={currentSlide.offsets?.["bold-logo"]}
                                 onOffsetChange={handleOffsetChange}
+                                scale={currentSlide.scales?.["bold-logo"]}
+                                onScaleChange={handleScaleChange}
+                                isSelected={selectedElement === "bold-logo"}
+                                onSelect={() => setSelectedElement("bold-logo")}
+                                onDelete={handleDeleteElement}
+                                onDuplicate={handleDuplicateElement}
                                 isExporting={isExporting}
                                 className="pointer-events-auto"
                               >
@@ -4950,12 +5071,28 @@ export default function VisualEditorModal({
                               isFreeMode={isFreeMode}
                               offset={currentSlide.offsets?.["bold-footer"]}
                               onOffsetChange={handleOffsetChange}
+                              scale={currentSlide.scales?.["bold-footer"]}
+                              onScaleChange={handleScaleChange}
+                              isSelected={selectedElement === "bold-footer"}
+                              onSelect={() => setSelectedElement("bold-footer")}
+                              onDelete={handleDeleteElement}
+                              onDuplicate={handleDuplicateElement}
                               isExporting={isExporting}
                               className="pointer-events-auto self-end flex items-center gap-2"
                             >
                               <div className="flex items-center gap-2 text-white/80">
                                 {editorMode === "carousel" && (
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Desliza</span>
+                                  <InlineEditableText
+                                    elementKey="bold-swipe"
+                                    as="span"
+                                    value={currentSlide.swipeText || "Desliza"}
+                                    onChange={(val) => updateCurrentSlide({ swipeText: val })}
+                                    selectedElement={selectedElement}
+                                    onSelect={setSelectedElement}
+                                    isExporting={isExporting}
+                                    placeholder="Desliza"
+                                    className="text-[10px] font-bold uppercase tracking-wider text-white/60"
+                                  />
                                 )}
                                 <ArrowRight className="size-5 text-white/90" />
                               </div>
@@ -5074,6 +5211,12 @@ export default function VisualEditorModal({
                             isFreeMode={isFreeMode}
                             offset={currentSlide.offsets?.["inter-bullets"]}
                             onOffsetChange={handleOffsetChange}
+                            scale={currentSlide.scales?.["inter-bullets"]}
+                            onScaleChange={handleScaleChange}
+                            isSelected={selectedElement === "bullets" || selectedElement === "inter-bullets"}
+                            onSelect={() => setSelectedElement("bullets")}
+                            onDelete={handleDeleteElement}
+                            onDuplicate={handleDuplicateElement}
                             isExporting={isExporting}
                             className="my-auto space-y-2.5 pointer-events-auto"
                           >
@@ -5114,11 +5257,27 @@ export default function VisualEditorModal({
                             isFreeMode={isFreeMode}
                             offset={currentSlide.offsets?.["inter-cta"]}
                             onOffsetChange={handleOffsetChange}
+                            scale={currentSlide.scales?.["inter-cta"]}
+                            onScaleChange={handleScaleChange}
+                            isSelected={selectedElement === "cta" || selectedElement === "inter-cta"}
+                            onSelect={() => setSelectedElement("cta")}
+                            onDelete={handleDeleteElement}
+                            onDuplicate={handleDuplicateElement}
                             isExporting={isExporting}
                             className="my-auto p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-3 pointer-events-auto"
                           >
                             <p className="text-xs text-slate-200 font-medium">
-                              Comenta abajo para enviarte el activo completo por mensaje directo:
+                              <InlineEditableText
+                                elementKey="cta-prompt"
+                                as="span"
+                                value={currentSlide.ctaPrompt || "Comenta abajo para enviarte el activo completo por mensaje directo:"}
+                                onChange={(val) => updateCurrentSlide({ ctaPrompt: val })}
+                                selectedElement={selectedElement}
+                                onSelect={setSelectedElement}
+                                isExporting={isExporting}
+                                multiline={true}
+                                placeholder="Comenta abajo para enviarte el activo completo..."
+                              />
                             </p>
                             <div
                               style={{ backgroundColor: accentColor }}
