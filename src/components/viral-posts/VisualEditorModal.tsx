@@ -12,6 +12,9 @@ import {
   Layers,
   FileDown,
   Upload,
+  UploadCloud,
+  Video,
+  Music,
   User,
   Plus,
   Trash2,
@@ -63,7 +66,7 @@ export type TemplateId =
 
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
-export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds" | "shape_edit" | "shape_color" | "shape_border_color";
+export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds" | "shape_edit" | "shape_color" | "shape_border_color" | "uploads";
 
 export interface TemplateDefinition {
   id: TemplateId;
@@ -146,7 +149,9 @@ export interface CustomCanvasElement {
     | "shape_circle"
     | "shape_star"
     | "shape_pill"
-    | "shape_line";
+    | "shape_line"
+    | "image"
+    | "video";
   content?: string;
   x: number;
   y: number;
@@ -187,6 +192,7 @@ export interface CarouselSlideItem {
   titleSuffix?: string;
   offsets?: Record<string, { x: number; y: number }>;
   scales?: Record<string, number>;
+  dimensions?: Record<string, { width?: number; height?: number }>;
   hiddenElements?: Record<string, boolean>;
   customElements?: CustomCanvasElement[];
   elementStyles?: Record<string, ElementFormatting>;
@@ -436,11 +442,13 @@ function InlineEditableText({
 interface SlideCanvasContextType {
   isFreeMode: boolean;
   isExporting: boolean;
+  canvasZoom: number;
   currentSlide: CarouselSlideItem;
   selectedElement: string | null;
   onSelectElement?: (id: string) => void;
   onOffsetChange?: (id: string, offset: { x: number; y: number }) => void;
   onScaleChange?: (id: string, scale: number) => void;
+  onSizeChange?: (id: string, newSize: { width?: number; height?: number }, newOffset?: { x: number; y: number }) => void;
   onDeleteElement?: (id: string) => void;
   onDuplicateElement?: (id: string) => void;
   onStyleChange?: (id: string, styles: Partial<ElementFormatting>) => void;
@@ -459,6 +467,13 @@ interface DraggableWrapperProps {
   onOffsetChange?: (id: string, newOffset: { x: number; y: number }) => void;
   scale?: number;
   onScaleChange?: (id: string, newScale: number) => void;
+  width?: number;
+  height?: number;
+  onSizeChange?: (
+    id: string,
+    newSize: { width?: number; height?: number },
+    newOffset?: { x: number; y: number }
+  ) => void;
   isHidden?: boolean;
   onDelete?: (id: string) => void;
   onDuplicate?: (id: string) => void;
@@ -471,6 +486,8 @@ interface DraggableWrapperProps {
   onSelect?: () => void;
 }
 
+type CanvaResizeHandle = "nw" | "ne" | "se" | "sw" | "n" | "s" | "e" | "w";
+
 function DraggableWrapper(props: DraggableWrapperProps) {
   const ctx = useContext(SlideCanvasContext);
   const id = props.id;
@@ -481,19 +498,22 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const isHidden = props.isHidden ?? Boolean(ctx?.currentSlide.hiddenElements?.[id]);
   const onOffsetChange = props.onOffsetChange ?? ctx?.onOffsetChange;
   const onScaleChange = props.onScaleChange ?? ctx?.onScaleChange;
+  const onSizeChange = props.onSizeChange ?? ctx?.onSizeChange;
   const onDelete = props.onDelete ?? ctx?.onDeleteElement;
   const onDuplicate = props.onDuplicate ?? ctx?.onDuplicateElement;
   const onSelect = props.onSelect ?? (() => ctx?.onSelectElement?.(id));
   const isSelected = props.isSelected ?? (ctx?.selectedElement === id);
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialOffset = useRef({ x: 0, y: 0 });
 
-  // Manijas de redimensionamiento en las esquinas estilo Canva
-  const [resizingCorner, setResizingCorner] = useState<"nw" | "ne" | "se" | "sw" | null>(null);
+  // 8 Manijas de redimensionamiento estilo Canva (4 esquinas circulares + 4 barras/píldoras laterales)
+  const [activeHandle, setActiveHandle] = useState<CanvaResizeHandle | null>(null);
   const resizeStartPos = useRef({ x: 0, y: 0 });
-  const initialScaleRef = useRef(1);
+  const initialDimsRef = useRef({ width: 100, height: 60 });
+  const initialOffsetRef = useRef({ x: 0, y: 0 });
 
   if (isHidden) {
     return null;
@@ -503,11 +523,11 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     if (!isFreeMode || isExporting) return;
     const target = e.target as HTMLElement;
     const isHandle = target.closest('[data-drag-handle="true"]');
-    const isCorner = target.closest('[data-resize-corner="true"]');
+    const isResize = target.closest('[data-resize-handle="true"]');
     const isControl = target.closest("button") || target.tagName === "BUTTON";
     const isContent = target.isContentEditable;
 
-    if (isControl || isCorner) return;
+    if (isControl || isResize) return;
 
     if (isContent && !isHandle) {
       onSelect?.();
@@ -528,11 +548,12 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     e.preventDefault();
-    const dx = e.clientX - dragStartPos.current.x;
-    const dy = e.clientY - dragStartPos.current.y;
+    const zoom = ctx?.canvasZoom || 1;
+    const dx = (e.clientX - dragStartPos.current.x) / zoom;
+    const dy = (e.clientY - dragStartPos.current.y) / zoom;
     onOffsetChange?.(id, {
-      x: initialOffset.current.x + dx,
-      y: initialOffset.current.y + dy,
+      x: Math.round(initialOffset.current.x + dx),
+      y: Math.round(initialOffset.current.y + dy),
     });
   };
 
@@ -546,45 +567,127 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     onSelect?.();
   };
 
-  // Manejo de arrastre de esquinas para escalar el elemento (Estilo Canva)
-  const handleCornerResizeDown = (corner: "nw" | "ne" | "se" | "sw", e: React.PointerEvent) => {
+  // Manejo de arrastre de cualquiera de las 8 manijas estilo Canva
+  const handleResizeDown = (handle: CanvaResizeHandle, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     try {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     } catch {}
-    setResizingCorner(corner);
+    setActiveHandle(handle);
     onSelect?.();
     resizeStartPos.current = { x: e.clientX, y: e.clientY };
-    initialScaleRef.current = scale ?? 1;
+
+    const zoom = (ctx?.canvasZoom || 1);
+    const domRect = wrapperRef.current ? wrapperRef.current.getBoundingClientRect() : null;
+    const domW = domRect ? domRect.width / zoom : 120;
+    const domH = domRect ? domRect.height / zoom : 80;
+
+    const resolvedW = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width ?? domW;
+    const resolvedH = props.height ?? ctx?.currentSlide.dimensions?.[id]?.height ?? domH;
+
+    initialDimsRef.current = {
+      width: resolvedW,
+      height: resolvedH,
+    };
+    initialOffsetRef.current = {
+      x: offset?.x || 0,
+      y: offset?.y || 0,
+    };
   };
 
-  const handleCornerResizeMove = (e: React.PointerEvent) => {
-    if (!resizingCorner) return;
+  const handleResizeMove = (e: React.PointerEvent) => {
+    if (!activeHandle) return;
     e.preventDefault();
     e.stopPropagation();
-    const dx = e.clientX - resizeStartPos.current.x;
-    const dy = e.clientY - resizeStartPos.current.y;
 
-    let delta = 0;
-    if (resizingCorner === "se") {
-      delta = (dx + dy) / 2;
-    } else if (resizingCorner === "nw") {
-      delta = -(dx + dy) / 2;
-    } else if (resizingCorner === "ne") {
-      delta = (dx - dy) / 2;
-    } else if (resizingCorner === "sw") {
-      delta = -(dx - dy) / 2;
+    const zoom = ctx?.canvasZoom || 1;
+    const dx = (e.clientX - resizeStartPos.current.x) / zoom;
+    const dy = (e.clientY - resizeStartPos.current.y) / zoom;
+
+    const minW = 20;
+    const minH = 15;
+
+    let newW = initialDimsRef.current.width;
+    let newH = initialDimsRef.current.height;
+    let newX = initialOffsetRef.current.x;
+    let newY = initialOffsetRef.current.y;
+
+    if (activeHandle === "e") {
+      newW = Math.max(minW, initialDimsRef.current.width + dx);
+    } else if (activeHandle === "w") {
+      const tentativeW = initialDimsRef.current.width - dx;
+      if (tentativeW >= minW) {
+        newW = tentativeW;
+        newX = initialOffsetRef.current.x + dx;
+      } else {
+        newW = minW;
+        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
+      }
+    } else if (activeHandle === "s") {
+      newH = Math.max(minH, initialDimsRef.current.height + dy);
+    } else if (activeHandle === "n") {
+      const tentativeH = initialDimsRef.current.height - dy;
+      if (tentativeH >= minH) {
+        newH = tentativeH;
+        newY = initialOffsetRef.current.y + dy;
+      } else {
+        newH = minH;
+        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
+      }
+    } else if (activeHandle === "se") {
+      newW = Math.max(minW, initialDimsRef.current.width + dx);
+      newH = Math.max(minH, initialDimsRef.current.height + dy);
+    } else if (activeHandle === "sw") {
+      const tentativeW = initialDimsRef.current.width - dx;
+      if (tentativeW >= minW) {
+        newW = tentativeW;
+        newX = initialOffsetRef.current.x + dx;
+      } else {
+        newW = minW;
+        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
+      }
+      newH = Math.max(minH, initialDimsRef.current.height + dy);
+    } else if (activeHandle === "ne") {
+      newW = Math.max(minW, initialDimsRef.current.width + dx);
+      const tentativeH = initialDimsRef.current.height - dy;
+      if (tentativeH >= minH) {
+        newH = tentativeH;
+        newY = initialOffsetRef.current.y + dy;
+      } else {
+        newH = minH;
+        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
+      }
+    } else if (activeHandle === "nw") {
+      const tentativeW = initialDimsRef.current.width - dx;
+      if (tentativeW >= minW) {
+        newW = tentativeW;
+        newX = initialOffsetRef.current.x + dx;
+      } else {
+        newW = minW;
+        newX = initialOffsetRef.current.x + (initialDimsRef.current.width - minW);
+      }
+      const tentativeH = initialDimsRef.current.height - dy;
+      if (tentativeH >= minH) {
+        newH = tentativeH;
+        newY = initialOffsetRef.current.y + dy;
+      } else {
+        newH = minH;
+        newY = initialOffsetRef.current.y + (initialDimsRef.current.height - minH);
+      }
     }
 
-    const nextScale = Math.max(0.3, Math.min(3.0, initialScaleRef.current + delta / 120));
-    onScaleChange?.(id, Number(nextScale.toFixed(2)));
+    onSizeChange?.(
+      id,
+      { width: Math.round(newW), height: Math.round(newH) },
+      { x: Math.round(newX), y: Math.round(newY) }
+    );
   };
 
-  const handleCornerResizeUp = (e: React.PointerEvent) => {
-    if (!resizingCorner) return;
+  const handleResizeUp = (e: React.PointerEvent) => {
+    if (!activeHandle) return;
     e.stopPropagation();
-    setResizingCorner(null);
+    setActiveHandle(null);
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {}
@@ -602,6 +705,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     props.className?.includes("mx-auto") ||
     props.className?.includes("items-center");
 
+  const resolvedWidth = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width;
+  const resolvedHeight = props.height ?? ctx?.currentSlide.dimensions?.[id]?.height;
+
   const transformParts: string[] = [];
   if (hasMoved) {
     transformParts.push(`translate(${posX}px, ${posY}px)`);
@@ -612,6 +718,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   return (
     <div
+      ref={wrapperRef}
       onClick={(e) => {
         e.stopPropagation();
         onSelect?.();
@@ -621,6 +728,8 @@ function DraggableWrapper(props: DraggableWrapperProps) {
       onPointerUp={handlePointerUp}
       style={{
         ...props.style,
+        ...(resolvedWidth ? { width: `${resolvedWidth}px` } : {}),
+        ...(resolvedHeight ? { height: `${resolvedHeight}px` } : {}),
         transform: transformParts.join(" ") || undefined,
         transformOrigin: isCentered ? "center center" : "top left",
         touchAction: isFreeMode ? "none" : undefined,
@@ -637,40 +746,79 @@ function DraggableWrapper(props: DraggableWrapperProps) {
           : ""
       } ${props.className || ""}`}
     >
-      {/* 4 Manijas de Esquina estilo Canva para redimensionar arrastrando */}
+      {/* 8 Manijas de redimensionamiento estilo Canva: 4 esquinas circulares + 4 barras/píldoras laterales */}
       {isFreeMode && isSelected && !isExporting && id !== "bg-photo" && (
         <>
+          {/* 4 Esquinas circulares (redimensionamiento 2D libre) */}
           <div
-            data-resize-corner="true"
-            onPointerDown={(e) => handleCornerResizeDown("nw", e)}
-            onPointerMove={handleCornerResizeMove}
-            onPointerUp={handleCornerResizeUp}
-            title="Arrastra para redimensionar"
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("nw", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para redimensionar (esquina sup-izq)"
             className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform"
           />
           <div
-            data-resize-corner="true"
-            onPointerDown={(e) => handleCornerResizeDown("ne", e)}
-            onPointerMove={handleCornerResizeMove}
-            onPointerUp={handleCornerResizeUp}
-            title="Arrastra para redimensionar"
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("ne", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para redimensionar (esquina sup-der)"
             className="absolute -top-1.5 -right-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform"
           />
           <div
-            data-resize-corner="true"
-            onPointerDown={(e) => handleCornerResizeDown("se", e)}
-            onPointerMove={handleCornerResizeMove}
-            onPointerUp={handleCornerResizeUp}
-            title="Arrastra para redimensionar"
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("se", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para redimensionar (esquina inf-der)"
             className="absolute -bottom-1.5 -right-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform"
           />
           <div
-            data-resize-corner="true"
-            onPointerDown={(e) => handleCornerResizeDown("sw", e)}
-            onPointerMove={handleCornerResizeMove}
-            onPointerUp={handleCornerResizeUp}
-            title="Arrastra para redimensionar"
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("sw", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para redimensionar (esquina inf-izq)"
             className="absolute -bottom-1.5 -left-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform"
+          />
+
+          {/* 4 Píldoras/Barras laterales estilo Canva para ancho y alto independientes */}
+          {/* Borde Superior (n) - cápsula horizontal */}
+          <div
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("n", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para cambiar altura (superior)"
+            className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform"
+          />
+          {/* Borde Inferior (s) - cápsula horizontal */}
+          <div
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("s", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para cambiar altura (inferior)"
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform"
+          />
+          {/* Borde Izquierdo (w) - cápsula vertical */}
+          <div
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("w", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para cambiar anchura (izquierda)"
+            className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
+          />
+          {/* Borde Derecho (e) - cápsula vertical */}
+          <div
+            data-resize-handle="true"
+            onPointerDown={(e) => handleResizeDown("e", e)}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeUp}
+            title="Arrastra para cambiar anchura (derecha)"
+            className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
           />
         </>
       )}
@@ -825,6 +973,107 @@ export default function VisualEditorModal({
   const [activePhotoTag, setActivePhotoTag] = useState("all");
   const [colorSearchQuery, setColorSearchQuery] = useState("");
 
+  // Estado para galería de Uploads (Imágenes, Videos y Audios)
+  const [uploadedMedia, setUploadedMedia] = useState<Array<{
+    id: string;
+    name: string;
+    type: "image" | "video" | "audio";
+    url: string;
+    format: string;
+    uploadedAt: number;
+  }>>([
+    {
+      id: "sample-logo-1",
+      name: "Google Verified Partner.png",
+      type: "image",
+      url: "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=400&q=80",
+      format: "PNG",
+      uploadedAt: Date.now() - 3600000,
+    },
+    {
+      id: "sample-badge-2",
+      name: "Medalla B2B Executive.png",
+      type: "image",
+      url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
+      format: "PNG",
+      uploadedAt: Date.now() - 7200000,
+    }
+  ]);
+  const [activeUploadTab, setActiveUploadTab] = useState<"images" | "videos" | "audio">("images");
+  const [uploadSearchQuery, setUploadSearchQuery] = useState("");
+  const fileUploadInputRef = useRef<HTMLInputElement>(null);
+
+  // Manejador general de subida de archivos multimediales
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const newItems: Array<{
+      id: string;
+      name: string;
+      type: "image" | "video" | "audio";
+      url: string;
+      format: string;
+      uploadedAt: number;
+    }> = [];
+
+    Array.from(files).forEach((file) => {
+      const ext = file.name.split(".").pop()?.toUpperCase() || "FILE";
+      let mediaType: "image" | "video" | "audio" = "image";
+      if (file.type.startsWith("video/") || ["MP4", "MOV", "WEBM", "MKV"].includes(ext)) {
+        mediaType = "video";
+      } else if (file.type.startsWith("audio/") || ["MP3", "WAV", "OGG", "M4A"].includes(ext)) {
+        mediaType = "audio";
+      }
+
+      const fileUrl = URL.createObjectURL(file);
+      const item = {
+        id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        name: file.name,
+        type: mediaType,
+        url: fileUrl,
+        format: ext,
+        uploadedAt: Date.now(),
+      };
+      newItems.push(item);
+
+      // Si es imagen o video, cambiar pestaña automáticamente al tipo correspondiente
+      if (mediaType === "video") setActiveUploadTab("videos");
+      else if (mediaType === "audio") setActiveUploadTab("audio");
+      else setActiveUploadTab("images");
+    });
+
+    setUploadedMedia((prev) => [...newItems, ...prev]);
+  };
+
+  // Insertar archivo subido en el lienzo como elemento independiente
+  const handleInsertUploadedElement = (item: { url: string; type: "image" | "video" | "audio"; name: string }) => {
+    setIsFreeMode(true);
+    const newId = `elem-${Date.now()}`;
+    const newElement: CustomCanvasElement = {
+      id: newId,
+      type: item.type === "video" ? "video" : "image",
+      content: item.url,
+      x: 80,
+      y: 120,
+      width: item.type === "video" ? 240 : 160,
+      height: item.type === "video" ? 160 : 160,
+      scale: 1,
+      borderRadius: 12,
+      opacity: 1,
+    };
+
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const curList = cur.customElements || [];
+      next[currentSlideIndex] = {
+        ...cur,
+        customElements: [...curList, newElement],
+      };
+      return next;
+    });
+    setSelectedElement(newId);
+  };
+
   // Diapositivas
   const [slides, setSlides] = useState<CarouselSlideItem[]>([
     {
@@ -932,6 +1181,63 @@ export default function VisualEditorModal({
           ...prevScales,
           [elementId]: newScale,
         },
+      };
+      return next;
+    });
+  };
+
+  // Manejador de redimensionamiento libre (ancho y alto independientes + offset) estilo Canva
+  const handleSizeChange = (
+    elementId: string,
+    newSize: { width?: number; height?: number },
+    newOffset?: { x: number; y: number }
+  ) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const isCustom = (cur.customElements || []).some((e) => e.id === elementId);
+
+      if (isCustom) {
+        const updatedList = (cur.customElements || []).map((el) => {
+          if (el.id === elementId) {
+            return {
+              ...el,
+              width: newSize.width ?? el.width,
+              height: newSize.height ?? el.height,
+              ...(newOffset ? { x: newOffset.x, y: newOffset.y } : {}),
+            };
+          }
+          return el;
+        });
+
+        const nextOffsets = newOffset
+          ? { ...(cur.offsets || {}), [elementId]: newOffset }
+          : cur.offsets;
+
+        next[currentSlideIndex] = {
+          ...cur,
+          customElements: updatedList,
+          offsets: nextOffsets,
+        };
+        return next;
+      }
+
+      // Elemento de plantilla (tarjetas, citas, cajas, etc.)
+      const nextDims = {
+        ...(cur.dimensions || {}),
+        [elementId]: {
+          ...(cur.dimensions?.[elementId] || {}),
+          ...newSize,
+        },
+      };
+      const nextOffsets = newOffset
+        ? { ...(cur.offsets || {}), [elementId]: newOffset }
+        : cur.offsets;
+
+      next[currentSlideIndex] = {
+        ...cur,
+        dimensions: nextDims,
+        offsets: nextOffsets,
       };
       return next;
     });
@@ -1396,7 +1702,7 @@ export default function VisualEditorModal({
   };
 
   // Subir imagen personalizada
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -1798,6 +2104,28 @@ export default function VisualEditorModal({
           >
             <Palette className="size-5" />
             <span className="text-[10px] tracking-tight">Fondos</span>
+          </button>
+
+          {/* BOTÓN UPLOADS DEBAJO DE FONDOS (ESTILO CANVA) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "uploads" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("uploads");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "uploads" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Subir archivos, fotos y videos (Uploads)"
+          >
+            <UploadCloud className="size-5" />
+            <span className="text-[10px] tracking-tight">Uploads</span>
           </button>
         </aside>
 
@@ -2301,6 +2629,227 @@ export default function VisualEditorModal({
                       <span>Eliminar</span>
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* PESTAÑA: UPLOADS / SUBIR ARCHIVOS (ESTILO CANVA) */}
+            {activeDockTab === "uploads" && (
+              <div className="space-y-4 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <UploadCloud className="size-4 text-brand-400" />
+                    <h3 className="text-sm font-bold text-white">Uploads</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="size-7 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+                    title="Cerrar panel"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                {/* Buscador de archivos subidos */}
+                <div className="relative">
+                  <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Buscar archivos, etiquetas..."
+                    value={uploadSearchQuery}
+                    onChange={(e) => setUploadSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 font-sans"
+                  />
+                </div>
+
+                {/* Botón Principal Púrpura Estilo Canva: [ Upload files ] */}
+                <div>
+                  <input
+                    ref={fileUploadInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*,audio/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.mp4,.mov,.webm,.mp3,.wav"
+                    onChange={(e) => handleFileUpload(e.target.files)}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileUploadInputRef.current?.click()}
+                    className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-600/25 transition hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <UploadCloud className="size-4" />
+                    <span>Upload files (Subir archivos)</span>
+                  </button>
+                  <p className="text-[10px] text-slate-400 text-center mt-1.5">
+                    Soporta PNG transparente, JPG, SVG, WebP, GIF, MP4, MOV, WebM, MP3.
+                  </p>
+                </div>
+
+                {/* Subpestañas: Images | Videos | Audio */}
+                <div className="flex items-center gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setActiveUploadTab("images")}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                      activeUploadTab === "images"
+                        ? "bg-slate-800 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <ImageIcon className="size-3.5" />
+                    <span>Images</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveUploadTab("videos")}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                      activeUploadTab === "videos"
+                        ? "bg-slate-800 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <Video className="size-3.5" />
+                    <span>Videos</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveUploadTab("audio")}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                      activeUploadTab === "audio"
+                        ? "bg-slate-800 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <Music className="size-3.5" />
+                    <span>Audio</span>
+                  </button>
+                </div>
+
+                {/* Zona de Drop & Arrastre */}
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.dataTransfer.files) {
+                      handleFileUpload(e.dataTransfer.files);
+                    }
+                  }}
+                  onClick={() => fileUploadInputRef.current?.click()}
+                  className="p-3 border-2 border-dashed border-slate-700 hover:border-purple-500/60 rounded-xl bg-slate-950/40 hover:bg-purple-500/5 cursor-pointer text-center transition group"
+                >
+                  <Upload className="size-5 mx-auto text-slate-400 group-hover:text-purple-400 mb-1 transition-colors" />
+                  <p className="text-[11px] text-slate-300 font-semibold">Arrastra archivos aquí para subirlos</p>
+                  <p className="text-[9px] text-slate-500">Haz clic o suelta cualquier imagen o video</p>
+                </div>
+
+                {/* Galería de Archivos Subidos */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="font-semibold text-slate-300">Tus Archivos</span>
+                    <span className="text-[10px]">
+                      {uploadedMedia.filter((m) => m.type === activeUploadTab).length} elementos
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
+                    {uploadedMedia
+                      .filter((m) => {
+                        const matchesTab = m.type === activeUploadTab;
+                        const matchesQuery = uploadSearchQuery
+                          ? m.name.toLowerCase().includes(uploadSearchQuery.toLowerCase())
+                          : true;
+                        return matchesTab && matchesQuery;
+                      })
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          className="group/item relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950/70 hover:border-purple-500/60 transition shadow-md flex flex-col justify-between"
+                        >
+                          {/* Miniatura visual con fondo de cuadrícula para PNG transparentes */}
+                          <div
+                            onClick={() => handleInsertUploadedElement(item)}
+                            className="aspect-square w-full relative flex items-center justify-center p-2 cursor-pointer bg-[linear-gradient(45deg,#1e293b_25%,transparent_25%),linear-gradient(-45deg,#1e293b_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1e293b_75%),linear-gradient(-45deg,transparent_75%,#1e293b_75%)] bg-[size:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0]"
+                            title="Haz clic para insertar en el lienzo"
+                          >
+                            {item.type === "image" && (
+                              <img
+                                src={item.url}
+                                alt={item.name}
+                                className="w-full h-full object-contain select-none drop-shadow-md group-hover/item:scale-105 transition-transform"
+                              />
+                            )}
+                            {item.type === "video" && (
+                              <div className="w-full h-full relative rounded overflow-hidden bg-black flex items-center justify-center">
+                                <video
+                                  src={item.url}
+                                  className="w-full h-full object-cover"
+                                  muted
+                                  playsInline
+                                />
+                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                  <Video className="size-6 text-white drop-shadow" />
+                                </div>
+                              </div>
+                            )}
+                            {item.type === "audio" && (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-purple-400 gap-1 bg-slate-900 rounded">
+                                <Music className="size-8" />
+                                <span className="text-[10px] font-mono font-bold text-slate-300">AUDIO</span>
+                              </div>
+                            )}
+
+                            {/* Badge de formato */}
+                            <span className="absolute top-1.5 left-1.5 px-1 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-[8px] font-mono font-bold text-slate-300 border border-white/10 uppercase">
+                              {item.format}
+                            </span>
+                          </div>
+
+                          {/* Barra de acciones al pie */}
+                          <div className="p-1.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-[10px]">
+                            <span className="truncate max-w-[85px] text-slate-300 font-medium" title={item.name}>
+                              {item.name}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {item.type === "image" && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedBgUrl(item.url);
+                                  }}
+                                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white transition font-bold text-[9px]"
+                                  title="Establecer como fondo de la lámina"
+                                >
+                                  Fondo
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setUploadedMedia((prev) => prev.filter((m) => m.id !== item.id));
+                                }}
+                                className="size-5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 flex items-center justify-center transition"
+                                title="Eliminar archivo"
+                              >
+                                <Trash2 className="size-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {uploadedMedia.filter((m) => m.type === activeUploadTab).length === 0 && (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      No hay {activeUploadTab} subidos todavía.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -3319,11 +3868,13 @@ export default function VisualEditorModal({
                 value={{
                   isFreeMode,
                   isExporting,
+                  canvasZoom,
                   currentSlide,
                   selectedElement,
                   onSelectElement: setSelectedElement,
                   onOffsetChange: handleOffsetChange,
                   onScaleChange: handleScaleChange,
+                  onSizeChange: handleSizeChange,
                   onDeleteElement: handleDeleteElement,
                   onDuplicateElement: handleDuplicateElement,
                   onStyleChange: handleStyleChange,
@@ -4673,6 +5224,9 @@ export default function VisualEditorModal({
                       onOffsetChange={handleOffsetChange}
                       scale={currentSlide.scales?.[elem.id] ?? elem.scale ?? 1}
                       onScaleChange={handleScaleChange}
+                      width={elem.width}
+                      height={elem.height}
+                      onSizeChange={handleSizeChange}
                       onDelete={handleDeleteElement}
                       onDuplicate={handleDuplicateElement}
                       isExporting={isExporting}
@@ -4799,6 +5353,8 @@ export default function VisualEditorModal({
                       {elem.type === "shape_pill" && (
                         <div
                           style={{
+                            width: elem.width ? `${elem.width}px` : undefined,
+                            height: elem.height ? `${elem.height}px` : undefined,
                             backgroundColor: elem.bgColor || "rgba(255, 255, 255, 0.15)",
                             borderColor: elem.borderColor || accentColor,
                             borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 1}px`,
@@ -4884,6 +5440,53 @@ export default function VisualEditorModal({
                               placeholder="INSIGHT B2B"
                             />
                           </span>
+                        </div>
+                      )}
+
+                      {elem.type === "image" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 180}px`,
+                            height: `${elem.height || 180}px`,
+                            borderRadius: `${elem.borderRadius ?? 8}px`,
+                            opacity: elem.opacity ?? 1,
+                          }}
+                          className="overflow-hidden shadow-2xl transition-all cursor-pointer relative flex items-center justify-center bg-transparent group/img"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
+                        >
+                          <img
+                            src={elem.content}
+                            alt="Uploaded element"
+                            className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
+                          />
+                        </div>
+                      )}
+
+                      {elem.type === "video" && (
+                        <div
+                          style={{
+                            width: `${elem.width || 240}px`,
+                            height: `${elem.height || 160}px`,
+                            borderRadius: `${elem.borderRadius ?? 12}px`,
+                            opacity: elem.opacity ?? 1,
+                          }}
+                          className="overflow-hidden shadow-2xl transition-all cursor-pointer relative bg-black flex items-center justify-center border border-white/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedElement(elem.id);
+                          }}
+                        >
+                          <video
+                            src={elem.content}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                          />
                         </div>
                       )}
 
