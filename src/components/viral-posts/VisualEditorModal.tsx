@@ -522,14 +522,13 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!isFreeMode || isExporting) return;
     const target = e.target as HTMLElement;
-    const isHandle = target.closest('[data-drag-handle="true"]');
     const isResize = target.closest('[data-resize-handle="true"]');
     const isControl = target.closest("button") || target.tagName === "BUTTON";
     const isContent = target.isContentEditable;
 
     if (isControl || isResize) return;
 
-    if (isContent && !isHandle) {
+    if (isContent) {
       onSelect?.();
       return;
     }
@@ -821,86 +820,6 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
           />
         </>
-      )}
-
-      {/* Barra flotante contextual de Canva sobre el elemento */}
-      {isFreeMode && !isExporting && (
-        <div
-          data-drag-handle="true"
-          className={`absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-xl bg-slate-950/95 border border-brand-400 text-white flex items-center gap-2 shadow-2xl select-none z-50 transition-all ${
-            isSelected || isDragging
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 group-hover/drag:opacity-100 scale-95 pointer-events-none group-hover/drag:pointer-events-auto"
-          }`}
-        >
-          <div className="flex items-center gap-1 cursor-grab active:cursor-grabbing text-brand-300 font-bold text-[10px]">
-            <GripHorizontal className="size-3 text-brand-400" />
-            <span>{props.label || "Elemento"}</span>
-          </div>
-
-          {/* Botones de tamaño (-10% / +10%) */}
-          {onScaleChange && (
-            <div className="flex items-center gap-0.5 border-l border-white/20 pl-1.5">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const next = Math.max(0.3, Number((currentScale - 0.1).toFixed(2)));
-                  onScaleChange(id, next);
-                }}
-                className="size-5 rounded hover:bg-white/20 flex items-center justify-center text-xs font-bold text-white hover:text-brand-300 transition"
-                title="Achicar (-10%)"
-              >
-                -
-              </button>
-              <span className="text-[10px] font-mono text-brand-300 font-bold min-w-[32px] text-center">
-                {Math.round(currentScale * 100)}%
-              </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const next = Math.min(3.0, Number((currentScale + 0.1).toFixed(2)));
-                  onScaleChange(id, next);
-                }}
-                className="size-5 rounded hover:bg-white/20 flex items-center justify-center text-xs font-bold text-white hover:text-brand-300 transition"
-                title="Agrandar (+10%)"
-              >
-                +
-              </button>
-            </div>
-          )}
-
-          {/* Botón Duplicar (Canva Clone) */}
-          {onDuplicate && id !== "bg-photo" && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDuplicate(id);
-              }}
-              className="size-5 rounded hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition border-l border-white/20 pl-1 ml-0.5"
-              title="Duplicar este elemento"
-            >
-              <Copy className="size-3" />
-            </button>
-          )}
-
-          {/* Botón Eliminar */}
-          {onDelete && id !== "bg-photo" && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(id);
-              }}
-              className="size-5 rounded hover:bg-red-500/30 text-gray-400 hover:text-red-400 flex items-center justify-center transition border-l border-white/20 pl-1 ml-0.5"
-              title="Eliminar este elemento"
-            >
-              <Trash2 className="size-3" />
-            </button>
-          )}
-        </div>
       )}
       {props.children}
     </div>
