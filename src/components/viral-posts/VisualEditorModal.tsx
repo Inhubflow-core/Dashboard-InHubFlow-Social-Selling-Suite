@@ -963,10 +963,10 @@ function DraggableWrapper(props: DraggableWrapperProps) {
         isFreeMode && !isExporting
           ? `group/drag ${
               isDragging
-                ? "ring-2 ring-brand-400 bg-brand-500/10 shadow-2xl z-50 cursor-grabbing"
+                ? `ring-2 ring-brand-400 ${id === "bg-photo" ? "" : "bg-brand-500/10"} shadow-2xl z-50 cursor-grabbing`
                 : isSelected
                 ? "ring-2 ring-brand-400 ring-offset-1 ring-offset-transparent z-40"
-                : "hover:ring-1 hover:ring-brand-400/60 hover:bg-white/5 z-20"
+                : `hover:ring-1 hover:ring-brand-400/60 ${id === "bg-photo" ? "" : "hover:bg-white/5"} z-20`
             }`
           : ""
       } ${props.className || ""}`}
@@ -1072,7 +1072,7 @@ export default function VisualEditorModal({
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>("");
   const [bgScale, setBgScale] = useState(1.15);
-  const [bgDimming, setBgDimming] = useState(40);
+  const [bgDimming, setBgDimming] = useState(0);
 
   const handleBgZoomChange = (delta: number) => {
     setBgScale((prev) => Math.min(3, Math.max(1, +(prev + delta).toFixed(2))));
@@ -6003,11 +6003,13 @@ export default function VisualEditorModal({
                           style={{ transform: `scale(${bgScale})` }}
                           className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
                         />
-                        {/* Filtro ambiental sutil de contraste dinámico */}
-                        <div
-                          style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
-                          className="absolute inset-0 pointer-events-none transition-colors duration-150"
-                        />
+                        {/* Filtro ambiental sutil (100% transparente y limpio por defecto, sólo si bgDimming > 0) */}
+                        {bgDimming > 0 && (
+                          <div
+                            style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
+                            className="absolute inset-0 pointer-events-none transition-colors duration-150"
+                          />
+                        )}
                       </div>
                     </DraggableWrapper>
                   </div>
