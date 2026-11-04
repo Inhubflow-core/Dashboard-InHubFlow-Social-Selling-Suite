@@ -568,7 +568,7 @@ function InlineEditableText({
           ? undefined
           : isEditing
           ? "Escribe tu texto • Pulsa Enter o Esc para terminar"
-          : "Arrastra para mover con la manito • Doble clic para editar"
+          : "1 clic para mover • Doble clic para editar texto"
       }
     >
       {value || placeholder}
@@ -698,8 +698,11 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const isPointerDownRef = useRef(false);
+  const hasMovedRef = useRef(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialOffset = useRef({ x: 0, y: 0 });
+  const lastPointerDownTimeRef = useRef(0);
 
   // Rotación libre estilo Canva
   const [isRotating, setIsRotating] = useState(false);
@@ -721,6 +724,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     return null;
   }
 
+  // 1 Clic para seleccionar y mover a voluntad • Doble clic para editar texto directamente
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!isFreeMode || isExporting) return;
     const target = e.target as HTMLElement;
@@ -731,20 +735,31 @@ function DraggableWrapper(props: DraggableWrapperProps) {
 
     if (isControl || isResize || isRotate) return;
 
+    // Si ya está activamente escribiendo dentro del contenido, permitir selección de texto estándar
     if (isContent && document.activeElement === target) {
-      onSelect?.();
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
-    setIsDragging(true);
-    onSelect?.();
+    // Detección instantánea de doble clic para editar texto (estilo Canva)
+    const now = Date.now();
+    const timeSinceLast = now - lastPointerDownTimeRef.current;
+    if (isTextElement && timeSinceLast > 0 && timeSinceLast < 380) {
+      lastPointerDownTimeRef.current = 0;
+      isPointerDownRef.current = false;
+      hasMovedRef.current = false;
+      setIsDragging(false);
+      onSelect?.();
+      ctx?.setEditingElementKey?.(getTargetKey());
+      return;
+    }
+    lastPointerDownTimeRef.current = now;
+
+    // Preparar estado de arrastre con 1 clic
+    isPointerDownRef.current = true;
+    hasMovedRef.current = false;
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     initialOffset.current = { x: offset?.x || 0, y: offset?.y || 0 };
+    onSelect?.();
   };
 
   // Manejador específico para la manito de mover (move handle knob)
@@ -754,6 +769,8 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     try {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     } catch {}
+    isPointerDownRef.current = true;
+    hasMovedRef.current = true;
     setIsDragging(true);
     onSelect?.();
     dragStartPos.current = { x: e.clientX, y: e.clientY };
@@ -819,25 +836,44 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const zoom = ctx?.canvasZoom || 1;
-    const dx = (e.clientX - dragStartPos.current.x) / zoom;
-    const dy = (e.clientY - dragStartPos.current.y) / zoom;
-    onOffsetChange?.(id, {
-      x: Math.round(initialOffset.current.x + dx),
-      y: Math.round(initialOffset.current.y + dy),
-    });
+    if (!isPointerDownRef.current) return;
+
+    const dxRaw = e.clientX - dragStartPos.current.x;
+    const dyRaw = e.clientY - dragStartPos.current.y;
+    const dist = Math.hypot(dxRaw, dyRaw);
+
+    // Umbral de 3px para distinguir clic simple de arrastre
+    if (!hasMovedRef.current && dist > 3) {
+      hasMovedRef.current = true;
+      setIsDragging(true);
+      try {
+        (wrapperRef.current as HTMLElement)?.setPointerCapture(e.pointerId);
+      } catch {}
+    }
+
+    if (hasMovedRef.current) {
+      e.preventDefault();
+      const zoom = ctx?.canvasZoom || 1;
+      const dx = dxRaw / zoom;
+      const dy = dyRaw / zoom;
+      onOffsetChange?.(id, {
+        x: Math.round(initialOffset.current.x + dx),
+        y: Math.round(initialOffset.current.y + dy),
+      });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    e.stopPropagation();
-    setIsDragging(false);
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {}
-    onSelect?.();
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+
+    if (hasMovedRef.current) {
+      e.stopPropagation();
+      setIsDragging(false);
+      try {
+        (wrapperRef.current as HTMLElement)?.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
   };
 
   // Manejo de arrastre de cualquiera de las 8 manijas estilo Canva
@@ -7795,7 +7831,7 @@ export default function VisualEditorModal({
                       )}
 
                       {elem.type === "subheading" && (
-                        <h3 className="text-lg font-bold text-slate-200 tracking-tight leading-snug select-text drop-shadow-sm max-w-[340px]">
+                        <h3 className={`text-lg font-bold ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-800" : "text-slate-200"} tracking-tight leading-snug select-none drop-shadow-sm max-w-[340px]`}>
                           <InlineEditableText
                             elementKey={elem.id}
                             as="span"
@@ -7811,7 +7847,7 @@ export default function VisualEditorModal({
                       )}
 
                       {elem.type === "text" && (
-                        <p className="text-sm text-slate-200 leading-relaxed font-normal select-text drop-shadow-sm max-w-[320px]">
+                        <p className={`text-sm ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-700" : "text-slate-200"} leading-relaxed font-normal select-none drop-shadow-sm max-w-[320px]`}>
                           <InlineEditableText
                             elementKey={elem.id}
                             as="span"
