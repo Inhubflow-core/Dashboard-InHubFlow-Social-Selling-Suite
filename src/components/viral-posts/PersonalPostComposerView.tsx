@@ -478,11 +478,11 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 </div>
 
                 {/* Vista previa de imagen adjunta si existe */}
-                {attachedImage && (
+                {Boolean(attachedImage && attachedImage.trim() !== "") && (
                   <div className="relative rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-950 p-2 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={attachedImage}
+                        src={attachedImage || undefined}
                         alt="Recurso adjunto"
                         className="size-16 rounded-lg object-cover border border-gray-700"
                       />
@@ -686,10 +686,10 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
               </div>
 
               {/* Recurso Visual Adjunto (si existe) */}
-              {attachedImage && (
+              {Boolean(attachedImage && attachedImage.trim() !== "") && (
                 <div className="w-full bg-black/90 border-y border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center">
                   <img
-                    src={attachedImage}
+                    src={attachedImage || undefined}
                     alt="Arte de la publicación"
                     className="w-full max-h-[460px] object-contain"
                   />

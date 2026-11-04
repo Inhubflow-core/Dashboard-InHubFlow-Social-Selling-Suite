@@ -2801,10 +2801,10 @@ export default function VisualEditorModal({
 
               // Helper para renderizar la miniatura visual exacta estilo Canva
               const renderTemplateMiniature = (tpl: any, isCustomTpl: boolean) => {
-                if (tpl.thumbnail) {
+                if (tpl.thumbnail && tpl.thumbnail.trim() !== "") {
                   return (
                     <img
-                      src={tpl.thumbnail}
+                      src={tpl.thumbnail || undefined}
                       alt={tpl.name}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -5224,7 +5224,7 @@ export default function VisualEditorModal({
                   }`}
                 >
                 {/* 1. FOTO DE FONDO (Capa independiente z-0, draggable y escalable con zoom) */}
-                {Boolean(selectedBgUrl) && (
+                {Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
                   <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                     <DraggableWrapper
                       id="bg-photo"
@@ -5239,7 +5239,7 @@ export default function VisualEditorModal({
                     >
                       <div className="w-full h-full relative">
                         <img
-                          src={selectedBgUrl}
+                          src={selectedBgUrl || undefined}
                           alt="Background"
                           crossOrigin="anonymous"
                           style={{ transform: `scale(${bgScale})` }}
@@ -5256,7 +5256,7 @@ export default function VisualEditorModal({
                 )}
 
                 {/* BOTÓN FLOTANTE: CAMBIAR FOTO (Oculto al exportar) */}
-                {!isExporting && Boolean(selectedBgUrl) && (
+                {!isExporting && Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -6918,7 +6918,7 @@ export default function VisualEditorModal({
                         </div>
                       )}
 
-                      {elem.type === "image" && (
+                      {elem.type === "image" && elem.content && elem.content.trim() !== "" && (
                         <div
                           style={{
                             width: `${elem.width || 180}px`,
@@ -6933,7 +6933,7 @@ export default function VisualEditorModal({
                           }}
                         >
                           <img
-                            src={elem.content}
+                            src={elem.content || undefined}
                             alt="Uploaded element"
                             className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
                           />
@@ -6955,7 +6955,7 @@ export default function VisualEditorModal({
                           }}
                         >
                           <video
-                            src={elem.content}
+                            src={elem.content || undefined}
                             autoPlay
                             loop
                             muted
