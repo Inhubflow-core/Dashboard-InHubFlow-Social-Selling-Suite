@@ -69,6 +69,7 @@ import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
 export type TemplateId =
+  | "blank"
   | "editorial"
   | "authority_quote"
   | "social_card"
@@ -1057,9 +1058,9 @@ export default function VisualEditorModal({
 
   // Estados del editor
   const [editorMode, setEditorMode] = useState<EditorMode>("carousel");
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("editorial");
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("blank");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
-  const [selectedBgUrl, setSelectedBgUrl] = useState<string>(CURATED_BACKGROUNDS[0].url);
+  const [selectedBgUrl, setSelectedBgUrl] = useState<string>("");
   const [bgScale, setBgScale] = useState(1.15);
   const [bgDimming, setBgDimming] = useState(40);
 
@@ -1078,6 +1079,7 @@ export default function VisualEditorModal({
   // Modo Híbrido: Auto-Layout (false) vs Modo Libre Arrastrable (true)
   // Modo Libre activo permanentemente (estilo Canva nativo)
   const [isFreeMode, setIsFreeMode] = useState(true);
+  const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
 
   const getTitleSizeClass = (size: "sm" | "md" | "lg" | "xl") => {
     switch (size) {
@@ -1367,6 +1369,89 @@ export default function VisualEditorModal({
     setIsDrawerOpen(true);
   };
 
+    // Aplica plantilla oficial con fotografias y textos curados segun estilo
+  const applyOfficialTemplate = (templateId: TemplateId) => {
+    setSelectedTemplate(templateId);
+    setActiveCustomTemplateId(null);
+
+    // Asignar fondo curado si no habia uno seleccionado
+    if (!selectedBgUrl) {
+      if (templateId === "editorial") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
+      else if (templateId === "authority_quote") setSelectedBgUrl(CURATED_BACKGROUNDS[1]?.url || CURATED_BACKGROUNDS[0].url);
+      else if (templateId === "social_card") setSelectedBgUrl(CURATED_BACKGROUNDS[2]?.url || CURATED_BACKGROUNDS[0].url);
+      else if (templateId === "split_focus") setSelectedBgUrl(CURATED_BACKGROUNDS[3]?.url || CURATED_BACKGROUNDS[0].url);
+      else if (templateId === "big_metric") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
+      else if (templateId === "bold_highlighter") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
+    }
+
+    // Si la lamina estaba en blanco, poblar textos clave del estilo oficial
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      if (!cur.title || cur.title.trim() === "") {
+        if (templateId === "editorial") {
+          cur.title = "El error #1 que frena las conversiones de tu equipo en LinkedIn:";
+          cur.subtitle = "No es el algoritmo. Es hablar del producto antes de validar el dolor.";
+          cur.tag = "ESTRATEGIA B2B";
+        } else if (templateId === "authority_quote") {
+          cur.title = "«La personalización contextual es la única ventaja que la IA no puede copiar.»";
+          cur.subtitle = "Si tu prospección suena como un mensaje masivo, será tratada como spam.";
+          cur.tag = "LIDERAZGO B2B";
+        } else if (templateId === "social_card") {
+          cur.title = "Las 3 palancas para prospectar en frío en LinkedIn sin quemar cuentas.";
+          cur.subtitle = "Paso a paso de lo que aprendimos analizando 50,000 interacciones.";
+          cur.tag = "INSIGHT VIRAL";
+        } else if (templateId === "split_focus") {
+          cur.title = "Cómo los líderes B2B cierran reuniones en 2026";
+          cur.subtitle = "El framework 50/50 de prospección consultiva.";
+          cur.tag = "MÉTODO 50/50";
+        } else if (templateId === "big_metric") {
+          cur.title = "Tasa de respuesta validada en secuencias multicanal";
+          cur.subtitle = "Comparado con el promedio de la industria del 2.4%";
+          cur.metric = "+340%";
+          cur.tag = "MÉTRICA VALIDADA";
+        } else if (templateId === "bold_highlighter") {
+          cur.title = "el 90% de los [mensajes b2b] terminan en la papelera";
+          cur.subtitle = "El problema no es el volumen, es la falta de estrategia operativa...";
+          cur.tag = "VIRAL B2B";
+          cur.highlightText = "mensajes b2b";
+        }
+      }
+      return next;
+    });
+
+    const targetDef = TEMPLATES.find((t) => t.id === templateId);
+    setExportFeedback(`Plantilla "${targetDef?.name || templateId}" aplicada`);
+    setTimeout(() => setExportFeedback(null), 2500);
+  };
+
+  // Restablece el lienzo a blanco limpio (Estilo Canva desde cero)
+  const handleResetToBlankCanvas = () => {
+    setSelectedTemplate("blank");
+    setActiveCustomTemplateId(null);
+    setSelectedBgUrl("");
+    setSlides([
+      {
+        id: `slide-${Date.now()}`,
+        slideNumber: 1,
+        type: "cover",
+        label: "Página 1",
+        title: "",
+        subtitle: "",
+        tag: "",
+        customElements: [],
+        offsets: {},
+        scales: {},
+        dimensions: {},
+        hiddenElements: {},
+      },
+    ]);
+    setCurrentSlideIndex(0);
+    setSelectedElement(null);
+    setExportFeedback("Lienzo en blanco creado (Estilo Canva)");
+    setTimeout(() => setExportFeedback(null), 2500);
+  };
+
   const handleApplyCustomTemplate = (tpl: CustomVisualTemplate) => {
     setSelectedTemplate(tpl.baseTemplate);
     setAspectRatio(tpl.aspectRatio);
@@ -1562,55 +1647,22 @@ export default function VisualEditorModal({
     setSelectedElement(newId);
   };
 
-  // Diapositivas
+  // Diapositivas (Lienzo en blanco inicial estilo Canva)
   const [slides, setSlides] = useState<CarouselSlideItem[]>([
     {
       id: "slide-1",
       slideNumber: 1,
       type: "cover",
-      label: "Portada",
-      title: initialTitle,
-      subtitle: initialSubtitle,
-      tag: initialCategory,
-      metric: initialMetric,
-    },
-    {
-      id: "slide-2",
-      slideNumber: 2,
-      type: "problem",
-      label: "Problema",
-      title: "El Gran Error en Frío",
-      subtitle: "Lo que el 90% hace mal al prospectar",
-      tag: "PASO 01 / DIAGNÓSTICO",
-      bullets: [
-        "El decisor percibe spam antes de entender la propuesta.",
-        "Tasa de respuesta inferior al 3% en mensajes genéricos.",
-        "Quemas tu cuenta personal sin construir autoridad.",
-      ],
-    },
-    {
-      id: "slide-3",
-      slideNumber: 3,
-      type: "solution",
-      label: "Solución",
-      title: "El Framework Inbound",
-      subtitle: "Cómo convertir comentarios en clientes",
-      tag: "PASO 02 / ESTRATEGIA",
-      bullets: [
-        "Crea un activo de valor concreto (guía, plantilla o playbook).",
-        "Publica mostrando resultados tangibles y pide una palabra clave.",
-        "Automatiza la entrega en DM y cualifica la conversación.",
-      ],
-    },
-    {
-      id: "slide-4",
-      slideNumber: 4,
-      type: "cta",
-      label: "CTA Final",
-      title: "¿Quieres Este Sistema?",
-      subtitle: "Recibe el documento de trabajo completo en PDF",
-      tag: "ACCIÓN INMEDIATA",
-      ctaKeyword: "SISTEMA",
+      label: "Página 1",
+      title: initialTitle || "",
+      subtitle: initialSubtitle || "",
+      tag: initialCategory || "",
+      metric: initialMetric || "",
+      customElements: [],
+      offsets: {},
+      scales: {},
+      dimensions: {},
+      hiddenElements: {},
     },
   ]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -2943,20 +2995,33 @@ export default function VisualEditorModal({
                   ? activeCustomTemplateId === tpl.id
                   : selectedTemplate === tpl.id && !activeCustomTemplateId;
 
+                const applyThisTemplate = () => {
+                  if (isCustomTpl) {
+                    handleApplyCustomTemplate(tpl);
+                  } else {
+                    applyOfficialTemplate(tpl.id);
+                  }
+                };
+
                 return (
                   <div
                     key={tpl.id}
-                    onClick={() => {
-                      if (isCustomTpl) {
-                        handleApplyCustomTemplate(tpl);
-                      } else {
-                        setSelectedTemplate(tpl.id);
-                        setActiveCustomTemplateId(null);
-                        setExportFeedback(`Plantilla oficial "${tpl.name}" aplicada`);
-                        setTimeout(() => setExportFeedback(null), 2500);
-                      }
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({
+                          type: "template",
+                          id: tpl.id,
+                          isCustom: isCustomTpl,
+                        })
+                      );
+                      e.dataTransfer.effectAllowed = "copy";
                     }}
-                    className={`group relative rounded-2xl overflow-hidden border cursor-pointer transition-all duration-200 aspect-[4/5] flex flex-col justify-between shadow-sm hover:shadow-xl hover:-translate-y-0.5 select-none ${
+                    onClick={applyThisTemplate}
+                    onDoubleClick={applyThisTemplate}
+                    title="Haz clic, doble clic o arrastra al lienzo para aplicar esta plantilla"
+                    className={`group relative rounded-2xl overflow-hidden border cursor-grab active:cursor-grabbing transition-all duration-200 aspect-[4/5] flex flex-col justify-between shadow-sm hover:shadow-xl hover:-translate-y-0.5 select-none ${
                       isActive
                         ? "border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20"
                         : "border-slate-800 bg-slate-950 hover:border-brand-500 hover:ring-2 hover:ring-brand-500/30"
@@ -3041,6 +3106,29 @@ export default function VisualEditorModal({
 
               return (
                 <div className="space-y-4">
+                  {/* Botón: Empezar con Lienzo en Blanco (Estilo Canva desde cero) */}
+                  <button
+                    type="button"
+                    onClick={handleResetToBlankCanvas}
+                    className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-between transition shadow-sm group ${
+                      selectedTemplate === "blank" && !activeCustomTemplateId
+                        ? "bg-brand-500/15 border-brand-500 text-brand-300 ring-1 ring-brand-500/30"
+                        : "bg-slate-950/70 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-lg bg-white text-slate-900 flex items-center justify-center shadow-xs">
+                        <Plus className="size-3.5 stroke-[3]" />
+                      </div>
+                      <span>Lienzo en Blanco (Desde Cero)</span>
+                    </div>
+                    {selectedTemplate === "blank" && !activeCustomTemplateId && (
+                      <span className="text-[9px] bg-brand-500 text-white font-extrabold px-1.5 py-0.5 rounded">
+                        ACTUAL
+                      </span>
+                    )}
+                  </button>
+
                   {/* Buscador de plantillas estilo Canva */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
@@ -5101,46 +5189,81 @@ export default function VisualEditorModal({
                       setSelectedElement("background");
                     }
                   }}
-                  className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-950 select-text"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "copy";
+                    if (!isCanvasDragOver) setIsCanvasDragOver(true);
+                  }}
+                  onDragLeave={(e) => {
+                    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                    setIsCanvasDragOver(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsCanvasDragOver(false);
+                    try {
+                      const dataStr = e.dataTransfer.getData("application/json");
+                      if (!dataStr) return;
+                      const data = JSON.parse(dataStr);
+                      if (data.type === "template") {
+                        if (data.isCustom) {
+                          const found = customTemplates.find((t) => t.id === data.id);
+                          if (found) handleApplyCustomTemplate(found);
+                        } else {
+                          applyOfficialTemplate(data.id);
+                        }
+                      }
+                    } catch (err) {
+                      console.warn("Error al aplicar plantilla arrastrada:", err);
+                    }
+                  }}
+                  className={`relative w-full h-full flex flex-col justify-between overflow-hidden select-text transition-colors duration-200 ${
+                    selectedTemplate === "blank" && !selectedBgUrl
+                      ? "bg-white text-slate-900"
+                      : "bg-slate-950 text-white"
+                  }`}
                 >
                 {/* 1. FOTO DE FONDO (Capa independiente z-0, draggable y escalable con zoom) */}
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                  <DraggableWrapper
-                    id="bg-photo"
-                    label="Foto de Fondo"
-                    isFreeMode={isFreeMode}
-                    offset={currentSlide.offsets?.["bg-photo"]}
-                    onOffsetChange={handleOffsetChange}
-                    isExporting={isExporting}
-                    isSelected={selectedElement === "background"}
-                    onSelect={() => setSelectedElement("background")}
-                    className="absolute -inset-24 w-[calc(100%+192px)] h-[calc(100%+192px)] pointer-events-auto cursor-grab active:cursor-grabbing"
-                  >
-                    <div className="w-full h-full relative">
-                      <img
-                        src={selectedBgUrl}
-                        alt="Background"
-                        crossOrigin="anonymous"
-                        style={{ transform: `scale(${bgScale})` }}
-                        className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
-                      />
-                      {/* Filtro ambiental sutil de contraste */}
-                      <div
-                        style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
-                        className="absolute inset-0 pointer-events-none transition-colors duration-150"
-                      />
-                    </div>
-                  </DraggableWrapper>
-                </div>
+                {Boolean(selectedBgUrl) && (
+                  <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                    <DraggableWrapper
+                      id="bg-photo"
+                      label="Foto de Fondo"
+                      isFreeMode={isFreeMode}
+                      offset={currentSlide.offsets?.["bg-photo"]}
+                      onOffsetChange={handleOffsetChange}
+                      isExporting={isExporting}
+                      isSelected={selectedElement === "background"}
+                      onSelect={() => setSelectedElement("background")}
+                      className="absolute -inset-24 w-[calc(100%+192px)] h-[calc(100%+192px)] pointer-events-auto cursor-grab active:cursor-grabbing"
+                    >
+                      <div className="w-full h-full relative">
+                        <img
+                          src={selectedBgUrl}
+                          alt="Background"
+                          crossOrigin="anonymous"
+                          style={{ transform: `scale(${bgScale})` }}
+                          className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
+                        />
+                        {/* Filtro ambiental sutil de contraste dinámico */}
+                        <div
+                          style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
+                          className="absolute inset-0 pointer-events-none transition-colors duration-150"
+                        />
+                      </div>
+                    </DraggableWrapper>
+                  </div>
+                )}
 
                 {/* BOTÓN FLOTANTE: CAMBIAR FOTO (Oculto al exportar) */}
-                {!isExporting && (
+                {!isExporting && Boolean(selectedBgUrl) && (
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedElement("background");
-                      setActiveTab("backgrounds");
+                      setActiveDockTab("photos");
+                      setIsDrawerOpen(true);
                     }}
                     className="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 hover:bg-black text-white text-xs font-semibold border border-white/20 shadow-xl backdrop-blur-md transition hover:scale-105"
                     title="Cambiar fotografía de fondo"
@@ -5150,10 +5273,52 @@ export default function VisualEditorModal({
                   </button>
                 )}
 
-                {/* 2. RENDERIZADO POR PLANTILLA O TIPO DE LÁMINA */}
+                {/* OVERLAY DE DROPZONE AL ARRASTRAR PLANTILLA ESTILO CANVA */}
+                {isCanvasDragOver && (
+                  <div className="absolute inset-0 z-50 bg-brand-600/30 border-4 border-dashed border-brand-400 rounded-2xl flex flex-col items-center justify-center p-6 backdrop-blur-xs animate-in fade-in duration-150 pointer-events-none">
+                    <div className="size-16 rounded-2xl bg-brand-500 text-white shadow-2xl flex items-center justify-center mb-3 scale-110 animate-bounce">
+                      <Sparkles className="size-8" />
+                    </div>
+                    <p className="text-base font-extrabold text-white drop-shadow-md">
+                      Suelta la plantilla aquí
+                    </p>
+                    <p className="text-xs text-brand-100 font-medium mt-1">
+                      Se aplicará instantáneamente a tu diseño
+                    </p>
+                  </div>
+                )}
 
-                {/* A) LÁMINA TIPO PORTADA SEGÚN PLANTILLA SELECCIONADA */}
-                {isCover ? (
+                {/* WATERMARK / GUÍA DE LIENZO EN BLANCO ESTILO CANVA (Oculto al exportar o tener contenido) */}
+                {selectedTemplate === "blank" &&
+                  !selectedBgUrl &&
+                  (currentSlide.customElements || []).length === 0 &&
+                  !currentSlide.title &&
+                  !isExporting && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center pointer-events-none select-none">
+                      <div className="size-16 rounded-3xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-400 mb-3.5 shadow-xs">
+                        <LayoutGrid className="size-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800">
+                        Lienzo en Blanco
+                      </h3>
+                      <p className="text-xs text-slate-400 max-w-[240px] mt-1.5 leading-relaxed">
+                        Arrastra una plantilla desde la izquierda, haz doble clic, o añade textos y figuras desde los paneles.
+                      </p>
+                      <div className="flex items-center gap-2 mt-4 text-[11px] text-slate-500 font-medium">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
+                          Arrastrar plantilla
+                        </span>
+                        <span>o</span>
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
+                          Doble clic
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                {/* 2. RENDERIZADO POR PLANTILLA O TIPO DE LÁMINA */}
+                {selectedTemplate !== "blank" && (
+                  isCover ? (
                   <>
                     {/* PLANTILLA 1: CINEMATIC EDITORIAL */}
                     {selectedTemplate === "editorial" && (
@@ -6488,7 +6653,8 @@ export default function VisualEditorModal({
                       </div>
                     </div>
                   </>
-                )}
+                )
+              )}
 
                 {/* 3. CAPAS DE ELEMENTOS PERSONALIZADOS ADICIONALES (ESTILO CANVA) */}
                 {(currentSlide.customElements || []).map((elem) => {

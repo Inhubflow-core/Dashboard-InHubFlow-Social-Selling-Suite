@@ -78,6 +78,7 @@ export interface CreatedPost {
 // -------------------------------------------------------------
 
 export type TemplateId =
+  | "blank"
   | "editorial"
   | "authority_quote"
   | "social_card"
