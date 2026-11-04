@@ -2890,9 +2890,7 @@ export default function VisualEditorModal({
               <h1 className="text-sm font-bold text-white tracking-wide">
                 Estudio Gráfico InHubFlow
               </h1>
-              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
-                CANVA ENGINE HD
-              </span>
+
             </div>
           </div>
         </div>
