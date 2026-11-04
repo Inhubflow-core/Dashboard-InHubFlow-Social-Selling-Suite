@@ -57,6 +57,9 @@ import {
   Bookmark,
   Wand2,
   Loader2,
+  Key,
+  ExternalLink,
+  RefreshCw,
   Pencil,
   Crown,
   FolderPlus,
@@ -65,6 +68,13 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useVisualTemplates, type CustomVisualTemplate } from "@/lib/viral-posts/visual-templates-store";
 import { removeImageBackground } from "@/lib/viral-posts/bg-remover";
+import {
+  fetchPixabayResources,
+  getStoredPixabayKey,
+  setStoredPixabayKey,
+  testPixabayKey,
+  type PixabayItem,
+} from "@/lib/viral-posts/pixabay-client";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
@@ -79,7 +89,7 @@ export type TemplateId =
 
 export type AspectRatio = "4:5" | "1:1";
 export type EditorMode = "single" | "carousel";
-export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds" | "shape_edit" | "shape_color" | "shape_border_color" | "uploads";
+export type CanvaDockTab = "templates" | "text" | "elements" | "photos" | "backgrounds" | "videos" | "shape_edit" | "shape_color" | "shape_border_color" | "uploads";
 
 export interface TemplateDefinition {
   id: TemplateId;
@@ -1596,10 +1606,256 @@ export default function VisualEditorModal({
   const [isExporting, setIsExporting] = useState(false);
   const [exportFeedback, setExportFeedback] = useState<string | null>(null);
 
-  // Búsqueda de fotos
+  // Estados de Pixabay API Engine
+  const [pixabayKey, setPixabayKey] = useState<string>("");
+  const [isPixabayModalOpen, setIsPixabayModalOpen] = useState(false);
+  const [pixabayKeyInput, setPixabayKeyInput] = useState("");
+  const [pixabayTestState, setPixabayTestState] = useState<{ loading: boolean; ok?: boolean; message?: string } | null>(null);
+
+  // Estados de Fotos Pixabay
+  const [pixabayPhotos, setPixabayPhotos] = useState<PixabayItem[]>([]);
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [photoSearchQuery, setPhotoSearchQuery] = useState("");
   const [activePhotoTag, setActivePhotoTag] = useState("all");
-  const [colorSearchQuery, setColorSearchQuery] = useState("");
+  const [photoOrientation, setPhotoOrientation] = useState<"all" | "horizontal" | "vertical">("all");
+  const [totalPhotos, setTotalPhotos] = useState(0);
+
+  // Estados de Elementos Pixabay (Vectores e Ilustraciones)
+  const [elementsSubTab, setElementsSubTab] = useState<"shapes" | "vectors" | "illustrations">("shapes");
+  const [pixabayElements, setPixabayElements] = useState<PixabayItem[]>([]);
+  const [isLoadingElements, setIsLoadingElements] = useState(false);
+  const [elementSearchQuery, setElementSearchQuery] = useState("");
+  const [activeElementTag, setActiveElementTag] = useState("all");
+
+  // Estados de Fondos Pixabay
+  const [pixabayBackgrounds, setPixabayBackgrounds] = useState<PixabayItem[]>([]);
+  const [isLoadingBackgrounds, setIsLoadingBackgrounds] = useState(false);
+  const [bgSearchQuery, setBgSearchQuery] = useState("");
+  const [activeBgTag, setActiveBgTag] = useState("all");
+
+  // Estados de Videos Pixabay
+  const [pixabayVideos, setPixabayVideos] = useState<PixabayItem[]>([]);
+  const [isLoadingVideos, setIsLoadingVideos] = useState(false);
+  const [videoSearchQuery, setVideoSearchQuery] = useState("");
+  const [activeVideoTag, setActiveVideoTag] = useState("all");
+
+  // Carga inicial de API Key de Pixabay
+  useEffect(() => {
+    const k = getStoredPixabayKey();
+    if (k) {
+      setPixabayKey(k);
+      setPixabayKeyInput(k);
+    }
+  }, []);
+
+  // Función para consultar Fotos Pixabay
+  const loadPixabayPhotos = useCallback(async (query: string, tag: string, orientation: "all" | "horizontal" | "vertical") => {
+    setIsLoadingPhotos(true);
+    try {
+      const q = query.trim() || (tag !== "all" ? tag : "business executive office");
+      const res = await fetchPixabayResources({
+        resource: "photos",
+        query: q,
+        orientation,
+        category: tag !== "all" && ["business", "computer", "people", "buildings", "industry"].includes(tag) ? tag : undefined,
+        apiKey: pixabayKey,
+      });
+      setPixabayPhotos(res.items || []);
+      setTotalPhotos(res.total || 0);
+    } catch (err) {
+      console.error("Error al cargar fotos de Pixabay:", err);
+    } finally {
+      setIsLoadingPhotos(false);
+    }
+  }, [pixabayKey]);
+
+  // Función para consultar Elementos Pixabay (Vectores o Ilustraciones)
+  const loadPixabayElements = useCallback(async (type: "vectors" | "illustrations", query: string, tag: string) => {
+    setIsLoadingElements(true);
+    try {
+      const q = query.trim() || (tag !== "all" ? tag : (type === "vectors" ? "icon badge graphic" : "business illustration infographic"));
+      const res = await fetchPixabayResources({
+        resource: type,
+        query: q,
+        apiKey: pixabayKey,
+      });
+      setPixabayElements(res.items || []);
+    } catch (err) {
+      console.error("Error al cargar elementos de Pixabay:", err);
+    } finally {
+      setIsLoadingElements(false);
+    }
+  }, [pixabayKey]);
+
+  // Función para consultar Fondos Pixabay
+  const loadPixabayBackgrounds = useCallback(async (query: string, tag: string) => {
+    setIsLoadingBackgrounds(true);
+    try {
+      const q = query.trim() || (tag !== "all" ? `${tag} background texture` : "dark minimal gradient texture");
+      const res = await fetchPixabayResources({
+        resource: "backgrounds",
+        query: q,
+        apiKey: pixabayKey,
+      });
+      setPixabayBackgrounds(res.items || []);
+    } catch (err) {
+      console.error("Error al cargar fondos de Pixabay:", err);
+    } finally {
+      setIsLoadingBackgrounds(false);
+    }
+  }, [pixabayKey]);
+
+  // Función para consultar Videos Pixabay
+  const loadPixabayVideos = useCallback(async (query: string, tag: string) => {
+    setIsLoadingVideos(true);
+    try {
+      const q = query.trim() || (tag !== "all" ? tag : "technology particles business motion");
+      const res = await fetchPixabayResources({
+        resource: "videos",
+        query: q,
+        apiKey: pixabayKey,
+      });
+      setPixabayVideos(res.items || []);
+    } catch (err) {
+      console.error("Error al cargar videos de Pixabay:", err);
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  }, [pixabayKey]);
+
+  // Disparar carga reactiva al abrir pestañas o cambiar filtros
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (activeDockTab === "photos") {
+      const timer = setTimeout(() => {
+        loadPixabayPhotos(photoSearchQuery, activePhotoTag, photoOrientation);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+
+    if (activeDockTab === "elements" && (elementsSubTab === "vectors" || elementsSubTab === "illustrations")) {
+      const timer = setTimeout(() => {
+        loadPixabayElements(elementsSubTab, elementSearchQuery, activeElementTag);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+
+    if (activeDockTab === "backgrounds") {
+      const timer = setTimeout(() => {
+        loadPixabayBackgrounds(bgSearchQuery, activeBgTag);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+
+    if (activeDockTab === "videos") {
+      const timer = setTimeout(() => {
+        loadPixabayVideos(videoSearchQuery, activeVideoTag);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    isOpen,
+    activeDockTab,
+    elementsSubTab,
+    photoSearchQuery,
+    activePhotoTag,
+    photoOrientation,
+    elementSearchQuery,
+    activeElementTag,
+    bgSearchQuery,
+    activeBgTag,
+    videoSearchQuery,
+    activeVideoTag,
+    loadPixabayPhotos,
+    loadPixabayElements,
+    loadPixabayBackgrounds,
+    loadPixabayVideos,
+  ]);
+
+  // Manejador para aplicar foto o fondo de Pixabay como background del lienzo
+  const handleApplyPixabayAsBg = (item: PixabayItem) => {
+    setSelectedBgUrl(item.regularUrl);
+    updateCurrentSlide({ bgUrl: item.regularUrl });
+    setSelectedElement("background");
+    setExportFeedback(`Fondo actualizado: ${item.title}`);
+    setTimeout(() => setExportFeedback(null), 2500);
+  };
+
+  // Manejador para insertar recurso de Pixabay como elemento libre en el lienzo
+  const handleInsertPixabayAsElement = (item: PixabayItem) => {
+    setIsFreeMode(true);
+    const newId = `elem-${Date.now()}`;
+    const isVid = item.type === "video";
+    const newElement: CustomCanvasElement = {
+      id: newId,
+      type: isVid ? "video" : "image",
+      content: isVid ? (item.videoUrl || item.regularUrl) : item.regularUrl,
+      x: 70,
+      y: 90,
+      width: isVid ? 260 : (item.type === "vector" ? 140 : 180),
+      height: isVid ? 170 : (item.type === "vector" ? 140 : 180),
+      scale: 1,
+      borderRadius: item.type === "vector" ? 0 : 8,
+      opacity: 1,
+      bgColor: "transparent",
+      borderWidth: 0,
+    };
+
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const curList = cur.customElements || [];
+      next[currentSlideIndex] = {
+        ...cur,
+        customElements: [...curList, newElement],
+      };
+      return next;
+    });
+
+    setSelectedElement(newId);
+    setExportFeedback(`${item.type === "vector" ? "Vector" : isVid ? "Video" : "Elemento"} insertado en el lienzo`);
+    setTimeout(() => setExportFeedback(null), 2500);
+  };
+
+  // Manejador para probar API Key de Pixabay
+  const handleTestPixabayKey = async () => {
+    if (!pixabayKeyInput.trim()) {
+      setPixabayTestState({ loading: false, ok: false, message: "Ingresa tu API Key antes de probar" });
+      return;
+    }
+    setPixabayTestState({ loading: true });
+    const res = await testPixabayKey(pixabayKeyInput.trim());
+    if (res.ok) {
+      setPixabayTestState({
+        loading: false,
+        ok: true,
+        message: `¡Conexión exitosa! Más de ${res.totalHits?.toLocaleString() || "4.3M"} recursos disponibles.`,
+      });
+    } else {
+      setPixabayTestState({
+        loading: false,
+        ok: false,
+        message: res.message || "No se pudo validar la clave. Verifica que sea correcta.",
+      });
+    }
+  };
+
+  // Manejador para guardar API Key de Pixabay
+  const handleSavePixabayKey = () => {
+    const trimmed = pixabayKeyInput.trim();
+    setStoredPixabayKey(trimmed);
+    setPixabayKey(trimmed);
+    setIsPixabayModalOpen(false);
+    setExportFeedback(trimmed ? "¡API Key de Pixabay guardada y activada!" : "API Key removida. Usando catálogo base.");
+    setTimeout(() => setExportFeedback(null), 3000);
+    // Recargar pestaña activa
+    if (activeDockTab === "photos") loadPixabayPhotos(photoSearchQuery, activePhotoTag, photoOrientation);
+    if (activeDockTab === "elements") loadPixabayElements(elementsSubTab === "illustrations" ? "illustrations" : "vectors", elementSearchQuery, activeElementTag);
+    if (activeDockTab === "backgrounds") loadPixabayBackgrounds(bgSearchQuery, activeBgTag);
+    if (activeDockTab === "videos") loadPixabayVideos(videoSearchQuery, activeVideoTag);
+  };
+    const [colorSearchQuery, setColorSearchQuery] = useState("");
 
   // Estado para galería de Uploads (Imágenes, Videos y Audios)
   const [uploadedMedia, setUploadedMedia] = useState<Array<{
@@ -2828,6 +3084,28 @@ export default function VisualEditorModal({
             <span className="text-[10px] tracking-tight">Fondos</span>
           </button>
 
+          {/* BOTÓN VIDEOS (PIXABAY MOTION) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (activeDockTab === "videos" && isDrawerOpen) {
+                setIsDrawerOpen(false);
+              } else {
+                setActiveDockTab("videos");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className={`w-[54px] py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition ${
+              activeDockTab === "videos" && isDrawerOpen
+                ? "bg-brand-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+            }`}
+            title="Videos corporativos y motion clips de Pixabay"
+          >
+            <Video className="size-5" />
+            <span className="text-[10px] tracking-tight">Videos</span>
+          </button>
+
           {/* BOTÓN UPLOADS DEBAJO DE FONDOS (ESTILO CANVA) */}
           <button
             type="button"
@@ -3447,257 +3725,492 @@ export default function VisualEditorModal({
 
             {/* PESTAÑA 3: ELEMENTOS */}
             {activeDockTab === "elements" && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">Formas y Elementos</h3>
-                  <p className="text-xs text-slate-400">
-                    Inserta figuras geométricas vectoriales y personaliza su relleno o bordes.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handleAddShape("shape_rect")}
-                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
-                  >
-                    <Square className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
-                    <span className="text-xs font-semibold text-slate-200">Rectángulo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddShape("shape_circle")}
-                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
-                  >
-                    <Circle className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
-                    <span className="text-xs font-semibold text-slate-200">Círculo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddShape("shape_star")}
-                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-500/50 flex flex-col items-center justify-center gap-2 group transition"
-                  >
-                    <Star className="size-7 text-amber-400 group-hover:scale-110 transition" />
-                    <span className="text-xs font-semibold text-slate-200">Estrella</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddShape("shape_pill")}
-                    className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex flex-col items-center justify-center gap-2 group transition"
-                  >
-                    <div className="w-10 h-4 rounded-full bg-white shadow-sm" />
-                    <span className="text-xs font-semibold text-slate-200">Píldora</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddShape("shape_line")}
-                    className="col-span-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center justify-center gap-3 group transition"
-                  >
-                    <Minus className="size-5 text-white" />
-                    <span className="text-xs font-semibold text-slate-200">Línea Divisoria</span>
-                  </button>
-                </div>
-
-                {/* Estilos Rápidos de Formas */}
-                <div className="pt-2 border-t border-slate-800 space-y-2">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Acabados Rápidos</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAddShape("shape_rect")}
-                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center gap-2 transition text-left"
-                      title="Insertar rectángulo blanco sólido (opacidad 100%)"
-                    >
-                      <div className="size-5 rounded-md bg-white border border-white/40 shadow-xs shrink-0" />
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-tight">Blanco Sólido</span>
-                        <span className="text-[10px] text-slate-400">100% Opaco</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsFreeMode(true);
-                        const newId = `elem-${Date.now()}`;
-                        const glassShape: CustomCanvasElement = {
-                          id: newId,
-                          type: "shape_rect",
-                          x: 50,
-                          y: 150,
-                          width: 140,
-                          height: 90,
-                          scale: 1,
-                          bgColor: "rgba(255, 255, 255, 0.15)",
-                          borderColor: "rgba(255, 255, 255, 0.35)",
-                          borderWidth: 1,
-                          borderStyle: "solid",
-                          borderRadius: 16,
-                          opacity: 1,
-                        };
-                        setSlides((prev) => {
-                          const next = [...prev];
-                          const cur = next[currentSlideIndex];
-                          next[currentSlideIndex] = {
-                            ...cur,
-                            customElements: [...(cur.customElements || []), glassShape],
-                          };
-                          return next;
-                        });
-                        setSelectedElement(newId);
-                      }}
-                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex items-center gap-2 transition text-left"
-                      title="Insertar rectángulo con efecto vidrio translúcido (Glassmorphism)"
-                    >
-                      <div className="size-5 rounded-md bg-white/20 border border-white/50 backdrop-blur-sm shrink-0" />
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-tight">Efecto Vidrio</span>
-                        <span className="text-[10px] text-slate-400">Translúcido</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsFreeMode(true);
-                        const newId = `elem-${Date.now()}`;
-                        const gradShape: CustomCanvasElement = {
-                          id: newId,
-                          type: "shape_rect",
-                          x: 50,
-                          y: 150,
-                          width: 140,
-                          height: 90,
-                          scale: 1,
-                          bgColor: "linear-gradient(to bottom, #ffffff, transparent)",
-                          borderColor: "transparent",
-                          borderWidth: 0,
-                          borderRadius: 16,
-                          opacity: 1,
-                        };
-                        setSlides((prev) => {
-                          const next = [...prev];
-                          const cur = next[currentSlideIndex];
-                          next[currentSlideIndex] = {
-                            ...cur,
-                            customElements: [...(cur.customElements || []), gradShape],
-                          };
-                          return next;
-                        });
-                        setSelectedElement(newId);
-                      }}
-                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-400/50 flex items-center gap-2 transition text-left"
-                      title="Insertar rectángulo con degradado de blanco a transparente"
-                    >
-                      <div
-                        className="size-5 rounded-md border border-white/30 shrink-0"
-                        style={{ background: "linear-gradient(to bottom, #ffffff, transparent)" }}
-                      />
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-tight">Degradado</span>
-                        <span className="text-[10px] text-slate-400">Fade suave</span>
-                      </div>
-                    </button>
+              <div className="space-y-4 select-none">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Elementos & Gráficos</h3>
+                    <p className="text-xs text-slate-400">
+                      Formas geométricas, vectores, iconos e ilustraciones de Pixabay.
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPixabayModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+                    title="Configurar Pixabay API Key gratuita"
+                  >
+                    <Key className="size-4 text-amber-400" />
+                  </button>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-                  💡 <strong className="text-slate-300">Tip Canva:</strong> Todas las formas se insertan en <strong className="text-white">blanco sólido</strong>. Para darles el efecto vidrio translúcido, usa el botón "Efecto Vidrio" en el panel de Color o ajusta la Transparencia al 15-20%.
+                {/* Subselector Segmented: Formas | Vectores | Ilustraciones */}
+                <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setElementsSubTab("shapes")}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      elementsSubTab === "shapes"
+                        ? "bg-brand-600 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    🔷 Formas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setElementsSubTab("vectors")}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      elementsSubTab === "vectors"
+                        ? "bg-brand-600 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    🚀 Vectores
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setElementsSubTab("illustrations")}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      elementsSubTab === "illustrations"
+                        ? "bg-brand-600 text-white shadow-xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    🎨 Gráficos
+                  </button>
                 </div>
+
+                {/* CASO A: FORMAS GEOMÉTRICAS BÁSICAS */}
+                {elementsSubTab === "shapes" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("shape_rect")}
+                        className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                      >
+                        <Square className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
+                        <span className="text-xs font-semibold text-slate-200">Rectángulo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("shape_circle")}
+                        className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                      >
+                        <Circle className="size-7 text-slate-300 group-hover:text-brand-400 transition" />
+                        <span className="text-xs font-semibold text-slate-200">Círculo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("shape_star")}
+                        className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-500/50 flex flex-col items-center justify-center gap-2 group transition"
+                      >
+                        <Star className="size-7 text-amber-400 group-hover:scale-110 transition" />
+                        <span className="text-xs font-semibold text-slate-200">Estrella</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("shape_pill")}
+                        className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex flex-col items-center justify-center gap-2 group transition"
+                      >
+                        <div className="w-10 h-4 rounded-full bg-white shadow-sm" />
+                        <span className="text-xs font-semibold text-slate-200">Píldora</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("shape_line")}
+                        className="col-span-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center justify-center gap-3 group transition"
+                      >
+                        <Minus className="size-5 text-white" />
+                        <span className="text-xs font-semibold text-slate-200">Línea Divisoria</span>
+                      </button>
+                    </div>
+
+                    {/* Acabados rápidos */}
+                    <div className="pt-2 border-t border-slate-800 space-y-2">
+                      <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Acabados Rápidos</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAddShape("shape_rect")}
+                          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-white/50 flex items-center gap-2 transition text-left"
+                        >
+                          <div className="size-5 rounded-md bg-white border border-white/40 shadow-xs shrink-0" />
+                          <div>
+                            <span className="text-xs font-bold text-white block leading-tight">Blanco Sólido</span>
+                            <span className="text-[10px] text-slate-400">100% Opaco</span>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsFreeMode(true);
+                            const newId = `elem-${Date.now()}`;
+                            const glassShape: CustomCanvasElement = {
+                              id: newId,
+                              type: "shape_rect",
+                              x: 50,
+                              y: 150,
+                              width: 140,
+                              height: 90,
+                              scale: 1,
+                              bgColor: "rgba(255, 255, 255, 0.15)",
+                              borderColor: "rgba(255, 255, 255, 0.35)",
+                              borderWidth: 1,
+                              borderStyle: "solid",
+                              borderRadius: 16,
+                              opacity: 1,
+                            };
+                            setSlides((prev) => {
+                              const next = [...prev];
+                              const cur = next[currentSlideIndex];
+                              next[currentSlideIndex] = {
+                                ...cur,
+                                customElements: [...(cur.customElements || []), glassShape],
+                              };
+                              return next;
+                            });
+                            setSelectedElement(newId);
+                          }}
+                          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-brand-500/50 flex items-center gap-2 transition text-left"
+                        >
+                          <div className="size-5 rounded-md bg-white/20 border border-white/40 shadow-xs shrink-0 backdrop-blur-sm" />
+                          <div>
+                            <span className="text-xs font-bold text-brand-300 block leading-tight">Efecto Vidrio</span>
+                            <span className="text-[10px] text-slate-400">Glassmorphism</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* CASO B: VECTORES E ICONOS O ILUSTRACIONES DE PIXABAY */}
+                {(elementsSubTab === "vectors" || elementsSubTab === "illustrations") && (
+                  <div className="space-y-3">
+                    {/* Buscador */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={elementSearchQuery}
+                        onChange={(e) => setElementSearchQuery(e.target.value)}
+                        placeholder={elementsSubTab === "vectors" ? "Buscar vectores (ej. flecha, cohete, icono)..." : "Buscar ilustraciones (ej. dashboard, tech)..."}
+                        className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
+                      />
+                      {elementSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setElementSearchQuery("")}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Chips rápidos */}
+                    <div className="flex flex-wrap gap-1">
+                      {(elementsSubTab === "vectors"
+                        ? [
+                            { id: "all", label: "Todos" },
+                            { id: "rocket", label: "Cohete" },
+                            { id: "chart", label: "Gráfico" },
+                            { id: "shield", label: "Escudo" },
+                            { id: "arrow", label: "Flecha" },
+                            { id: "medal", label: "Insignia" },
+                            { id: "idea", label: "Idea" },
+                          ]
+                        : [
+                            { id: "all", label: "Todos" },
+                            { id: "dashboard", label: "Dashboard" },
+                            { id: "social", label: "Social Media" },
+                            { id: "ai", label: "Inteligencia Artificial" },
+                            { id: "business", label: "B2B" },
+                          ]
+                      ).map((chip) => (
+                        <button
+                          key={chip.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveElementTag(chip.id);
+                            if (chip.id !== "all") setElementSearchQuery(chip.label);
+                            else setElementSearchQuery("");
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition ${
+                            activeElementTag === chip.id
+                              ? "bg-brand-600 text-white"
+                              : "bg-slate-800 text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Grid de Vectores/Ilustraciones */}
+                    {isLoadingElements ? (
+                      <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                        <Loader2 className="size-6 animate-spin text-brand-400" />
+                        <span className="text-xs">Cargando recursos de Pixabay...</span>
+                      </div>
+                    ) : pixabayElements.length === 0 ? (
+                      <div className="py-10 text-center text-slate-400">
+                        <p className="text-xs">No se encontraron elementos para "{elementSearchQuery}".</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setElementSearchQuery("");
+                            setActiveElementTag("all");
+                          }}
+                          className="mt-2 text-xs text-brand-400 hover:underline"
+                        >
+                          Restablecer búsqueda
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 max-h-[440px] overflow-y-auto pr-1">
+                        {pixabayElements.map((elem) => (
+                          <button
+                            key={elem.id}
+                            type="button"
+                            onClick={() => handleInsertPixabayAsElement(elem)}
+                            className="group relative aspect-square p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-brand-500 flex flex-col items-center justify-center transition hover:scale-102 hover:shadow-lg"
+                            title="Haz clic para insertar en el lienzo"
+                          >
+                            <img
+                              src={elem.previewUrl}
+                              alt={elem.title}
+                              crossOrigin="anonymous"
+                              className="max-h-[85%] max-w-[85%] object-contain select-none group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute bottom-1 inset-x-1 text-center">
+                              <span className="text-[9px] text-slate-400 group-hover:text-white truncate block font-medium">
+                                {elem.title}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* PESTAÑA 4: FOTOS */}
             {activeDockTab === "photos" && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">Fotografías Curadas</h3>
-                  <p className="text-xs text-slate-400">
-                    Selecciona una fotografía de fondo con estética corporativa de alto impacto.
-                  </p>
+              <div className="space-y-4 select-none">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-sm font-bold text-white">Fotografías Pixabay HD</h3>
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold">
+                        {pixabayKey ? "API Conectada" : "Catálogo Base"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Millones de fotos libres en alta definición. Clic para fondo o pulsa (+) para elemento.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPixabayModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+                    title="Configurar Pixabay API Key gratuita"
+                  >
+                    <Key className="size-4 text-amber-400" />
+                  </button>
                 </div>
 
-                {/* Buscador */}
+                {/* Buscador de Fotos */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
                   <input
                     type="text"
                     value={photoSearchQuery}
                     onChange={(e) => setPhotoSearchQuery(e.target.value)}
-                    placeholder="Buscar fotos corporativas..."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none"
+                    placeholder="Buscar fotos (ej. business, oficina, tech)..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
                   />
-                </div>
-
-                {/* Filtros de Categoría */}
-                <div className="flex flex-wrap gap-1">
-                  {[
-                    { id: "all", label: "Todas" },
-                    { id: "office", label: "Oficina" },
-                    { id: "meeting", label: "Reunión" },
-                    { id: "founder", label: "Fundador" },
-                    { id: "abstract", label: "Minimal" },
-                  ].map((tag) => (
+                  {photoSearchQuery && (
                     <button
-                      key={tag.id}
                       type="button"
-                      onClick={() => setActivePhotoTag(tag.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${
-                        activePhotoTag === tag.id
-                          ? "bg-brand-600 text-white"
-                          : "bg-slate-800 text-slate-400 hover:text-white"
-                      }`}
+                      onClick={() => setPhotoSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
                     >
-                      {tag.label}
+                      <X className="size-3.5" />
                     </button>
-                  ))}
+                  )}
                 </div>
 
-                {/* Grid de Fotos */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  {filteredPhotos.map((photo) => (
+                {/* Filtros de Categoría y Orientación */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      { id: "all", label: "Todas" },
+                      { id: "business", label: "Negocios" },
+                      { id: "computer", label: "Tecnología" },
+                      { id: "office", label: "Oficina" },
+                      { id: "people", label: "Líderes" },
+                      { id: "buildings", label: "Arquitectura" },
+                    ].map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => setActivePhotoTag(tag.id)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${
+                          activePhotoTag === tag.id
+                            ? "bg-brand-600 text-white shadow-xs"
+                            : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-750"
+                        }`}
+                      >
+                        {tag.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                    <span className="text-[10px] text-slate-400 font-semibold">Orientación:</span>
+                    {(["all", "horizontal", "vertical"] as const).map((ori) => (
+                      <button
+                        key={ori}
+                        type="button"
+                        onClick={() => setPhotoOrientation(ori)}
+                        className={`text-[10px] px-2 py-0.5 rounded transition capitalize ${
+                          photoOrientation === ori
+                            ? "bg-slate-700 text-white font-bold"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        {ori === "all" ? "Todas" : ori === "horizontal" ? "Horizontal" : "Vertical"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Banner amigable si no hay API key */}
+                {!pixabayKey && (
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Key className="size-3.5 text-amber-400 shrink-0" />
+                      <span className="text-[10px] text-amber-300">
+                        ¿Quieres más de 4.3M de fotos en vivo? Conecta tu API Key gratuita.
+                      </span>
+                    </div>
                     <button
-                      key={photo.id}
+                      type="button"
+                      onClick={() => setIsPixabayModalOpen(true)}
+                      className="text-[10px] font-bold text-amber-400 hover:underline shrink-0"
+                    >
+                      Conectar
+                    </button>
+                  </div>
+                )}
+
+                {/* Grid de Fotos Pixabay */}
+                {isLoadingPhotos ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <Loader2 className="size-6 animate-spin text-brand-400" />
+                    <span className="text-xs">Cargando fotos de Pixabay...</span>
+                  </div>
+                ) : pixabayPhotos.length === 0 ? (
+                  <div className="py-10 text-center text-slate-400">
+                    <p className="text-xs">No se encontraron fotos para "{photoSearchQuery}".</p>
+                    <button
                       type="button"
                       onClick={() => {
-                        setSelectedBgUrl(photo.url);
-                        updateCurrentSlide({ bgUrl: photo.url });
+                        setPhotoSearchQuery("");
+                        setActivePhotoTag("all");
                       }}
-                      className={`group relative aspect-[4/3] rounded-xl overflow-hidden border transition ${
-                        selectedBgUrl === photo.url
-                          ? "border-brand-500 ring-2 ring-brand-500/40"
-                          : "border-slate-800 hover:border-slate-600"
-                      }`}
+                      className="mt-2 text-xs text-brand-400 hover:underline"
                     >
-                      <img
-                        src={photo.url}
-                        alt={photo.name}
-                        crossOrigin="anonymous"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
-                        <span className="text-[10px] font-semibold text-white truncate drop-shadow">
-                          {photo.name}
-                        </span>
-                      </div>
+                      Restablecer filtros
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 pt-1 max-h-[460px] overflow-y-auto pr-1">
+                    {pixabayPhotos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        className={`group relative aspect-[4/3] rounded-xl overflow-hidden border transition bg-slate-900 cursor-pointer ${
+                          selectedBgUrl === photo.regularUrl
+                            ? "border-brand-500 ring-2 ring-brand-500/40"
+                            : "border-slate-800 hover:border-slate-600"
+                        }`}
+                        onClick={() => handleApplyPixabayAsBg(photo)}
+                      >
+                        <img
+                          src={photo.previewUrl}
+                          alt={photo.title}
+                          crossOrigin="anonymous"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 select-none"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-1.5">
+                          {/* Acciones flotantes en hover */}
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleInsertPixabayAsElement(photo);
+                              }}
+                              className="size-6 rounded-md bg-black/70 hover:bg-brand-600 text-white flex items-center justify-center shadow-md transition"
+                              title="Añadir como elemento en el lienzo"
+                            >
+                              <Plus className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleInsertPhotoAsCutout(photo.regularUrl);
+                              }}
+                              className="size-6 rounded-md bg-black/70 hover:bg-amber-600 text-white flex items-center justify-center shadow-md transition"
+                              title="Quitar fondo con IA y añadir sujeto"
+                            >
+                              <Sparkles className="size-3 text-amber-300" />
+                            </button>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] font-semibold text-white block truncate drop-shadow">
+                              {photo.title}
+                            </span>
+                            <span className="text-[8px] text-slate-300 block truncate drop-shadow">
+                              por {photo.author} • Pixabay
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* PESTAÑA 5: FONDOS Y MARCA */}
             {activeDockTab === "backgrounds" && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">Fondos y Marca</h3>
-                  <p className="text-xs text-slate-400">
-                    Ajusta el modo de visualización, la opacidad del fondo y los colores de acento.
-                  </p>
+              <div className="space-y-4 select-none">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Fondos & Marca</h3>
+                    <p className="text-xs text-slate-400">
+                      Configura el modo de fondo, opacidad y fondos HD de Pixabay.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPixabayModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+                    title="Configurar Pixabay API Key gratuita"
+                  >
+                    <Key className="size-4 text-amber-400" />
+                  </button>
                 </div>
 
                 {/* Modo de Fondo */}
@@ -3732,7 +4245,7 @@ export default function VisualEditorModal({
                 {/* Opacidad del Fondo Oscuro */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-slate-300">Opacidad Fondo Oscuro</span>
+                    <span className="font-semibold text-slate-300">Opacidad Filtro Oscuro</span>
                     <span className="font-mono text-brand-400 font-bold">{Math.round(overlayOpacity * 100)}%</span>
                   </div>
                   <input
@@ -3746,135 +4259,227 @@ export default function VisualEditorModal({
                   />
                 </div>
 
-                {/* Zoom de la Foto de Fondo */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-slate-300">Escala Foto de Fondo</span>
-                    <span className="font-mono text-brand-400 font-bold">{Math.round(bgScale * 100)}%</span>
+                {/* SECCIÓN NUEVA: GALERÍA DE FONDOS PIXABAY */}
+                <div className="pt-3 border-t border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider block">Galería de Fondos Pixabay</span>
+                    <span className="text-[9px] font-mono text-emerald-400 font-bold">HD</span>
                   </div>
-                  <input
-                    type="range"
-                    min="1.0"
-                    max="2.5"
-                    step="0.05"
-                    value={bgScale}
-                    onChange={(e) => setBgScale(parseFloat(e.target.value))}
-                    className="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
 
-                {/* Colores de Acento de Marca */}
-                <div className="space-y-2 pt-2 border-t border-slate-800">
-                  <label className="text-xs font-semibold text-slate-300">Color de Acento de Marca</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {BRAND_PRESETS.map((p) => (
+                  {/* Buscador de Fondos */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={bgSearchQuery}
+                      onChange={(e) => setBgSearchQuery(e.target.value)}
+                      placeholder="Buscar fondos (gradientes, texturas)..."
+                      className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
+                    />
+                    {bgSearchQuery && (
                       <button
-                        key={p.name}
                         type="button"
-                        onClick={() => setAccentColor(p.color)}
-                        className={`p-2 rounded-xl border flex items-center gap-2 transition ${
-                          accentColor === p.color
-                            ? "border-white bg-slate-800 shadow-sm"
-                            : "border-slate-800 bg-slate-950/60 hover:bg-slate-800"
+                        onClick={() => setBgSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Chips rápidos */}
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      { id: "all", label: "Todos" },
+                      { id: "gradient", label: "Gradientes" },
+                      { id: "dark", label: "Dark B2B" },
+                      { id: "minimal", label: "Minimal" },
+                      { id: "abstract", label: "Abstracto" },
+                    ].map((chip) => (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveBgTag(chip.id);
+                          if (chip.id !== "all") setBgSearchQuery(chip.label);
+                          else setBgSearchQuery("");
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition ${
+                          activeBgTag === chip.id
+                            ? "bg-brand-600 text-white"
+                            : "bg-slate-800 text-slate-400 hover:text-white"
                         }`}
                       >
-                        <span className="size-4 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: p.color }} />
-                        <span className="text-[11px] font-semibold text-slate-200 truncate">{p.name}</span>
+                        {chip.label}
                       </button>
                     ))}
                   </div>
+
+                  {/* Grid de Fondos */}
+                  {isLoadingBackgrounds ? (
+                    <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <Loader2 className="size-5 animate-spin text-brand-400" />
+                      <span className="text-[11px]">Cargando fondos...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
+                      {pixabayBackgrounds.map((bgItem) => (
+                        <button
+                          key={bgItem.id}
+                          type="button"
+                          onClick={() => handleApplyPixabayAsBg(bgItem)}
+                          className={`group relative aspect-[4/3] rounded-xl overflow-hidden border transition bg-slate-900 ${
+                            selectedBgUrl === bgItem.regularUrl
+                              ? "border-brand-500 ring-2 ring-brand-500/40"
+                              : "border-slate-800 hover:border-slate-600"
+                          }`}
+                        >
+                          <img
+                            src={bgItem.previewUrl}
+                            alt={bgItem.title}
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
+                            <span className="text-[9px] font-semibold text-white truncate drop-shadow">
+                              {bgItem.title}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* PESTAÑA: EDITAR FORMA (ESTILO CANVA SCREENSHOT 2) */}
-            {activeDockTab === "shape_edit" && isShape && (
-              <div className="space-y-5 animate-in fade-in duration-150">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <Shapes className="size-4 text-brand-400" />
-                    <h3 className="text-sm font-bold text-white">Editar Forma</h3>
+            {/* PESTAÑA NUEVA: VIDEOS Y MOTION PIXABAY */}
+            {activeDockTab === "videos" && (
+              <div className="space-y-4 select-none">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Videos & Motion HD</h3>
+                    <p className="text-xs text-slate-400">
+                      Clips de video corporativo y fondos animados de Pixabay.
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setActiveDockTab("elements")}
-                    className="size-7 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
-                    title="Volver a Elementos"
+                    onClick={() => setIsPixabayModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+                    title="Configurar Pixabay API Key gratuita"
                   >
-                    <X className="size-4" />
+                    <Key className="size-4 text-amber-400" />
                   </button>
                 </div>
 
-                {/* Formas Básicas */}
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Formas básicas</span>
-                    <span className="text-[10px] text-brand-400 font-semibold cursor-pointer">Ver todas</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { type: "shape_rect", radius: 0, label: "Rectángulo", icon: Square },
-                      { type: "shape_rect", radius: 16, label: "Redondeado", icon: Square },
-                      { type: "shape_circle", radius: 9999, label: "Círculo", icon: Circle },
-                      { type: "shape_star", radius: 0, label: "Estrella", icon: Star },
-                      { type: "shape_pill", radius: 9999, label: "Píldora", icon: Minus },
-                      { type: "shape_line", radius: 0, label: "Línea", icon: Minus },
-                    ].map((s, idx) => {
-                      const IconComp = s.icon;
-                      const isCurrent =
-                        customElem?.type === s.type &&
-                        (s.type !== "shape_rect" || (s.radius === 0 ? (customElem.borderRadius || 0) <= 4 : (customElem.borderRadius || 0) > 4));
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            handleUpdateCustomElement(selectedElement!, {
-                              type: s.type as any,
-                              borderRadius: s.radius,
-                            });
-                          }}
-                          className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition ${
-                            isCurrent
-                              ? "border-brand-500 bg-brand-500/20 text-brand-300 ring-2 ring-brand-500/40 font-bold"
-                              : "border-slate-800 bg-slate-800/60 hover:bg-slate-850 hover:border-slate-700 text-slate-300 hover:text-white"
-                          }`}
-                          title={`Transformar a ${s.label}`}
-                        >
-                          <IconComp className={`size-6 ${s.radius === 16 ? "rounded-md" : ""}`} />
-                          <span className="text-[10px] truncate max-w-full">{s.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                {/* Buscador de Videos */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={videoSearchQuery}
+                    onChange={(e) => setVideoSearchQuery(e.target.value)}
+                    placeholder="Buscar videos (ej. technology, particles)..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
+                  />
+                  {videoSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setVideoSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                {/* Acciones Rápidas */}
-                <div className="pt-3 border-t border-slate-800 space-y-2">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Acciones</span>
-                  <div className="grid grid-cols-2 gap-2">
+                {/* Chips rápidos */}
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { id: "all", label: "Todos" },
+                    { id: "technology", label: "Tecnología" },
+                    { id: "particles", label: "Partículas" },
+                    { id: "business", label: "Negocios" },
+                    { id: "city", label: "Ciudad" },
+                  ].map((chip) => (
                     <button
+                      key={chip.id}
                       type="button"
-                      onClick={() => handleDuplicateElement(selectedElement!)}
-                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                      onClick={() => {
+                        setActiveVideoTag(chip.id);
+                        if (chip.id !== "all") setVideoSearchQuery(chip.label);
+                        else setVideoSearchQuery("");
+                      }}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition ${
+                        activeVideoTag === chip.id
+                          ? "bg-brand-600 text-white"
+                          : "bg-slate-800 text-slate-400 hover:text-white"
+                      }`}
                     >
-                      <Copy className="size-3.5 text-brand-400" />
-                      <span>Duplicar</span>
+                      {chip.label}
                     </button>
+                  ))}
+                </div>
+
+                {/* Grid de Videos */}
+                {isLoadingVideos ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <Loader2 className="size-6 animate-spin text-brand-400" />
+                    <span className="text-xs">Cargando clips de Pixabay...</span>
+                  </div>
+                ) : pixabayVideos.length === 0 ? (
+                  <div className="py-10 text-center text-slate-400">
+                    <p className="text-xs">No se encontraron videos para "{videoSearchQuery}".</p>
                     <button
                       type="button"
-                      onClick={() => handleDeleteElement(selectedElement!)}
-                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-300 hover:text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                      onClick={() => {
+                        setVideoSearchQuery("");
+                        setActiveVideoTag("all");
+                      }}
+                      className="mt-2 text-xs text-brand-400 hover:underline"
                     >
-                      <Trash2 className="size-3.5" />
-                      <span>Eliminar</span>
+                      Restablecer búsqueda
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 max-h-[460px] overflow-y-auto pr-1">
+                    {pixabayVideos.map((vid) => (
+                      <button
+                        key={vid.id}
+                        type="button"
+                        onClick={() => handleInsertPixabayAsElement(vid)}
+                        className="group relative aspect-video rounded-xl overflow-hidden border border-slate-800 hover:border-brand-500 bg-slate-900 transition flex flex-col justify-between p-1.5 text-left"
+                        title="Haz clic para añadir video interactivo al lienzo"
+                      >
+                        <img
+                          src={vid.previewUrl}
+                          alt={vid.title}
+                          crossOrigin="anonymous"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-between p-2">
+                          <div className="flex justify-end">
+                            <span className="p-1 rounded bg-black/60 text-white">
+                              <Video className="size-3 text-brand-400" />
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-semibold text-white block truncate drop-shadow">
+                              {vid.title}
+                            </span>
+                            <span className="text-[8px] text-slate-300 block truncate drop-shadow">
+                              por {vid.author} • Pixabay
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* PESTAÑA: UPLOADS / SUBIR ARCHIVOS (ESTILO CANVA) */}
             {activeDockTab === "uploads" && (
               <div className="space-y-4 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800">
