@@ -78,6 +78,8 @@ import {
 } from "@/lib/viral-posts/pixabay-client";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
+import { FabricStudioCanvas } from "./FabricStudioCanvas";
+import type { FabricCanvasEditorHandle, ActiveObjectInfo } from "./fabric/fabricTypes";
 
 export type TemplateId =
   | "blank"
@@ -1298,6 +1300,8 @@ export default function VisualEditorModal({
   onApplyImage,
 }: VisualEditorModalProps) {
   const slideContainerRef = useRef<HTMLDivElement | null>(null);
+  const fabricCanvasRef = useRef<FabricCanvasEditorHandle | null>(null);
+  const [activeFabricObject, setActiveFabricObject] = useState<ActiveObjectInfo | null>(null);
 
   // Estados del editor
   const [editorMode, setEditorMode] = useState<EditorMode>("carousel");
@@ -1525,6 +1529,7 @@ export default function VisualEditorModal({
         return next;
       });
 
+      fabricCanvasRef.current?.addPhoto(cutoutDataUrl, false);
       setSelectedElement(newId);
       setExportFeedback("¡Sujeto recortado insertado en el lienzo!");
       setTimeout(() => setExportFeedback(null), 3500);
@@ -1719,6 +1724,16 @@ export default function VisualEditorModal({
     const targetDef = TEMPLATES.find((t) => t.id === templateId);
     setExportFeedback(`Plantilla "${targetDef?.name || templateId}" aplicada`);
     setTimeout(() => setExportFeedback(null), 2500);
+
+    const cur = slides[currentSlideIndex];
+    fabricCanvasRef.current?.loadTemplate(templateId, {
+      title: cur?.title,
+      subtitle: cur?.subtitle,
+      category: cur?.tag || cur?.category,
+      metric: cur?.metric,
+      authorName,
+      authorHandle,
+    });
   };
 
   // Restablece el lienzo a blanco limpio (Estilo Canva desde cero)
@@ -2012,6 +2027,7 @@ export default function VisualEditorModal({
     setBgScale(1);
     handleScaleChange("bg-photo", 1);
     handleOffsetChange("bg-photo", { x: 0, y: 0 });
+    fabricCanvasRef.current?.setBackgroundPhoto(item.regularUrl);
     setExportFeedback(`Fondo actualizado: ${item.title}`);
     setTimeout(() => setExportFeedback(null), 2500);
   };
@@ -2047,6 +2063,7 @@ export default function VisualEditorModal({
       return next;
     });
 
+    fabricCanvasRef.current?.addPhoto(item.regularUrl, false);
     setSelectedElement(newId);
     setExportFeedback(`${item.type === "vector" ? "Vector" : isVid ? "Video" : "Elemento"} insertado en el lienzo`);
     setTimeout(() => setExportFeedback(null), 2500);
@@ -2222,6 +2239,14 @@ export default function VisualEditorModal({
       };
       return next;
     });
+
+    if (fabricCanvasRef.current) {
+      if (type === "heading") fabricCanvasRef.current.addHeading(newElement.content);
+      else if (type === "subheading") fabricCanvasRef.current.addSubheading(newElement.content);
+      else if (type === "badge" || type === "highlight") fabricCanvasRef.current.addBadge(newElement.content || "DESTACADO B2B", accentColor, "#ffffff");
+      else fabricCanvasRef.current.addBodyText(newElement.content);
+    }
+
     setSelectedElement(newId);
   };
 
@@ -2260,6 +2285,24 @@ export default function VisualEditorModal({
     if (authorName) setNameText(authorName);
     if (authorHandle) setHandleText(authorHandle);
   }, [initialTitle, initialSubtitle, initialCategory, initialMetric, authorName, authorHandle]);
+
+  // Efecto para sincronizar plantilla activa con el motor Fabric Canvas
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        const cur = slides[currentSlideIndex];
+        fabricCanvasRef.current?.loadTemplate(selectedTemplate, {
+          title: cur?.title,
+          subtitle: cur?.subtitle,
+          category: cur?.tag || cur?.category,
+          metric: cur?.metric,
+          authorName,
+          authorHandle,
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, selectedTemplate, currentSlideIndex]);
 
   // Manejar edición de la lámina actual
   const updateCurrentSlide = (fields: Partial<CarouselSlideItem>) => {
@@ -2393,6 +2436,17 @@ export default function VisualEditorModal({
 
   // Manejador para aplicar estilos / formato a cualquier elemento seleccionado (Texto o Formas)
   const handleStyleChange = (elementId: string, newStyles: Partial<ElementFormatting>) => {
+    fabricCanvasRef.current?.updateActiveObject({
+      fontFamily: newStyles.fontFamily,
+      fontSize: newStyles.fontSize,
+      fontWeight: newStyles.fontWeight,
+      fontStyle: newStyles.fontStyle,
+      textAlign: newStyles.textAlign,
+      fill: newStyles.color || newStyles.bgColor,
+      stroke: newStyles.borderColor,
+      strokeWidth: newStyles.borderWidth,
+      opacity: newStyles.opacity,
+    });
     setSlides((prev) => {
       const next = [...prev];
       const cur = next[currentSlideIndex];
@@ -2528,6 +2582,14 @@ export default function VisualEditorModal({
       return next;
     });
 
+    if (fabricCanvasRef.current) {
+      if (shapeType === "shape_rect") fabricCanvasRef.current.addRect({ fill: accentColor });
+      else if (shapeType === "shape_circle") fabricCanvasRef.current.addCircle({ fill: accentColor });
+      else if (shapeType === "shape_line") fabricCanvasRef.current.addLine({ stroke: accentColor, strokeWidth: 4 });
+      else if (shapeType === "shape_pill") fabricCanvasRef.current.addBadge("DESTACADO B2B", accentColor, "#ffffff");
+      else fabricCanvasRef.current.addRect({ fill: accentColor });
+    }
+
     setSelectedElement(newId);
   };
 
@@ -2630,6 +2692,14 @@ export default function VisualEditorModal({
       };
       return next;
     });
+
+    if (fabricCanvasRef.current) {
+      if (type === "heading") fabricCanvasRef.current.addHeading(newElement.content);
+      else if (type === "subheading") fabricCanvasRef.current.addSubheading(newElement.content);
+      else if (type === "badge" || type === "highlight") fabricCanvasRef.current.addBadge(newElement.content || "DESTACADO B2B", accentColor, "#ffffff");
+      else fabricCanvasRef.current.addBodyText(newElement.content);
+    }
+
     setSelectedElement(newId);
   };
 
@@ -2654,6 +2724,7 @@ export default function VisualEditorModal({
 
   // Manejador para duplicar cualquier elemento en el lienzo (estilo Canva clone)
   const handleDuplicateElement = (elementId: string) => {
+    fabricCanvasRef.current?.duplicateActiveObject();
     setIsFreeMode(true);
     const newId = `elem-${Date.now()}`;
     const curSlide = slides[currentSlideIndex];
@@ -2808,6 +2879,7 @@ export default function VisualEditorModal({
 
   // Manejador para eliminar / ocultar elementos individuales (Plantillas predefinidas y capas libres)
   const handleDeleteElement = (elementId: string) => {
+    fabricCanvasRef.current?.deleteActiveObject();
     if (!elementId) return;
 
     // Si es la foto de fondo, se elimina inmediatamente limpiando el estado
@@ -2995,20 +3067,26 @@ export default function VisualEditorModal({
 
   // EXPORTAR IMAGEN PNG EN ALTA DEFINICIÓN (1080px)
   const handleExportPng = async () => {
-    if (!slideContainerRef.current) return;
     setIsExporting(true);
     setExportFeedback("Generando PNG en alta resolución...");
     try {
-      const dataUrl = await toPng(slideContainerRef.current, {
-        cacheBust: true,
-        pixelRatio: 2.5,
-      });
-      const link = document.createElement("a");
-      link.download = `inhubflow-publicacion-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-      setExportFeedback("¡PNG descargado con éxito!");
-      setTimeout(() => setExportFeedback(null), 3000);
+      let dataUrl = "";
+      if (fabricCanvasRef.current) {
+        dataUrl = fabricCanvasRef.current.exportToDataUrl(2);
+      } else if (slideContainerRef.current) {
+        dataUrl = await toPng(slideContainerRef.current, {
+          cacheBust: true,
+          pixelRatio: 2.5,
+        });
+      }
+      if (dataUrl) {
+        const link = document.createElement("a");
+        link.download = `inhubflow-publicacion-${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+        setExportFeedback("¡PNG descargado con éxito!");
+        setTimeout(() => setExportFeedback(null), 3000);
+      }
     } catch (err) {
       console.error("Error al exportar PNG:", err);
       setExportFeedback("Error al generar la imagen");
@@ -3020,15 +3098,19 @@ export default function VisualEditorModal({
 
   // APLICAR IMAGEN DIRECTAMENTE AL POST DRAFT
   const handleApplyToPost = async () => {
-    if (!slideContainerRef.current) return;
     setIsExporting(true);
     setExportFeedback("Aplicando diseño a tu publicación...");
     try {
-      const dataUrl = await toPng(slideContainerRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-      });
-      if (onApplyImage) {
+      let dataUrl = "";
+      if (fabricCanvasRef.current) {
+        dataUrl = fabricCanvasRef.current.exportToDataUrl(2);
+      } else if (slideContainerRef.current) {
+        dataUrl = await toPng(slideContainerRef.current, {
+          cacheBust: true,
+          pixelRatio: 2,
+        });
+      }
+      if (dataUrl && onApplyImage) {
         onApplyImage(dataUrl);
       }
       onClose();
@@ -3105,7 +3187,11 @@ export default function VisualEditorModal({
   // Helpers contextuales para la barra de herramientas superior estilo Canva
   const isCustom = Boolean(selectedElement?.startsWith("elem-"));
   const customElem = isCustom ? currentSlide.customElements?.find((e) => e.id === selectedElement) : null;
-  const isShape = Boolean(
+  const isFabricText = activeFabricObject?.type === "text" || activeFabricObject?.type === "heading" || activeFabricObject?.type === "subheading" || activeFabricObject?.type === "body" || activeFabricObject?.type === "badge";
+  const isFabricImage = activeFabricObject?.type === "image";
+  const isFabricShape = activeFabricObject?.type === "rect" || activeFabricObject?.type === "circle" || activeFabricObject?.type === "line";
+
+  const isShape = isFabricShape || Boolean(
     customElem &&
     (customElem.type === "shape_rect" ||
       customElem.type === "shape_circle" ||
@@ -3113,11 +3199,11 @@ export default function VisualEditorModal({
       customElem.type === "shape_pill" ||
       customElem.type === "shape_line")
   );
-  const isImage = Boolean(
+  const isImage = isFabricImage || Boolean(
     (customElem && (customElem.type === "image" || customElem.type === "video")) ||
     ((selectedElement === "background" || selectedElement === "bg-photo") && Boolean(selectedBgUrl && selectedBgUrl.trim() !== ""))
   );
-  const isText = Boolean(
+  const isText = isFabricText || Boolean(
     !isShape &&
     !isImage &&
     selectedElement &&
@@ -6281,15 +6367,10 @@ export default function VisualEditorModal({
                   onStyleChange: handleStyleChange,
                 }}
               >
-                {/* Elemento DOM exacto que se captura con html-to-image */}
+                {/* Elemento contenedor que aloja el nuevo motor de diseño profesional Fabric.js (Canva Engine) */}
                 <div
                   ref={slideContainerRef}
-                  style={{ fontFamily: selectedFont }}
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                      setSelectedElement("background");
-                    }
-                  }}
+                  className="relative w-full h-full flex items-center justify-center bg-white overflow-hidden"
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = "copy";
@@ -6302,14 +6383,10 @@ export default function VisualEditorModal({
                   onDrop={(e) => {
                     e.preventDefault();
                     setIsCanvasDragOver(false);
-
-                    // 1. Archivos arrastrados directamente desde el ordenador
                     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                       handleFileUpload(e.dataTransfer.files, true);
                       return;
                     }
-
-                    // 2. Plantillas arrastradas desde el dock
                     try {
                       const dataStr = e.dataTransfer.getData("application/json");
                       if (!dataStr) return;
@@ -6326,1782 +6403,39 @@ export default function VisualEditorModal({
                       console.warn("Error al aplicar plantilla arrastrada:", err);
                     }
                   }}
-                  className={`relative w-full h-full flex flex-col justify-between overflow-hidden select-text transition-colors duration-200 bg-white ${
-                    !selectedBgUrl
-                      ? "text-slate-900"
-                      : "text-white"
-                  }`}
                 >
-                {/* 1. FOTO DE FONDO (Tratada como objeto Canva de primera clase con manijas y herramientas) */}
-                {Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
-                  <div className="absolute inset-0 z-0 overflow-visible pointer-events-none">
-                    <DraggableWrapper
-                      id="bg-photo"
-                      label="Foto de Fondo"
-                      isFreeMode={isFreeMode}
-                      offset={currentSlide.offsets?.["bg-photo"]}
-                      onOffsetChange={handleOffsetChange}
-                      onScaleChange={(newScale) => {
-                        handleScaleChange("bg-photo", newScale);
-                        setBgScale(newScale);
-                      }}
-                      isExporting={isExporting}
-                      isSelected={selectedElement === "background" || selectedElement === "bg-photo"}
-                      onSelect={() => setSelectedElement("background")}
-                      className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
-                    >
-                      <div className="w-full h-full relative overflow-hidden">
-                        <img
-                          src={selectedBgUrl || undefined}
-                          alt="Background"
-                          crossOrigin="anonymous"
-                          style={{
-                            transform: `scale(${bgScale}) translate(${(currentSlide.offsets?.["bg-photo"]?.x || 0) / bgScale}px, ${(currentSlide.offsets?.["bg-photo"]?.y || 0) / bgScale}px)`,
-                            transformOrigin: "center center",
-                          }}
-                          className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
-                        />
-                        {/* Filtro ambiental sutil (100% transparente y limpio por defecto, sólo si bgDimming > 0) */}
-                        {bgDimming > 0 && (
-                          <div
-                            style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
-                            className="absolute inset-0 pointer-events-none transition-colors duration-150"
-                          />
-                        )}
+                  <FabricStudioCanvas
+                    ref={fabricCanvasRef}
+                    aspectRatio={aspectRatio}
+                    accentColor={accentColor}
+                    authorName={authorName}
+                    authorHandle={authorHandle}
+                    onSelectObject={(info) => {
+                      setActiveFabricObject(info);
+                      if (info) {
+                        setSelectedElement(info.id);
+                      } else {
+                        setSelectedElement(null);
+                      }
+                    }}
+                    onCanvasModified={() => {
+                      // Canvas modificado
+                    }}
+                  />
+                  {isCanvasDragOver && (
+                    <div className="absolute inset-0 z-50 bg-brand-600/30 border-4 border-dashed border-brand-400 rounded-2xl flex flex-col items-center justify-center p-6 backdrop-blur-xs pointer-events-none animate-in fade-in">
+                      <div className="size-16 rounded-2xl bg-brand-500 text-white shadow-2xl flex items-center justify-center mb-3 scale-110 animate-bounce">
+                        <Sparkles className="size-8" />
                       </div>
-                    </DraggableWrapper>
-                  </div>
-                )}
-
-
-
-                {/* OVERLAY DE DROPZONE AL ARRASTRAR PLANTILLA ESTILO CANVA */}
-                {isCanvasDragOver && (
-                  <div className="absolute inset-0 z-50 bg-brand-600/30 border-4 border-dashed border-brand-400 rounded-2xl flex flex-col items-center justify-center p-6 backdrop-blur-xs animate-in fade-in duration-150 pointer-events-none">
-                    <div className="size-16 rounded-2xl bg-brand-500 text-white shadow-2xl flex items-center justify-center mb-3 scale-110 animate-bounce">
-                      <Sparkles className="size-8" />
-                    </div>
-                    <p className="text-base font-extrabold text-white drop-shadow-md">
-                      Suelta la plantilla aquí
-                    </p>
-                    <p className="text-xs text-brand-100 font-medium mt-1">
-                      Se aplicará instantáneamente a tu diseño
-                    </p>
-                  </div>
-                )}
-
-                {/* WATERMARK / GUÍA DE LIENZO EN BLANCO ESTILO CANVA (Oculto al exportar o tener contenido) */}
-                {selectedTemplate === "blank" &&
-                  !selectedBgUrl &&
-                  (currentSlide.customElements || []).length === 0 &&
-                  !currentSlide.title &&
-                  !isExporting && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center pointer-events-none select-none">
-                      <div className="size-16 rounded-3xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-400 mb-3.5 shadow-xs">
-                        <LayoutGrid className="size-8 text-slate-400" />
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-800">
-                        Lienzo en Blanco
-                      </h3>
-                      <p className="text-xs text-slate-400 max-w-[240px] mt-1.5 leading-relaxed">
-                        Arrastra una plantilla desde la izquierda, haz doble clic, o añade textos y figuras desde los paneles.
+                      <p className="text-base font-extrabold text-white drop-shadow-md">
+                        Suelta la plantilla aquí
                       </p>
-                      <div className="flex items-center gap-2 mt-4 text-[11px] text-slate-500 font-medium">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
-                          Arrastrar plantilla
-                        </span>
-                        <span>o</span>
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
-                          Doble clic
-                        </span>
-                      </div>
+                      <p className="text-xs text-brand-100 font-medium mt-1">
+                        Se aplicará instantáneamente a tu diseño
+                      </p>
                     </div>
                   )}
-
-                {/* 2. RENDERIZADO POR PLANTILLA O TIPO DE LÁMINA */}
-                {selectedTemplate !== "blank" && (
-                  isCover ? (
-                  <>
-                    {/* PLANTILLA 1: CINEMATIC EDITORIAL */}
-                    {selectedTemplate === "editorial" && (
-                      <>
-                        {/* Capa z-10: Fondo Tarjeta Transparente (Hermano independiente) */}
-                        <div className="absolute inset-0 z-10 pointer-events-none p-5 flex flex-col justify-end">
-                          <DraggableWrapper
-                            id="editorial-card"
-                            label="Fondo Tarjeta"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["editorial-card"]}
-                            onOffsetChange={handleOffsetChange}
-                            height={
-                              currentSlide.dimensions?.["editorial-card"]?.height ??
-                              (overlayMode === "fullscreen" ? 485 : aspectRatio === "4:5" ? 300 : 250)
-                            }
-                            width={currentSlide.dimensions?.["editorial-card"]?.width}
-                            onSizeChange={handleSizeChange}
-                            scale={currentSlide.scales?.["editorial-card"]}
-                            onScaleChange={handleScaleChange}
-                            onDelete={handleDeleteElement}
-                            onDuplicate={handleDuplicateElement}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "brand"}
-                            onSelect={() => setSelectedElement("brand")}
-                            className="w-full pointer-events-auto"
-                          >
-                            <div
-                              style={{
-                                backgroundColor: !selectedBgUrl
-                                  ? (overlayMode === "fullscreen" ? "#ffffff" : "rgba(255, 255, 255, 0.95)")
-                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedElement("brand");
-                              }}
-                              className={`w-full h-full border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"} ${
-                                overlayMode === "fullscreen"
-                                  ? "rounded-none"
-                                  : "rounded-3xl"
-                              }`}
-                            />
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Capa z-20: Contenidos de Texto y Badges (Hermanos independientes) */}
-                        <div className="absolute inset-0 z-20 pointer-events-none p-5 flex flex-col justify-end">
-                          <div
-                            className={`w-full flex flex-col justify-between transition-all p-6 ${
-                              overlayMode === "fullscreen"
-                                ? "h-[485px]"
-                                : aspectRatio === "4:5"
-                                ? "h-[300px]"
-                                : "h-[250px]"
-                            }`}
-                          >
-                            <div>
-                              {/* Píldora de Categoría */}
-                              <DraggableWrapper
-                                id="editorial-tag"
-                                label="Categoría"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["editorial-tag"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "tag"}
-                                onSelect={() => setSelectedElement("tag")}
-                                className="inline-block mb-3 pointer-events-auto"
-                              >
-                                <span
-                                  style={{ backgroundColor: accentColor }}
-                                  className="inline-block px-3 py-1 rounded-md text-[11px] font-bold text-black uppercase tracking-wider shadow-sm"
-                                >
-                                  <InlineEditableText
-                                    elementKey="tag"
-                                    value={currentSlide.tag || "B2B"}
-                                    onChange={(val) => updateCurrentSlide({ tag: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="CATEGORÍA"
-                                  />
-                                </span>
-                              </DraggableWrapper>
-
-                              {/* Titular */}
-                              <DraggableWrapper
-                                id="editorial-title"
-                                label="Titular"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["editorial-title"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "title"}
-                                onSelect={() => setSelectedElement("title")}
-                                className="pointer-events-auto"
-                              >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight break-words drop-shadow-sm`}>
-                                  <InlineEditableText
-                                    elementKey="title"
-                                    as="span"
-                                    value={currentSlide.title}
-                                    onChange={(val) => updateCurrentSlide({ title: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Escribe tu titular aquí..."
-                                  />
-                                </h1>
-                              </DraggableWrapper>
-
-                              {/* Subtítulo */}
-                              <DraggableWrapper
-                                id="editorial-subtitle"
-                                label="Subtítulo"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["editorial-subtitle"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "subtitle"}
-                                onSelect={() => setSelectedElement("subtitle")}
-                                className="pointer-events-auto"
-                              >
-                                <p className={`text-xs sm:text-sm ${!selectedBgUrl ? "text-slate-600" : "text-slate-200"} mt-2.5 leading-relaxed font-normal`}>
-                                  <InlineEditableText
-                                    elementKey="subtitle"
-                                    as="span"
-                                    value={currentSlide.subtitle}
-                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Escribe el subtítulo aquí..."
-                                  />
-                                </p>
-                              </DraggableWrapper>
-                            </div>
-
-                            {/* Pie con Swipe Badge y Autor */}
-                            <DraggableWrapper
-                              id="editorial-footer"
-                              label="Firma / Pie"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["editorial-footer"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "author-name"}
-                              onSelect={() => setSelectedElement("author-name")}
-                              className={`pt-4 mt-3 border-t ${!selectedBgUrl ? "border-slate-200" : "border-white/10"} flex items-center justify-between pointer-events-auto`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div
-                                  style={{ backgroundColor: accentColor }}
-                                  className="size-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black"
-                                >
-                                  {nameText.substring(0, 2).toUpperCase()}
-                                </div>
-                                <span className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"}`}>
-                                  <InlineEditableText
-                                    elementKey="author-name"
-                                    value={nameText}
-                                    onChange={setNameText}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="Tu Nombre"
-                                  />
-                                </span>
-                              </div>
-
-                              {editorMode === "carousel" && (
-                                <div
-                                  style={{ borderColor: accentColor, color: accentColor }}
-                                  className="px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white/5"
-                                >
-                                  <span>DESLIZA</span>
-                                  <ArrowRight className="size-3" />
-                                </div>
-                              )}
-                            </DraggableWrapper>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PLANTILLA 2: CITA DE AUTORIDAD */}
-                    {selectedTemplate === "authority_quote" && (
-                      <>
-                        {/* Capa z-10: Fondo Tarjeta Transparente */}
-                        <div className="absolute inset-0 z-10 pointer-events-none p-6">
-                          <DraggableWrapper
-                            id="quote-card"
-                            label="Fondo Cita"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["quote-card"]}
-                            onOffsetChange={handleOffsetChange}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "brand"}
-                            onSelect={() => setSelectedElement("brand")}
-                            className="w-full h-full pointer-events-auto"
-                          >
-                            <div
-                              style={{
-                                backgroundColor: !selectedBgUrl
-                                  ? "rgba(248, 250, 252, 0.95)"
-                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedElement("brand");
-                              }}
-                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
-                            />
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Capa z-20: Contenidos de la Cita */}
-                        <div className="absolute inset-0 z-20 pointer-events-none p-6">
-                          <div className="w-full h-full p-6 flex flex-col justify-between items-center text-center">
-                            {/* Tag superior */}
-                            <DraggableWrapper
-                              id="quote-tag"
-                              label="Categoría"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["quote-tag"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "tag"}
-                              onSelect={() => setSelectedElement("tag")}
-                              className="pointer-events-auto"
-                            >
-                              <span
-                                style={{ borderColor: accentColor, color: accentColor }}
-                                className="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wider bg-white/5 inline-block"
-                              >
-                                <InlineEditableText
-                                  elementKey="tag"
-                                  value={currentSlide.tag || "CITA DE AUTORIDAD"}
-                                  onChange={(val) => updateCurrentSlide({ tag: val })}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  placeholder="CITA DE AUTORIDAD"
-                                />
-                              </span>
-                            </DraggableWrapper>
-
-                            {/* Frase entre comillas */}
-                            <DraggableWrapper
-                              id="quote-body"
-                              label="Cita y Texto"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["quote-body"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "title"}
-                              onSelect={() => setSelectedElement("title")}
-                              className="my-auto px-2 pointer-events-auto"
-                            >
-                              <Quote
-                                className="size-10 mx-auto mb-2 opacity-80"
-                                style={{ color: accentColor }}
-                              />
-                              <h1 className={`${getTitleSizeClass(titleSize)} font-bold italic ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-relaxed`}>
-                                "
-                                <InlineEditableText
-                                  elementKey="title"
-                                  as="span"
-                                  value={currentSlide.title}
-                                  onChange={(val) => updateCurrentSlide({ title: val })}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  multiline={true}
-                                  placeholder="Escribe la frase memorable aquí..."
-                                />
-                                "
-                              </h1>
-                              <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-3 font-normal`}>
-                                <InlineEditableText
-                                  elementKey="subtitle"
-                                  as="span"
-                                  value={currentSlide.subtitle}
-                                  onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  multiline={true}
-                                  placeholder="Contexto o explicación de la cita..."
-                                />
-                              </p>
-                            </DraggableWrapper>
-
-                            {/* Tarjeta de autor */}
-                            <DraggableWrapper
-                              id="quote-author"
-                              label="Tarjeta de Autor"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["quote-author"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "author-name"}
-                              onSelect={() => setSelectedElement("author-name")}
-                              className={`flex items-center gap-3 px-4 py-2 rounded-full ${!selectedBgUrl ? "bg-white border-slate-200 shadow-md text-slate-900" : "bg-slate-900/90 border-white/15 shadow-md text-white"} border pointer-events-auto`}
-                            >
-                              <div
-                                style={{ backgroundColor: accentColor }}
-                                className="size-7 rounded-full flex items-center justify-center text-xs font-bold text-black shrink-0"
-                              >
-                                {nameText.substring(0, 2).toUpperCase()}
-                              </div>
-                              <div className="text-left">
-                                <div className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight`}>
-                                  <InlineEditableText
-                                    elementKey="author-name"
-                                    value={nameText}
-                                    onChange={setNameText}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="Tu Nombre"
-                                  />
-                                </div>
-                                <div className="text-[10px] text-brand-400 font-mono leading-tight">
-                                  <InlineEditableText
-                                    elementKey="author-handle"
-                                    value={handleText}
-                                    onChange={setHandleText}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="@handle"
-                                  />
-                                </div>
-                              </div>
-                            </DraggableWrapper>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PLANTILLA 3: TARJETA SOCIAL / FEED */}
-                    {selectedTemplate === "social_card" && (
-                      <>
-                        {/* Capa z-10: Fondo Tarjeta Social */}
-                        <div className="absolute inset-0 z-10 pointer-events-none p-5 flex flex-col justify-center">
-                          <DraggableWrapper
-                            id="social-card"
-                            label="Fondo Tarjeta"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["social-card"]}
-                            onOffsetChange={handleOffsetChange}
-                            height={
-                              currentSlide.dimensions?.["social-card"]?.height ??
-                              (aspectRatio === "4:5" ? 390 : 350)
-                            }
-                            width={currentSlide.dimensions?.["social-card"]?.width}
-                            onSizeChange={handleSizeChange}
-                            scale={currentSlide.scales?.["social-card"]}
-                            onScaleChange={handleScaleChange}
-                            onDelete={handleDeleteElement}
-                            onDuplicate={handleDuplicateElement}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "brand"}
-                            onSelect={() => setSelectedElement("brand")}
-                            className="w-full pointer-events-auto"
-                          >
-                            <div
-                              style={{
-                                backgroundColor: !selectedBgUrl
-                                  ? "#ffffff"
-                                  : `rgba(15, 23, 42, ${overlayOpacity})`,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedElement("brand");
-                              }}
-                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
-                            />
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Capa z-20: Contenidos Tarjeta Social */}
-                        <div className="absolute inset-0 z-20 pointer-events-none p-5 flex flex-col justify-center">
-                          <div
-                            className={`w-full p-5 flex flex-col justify-between ${
-                              aspectRatio === "4:5" ? "h-[390px]" : "h-[350px]"
-                            }`}
-                          >
-                            {/* Cabecera estilo LinkedIn */}
-                            <DraggableWrapper
-                              id="social-header"
-                              label="Perfil Creador"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["social-header"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "author-name"}
-                              onSelect={() => setSelectedElement("author-name")}
-                              className={`flex items-center gap-3 pb-3 border-b ${!selectedBgUrl ? "border-slate-200" : "border-white/10"} pointer-events-auto`}
-                            >
-                              <div
-                                style={{ backgroundColor: accentColor }}
-                                className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-black shrink-0"
-                              >
-                                {nameText.substring(0, 2).toUpperCase()}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"}`}>
-                                    <InlineEditableText
-                                      elementKey="author-name"
-                                      value={nameText}
-                                      onChange={setNameText}
-                                      selectedElement={selectedElement}
-                                      onSelect={setSelectedElement}
-                                      isExporting={isExporting}
-                                      placeholder="Tu Nombre"
-                                    />
-                                  </span>
-                                  <CheckCircle2 className="size-3.5 text-blue-400 shrink-0" />
-                                </div>
-                                <div className="text-[10px] text-gray-400 flex items-center gap-1">
-                                  <InlineEditableText
-                                    elementKey="author-handle"
-                                    value={handleText}
-                                    onChange={setHandleText}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="@handle"
-                                  />
-                                  <span className="flex items-center gap-1">
-                                    •
-                                    <InlineEditableText
-                                      elementKey="social-role"
-                                      as="span"
-                                      value={currentSlide.titlePrefix || "LinkedIn Creator"}
-                                      onChange={(val) => updateCurrentSlide({ titlePrefix: val })}
-                                      selectedElement={selectedElement}
-                                      onSelect={setSelectedElement}
-                                      isExporting={isExporting}
-                                      placeholder="LinkedIn Creator"
-                                    />
-                                  </span>
-                                </div>
-                              </div>
-                            </DraggableWrapper>
-
-                            {/* Contenido del post */}
-                            <div className="py-3.5 space-y-2.5">
-                              <DraggableWrapper
-                                id="social-tag"
-                                label="Etiqueta"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["social-tag"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "tag"}
-                                onSelect={() => setSelectedElement("tag")}
-                                className="inline-block pointer-events-auto"
-                              >
-                                <span
-                                  style={{ borderColor: accentColor, color: accentColor }}
-                                  className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border bg-white/5"
-                                >
-                                  <InlineEditableText
-                                    elementKey="tag"
-                                    value={currentSlide.tag || "B2B"}
-                                    onChange={(val) => updateCurrentSlide({ tag: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="B2B"
-                                  />
-                                </span>
-                              </DraggableWrapper>
-
-                              <DraggableWrapper
-                                id="social-title"
-                                label="Titular"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["social-title"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "title"}
-                                onSelect={() => setSelectedElement("title")}
-                                className="pointer-events-auto"
-                              >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-snug`}>
-                                  <InlineEditableText
-                                    elementKey="title"
-                                    as="span"
-                                    value={currentSlide.title}
-                                    onChange={(val) => updateCurrentSlide({ title: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Escribe el titular aquí..."
-                                  />
-                                </h1>
-                              </DraggableWrapper>
-
-                              <DraggableWrapper
-                                id="social-subtitle"
-                                label="Caja de Texto"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["social-subtitle"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "subtitle"}
-                                onSelect={() => setSelectedElement("subtitle")}
-                                className="pointer-events-auto"
-                              >
-                                <div
-                                  style={{ borderLeftColor: accentColor }}
-                                  className="p-3 rounded-r-xl bg-white/5 border-l-4 text-xs text-slate-200"
-                                >
-                                  <InlineEditableText
-                                    elementKey="subtitle"
-                                    as="span"
-                                    value={currentSlide.subtitle}
-                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Desarrollo o cuerpo del post..."
-                                  />
-                                </div>
-                              </DraggableWrapper>
-                            </div>
-
-                            {/* Estadísticas de interacción social */}
-                            <DraggableWrapper
-                              id="social-stats"
-                              label="Métricas Sociales"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["social-stats"]}
-                              onOffsetChange={handleOffsetChange}
-                              scale={currentSlide.scales?.["social-stats"]}
-                              onScaleChange={handleScaleChange}
-                              isSelected={selectedElement === "social-stats"}
-                              onSelect={() => setSelectedElement("social-stats")}
-                              onDelete={handleDeleteElement}
-                              onDuplicate={handleDuplicateElement}
-                              isExporting={isExporting}
-                              className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium pointer-events-auto"
-                            >
-                              <span className="flex items-center gap-1">
-                                <Heart className="size-3 text-rose-400" /> 1,428
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MessageCircle className="size-3 text-blue-400" /> 189
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Repeat2 className="size-3 text-emerald-400" /> 54
-                              </span>
-                            </DraggableWrapper>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PLANTILLA 4: SPLIT FOCUS 50/50 */}
-                    {selectedTemplate === "split_focus" && (
-                      <>
-                        {/* Capa z-10: Panel Inferior */}
-                        <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-end">
-                          <DraggableWrapper
-                            id="split-card"
-                            label="Panel Inferior"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["split-card"]}
-                            onOffsetChange={handleOffsetChange}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "brand"}
-                            onSelect={() => setSelectedElement("brand")}
-                            className="w-full h-[52%] pointer-events-auto"
-                          >
-                            <div
-                              style={{ borderTopColor: accentColor }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedElement("brand");
-                              }}
-                              className={`h-full w-full ${!selectedBgUrl ? "bg-white border-t-4 border-slate-200/90 shadow-xl" : "bg-slate-950/95 border-t-4 backdrop-blur-md"}`}
-                            />
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Capa z-20: Contenidos de Split Focus */}
-                        <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end">
-                          <div className="w-full h-[52%] p-5 flex flex-col justify-between">
-                            <div>
-                              <DraggableWrapper
-                                id="split-tag"
-                                label="Etiqueta"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["split-tag"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "tag"}
-                                onSelect={() => setSelectedElement("tag")}
-                                className="inline-block mb-2 pointer-events-auto"
-                              >
-                                <span
-                                  style={{ backgroundColor: accentColor }}
-                                  className="inline-block px-2.5 py-1 rounded text-[10px] font-bold text-black uppercase"
-                                >
-                                  <InlineEditableText
-                                    elementKey="tag"
-                                    value={currentSlide.tag || "B2B"}
-                                    onChange={(val) => updateCurrentSlide({ tag: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="B2B"
-                                  />
-                                </span>
-                              </DraggableWrapper>
-
-                              <DraggableWrapper
-                                id="split-title"
-                                label="Titular"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["split-title"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "title"}
-                                onSelect={() => setSelectedElement("title")}
-                                className="pointer-events-auto"
-                              >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight`}>
-                                  <InlineEditableText
-                                    elementKey="title"
-                                    as="span"
-                                    value={currentSlide.title}
-                                    onChange={(val) => updateCurrentSlide({ title: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Escribe el titular aquí..."
-                                  />
-                                </h1>
-                              </DraggableWrapper>
-
-                              <DraggableWrapper
-                                id="split-subtitle"
-                                label="Subtítulo"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["split-subtitle"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "subtitle"}
-                                onSelect={() => setSelectedElement("subtitle")}
-                                className="pointer-events-auto"
-                              >
-                                <p className="text-xs text-slate-300 mt-2 font-normal line-clamp-3">
-                                  <InlineEditableText
-                                    elementKey="subtitle"
-                                    as="span"
-                                    value={currentSlide.subtitle}
-                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Escribe el subtítulo aquí..."
-                                  />
-                                </p>
-                              </DraggableWrapper>
-                            </div>
-
-                            <DraggableWrapper
-                              id="split-footer"
-                              label="Pie / Autor"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["split-footer"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "author-name"}
-                              onSelect={() => setSelectedElement("author-name")}
-                              className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 pointer-events-auto"
-                            >
-                              <span className="font-bold text-white">
-                                <InlineEditableText
-                                  elementKey="author-name"
-                                  value={nameText}
-                                  onChange={setNameText}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  placeholder="Tu Nombre"
-                                />
-                              </span>
-                              {editorMode === "carousel" && (
-                                <span style={{ color: accentColor }} className="font-bold flex items-center gap-1">
-                                  Desliza <ArrowRight className="size-3" />
-                                </span>
-                              )}
-                            </DraggableWrapper>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PLANTILLA 5: MÉTRICA DE ALTO IMPACTO */}
-                    {selectedTemplate === "big_metric" && (
-                      <>
-                        {/* Capa z-10: Fondo Tarjeta Métrica */}
-                        <div className="absolute inset-0 z-10 pointer-events-none p-6">
-                          <DraggableWrapper
-                            id="metric-card"
-                            label="Fondo Métrica"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["metric-card"]}
-                            onOffsetChange={handleOffsetChange}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "brand"}
-                            onSelect={() => setSelectedElement("brand")}
-                            className="w-full h-full pointer-events-auto"
-                          >
-                            <div
-                              style={{
-                                backgroundColor: !selectedBgUrl
-                                  ? "rgba(248, 250, 252, 0.95)"
-                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedElement("brand");
-                              }}
-                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
-                            />
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Capa z-20: Contenidos de Métrica */}
-                        <div className="absolute inset-0 z-20 pointer-events-none p-6 text-center">
-                          <div className="w-full h-full p-6 flex flex-col justify-between items-center">
-                            <DraggableWrapper
-                              id="metric-tag"
-                              label="Etiqueta"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["metric-tag"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "tag"}
-                              onSelect={() => setSelectedElement("tag")}
-                              className="pointer-events-auto"
-                            >
-                              <span
-                                style={{ borderColor: accentColor, color: accentColor }}
-                                className="px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5 inline-block"
-                              >
-                                <InlineEditableText
-                                  elementKey="tag"
-                                  value={currentSlide.tag || "MÉTRICA VALIDADA"}
-                                  onChange={(val) => updateCurrentSlide({ tag: val })}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  placeholder="MÉTRICA VALIDADA"
-                                />
-                              </span>
-                            </DraggableWrapper>
-
-                            <div className="my-auto">
-                              <DraggableWrapper
-                                id="metric-number"
-                                label="Número Grande"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["metric-number"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "metric"}
-                                onSelect={() => setSelectedElement("metric")}
-                                className="pointer-events-auto"
-                              >
-                                <div
-                                  style={{ color: accentColor }}
-                                  className="text-5xl sm:text-6xl font-black tracking-tight font-mono drop-shadow-lg"
-                                >
-                                  <InlineEditableText
-                                    elementKey="metric"
-                                    as="div"
-                                    value={currentSlide.metric || initialMetric || "+340%"}
-                                    onChange={(val) => updateCurrentSlide({ metric: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="+340%"
-                                  />
-                                </div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
-                                  <InlineEditableText
-                                    elementKey="metric-label"
-                                    as="span"
-                                    value={currentSlide.metricLabel || "RESULTADO COMPROBADO EN CONVERSIONES"}
-                                    onChange={(val) => updateCurrentSlide({ metricLabel: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="RESULTADO COMPROBADO EN CONVERSIONES"
-                                  />
-                                </div>
-                              </DraggableWrapper>
-
-                              <DraggableWrapper
-                                id="metric-text"
-                                label="Titular y Subtítulo"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["metric-text"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "title"}
-                                onSelect={() => setSelectedElement("title")}
-                                className="pointer-events-auto"
-                              >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} mt-3`}>
-                                  <InlineEditableText
-                                    elementKey="title"
-                                    as="span"
-                                    value={currentSlide.title}
-                                    onChange={(val) => updateCurrentSlide({ title: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Explicación del resultado..."
-                                  />
-                                </h1>
-                                <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-1 font-normal`}>
-                                  <InlineEditableText
-                                    elementKey="subtitle"
-                                    as="span"
-                                    value={currentSlide.subtitle}
-                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="Contexto o método utilizado..."
-                                  />
-                                </p>
-                              </DraggableWrapper>
-                            </div>
-
-                            <DraggableWrapper
-                              id="metric-author"
-                              label="Firma / Autor"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["metric-author"]}
-                              onOffsetChange={handleOffsetChange}
-                              isExporting={isExporting}
-                              isSelected={selectedElement === "author-name"}
-                              onSelect={() => setSelectedElement("author-name")}
-                              className="text-xs text-gray-400 font-mono pointer-events-auto"
-                            >
-                              <InlineEditableText
-                                elementKey="author-name"
-                                value={nameText}
-                                onChange={setNameText}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                placeholder="Tu Nombre"
-                              />
-                              {" • "}
-                              <span style={{ color: accentColor }}>
-                                <InlineEditableText
-                                  elementKey="author-handle"
-                                  value={handleText}
-                                  onChange={setHandleText}
-                                  selectedElement={selectedElement}
-                                  onSelect={setSelectedElement}
-                                  isExporting={isExporting}
-                                  placeholder="@handle"
-                                />
-                              </span>
-                            </DraggableWrapper>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PLANTILLA 6: BOLD HIGHLIGHTER B2B (Estilo Pinterest / Klowt) */}
-                    {selectedTemplate === "bold_highlighter" && (() => {
-                      const parts = getTitleParts(currentSlide);
-                      const headlineSizeClass = (() => {
-                        const isPortrait = aspectRatio === "4:5";
-                        if (isPortrait) {
-                          switch (titleSize) {
-                            case "sm": return "text-xl sm:text-2xl";
-                            case "md": return "text-2xl sm:text-[28px]";
-                            case "lg": return "text-3xl sm:text-[34px]";
-                            case "xl": return "text-3xl sm:text-[40px]";
-                          }
-                        }
-                        switch (titleSize) {
-                          case "sm": return "text-lg sm:text-xl";
-                          case "md": return "text-xl sm:text-2xl";
-                          case "lg": return "text-2xl sm:text-[26px]";
-                          case "xl": return "text-2xl sm:text-3xl";
-                        }
-                      })();
-                      return (
-                        <>
-                          {/* Capa z-10: Degradado inteligente lateral para lectura perfecta sobre fotos */}
-                          {Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
-                            <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/20" />
-                          )}
-
-                          {/* Capa z-20: Contenidos de la Lámina */}
-                          <div className="absolute inset-0 z-20 pointer-events-none p-6 sm:p-7 flex flex-col justify-between">
-                            {/* Cabecera Superior: Tag / Serie a la derecha */}
-                            <div className="flex items-center justify-between w-full">
-                              {/* Logo / Monograma Opcional Izquierda */}
-                              <DraggableWrapper
-                                id="bold-logo"
-                                label="Isotipo / Monograma"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["bold-logo"]}
-                                onOffsetChange={handleOffsetChange}
-                                scale={currentSlide.scales?.["bold-logo"]}
-                                onScaleChange={handleScaleChange}
-                                isSelected={selectedElement === "bold-logo"}
-                                onSelect={() => setSelectedElement("bold-logo")}
-                                onDelete={handleDeleteElement}
-                                onDuplicate={handleDuplicateElement}
-                                isExporting={isExporting}
-                                className="pointer-events-auto"
-                              >
-                                <span className={`text-sm font-black font-mono ${!selectedBgUrl ? "text-slate-900" : "text-white/80"} tracking-wider`}>
-                                  {nameText.charAt(0).toUpperCase()}.
-                                </span>
-                              </DraggableWrapper>
-
-                              {/* Etiqueta de Serie Derecha */}
-                              <DraggableWrapper
-                                id="bold-tag"
-                                label="Etiqueta / Serie"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["bold-tag"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "tag"}
-                                onSelect={() => setSelectedElement("tag")}
-                                className="pointer-events-auto"
-                              >
-                                <div className={`text-[11px] font-black tracking-[0.2em] ${!selectedBgUrl ? "text-slate-800" : "text-white/90"} uppercase drop-shadow-sm`}>
-                                  <InlineEditableText
-                                    elementKey="tag"
-                                    value={currentSlide.tag || "INSIGHTS B2B"}
-                                    onChange={(val) => updateCurrentSlide({ tag: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="INSIGHTS B2B"
-                                  />
-                                </div>
-                              </DraggableWrapper>
-                            </div>
-
-                            {/* Bloque Central / Titular + Bajada */}
-                            <div className="my-auto space-y-4 max-w-[340px]">
-                              {/* Titular con Resaltador Violeta */}
-                              <DraggableWrapper
-                                id="bold-title"
-                                label="Titular con Resaltador"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["bold-title"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "title"}
-                                onSelect={() => setSelectedElement("title")}
-                                className="pointer-events-auto"
-                              >
-                                <div className={`font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} tracking-tight leading-[1.08] select-text`}>
-                                  {/* Prefijo en minúsculas */}
-                                  <div className={`${headlineSizeClass} drop-shadow-md`}>
-                                    <InlineEditableText
-                                      elementKey="title-prefix"
-                                      as="span"
-                                      value={parts.prefix}
-                                      onChange={(val) => {
-                                        updateCurrentSlide({
-                                          titlePrefix: val,
-                                          title: `${val} [${parts.highlight}] ${parts.suffix}.`,
-                                        });
-                                      }}
-                                      selectedElement={selectedElement}
-                                      onSelect={setSelectedElement}
-                                      isExporting={isExporting}
-                                      placeholder="el 90% de los"
-                                    />
-                                  </div>
-
-                                  {/* Cinta violeta resaltadora inclinada */}
-                                  <div className="my-1.5 inline-block">
-                                    <span
-                                      style={{ backgroundColor: accentColor === "#0099ff" ? "#7058FE" : accentColor }}
-                                      className="inline-block px-3.5 py-0.5 rounded-xl text-white font-extrabold italic shadow-2xl -rotate-[2deg] transform origin-left"
-                                    >
-                                      <span className={`${headlineSizeClass} tracking-tight`}>
-                                        <InlineEditableText
-                                          elementKey="title-highlight"
-                                          as="span"
-                                          value={parts.highlight}
-                                          onChange={(val) => {
-                                            updateCurrentSlide({
-                                              highlightText: val,
-                                              title: `${parts.prefix} [${val}] ${parts.suffix}.`,
-                                            });
-                                          }}
-                                          selectedElement={selectedElement}
-                                          onSelect={setSelectedElement}
-                                          isExporting={isExporting}
-                                          placeholder="mensajes b2b"
-                                        />
-                                      </span>
-                                    </span>
-                                  </div>
-
-                                  {/* Sufijo con punto final magenta neón */}
-                                  <div className={`${headlineSizeClass} drop-shadow-md flex items-baseline flex-wrap`}>
-                                    <InlineEditableText
-                                      elementKey="title-suffix"
-                                      as="span"
-                                      value={parts.suffix}
-                                      onChange={(val) => {
-                                        updateCurrentSlide({
-                                          titleSuffix: val,
-                                          title: `${parts.prefix} [${parts.highlight}] ${val}.`,
-                                        });
-                                      }}
-                                      selectedElement={selectedElement}
-                                      onSelect={setSelectedElement}
-                                      isExporting={isExporting}
-                                      placeholder="terminan en la papelera"
-                                    />
-                                    <span className="text-[#FF177D] font-black inline-block ml-0.5">.</span>
-                                  </div>
-                                </div>
-                              </DraggableWrapper>
-
-                              {/* Bajada / Subtítulo */}
-                              <DraggableWrapper
-                                id="bold-subtitle"
-                                label="Subtítulo Explicativo"
-                                isFreeMode={isFreeMode}
-                                offset={currentSlide.offsets?.["bold-subtitle"]}
-                                onOffsetChange={handleOffsetChange}
-                                isExporting={isExporting}
-                                isSelected={selectedElement === "subtitle"}
-                                onSelect={() => setSelectedElement("subtitle")}
-                                className="pointer-events-auto pt-2"
-                              >
-                                <p className={`text-xs sm:text-[13px] ${!selectedBgUrl ? "text-slate-600" : "text-slate-200/90"} leading-relaxed font-normal drop-shadow-sm`}>
-                                  <InlineEditableText
-                                    elementKey="subtitle"
-                                    as="span"
-                                    value={currentSlide.subtitle || "El problema no es el volumen, es la falta de estrategia operativa. Menos ruido masivo, más automatización inteligente."}
-                                    onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder="El problema no es el volumen, es la falta de estrategia operativa..."
-                                  />
-                                </p>
-                              </DraggableWrapper>
-                            </div>
-
-                            {/* Pie / Flecha de deslizamiento */}
-                            <DraggableWrapper
-                              id="bold-footer"
-                              label="Indicador / Flecha"
-                              isFreeMode={isFreeMode}
-                              offset={currentSlide.offsets?.["bold-footer"]}
-                              onOffsetChange={handleOffsetChange}
-                              scale={currentSlide.scales?.["bold-footer"]}
-                              onScaleChange={handleScaleChange}
-                              isSelected={selectedElement === "bold-footer"}
-                              onSelect={() => setSelectedElement("bold-footer")}
-                              onDelete={handleDeleteElement}
-                              onDuplicate={handleDuplicateElement}
-                              isExporting={isExporting}
-                              className="pointer-events-auto self-end flex items-center gap-2"
-                            >
-                              <div className={`flex items-center gap-2 ${!selectedBgUrl ? "text-slate-700" : "text-white/80"}`}>
-                                {editorMode === "carousel" && (
-                                  <InlineEditableText
-                                    elementKey="bold-swipe"
-                                    as="span"
-                                    value={currentSlide.swipeText || "Desliza"}
-                                    onChange={(val) => updateCurrentSlide({ swipeText: val })}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    placeholder="Desliza"
-                                    className="text-[10px] font-bold uppercase tracking-wider text-white/60"
-                                  />
-                                )}
-                                <ArrowRight className="size-5 text-white/90" />
-                              </div>
-                            </DraggableWrapper>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </>
-                ) : (
-                  /* B) LÁMINAS INTERMEDIAS (PROBLEMA, SOLUCIÓN, CTA) */
-                  <>
-                    {/* Capa z-10: Fondo Tarjeta Intermedia */}
-                    <div className="absolute inset-0 z-10 pointer-events-none p-6">
-                      <DraggableWrapper
-                        id="inter-card"
-                        label="Fondo Tarjeta"
-                        isFreeMode={isFreeMode}
-                        offset={currentSlide.offsets?.["inter-card"]}
-                        onOffsetChange={handleOffsetChange}
-                        isExporting={isExporting}
-                        isSelected={selectedElement === "brand"}
-                        onSelect={() => setSelectedElement("brand")}
-                        className="w-full h-full pointer-events-auto"
-                      >
-                        <div
-                          style={{
-                            backgroundColor: !selectedBgUrl
-                              ? "rgba(248, 250, 252, 0.96)"
-                              : `rgba(15, 23, 42, ${overlayOpacity})`,
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement("brand");
-                          }}
-                          className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
-                        />
-                      </DraggableWrapper>
-                    </div>
-
-                    {/* Capa z-20: Contenidos de la Lámina Intermedia */}
-                    <div className="absolute inset-0 z-20 pointer-events-none p-6">
-                      <div className="w-full h-full p-6 flex flex-col justify-between">
-                        {/* Cabecera de la lámina */}
-                        <div>
-                          <DraggableWrapper
-                            id="inter-tag"
-                            label="Etiqueta Paso"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["inter-tag"]}
-                            onOffsetChange={handleOffsetChange}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "tag"}
-                            onSelect={() => setSelectedElement("tag")}
-                            className="inline-block mb-2.5 pointer-events-auto"
-                          >
-                            <span
-                              style={{ borderColor: accentColor, color: accentColor }}
-                              className="inline-block px-3 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-white/5"
-                            >
-                              <InlineEditableText
-                                elementKey="tag"
-                                value={currentSlide.tag || "PASO ACCIONABLE"}
-                                onChange={(val) => updateCurrentSlide({ tag: val })}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                placeholder="PASO ACCIONABLE"
-                              />
-                            </span>
-                          </DraggableWrapper>
-
-                          <DraggableWrapper
-                            id="inter-title"
-                            label="Titular"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["inter-title"]}
-                            onOffsetChange={handleOffsetChange}
-                            isExporting={isExporting}
-                            isSelected={selectedElement === "title"}
-                            onSelect={() => setSelectedElement("title")}
-                            className="pointer-events-auto"
-                          >
-                            <h2 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-snug`}>
-                              <InlineEditableText
-                                elementKey="title"
-                                as="span"
-                                value={currentSlide.title}
-                                onChange={(val) => updateCurrentSlide({ title: val })}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                multiline={true}
-                                placeholder="Título de la lámina..."
-                              />
-                            </h2>
-                            <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-1`}>
-                              <InlineEditableText
-                                elementKey="subtitle"
-                                as="span"
-                                value={currentSlide.subtitle}
-                                onChange={(val) => updateCurrentSlide({ subtitle: val })}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                multiline={true}
-                                placeholder="Subtítulo descriptivo..."
-                              />
-                            </p>
-                          </DraggableWrapper>
-                        </div>
-
-                        {/* Cuerpo de viñetas para problema o solución */}
-                        {(currentSlide.type === "problem" || currentSlide.type === "solution") && (
-                          <DraggableWrapper
-                            id="inter-bullets"
-                            label="Bloque de Viñetas"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["inter-bullets"]}
-                            onOffsetChange={handleOffsetChange}
-                            scale={currentSlide.scales?.["inter-bullets"]}
-                            onScaleChange={handleScaleChange}
-                            isSelected={selectedElement === "bullets" || selectedElement === "inter-bullets"}
-                            onSelect={() => setSelectedElement("bullets")}
-                            onDelete={handleDeleteElement}
-                            onDuplicate={handleDuplicateElement}
-                            isExporting={isExporting}
-                            className="my-auto space-y-2.5 pointer-events-auto"
-                          >
-                            {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((bullet, idx) => (
-                              <div key={idx} className={`flex items-start gap-3 p-2.5 rounded-xl ${!selectedBgUrl ? "bg-slate-50 border border-slate-200/80 text-slate-800" : "bg-white/5 border border-white/5 text-slate-100"}`}>
-                                <span
-                                  style={{ backgroundColor: accentColor }}
-                                  className="size-5 rounded-full text-[11px] font-black text-black flex items-center justify-center shrink-0 mt-0.5"
-                                >
-                                  {idx + 1}
-                                </span>
-                                <div className="flex-1 text-xs text-slate-200 leading-relaxed font-medium">
-                                  <InlineEditableText
-                                    elementKey={`bullet-${idx}`}
-                                    value={bullet}
-                                    onChange={(val) => {
-                                      const newBullets = [...(currentSlide.bullets || [])];
-                                      newBullets[idx] = val;
-                                      updateCurrentSlide({ bullets: newBullets });
-                                    }}
-                                    selectedElement={selectedElement}
-                                    onSelect={setSelectedElement}
-                                    isExporting={isExporting}
-                                    multiline={true}
-                                    placeholder={`Punto ${idx + 1}...`}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </DraggableWrapper>
-                        )}
-
-                        {/* Cuerpo de CTA Final */}
-                        {currentSlide.type === "cta" && (
-                          <DraggableWrapper
-                            id="inter-cta"
-                            label="Caja de Acción CTA"
-                            isFreeMode={isFreeMode}
-                            offset={currentSlide.offsets?.["inter-cta"]}
-                            onOffsetChange={handleOffsetChange}
-                            scale={currentSlide.scales?.["inter-cta"]}
-                            onScaleChange={handleScaleChange}
-                            isSelected={selectedElement === "cta" || selectedElement === "inter-cta"}
-                            onSelect={() => setSelectedElement("cta")}
-                            onDelete={handleDeleteElement}
-                            onDuplicate={handleDuplicateElement}
-                            isExporting={isExporting}
-                            className="my-auto p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-3 pointer-events-auto"
-                          >
-                            <p className="text-xs text-slate-200 font-medium">
-                              <InlineEditableText
-                                elementKey="cta-prompt"
-                                as="span"
-                                value={currentSlide.ctaPrompt || "Comenta abajo para enviarte el activo completo por mensaje directo:"}
-                                onChange={(val) => updateCurrentSlide({ ctaPrompt: val })}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                multiline={true}
-                                placeholder="Comenta abajo para enviarte el activo completo..."
-                              />
-                            </p>
-                            <div
-                              style={{ backgroundColor: accentColor }}
-                              className="p-3 rounded-xl text-black font-mono font-black text-sm tracking-wider shadow-lg"
-                            >
-                              COMUNICAR "
-                              <InlineEditableText
-                                elementKey="cta-keyword"
-                                value={currentSlide.ctaKeyword || "SISTEMA"}
-                                onChange={(val) => updateCurrentSlide({ ctaKeyword: val })}
-                                selectedElement={selectedElement}
-                                onSelect={setSelectedElement}
-                                isExporting={isExporting}
-                                placeholder="SISTEMA"
-                              />
-                              "
-                            </div>
-                          </DraggableWrapper>
-                        )}
-
-                        {/* Pie de lámina */}
-                        <DraggableWrapper
-                          id="inter-footer"
-                          label="Firma / Número"
-                          isFreeMode={isFreeMode}
-                          offset={currentSlide.offsets?.["inter-footer"]}
-                          onOffsetChange={handleOffsetChange}
-                          isExporting={isExporting}
-                          isSelected={selectedElement === "author-name"}
-                          onSelect={() => setSelectedElement("author-name")}
-                          className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 pointer-events-auto"
-                        >
-                          <span className="font-bold text-white">
-                            <InlineEditableText
-                              elementKey="author-name"
-                              value={nameText}
-                              onChange={setNameText}
-                              selectedElement={selectedElement}
-                              onSelect={setSelectedElement}
-                              isExporting={isExporting}
-                              placeholder="Tu Nombre"
-                            />
-                          </span>
-                          <span className="font-mono text-[10px]">
-                            Lámina {currentSlideIndex + 1} / {slides.length}
-                          </span>
-                        </DraggableWrapper>
-                      </div>
-                    </div>
-                  </>
-                )
-              )}
-
-                {/* 3. CAPAS DE ELEMENTOS PERSONALIZADOS ADICIONALES (ESTILO CANVA) */}
-                {(currentSlide.customElements || []).map((elem) => {
-                  const isSelected = selectedElement === elem.id;
-                  const isHidden = Boolean(currentSlide.hiddenElements?.[elem.id]);
-                  if (isHidden) return null;
-
-                  return (
-                    <DraggableWrapper
-                      key={elem.id}
-                      id={elem.id}
-                      label={
-                        elem.type === "heading"
-                          ? "Titular Extra"
-                          : elem.type === "text"
-                          ? "Párrafo"
-                          : elem.type === "highlight"
-                          ? "Cinta Resaltador"
-                          : elem.type === "badge"
-                          ? "Badge B2B"
-                          : elem.type === "shape_rect"
-                          ? "Rectángulo"
-                          : elem.type === "shape_circle"
-                          ? "Círculo"
-                          : elem.type === "shape_star"
-                          ? "Estrella"
-                          : elem.type === "shape_pill"
-                          ? "Píldora"
-                          : elem.type === "shape_line"
-                          ? "Línea"
-                          : "Elemento"
-                      }
-                      isFreeMode={isFreeMode}
-                      offset={currentSlide.offsets?.[elem.id] || { x: elem.x, y: elem.y }}
-                      onOffsetChange={handleOffsetChange}
-                      scale={currentSlide.scales?.[elem.id] ?? elem.scale ?? 1}
-                      onScaleChange={handleScaleChange}
-                      width={elem.width}
-                      height={elem.height}
-                      onSizeChange={handleSizeChange}
-                      rotation={currentSlide.rotations?.[elem.id] ?? elem.rotation ?? 0}
-                      onRotationChange={handleRotationChange}
-                      onDelete={handleDeleteElement}
-                      onDuplicate={handleDuplicateElement}
-                      isExporting={isExporting}
-                      isSelected={isSelected}
-                      onSelect={() => setSelectedElement(elem.id)}
-                      className="absolute z-30 pointer-events-auto"
-                      style={{
-                        left: 0,
-                        top: 0,
-                      }}
-                    >
-                      {elem.type === "heading" && (
-                        <h2 className={`text-2xl font-black ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-900" : "text-white"} tracking-tight leading-tight select-none drop-shadow-md`}>
-                          <InlineEditableText
-                            elementKey={elem.id}
-                            as="span"
-                            value={elem.content}
-                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                            selectedElement={selectedElement}
-                            onSelect={setSelectedElement}
-                            isExporting={isExporting}
-                            multiline={true}
-                            placeholder="Escribe titular..."
-                          />
-                        </h2>
-                      )}
-
-                      {elem.type === "subheading" && (
-                        <h3 className={`text-lg font-bold ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-800" : "text-slate-200"} tracking-tight leading-snug select-none drop-shadow-sm max-w-[340px]`}>
-                          <InlineEditableText
-                            elementKey={elem.id}
-                            as="span"
-                            value={elem.content}
-                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                            selectedElement={selectedElement}
-                            onSelect={setSelectedElement}
-                            isExporting={isExporting}
-                            multiline={true}
-                            placeholder="Escribe subtítulo..."
-                          />
-                        </h3>
-                      )}
-
-                      {elem.type === "text" && (
-                        <p className={`text-sm ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-700" : "text-slate-200"} leading-relaxed font-normal select-none drop-shadow-sm max-w-[320px]`}>
-                          <InlineEditableText
-                            elementKey={elem.id}
-                            as="span"
-                            value={elem.content}
-                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                            selectedElement={selectedElement}
-                            onSelect={setSelectedElement}
-                            isExporting={isExporting}
-                            multiline={true}
-                            placeholder="Escribe texto..."
-                          />
-                        </p>
-                      )}
-
-                      {elem.type === "shape_rect" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 140}px`,
-                            height: `${elem.height || 90}px`,
-                            backgroundColor: elem.bgColor || "#ffffff",
-                            borderColor: elem.borderColor || "transparent",
-                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
-                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
-                            borderRadius: `${elem.borderRadius ?? 16}px`,
-                            opacity: elem.opacity ?? 1,
-                          }}
-                          className={`shadow-xl transition-all cursor-pointer ${
-                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        />
-                      )}
-
-                      {elem.type === "shape_circle" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 90}px`,
-                            height: `${elem.height || 90}px`,
-                            backgroundColor: elem.bgColor || "#ffffff",
-                            borderColor: elem.borderColor || "transparent",
-                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
-                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
-                            borderRadius: "9999px",
-                            opacity: elem.opacity ?? 1,
-                          }}
-                          className={`shadow-xl transition-all cursor-pointer ${
-                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        />
-                      )}
-
-                      {elem.type === "shape_star" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 64}px`,
-                            height: `${elem.height || 64}px`,
-                            opacity: elem.opacity ?? 1,
-                          }}
-                          className="flex items-center justify-center transition-all cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        >
-                          <Star
-                            style={{
-                              color: elem.borderStyle === "none" ? "transparent" : (elem.borderColor || "#f59e0b"),
-                              fill: elem.bgColor || "#ffffff",
-                              strokeWidth: elem.borderStyle === "none" ? 0 : (elem.borderWidth ?? 2),
-                            }}
-                            className="size-full drop-shadow-lg"
-                          />
-                        </div>
-                      )}
-
-                      {elem.type === "shape_pill" && (
-                        <div
-                          style={{
-                            width: elem.width ? `${elem.width}px` : undefined,
-                            height: elem.height ? `${elem.height}px` : undefined,
-                            backgroundColor: elem.bgColor || "#ffffff",
-                            borderColor: elem.borderColor || "transparent",
-                            borderWidth: elem.borderStyle === "none" ? "0px" : `${elem.borderWidth ?? 0}px`,
-                            borderStyle: elem.borderStyle === "none" ? "solid" : (elem.borderStyle || "solid"),
-                            borderRadius: `${elem.borderRadius ?? 9999}px`,
-                            opacity: elem.opacity ?? 1,
-                            color: elem.color || (elem.bgColor === "#ffffff" || !elem.bgColor || elem.bgColor === "#fff" ? "#0f172a" : "#ffffff"),
-                          }}
-                          className={`px-4 py-1.5 shadow-md flex items-center justify-center select-text cursor-pointer ${
-                            (elem.bgColor?.includes("rgba") || (elem.opacity ?? 1) < 1) ? "backdrop-blur-md" : ""
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        >
-                          <InlineEditableText
-                            elementKey={elem.id}
-                            as="span"
-                            value={elem.content}
-                            onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                            selectedElement={selectedElement}
-                            onSelect={setSelectedElement}
-                            isExporting={isExporting}
-                            placeholder="PÍLDORA B2B"
-                          />
-                        </div>
-                      )}
-
-                      {elem.type === "shape_line" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 220}px`,
-                            height: `${elem.borderWidth ?? 3}px`,
-                            backgroundColor: elem.borderStyle === "none" ? "transparent" : (elem.bgColor || accentColor),
-                            borderTop:
-                              elem.borderStyle === "dashed"
-                                ? `${elem.borderWidth ?? 3}px dashed ${elem.borderColor || accentColor}`
-                                : elem.borderStyle === "dotted"
-                                ? `${elem.borderWidth ?? 3}px dotted ${elem.borderColor || accentColor}`
-                                : "none",
-                            opacity: elem.opacity ?? 0.8,
-                          }}
-                          className="rounded-full shadow-sm transition-all cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        />
-                      )}
-
-                      {elem.type === "highlight" && (
-                        <div className="inline-block select-text">
-                          <span
-                            style={{ backgroundColor: elem.bgColor || (accentColor === "#0099ff" ? "#7058FE" : accentColor) }}
-                            className="inline-block px-3.5 py-1 rounded-xl text-white font-extrabold italic shadow-2xl -rotate-[2deg] transform origin-left"
-                          >
-                            <InlineEditableText
-                              elementKey={elem.id}
-                              as="span"
-                              value={elem.content}
-                              onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                              selectedElement={selectedElement}
-                              onSelect={setSelectedElement}
-                              isExporting={isExporting}
-                              placeholder="PALABRA CLAVE"
-                            />
-                          </span>
-                        </div>
-                      )}
-
-                      {elem.type === "badge" && (
-                        <div className="inline-block select-text">
-                          <span
-                            style={{ backgroundColor: elem.bgColor || accentColor, color: elem.bgColor ? "#ffffff" : "#000000" }}
-                            className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm"
-                          >
-                            <InlineEditableText
-                              elementKey={elem.id}
-                              as="span"
-                              value={elem.content}
-                              onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                              selectedElement={selectedElement}
-                              onSelect={setSelectedElement}
-                              isExporting={isExporting}
-                              placeholder="INSIGHT B2B"
-                            />
-                          </span>
-                        </div>
-                      )}
-
-                      {elem.type === "image" && elem.content && elem.content.trim() !== "" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 180}px`,
-                            height: `${elem.height || 180}px`,
-                            borderRadius: `${elem.borderRadius ?? 8}px`,
-                            opacity: elem.opacity ?? 1,
-                          }}
-                          className="overflow-hidden shadow-2xl transition-all cursor-pointer relative flex items-center justify-center bg-transparent group/img"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        >
-                          <img
-                            src={elem.content || undefined}
-                            alt="Uploaded element"
-                            className="w-full h-full object-cover pointer-events-none select-none drop-shadow-md"
-                          />
-                        </div>
-                      )}
-
-                      {elem.type === "video" && (
-                        <div
-                          style={{
-                            width: `${elem.width || 240}px`,
-                            height: `${elem.height || 160}px`,
-                            borderRadius: `${elem.borderRadius ?? 12}px`,
-                            opacity: elem.opacity ?? 1,
-                          }}
-                          className="overflow-hidden shadow-2xl transition-all cursor-pointer relative bg-black flex items-center justify-center border border-white/20"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedElement(elem.id);
-                          }}
-                        >
-                          <video
-                            src={elem.content || undefined}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover pointer-events-none select-none"
-                          />
-                        </div>
-                      )}
-
-                      {elem.type === "arrow" && (
-                        <div className="flex items-center gap-2 text-white/90 drop-shadow-md select-text">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
-                            <InlineEditableText
-                              elementKey={elem.id}
-                              as="span"
-                              value={elem.content}
-                              onChange={(val) => handleUpdateCustomElement(elem.id, { content: val })}
-                              selectedElement={selectedElement}
-                              onSelect={setSelectedElement}
-                              isExporting={isExporting}
-                              placeholder="DESLIZA"
-                            />
-                          </span>
-                          <ArrowRight className="size-4 text-white" />
-                        </div>
-                      )}
-                    </DraggableWrapper>
-                  );
-                })}
-              </div>
+                </div>
               </SlideCanvasContext.Provider>
             </div>
           </div>
