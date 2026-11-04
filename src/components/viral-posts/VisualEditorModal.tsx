@@ -6361,23 +6361,7 @@ export default function VisualEditorModal({
                   </div>
                 )}
 
-                {/* BOTÓN FLOTANTE: CAMBIAR FOTO (Oculto al exportar) */}
-                {!isExporting && Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedElement("background");
-                      setActiveDockTab("photos");
-                      setIsDrawerOpen(true);
-                    }}
-                    className="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 hover:bg-black text-white text-xs font-semibold border border-white/20 shadow-xl backdrop-blur-md transition hover:scale-105"
-                    title="Cambiar fotografía de fondo"
-                  >
-                    <ImageIcon className="size-3.5 text-brand-400" />
-                    <span>Cambiar Foto</span>
-                  </button>
-                )}
+
 
                 {/* OVERLAY DE DROPZONE AL ARRASTRAR PLANTILLA ESTILO CANVA */}
                 {isCanvasDragOver && (
