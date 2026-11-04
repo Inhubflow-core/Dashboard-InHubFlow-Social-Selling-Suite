@@ -962,7 +962,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
       } ${props.className || ""}`}
     >
       {/* 8 Manijas de redimensionamiento estilo Canva: 4 esquinas circulares + 4 barras/píldoras laterales */}
-      {isFreeMode && isSelected && !isExporting && id !== "bg-photo" && (
+      {isFreeMode && isSelected && !isExporting && (
         <>
           {/* 4 Esquinas circulares (redimensionamiento 2D libre) */}
           <div
@@ -1175,6 +1175,61 @@ export default function VisualEditorModal({
       setTimeout(() => setExportFeedback(null), 3500);
     } catch (err: any) {
       console.error("Error al quitar fondo:", err);
+      setExportFeedback("No se pudo remover el fondo de esta foto.");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } finally {
+      setIsRemovingBg(false);
+      setBgRemoverTargetId(null);
+      setBgRemoverProgress(null);
+    }
+  };
+
+  // Remueve el fondo de la foto de fondo del lienzo con IA (Magic BG Remover)
+  const handleRemoveBackgroundFromBgPhoto = async () => {
+    if (!selectedBgUrl) return;
+
+    setIsRemovingBg(true);
+    setBgRemoverTargetId("bg-photo");
+    setBgRemoverProgress({ message: "Segmentando sujeto principal de la foto...", percent: 20 });
+
+    try {
+      const cutoutDataUrl = await removeImageBackground(selectedBgUrl, (prog) => {
+        setBgRemoverProgress({ message: prog.message, percent: prog.percent });
+      });
+
+      // Insertamos el sujeto recortado como elemento interactivo sobre el lienzo
+      setIsFreeMode(true);
+      const newId = `elem-${Date.now()}`;
+      const cutoutElem: CustomCanvasElement = {
+        id: newId,
+        type: "image",
+        content: cutoutDataUrl,
+        x: 60,
+        y: 80,
+        width: 260,
+        height: 280,
+        scale: 1,
+        bgColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 0,
+      };
+
+      setSlides((prev) => {
+        const next = [...prev];
+        const current = next[currentSlideIndex];
+        const prevCustom = current.customElements || [];
+        next[currentSlideIndex] = {
+          ...current,
+          customElements: [...prevCustom, cutoutElem],
+        };
+        return next;
+      });
+
+      setSelectedElement(newId);
+      setExportFeedback("¡Fondo removido! Sujeto recortado listo para mover y redimensionar.");
+      setTimeout(() => setExportFeedback(null), 3500);
+    } catch (err: any) {
+      console.error("Error al quitar fondo de la foto:", err);
       setExportFeedback("No se pudo remover el fondo de esta foto.");
       setTimeout(() => setExportFeedback(null), 3500);
     } finally {
@@ -2073,6 +2128,38 @@ export default function VisualEditorModal({
       return;
     }
 
+    // Si es la foto de fondo, la clonamos como objeto de imagen interactivo en el lienzo
+    if (elementId === "background" || elementId === "bg-photo") {
+      if (!selectedBgUrl) return;
+      const duplicatedPhoto: CustomCanvasElement = {
+        id: newId,
+        type: "image",
+        content: selectedBgUrl,
+        x: 40,
+        y: 60,
+        width: 260,
+        height: 260,
+        scale: bgScale,
+        bgColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 8,
+      };
+      setSlides((prev) => {
+        const next = [...prev];
+        const cur = next[currentSlideIndex];
+        const curList = cur.customElements || [];
+        next[currentSlideIndex] = {
+          ...cur,
+          customElements: [...curList, duplicatedPhoto],
+        };
+        return next;
+      });
+      setSelectedElement(newId);
+      setExportFeedback("Foto duplicada como elemento interactivo");
+      setTimeout(() => setExportFeedback(null), 2500);
+      return;
+    }
+
     // Si es un elemento nativo de la plantilla, lo clonamos como elemento personalizado
     let duplicated: CustomCanvasElement | null = null;
     const currentScale = curSlide.scales?.[elementId] ?? 1;
@@ -2161,6 +2248,15 @@ export default function VisualEditorModal({
   // Manejador para eliminar / ocultar elementos individuales (Plantillas predefinidas y capas libres)
   const handleDeleteElement = (elementId: string) => {
     if (!elementId) return;
+
+    // Si es la foto de fondo, se elimina inmediatamente limpiando el estado
+    if (elementId === "background" || elementId === "bg-photo") {
+      setSelectedBgUrl("");
+      setSelectedElement(null);
+      setExportFeedback("Foto de fondo eliminada");
+      setTimeout(() => setExportFeedback(null), 2500);
+      return;
+    }
 
     if (elementId.startsWith("elem-")) {
       handleDeleteCustomElement(elementId);
@@ -2251,7 +2347,7 @@ export default function VisualEditorModal({
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedElement && selectedElement !== "background") {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedElement) {
         const activeEl = document.activeElement;
         const isEditing =
           activeEl?.tagName === "INPUT" ||
@@ -2457,8 +2553,8 @@ export default function VisualEditorModal({
       customElem.type === "shape_line")
   );
   const isImage = Boolean(
-    customElem &&
-    (customElem.type === "image" || customElem.type === "video")
+    (customElem && (customElem.type === "image" || customElem.type === "video")) ||
+    ((selectedElement === "background" || selectedElement === "bg-photo") && Boolean(selectedBgUrl && selectedBgUrl.trim() !== ""))
   );
   const isText = Boolean(
     !isShape &&
@@ -5063,12 +5159,162 @@ export default function VisualEditorModal({
                 </>
               )}
 
-              {/* CASO C: FONDO O ELEMENTO GENÉRICO (TARJETAS, BLOQUES, ESTADÍSTICAS) */}
-              {!isText && !isShape && (
+              {/* CASO C: FOTOS, IMÁGENES Y OBJETOS (HERRAMIENTAS ESTILO CANVA) */}
+              {isImage && (
+                <>
+                  {/* 1. MAGIC BG REMOVER (Quitar Fondo con IA) */}
+                  <button
+                    type="button"
+                    disabled={isRemovingBg}
+                    onClick={() => {
+                      if (selectedElement === "background" || selectedElement === "bg-photo") {
+                        handleRemoveBackgroundFromBgPhoto();
+                      } else if (selectedElement) {
+                        handleRemoveBackgroundFromElement(selectedElement);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 h-7 rounded-md bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
+                    title="Remover fondo con IA y recortar el sujeto en PNG transparente"
+                  >
+                    {isRemovingBg && (bgRemoverTargetId === "bg-photo" || bgRemoverTargetId === selectedElement) ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        <span>Recortando IA...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="size-3.5 text-amber-300" />
+                        <span>Quitar Fondo (IA)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* 2. CAMBIAR FOTO / REEMPLAZAR */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedElement !== "background" && selectedElement !== "bg-photo") {
+                        setSelectedElement("background");
+                      }
+                      setActiveDockTab("photos");
+                      setIsDrawerOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition"
+                    title="Reemplazar por otra foto de la biblioteca o Unsplash"
+                  >
+                    <ImageIcon className="size-3.5 text-brand-400" />
+                    <span>Cambiar Foto</span>
+                  </button>
+
+                  <span className="h-4 w-px bg-slate-700 mx-1" />
+
+                  {/* 3. TAMAÑO Y ZOOM */}
+                  <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 px-2 font-semibold">Tamaño:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedElement === "background" || selectedElement === "bg-photo") {
+                          handleBgZoomChange(-0.1);
+                        } else if (customElem) {
+                          const curScale = currentSlide.scales?.[selectedElement!] ?? customElem.scale ?? 1;
+                          const nextScale = Math.max(0.2, +(curScale - 0.1).toFixed(2));
+                          handleScaleChange(selectedElement!, nextScale);
+                        }
+                      }}
+                      className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
+                      title="Reducir tamaño"
+                    >
+                      -
+                    </button>
+                    <span className="text-[10px] font-mono font-bold text-white px-1.5 min-w-[36px] text-center">
+                      {selectedElement === "background" || selectedElement === "bg-photo"
+                        ? `${Math.round(bgScale * 100)}%`
+                        : `${Math.round((currentSlide.scales?.[selectedElement!] ?? customElem?.scale ?? 1) * 100)}%`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedElement === "background" || selectedElement === "bg-photo") {
+                          handleBgZoomChange(0.1);
+                        } else if (customElem) {
+                          const curScale = currentSlide.scales?.[selectedElement!] ?? customElem.scale ?? 1;
+                          const nextScale = Math.min(3.5, +(curScale + 0.1).toFixed(2));
+                          handleScaleChange(selectedElement!, nextScale);
+                        }
+                      }}
+                      className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
+                      title="Aumentar tamaño"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* 4. FILTRO DE CONTRASTE / BRILLO / OPACIDAD */}
+                  <div className="flex items-center gap-1.5 h-7 bg-slate-800 rounded-md border border-slate-700 px-2">
+                    <Sun className="size-3 text-amber-400 shrink-0" />
+                    <span className="text-[10px] text-slate-400 font-semibold">
+                      {selectedElement === "background" || selectedElement === "bg-photo" ? "Filtro:" : "Opacidad:"}
+                    </span>
+                    {selectedElement === "background" || selectedElement === "bg-photo" ? (
+                      <input
+                        type="range"
+                        min="0"
+                        max="80"
+                        step="5"
+                        value={bgDimming}
+                        onChange={(e) => setBgDimming(Number(e.target.value))}
+                        className="w-16 accent-amber-400 h-1 bg-slate-700 rounded-lg cursor-pointer"
+                        title="Filtro de contraste para legibilidad de textos"
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="5"
+                        value={Math.round((customElem?.opacity ?? 1) * 100)}
+                        onChange={(e) => {
+                          const val = Number((parseInt(e.target.value, 10) / 100).toFixed(2));
+                          handleUpdateCustomElement(selectedElement!, { opacity: val });
+                        }}
+                        className="w-16 accent-brand-500 h-1 bg-slate-700 rounded-lg cursor-pointer"
+                        title="Opacidad de la imagen"
+                      />
+                    )}
+                  </div>
+
+                  <span className="h-4 w-px bg-slate-700 mx-1" />
+
+                  {/* 5. DUPLICAR */}
+                  <button
+                    type="button"
+                    onClick={() => handleDuplicateElement(selectedElement!)}
+                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition"
+                    title="Duplicar foto"
+                  >
+                    <Copy className="size-3.5 text-brand-400" />
+                    <span>Duplicar</span>
+                  </button>
+
+                  {/* 6. ELIMINAR */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteElement(selectedElement!)}
+                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-300 hover:text-red-400 text-xs font-semibold transition"
+                    title="Eliminar foto (o pulsa tecla Supr/Backspace)"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Eliminar</span>
+                  </button>
+                </>
+              )}
+
+              {/* CASO D: ELEMENTOS GENÉRICOS DE PLANTILLA (TARJETAS, CITAS, BLOQUES) */}
+              {!isText && !isShape && !isImage && (
                 <>
                   {selectedElement && selectedElement !== "background" ? (
                     <>
-                      {/* Botones de acción para cualquier elemento seleccionado (tarjetas, citas, etc.) */}
                       <button
                         type="button"
                         onClick={() => handleDuplicateElement(selectedElement!)}
@@ -5083,7 +5329,7 @@ export default function VisualEditorModal({
                         type="button"
                         onClick={() => handleDeleteElement(selectedElement!)}
                         className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-red-500/20 border border-slate-700 text-slate-300 hover:text-red-400 text-xs font-semibold transition"
-                        title="Eliminar elemento de la plantilla"
+                        title="Eliminar elemento"
                       >
                         <Trash2 className="size-3" />
                         <span>Eliminar</span>
@@ -5098,48 +5344,12 @@ export default function VisualEditorModal({
                           setActiveDockTab("photos");
                           setIsDrawerOpen(true);
                         }}
-                        className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+                        className="flex items-center gap-1.5 px-3 h-7 rounded-md bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm transition"
+                        title="Elegir foto de fondo para el lienzo"
                       >
-                        <ImageIcon className="size-3 text-brand-400" />
-                        <span>Cambiar Foto</span>
+                        <ImageIcon className="size-3.5" />
+                        <span>+ Agregar Foto de Fondo</span>
                       </button>
-
-                      {/* Zoom Foto de Fondo */}
-                      <div className="flex items-center h-7 bg-slate-800 rounded-md border border-slate-700 overflow-hidden">
-                        <span className="text-[10px] text-slate-400 px-1.5 font-semibold">Zoom Foto:</span>
-                        <button
-                          type="button"
-                          onClick={() => handleBgZoomChange(-0.1)}
-                          className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
-                        >
-                          -
-                        </button>
-                        <span className="text-[10px] font-mono font-bold text-white px-1">
-                          {Math.round(bgScale * 100)}%
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleBgZoomChange(0.1)}
-                          className="size-7 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      {/* Brillo / Oscurecimiento */}
-                      <div className="flex items-center gap-1.5 h-7 bg-slate-800 rounded-md border border-slate-700 px-2">
-                        <Sun className="size-3 text-amber-400 shrink-0" />
-                        <input
-                          type="range"
-                          min="0"
-                          max="80"
-                          step="5"
-                          value={bgDimming}
-                          onChange={(e) => setBgDimming(Number(e.target.value))}
-                          className="w-16 accent-amber-400 h-1 bg-slate-700 rounded-lg cursor-pointer"
-                          title="Filtro de oscuridad para contraste de texto"
-                        />
-                      </div>
                     </>
                   )}
                 </>
@@ -5223,19 +5433,25 @@ export default function VisualEditorModal({
                       : "bg-slate-950 text-white"
                   }`}
                 >
-                {/* 1. FOTO DE FONDO (Capa independiente z-0, draggable y escalable con zoom) */}
+                {/* 1. FOTO DE FONDO (Tratada como objeto Canva de primera clase con manijas y herramientas) */}
                 {Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
-                  <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                  <div className="absolute inset-0 z-0 overflow-visible pointer-events-none">
                     <DraggableWrapper
                       id="bg-photo"
                       label="Foto de Fondo"
                       isFreeMode={isFreeMode}
                       offset={currentSlide.offsets?.["bg-photo"]}
                       onOffsetChange={handleOffsetChange}
+                      onSizeChange={handleSizeChange}
+                      scale={currentSlide.scales?.["bg-photo"] ?? bgScale}
+                      onScaleChange={(newScale) => {
+                        handleScaleChange("bg-photo", newScale);
+                        setBgScale(newScale);
+                      }}
                       isExporting={isExporting}
-                      isSelected={selectedElement === "background"}
+                      isSelected={selectedElement === "background" || selectedElement === "bg-photo"}
                       onSelect={() => setSelectedElement("background")}
-                      className="absolute -inset-24 w-[calc(100%+192px)] h-[calc(100%+192px)] pointer-events-auto cursor-grab active:cursor-grabbing"
+                      className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
                     >
                       <div className="w-full h-full relative">
                         <img
