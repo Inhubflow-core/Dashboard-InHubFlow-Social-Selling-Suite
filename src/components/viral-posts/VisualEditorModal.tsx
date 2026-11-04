@@ -1061,6 +1061,11 @@ export default function VisualEditorModal({
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>(CURATED_BACKGROUNDS[0].url);
   const [bgScale, setBgScale] = useState(1.15);
+  const [bgDimming, setBgDimming] = useState(40);
+
+  const handleBgZoomChange = (delta: number) => {
+    setBgScale((prev) => Math.min(3, Math.max(1, +(prev + delta).toFixed(2))));
+  };
   const [accentColor, setAccentColor] = useState("#0099ff");
   const [overlayOpacity, setOverlayOpacity] = useState(0.8);
   const [overlayMode, setOverlayMode] = useState<"card" | "fullscreen">("card");
@@ -1345,7 +1350,7 @@ export default function VisualEditorModal({
       aspectRatio,
       editorMode,
       selectedBgUrl,
-      bgDim: 0.5,
+      bgDim: bgDimming / 100,
       bgBlur: 0,
       brandColor: accentColor,
       fontFamily: selectedFont,
@@ -1367,6 +1372,7 @@ export default function VisualEditorModal({
     setAspectRatio(tpl.aspectRatio);
     setEditorMode(tpl.editorMode);
     if (tpl.selectedBgUrl) setSelectedBgUrl(tpl.selectedBgUrl);
+    if (typeof tpl.bgDim === "number") setBgDimming(Math.round(tpl.bgDim * 100));
     if (tpl.brandColor) setAccentColor(tpl.brandColor);
     if (tpl.fontFamily) setSelectedFont(tpl.fontFamily);
     if (tpl.slides && tpl.slides.length > 0) {
@@ -1419,7 +1425,7 @@ export default function VisualEditorModal({
         aspectRatio,
         editorMode,
         selectedBgUrl,
-        bgDim: 0.5,
+        bgDim: bgDimming / 100,
         bgBlur: 0,
         brandColor: accentColor,
         fontFamily: selectedFont,
@@ -5119,7 +5125,10 @@ export default function VisualEditorModal({
                         className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
                       />
                       {/* Filtro ambiental sutil de contraste */}
-                      <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+                      <div
+                        style={{ backgroundColor: `rgba(2, 6, 23, ${bgDimming / 100})` }}
+                        className="absolute inset-0 pointer-events-none transition-colors duration-150"
+                      />
                     </div>
                   </DraggableWrapper>
                 </div>
