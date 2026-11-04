@@ -58,6 +58,7 @@ import {
   Wand2,
   Loader2,
   Pencil,
+  Crown,
   FolderPlus,
   AlertCircle
 } from "lucide-react";
@@ -1312,16 +1313,21 @@ export default function VisualEditorModal({
   const handleConfirmSaveTemplate = async () => {
     if (!saveForm.name.trim()) return;
 
-    // Generar captura de miniatura rápida estilo Canva (pixelRatio liviano para almacenamiento)
+    // Generar captura de miniatura limpia sin manijas de seleccion (modo limpio estilo Canva)
     let thumbnailDataUrl: string | undefined = undefined;
     if (slideContainerRef.current) {
       try {
+        setIsExporting(true);
+        // Espera corta para que React renderice el estado limpio sin cajas azules ni manijas
+        await new Promise((r) => setTimeout(r, 65));
         thumbnailDataUrl = await toPng(slideContainerRef.current, {
           pixelRatio: 0.35,
-          quality: 0.6,
+          quality: 0.65,
         });
       } catch (err) {
         console.warn("No se pudo generar miniatura automática:", err);
+      } finally {
+        setIsExporting(false);
       }
     }
 
@@ -1383,10 +1389,26 @@ export default function VisualEditorModal({
     setTemplateToDelete(null);
   };
 
-  const handleConfirmEditMeta = () => {
+  const handleConfirmEditMeta = async () => {
     if (!editingTemplate || !editMetaForm.name.trim()) return;
 
     if (editMetaForm.overwriteWithCurrentCanvas) {
+      let thumbnailDataUrl: string | undefined = editingTemplate.thumbnail;
+      if (slideContainerRef.current) {
+        try {
+          setIsExporting(true);
+          await new Promise((r) => setTimeout(r, 65));
+          thumbnailDataUrl = await toPng(slideContainerRef.current, {
+            pixelRatio: 0.35,
+            quality: 0.65,
+          });
+        } catch (err) {
+          console.warn("No se pudo capturar nueva miniatura:", err);
+        } finally {
+          setIsExporting(false);
+        }
+      }
+
       saveTemplate({
         id: editingTemplate.id,
         name: editMetaForm.name.trim(),
@@ -1402,6 +1424,7 @@ export default function VisualEditorModal({
         brandColor: accentColor,
         fontFamily: selectedFont,
         slides: JSON.parse(JSON.stringify(slides)),
+        thumbnail: thumbnailDataUrl,
       });
     } else {
       updateMeta(editingTemplate.id, {
@@ -1410,7 +1433,6 @@ export default function VisualEditorModal({
         category: editMetaForm.category.trim() || undefined,
       });
     }
-
     setExportFeedback(`Plantilla "${editMetaForm.name}" actualizada`);
     setTimeout(() => setExportFeedback(null), 3000);
     setEditingTemplate(null);
@@ -2678,7 +2700,7 @@ export default function VisualEditorModal({
         {/* 2. FLYOUT DRAWER DESPLEGABLE (ESTILO CANVA - 330px) */}
         <div
           className={`relative bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0 z-20 transition-all duration-200 select-text ${
-            isDrawerOpen ? "w-[350px] min-w-[350px]" : "w-0 min-w-0 overflow-hidden border-none"
+            isDrawerOpen ? "w-[360px] min-w-[360px]" : "w-0 min-w-0 overflow-hidden border-none"
           }`}
         >
           {/* Botón flotante para colapsar/desplegar el panel lateral */}
@@ -2694,195 +2716,432 @@ export default function VisualEditorModal({
           {/* CONTENIDO DEL DRAWER SEGÚN LA PESTAÑA ACTIVA */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
             
-            {/* PESTAÑA 1: TEMPLATES */}
-            {activeDockTab === "templates" && (
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                      <Layers className="size-4 text-brand-400" />
-                      <span>Biblioteca de Plantillas</span>
-                    </h3>
-                    {isSuperAdmin && (
-                      <span className="text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
-                        SUPERADMIN
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Crea, edita y administra plantillas reutilizables para LinkedIn.
-                  </p>
-                </div>
+            {/* PESTAÑA 1: TEMPLATES (GALERIA VISUAL EN 2 COLUMNAS ESTILO CANVA) */}
+            {activeDockTab === "templates" && (() => {
+              const query = templateSearchQuery.trim().toLowerCase();
 
-                {/* Botón directo de creación */}
-                <button
-                  type="button"
-                  onClick={handleOpenSaveModal}
-                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm group"
-                >
-                  <BookmarkPlus className="size-4 text-amber-400 group-hover:scale-110 transition" />
-                  <span>+ Guardar diseño actual como Template</span>
-                </button>
+              const filteredCustom = customTemplates.filter((t) => {
+                const matchSearch = !query ||
+                  t.name.toLowerCase().includes(query) ||
+                  (t.category && t.category.toLowerCase().includes(query)) ||
+                  (t.desc && t.desc.toLowerCase().includes(query));
+                const matchCat = templateCategoryFilter === "all" ||
+                  templateCategoryFilter === "custom" ||
+                  (templateCategoryFilter === "official" ? false : t.category?.toLowerCase() === templateCategoryFilter.toLowerCase());
+                return matchSearch && matchCat;
+              });
 
-                {/* SECCIÓN 1: MIS PLANTILLAS CREADAS */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                      <Sparkles className="size-3 text-amber-400" />
-                      Mis Plantillas Creadas ({customTemplates.length})
-                    </span>
-                    {activeCustomTemplateId && (
-                      <span className="text-[10px] text-amber-300 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">
-                        1 Activa
-                      </span>
-                    )}
-                  </div>
+              const filteredOfficial = TEMPLATES.filter((t) => {
+                if (templateCategoryFilter === "custom") return false;
+                const matchSearch = !query ||
+                  t.name.toLowerCase().includes(query) ||
+                  t.desc.toLowerCase().includes(query);
+                const matchCat = templateCategoryFilter === "all" ||
+                  templateCategoryFilter === "official";
+                return matchSearch && matchCat;
+              });
 
-                  {customTemplates.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-700/80 bg-slate-900/40 text-center space-y-1.5">
-                      <Bookmark className="size-5 text-slate-500 mx-auto" />
-                      <p className="text-xs font-semibold text-slate-300">Aún no tienes plantillas creadas</p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
-                        Personaliza tu diseño en el lienzo y pulsa "Guardar como Template" para reutilizarlo.
-                      </p>
+              // Helper para renderizar la miniatura visual exacta estilo Canva
+              const renderTemplateMiniature = (tpl: any, isCustomTpl: boolean) => {
+                if (tpl.thumbnail) {
+                  return (
+                    <img
+                      src={tpl.thumbnail}
+                      alt={tpl.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  );
+                }
+
+                // Si no tiene captura thumbnail, renderizar miniatura CSS rica de la plantilla
+                const templateType = isCustomTpl ? tpl.baseTemplate : tpl.id;
+
+                if (templateType === "editorial") {
+                  return (
+                    <div className="absolute inset-0 bg-slate-950 flex flex-col justify-between p-2.5 overflow-hidden">
+                      <img
+                        src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=70"
+                        alt="bg"
+                        className="absolute inset-0 w-full h-full object-cover opacity-25"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/80 to-slate-950" />
+                      <div className="relative z-10 flex items-center justify-between">
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          B2B STRATEGY
+                        </span>
+                      </div>
+                      <div className="relative z-10 p-2 rounded-lg bg-white/5 border border-white/10 backdrop-blur-xs space-y-1 my-auto">
+                        <div className="text-[9px] font-extrabold text-white line-clamp-2 leading-tight">
+                          {tpl.name}
+                        </div>
+                        <div className="h-1 w-full bg-slate-400/40 rounded-full" />
+                        <div className="h-1 w-3/4 bg-slate-400/30 rounded-full" />
+                      </div>
+                      <div className="relative z-10 flex items-center gap-1 pt-1 border-t border-white/10">
+                        <div className="size-3.5 rounded-full bg-brand-500/80 flex items-center justify-center text-[7px] text-white font-bold">
+                          IH
+                        </div>
+                        <span className="text-[8px] text-slate-300 font-medium truncate">InHubFlow</span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {customTemplates.map((tpl) => {
-                        const isActive = activeCustomTemplateId === tpl.id;
-                        return (
-                          <div
-                            key={tpl.id}
-                            className={`w-full p-2.5 rounded-xl border transition group relative ${
-                              isActive
-                                ? "border-amber-400 bg-amber-500/15 shadow-md ring-1 ring-amber-400/30"
-                                : "border-slate-800 bg-slate-900/70 hover:bg-slate-800/80 hover:border-slate-700"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              {/* Clic para cargar y aplicar la plantilla */}
-                              <button
-                                type="button"
-                                onClick={() => handleApplyCustomTemplate(tpl)}
-                                className="flex-1 text-left min-w-0"
-                                title={`Aplicar plantilla "${tpl.name}"`}
-                              >
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="font-bold text-white text-xs truncate max-w-[145px]">
-                                    {tpl.name}
-                                  </span>
-                                  {tpl.category && (
-                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-slate-700 text-slate-300 border border-slate-600">
-                                      {tpl.category}
-                                    </span>
-                                  )}
-                                  {isActive && (
-                                    <span className="text-[9px] font-bold bg-amber-500 text-black px-1.5 rounded">
-                                      ACTIVA
-                                    </span>
-                                  )}
-                                </div>
-                                {tpl.desc && (
-                                  <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 leading-snug">
-                                    {tpl.desc}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-2 mt-1.5 text-[9px] text-slate-400 font-medium">
-                                  <span className="font-mono bg-slate-800 px-1 py-0.5 rounded border border-slate-700 text-slate-300">
-                                    {tpl.aspectRatio}
-                                  </span>
-                                  <span>•</span>
-                                  <span>{tpl.slides?.length || 1} láminas</span>
-                                  <span>•</span>
-                                  <span className="capitalize">{tpl.baseTemplate.replace("_", " ")}</span>
-                                </div>
-                              </button>
+                  );
+                }
 
-                              {/* Botones de Editar y Eliminar */}
-                              <div className="flex items-center gap-1 shrink-0 pt-0.5">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingTemplate(tpl);
-                                    setEditMetaForm({
-                                      name: tpl.name,
-                                      desc: tpl.desc || "",
-                                      category: tpl.category || "B2B",
-                                      overwriteWithCurrentCanvas: false,
-                                    });
-                                  }}
-                                  className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-750 transition"
-                                  title="Editar datos o actualizar plantilla"
-                                >
-                                  <Pencil className="size-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setTemplateToDelete(tpl);
-                                  }}
-                                  className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition"
-                                  title="Eliminar plantilla"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                </button>
-                              </div>
-                            </div>
+                if (templateType === "authority_quote") {
+                  return (
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-950/40 via-slate-950 to-slate-950 flex flex-col justify-between p-2.5 overflow-hidden">
+                      <div className="relative z-10 text-amber-400/80 text-xl font-serif leading-none">“</div>
+                      <div className="relative z-10 my-auto text-center space-y-1 px-1">
+                        <p className="text-[9px] font-serif italic text-amber-100/90 leading-tight line-clamp-3">
+                          «La personalización contextual es la única ventaja que la IA no puede copiar.»
+                        </p>
+                      </div>
+                      <div className="relative z-10 flex items-center justify-center gap-1 pt-1 border-t border-amber-500/20">
+                        <div className="size-3 rounded-full bg-amber-500 text-[6px] font-bold text-black flex items-center justify-center">
+                          A
+                        </div>
+                        <span className="text-[8px] text-amber-200/90 font-bold">Autoridad B2B</span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (templateType === "social_card") {
+                  return (
+                    <div className="absolute inset-0 bg-slate-950 flex flex-col justify-between p-2.5 overflow-hidden">
+                      <div className="relative z-10 flex items-center gap-1.5 pb-1 border-b border-white/5">
+                        <div className="size-4 rounded-full bg-blue-500 text-[8px] font-bold text-white flex items-center justify-center">
+                          P
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="h-1.5 w-12 bg-white/90 rounded-sm" />
+                          <div className="h-1 w-8 bg-slate-500 rounded-sm mt-0.5" />
+                        </div>
+                      </div>
+                      <div className="relative z-10 my-auto space-y-1.5 py-1">
+                        <div className="text-[9px] font-bold text-white line-clamp-2 leading-tight">
+                          {tpl.name}
+                        </div>
+                        <div className="h-1 w-full bg-slate-400/50 rounded-sm" />
+                        <div className="h-1 w-3/4 bg-slate-400/30 rounded-sm" />
+                      </div>
+                      <div className="relative z-10 flex items-center justify-between text-[7px] text-slate-400 pt-1 border-t border-white/10">
+                        <span className="text-blue-400 font-medium">👍 1.4k</span>
+                        <span>💬 92</span>
+                        <span>🔁 45</span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (templateType === "split_focus") {
+                  return (
+                    <div className="absolute inset-0 bg-slate-950 flex flex-col overflow-hidden">
+                      <div className="h-1/2 w-full relative overflow-hidden">
+                        <img
+                          src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=400&q=70"
+                          alt="split"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+                      </div>
+                      <div className="h-1/2 p-2 flex flex-col justify-between bg-slate-950">
+                        <div className="space-y-1">
+                          <span className="text-[7px] font-bold text-brand-400 uppercase">Focus 50/50</span>
+                          <div className="text-[8px] font-bold text-white line-clamp-1 leading-tight">
+                            {tpl.name}
                           </div>
-                        );
-                      })}
+                          <div className="h-1 w-3/4 bg-slate-500 rounded-full" />
+                        </div>
+                        <div className="h-2.5 w-14 bg-brand-500/30 rounded flex items-center justify-center text-[6px] text-brand-300 font-bold">
+                          Desliza →
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (templateType === "big_metric") {
+                  return (
+                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/40 via-slate-950 to-slate-950 flex flex-col justify-between p-2.5 overflow-hidden text-center">
+                      <div className="relative z-10">
+                        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          METRICA
+                        </span>
+                      </div>
+                      <div className="relative z-10 my-auto">
+                        <div className="text-2xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent leading-none">
+                          +340%
+                        </div>
+                        <div className="text-[8px] text-slate-300 font-semibold mt-1 leading-tight line-clamp-1">
+                          Conversion B2B
+                        </div>
+                      </div>
+                      <div className="relative z-10 text-[7px] text-slate-500">
+                        Validado InHubFlow
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (templateType === "bold_highlighter") {
+                  return (
+                    <div className="absolute inset-0 bg-slate-950 flex flex-col justify-between p-2.5 overflow-hidden">
+                      <div className="relative z-10">
+                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded bg-purple-600 text-white uppercase tracking-wider">
+                          VIRAL B2B
+                        </span>
+                      </div>
+                      <div className="relative z-10 my-auto space-y-1">
+                        <div className="text-[9px] font-black text-white leading-tight">
+                          EL 90% DE LOS
+                        </div>
+                        <div className="inline-block px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-[9px] leading-tight shadow-md">
+                          LIDERES B2B
+                        </div>
+                        <div className="text-[8px] font-bold text-slate-400 leading-tight">
+                          cometen este error.
+                        </div>
+                      </div>
+                      <div className="relative z-10 flex items-center justify-between text-[7px] text-slate-400">
+                        <span>Desliza</span>
+                        <span className="text-purple-400 font-bold">→</span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Generico fallback
+                return (
+                  <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black p-2.5 flex flex-col justify-between">
+                    <span className="text-[7px] font-bold px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 self-start">
+                      {tpl.category || "B2B"}
+                    </span>
+                    <div className="my-auto space-y-1 text-center">
+                      <p className="text-[9px] font-extrabold text-white line-clamp-2 leading-tight">
+                        {tpl.name}
+                      </p>
+                      <p className="text-[7px] text-slate-400 line-clamp-1">{tpl.desc || "Plantilla personalizada"}</p>
+                    </div>
+                    <div className="text-[7px] text-slate-500 flex items-center justify-between">
+                      <span>{tpl.aspectRatio || "4:5"}</span>
+                      <span className="text-brand-400 font-semibold">InHubFlow</span>
+                    </div>
+                  </div>
+                );
+              };
+
+              // Helper para renderizar cada tarjeta de plantilla en la grilla visual de 2 columnas estilo Canva
+              const renderVisualCard = (tpl: any, isCustomTpl: boolean) => {
+                const isActive = isCustomTpl
+                  ? activeCustomTemplateId === tpl.id
+                  : selectedTemplate === tpl.id && !activeCustomTemplateId;
+
+                return (
+                  <div
+                    key={tpl.id}
+                    onClick={() => {
+                      if (isCustomTpl) {
+                        handleApplyCustomTemplate(tpl);
+                      } else {
+                        setSelectedTemplate(tpl.id);
+                        setActiveCustomTemplateId(null);
+                        setExportFeedback(`Plantilla oficial "${tpl.name}" aplicada`);
+                        setTimeout(() => setExportFeedback(null), 2500);
+                      }
+                    }}
+                    className={`group relative rounded-2xl overflow-hidden border cursor-pointer transition-all duration-200 aspect-[4/5] flex flex-col justify-between shadow-sm hover:shadow-xl hover:-translate-y-0.5 select-none ${
+                      isActive
+                        ? "border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20"
+                        : "border-slate-800 bg-slate-950 hover:border-brand-500 hover:ring-2 hover:ring-brand-500/30"
+                    }`}
+                  >
+                    {/* 1. Miniatura visual de fondo (Screenshot real o render miniatura estilo Canva) */}
+                    <div className="absolute inset-0 z-0">
+                      {renderTemplateMiniature(tpl, isCustomTpl)}
+                    </div>
+
+                    {/* 2. Capa de oscurecimiento hover suave */}
+                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition-colors z-[1]" />
+
+                    {/* 3. Header de la tarjeta: Badge activo y acciones de hover */}
+                    <div className="relative z-10 p-2 flex items-start justify-between gap-1">
+                      {isActive ? (
+                        <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-black font-extrabold text-[9px] shadow-md flex items-center gap-1">
+                          <Check className="size-2.5 stroke-[3]" /> ACTIVA
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-950/70 text-slate-300 border border-slate-700/60 backdrop-blur-xs">
+                          {isCustomTpl ? (tpl.category || "Custom") : (tpl.id === "bold_highlighter" ? "Nuevo" : "Oficial")}
+                        </span>
+                      )}
+
+                      {/* Botones de acción contextual (Editar / Eliminar) para templates personalizados */}
+                      {isCustomTpl ? (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTemplate(tpl);
+                              setEditMetaForm({
+                                name: tpl.name,
+                                desc: tpl.desc || "",
+                                category: tpl.category || "B2B",
+                                overwriteWithCurrentCanvas: false,
+                              });
+                            }}
+                            className="p-1 rounded-md bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 shadow-md transition"
+                            title="Editar plantilla o actualizar miniatura"
+                          >
+                            <Pencil className="size-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTemplateToDelete(tpl);
+                            }}
+                            className="p-1 rounded-md bg-slate-900/90 hover:bg-red-500/20 text-slate-200 hover:text-red-400 border border-slate-700/80 shadow-md transition"
+                            title="Eliminar plantilla"
+                          >
+                            <Trash2 className="size-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="p-1 rounded-md bg-slate-900/90 text-amber-400 border border-slate-700/80 shadow-md flex items-center justify-center">
+                            <Crown className="size-3" />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 4. Footer con degradado y título legible estilo Canva */}
+                    <div className="relative z-10 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-2.5 pt-4">
+                      <p className="text-[11px] font-bold text-white leading-tight line-clamp-1 group-hover:text-amber-300 transition">
+                        {tpl.name}
+                      </p>
+                      <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                        <span className="font-mono text-slate-400">{tpl.aspectRatio || "4:5"}</span>
+                        <span className="text-amber-400/90 font-medium truncate max-w-[80px]">
+                          {isCustomTpl ? (tpl.authorName || "Creado") : "InHubFlow"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              };
+
+              return (
+                <div className="space-y-4">
+                  {/* Buscador de plantillas estilo Canva */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={templateSearchQuery}
+                      onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                      placeholder="Buscar plantillas LinkedIn..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+                    />
+                    {templateSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setTemplateSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Chips de Categorías estilo Canva */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-[11px]">
+                    {[
+                      { id: "all", label: "Todas" },
+                      { id: "custom", label: `Mis Templates (${customTemplates.length})` },
+                      { id: "B2B", label: "B2B" },
+                      { id: "Citas", label: "Citas" },
+                      { id: "official", label: "Oficiales" },
+                    ].map((chip) => {
+                      const isChipActive = templateCategoryFilter === chip.id;
+                      return (
+                        <button
+                          key={chip.id}
+                          type="button"
+                          onClick={() => setTemplateCategoryFilter(chip.id)}
+                          className={`px-2.5 py-1 rounded-full whitespace-nowrap font-medium transition border ${
+                            isChipActive
+                              ? "bg-brand-500 text-white border-brand-400 shadow-sm"
+                              : "bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white"
+                          }`}
+                        >
+                          {chip.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Botón Destacado: Guardar diseño actual como Template con captura automática */}
+                  <button
+                    type="button"
+                    onClick={handleOpenSaveModal}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm group"
+                  >
+                    <BookmarkPlus className="size-4 text-amber-400 group-hover:scale-110 transition" />
+                    <span>+ Guardar diseño actual como Template</span>
+                  </button>
+
+                  {/* SECCIÓN 1: MIS PLANTILLAS CREADAS (GRILLA VISUAL DE 2 COLUMNAS ESTILO CANVA) */}
+                  {(templateCategoryFilter === "all" || templateCategoryFilter === "custom" || templateCategoryFilter === "B2B" || templateCategoryFilter === "Citas") && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                          <Sparkles className="size-3 text-amber-400" />
+                          Mis Plantillas ({filteredCustom.length})
+                        </span>
+                        {activeCustomTemplateId && (
+                          <span className="text-[10px] text-amber-300 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">
+                            1 Activa
+                          </span>
+                        )}
+                      </div>
+
+                      {filteredCustom.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/40 text-center space-y-1.5">
+                          <Bookmark className="size-5 text-slate-500 mx-auto" />
+                          <p className="text-xs font-semibold text-slate-300">No hay plantillas guardadas</p>
+                          <p className="text-[10px] text-slate-400 leading-tight">
+                            Guarda tu diseño actual para verlo en esta galería visual con captura miniatura automática.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {filteredCustom.map((tpl) => renderVisualCard(tpl, true))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SECCIÓN 2: PLANTILLAS OFICIALES PREDISEÑADAS (GRILLA VISUAL DE 2 COLUMNAS ESTILO CANVA) */}
+                  {(templateCategoryFilter === "all" || templateCategoryFilter === "official") && (
+                    <div className="space-y-2 pt-2 border-t border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                          <Layers className="size-3 text-brand-400" />
+                          Plantillas Oficiales InHubFlow ({filteredOfficial.length})
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {filteredOfficial.map((tpl) => renderVisualCard(tpl, false))}
+                      </div>
                     </div>
                   )}
                 </div>
-
-                {/* SECCIÓN 2: PLANTILLAS PREDISEÑADAS OFICIALES */}
-                <div className="space-y-2 pt-2 border-t border-slate-800">
-                  <span className="text-xs font-bold text-slate-400 block mb-1">
-                    Plantillas Prediseñadas Oficiales ({TEMPLATES.length})
-                  </span>
-
-                  <div className="space-y-2">
-                    {TEMPLATES.map((tpl) => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTemplate(tpl.id);
-                          setActiveCustomTemplateId(null);
-                        }}
-                        className={`w-full text-left p-3 rounded-xl border transition flex items-start gap-3 ${
-                          selectedTemplate === tpl.id && !activeCustomTemplateId
-                            ? "border-brand-500 bg-brand-500/15 shadow-sm ring-1 ring-brand-500/30"
-                            : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 hover:border-slate-700"
-                        }`}
-                      >
-                        <div className="size-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 shrink-0">
-                          {tpl.id === "editorial" && <Layers className="size-4" />}
-                          {tpl.id === "authority_quote" && <Quote className="size-4" />}
-                          {tpl.id === "social_card" && <User className="size-4" />}
-                          {tpl.id === "split_focus" && <SplitSquareVertical className="size-4" />}
-                          {tpl.id === "big_metric" && <Sparkles className="size-4" />}
-                          {tpl.id === "bold_highlighter" && <Tag className="size-4 text-purple-400" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-white text-xs">{tpl.name}</span>
-                            {tpl.id === "bold_highlighter" && (
-                              <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-bold">NUEVO</span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
-                            {tpl.desc}
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* PESTAÑA 2: TEXTO */}
             {activeDockTab === "text" && (
