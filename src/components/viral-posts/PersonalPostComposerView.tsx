@@ -543,7 +543,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       onChange={(e) => setAutoDmEnabled(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500"></div>
+                    <div className="w-9 h-5 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500"></div>
                   </label>
                 </div>
 
@@ -551,7 +551,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   <div className="space-y-3 pt-2 border-t border-brand-500/20">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                        <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                           Palabra Clave de Activación
                         </label>
                         <input
@@ -559,35 +559,35 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                           value={leadMagnetKeyword}
                           onChange={(e) => setLeadMagnetKeyword(e.target.value.toUpperCase())}
                           placeholder="Ej. SISTEMA, GUIA, PLAYBOOK"
-                          className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-mono font-bold text-brand-400 focus:border-brand-500 focus:outline-hidden"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-mono font-bold text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-hidden shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                        <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                           Algoritmo LinkedIn
                         </label>
-                        <label className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-700 bg-gray-900 cursor-pointer">
+                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white cursor-pointer shadow-xs">
                           <input
                             type="checkbox"
                             checked={autoLikeComment}
                             onChange={(e) => setAutoLikeComment(e.target.checked)}
                             className="accent-brand-500 rounded"
                           />
-                          <span className="text-xs text-gray-300 truncate">Dar Like automático al comentario</span>
+                          <span className="text-xs font-medium text-gray-800 truncate">Dar Like automático al comentario</span>
                         </label>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
+                      <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                         Mensaje de Entrega en Mensaje Privado (DM)
                       </label>
                       <textarea
                         rows={2}
                         value={autoDmMessage}
                         onChange={(e) => setAutoDmMessage(e.target.value)}
-                        className="w-full rounded-lg border border-gray-700 bg-gray-900 p-2.5 text-xs text-gray-200 focus:border-brand-500 focus:outline-hidden leading-relaxed"
+                        className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-hidden leading-relaxed shadow-xs"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">
                         InHubFlow reemplaza automáticamente: {'{nombre}'}, {'{palabra_clave}'} e inicia el chat en el CRM.
