@@ -718,6 +718,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const initialDimsRef = useRef({ width: 100, height: 60 });
   const initialOffsetRef = useRef({ x: 0, y: 0 });
   const initialFontSizeRef = useRef(28);
+  const initialScaleRef = useRef(1);
   const anchorVRef = useRef<"top" | "bottom" | "center">("top");
 
   if (isHidden) {
@@ -904,6 +905,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
       x: offset?.x || 0,
       y: offset?.y || 0,
     };
+    initialScaleRef.current = id === "bg-photo" ? (ctx?.currentSlide.scales?.["bg-photo"] ?? 1) : (scale ?? 1);
 
     // Detectar anclaje vertical del elemento en su contenedor padre
     const parent = wrapperRef.current?.parentElement;
@@ -960,6 +962,23 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     const dy = (e.clientY - resizeStartPos.current.y) / zoom;
 
     const isCorner = activeHandle === "nw" || activeHandle === "ne" || activeHandle === "se" || activeHandle === "sw";
+
+    // Si es la foto de fondo, arrastrar cualquiera de las manijas ajusta el zoom manteniendo los bordes del lienzo limpios
+    if (id === "bg-photo") {
+      let delta = 0;
+      if (activeHandle === "se" || activeHandle === "e" || activeHandle === "s") {
+        delta = (dx + dy) / 2;
+      } else if (activeHandle === "nw" || activeHandle === "w" || activeHandle === "n") {
+        delta = -(dx + dy) / 2;
+      } else if (activeHandle === "ne") {
+        delta = (dx - dy) / 2;
+      } else if (activeHandle === "sw") {
+        delta = -(dx - dy) / 2;
+      }
+      const factor = Math.max(1, Math.min(3, +(initialScaleRef.current + delta / 150).toFixed(2)));
+      onScaleChange?.(factor);
+      return;
+    }
 
     // Si es un elemento de texto y se redimensiona desde cualquiera de las 4 esquinas:
     // ESCALAR EL TAMAÑO DE LA FUENTE EN TIEMPO REAL (Estilo Canva nativo)
@@ -1088,19 +1107,21 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const hasScaled = currentScale !== 1;
   const positionClass = props.className?.includes("absolute") ? "" : "relative";
 
-  const resolvedWidth = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width;
-  const resolvedHeight = !isTextElement ? (props.height ?? ctx?.currentSlide.dimensions?.[id]?.height) : undefined;
+  const resolvedWidth = id === "bg-photo" ? undefined : (props.width ?? ctx?.currentSlide.dimensions?.[id]?.width);
+  const resolvedHeight = id === "bg-photo" ? undefined : (!isTextElement ? (props.height ?? ctx?.currentSlide.dimensions?.[id]?.height) : undefined);
   const isTransforming = isDragging || isRotating || Boolean(activeHandle);
 
   const transformParts: string[] = [];
-  if (hasMoved) {
-    transformParts.push(`translate(${posX}px, ${posY}px)`);
-  }
-  if (hasRotated) {
-    transformParts.push(`rotate(${currentRotation}deg)`);
-  }
-  if (hasScaled) {
-    transformParts.push(`scale(${currentScale})`);
+  if (id !== "bg-photo") {
+    if (hasMoved) {
+      transformParts.push(`translate(${posX}px, ${posY}px)`);
+    }
+    if (hasRotated) {
+      transformParts.push(`rotate(${currentRotation}deg)`);
+    }
+    if (hasScaled) {
+      transformParts.push(`scale(${currentScale})`);
+    }
   }
 
   return (
@@ -1125,10 +1146,10 @@ function DraggableWrapper(props: DraggableWrapperProps) {
         isFreeMode && !isExporting
           ? `group/drag select-none ${
               isDragging
-                ? `ring-2 ring-brand-400 ${id === "bg-photo" ? "" : "bg-brand-500/10"} shadow-2xl z-50 cursor-grabbing`
+                ? `ring-2 ${id === "bg-photo" ? "ring-inset" : ""} ring-brand-400 ${id === "bg-photo" ? "" : "bg-brand-500/10"} shadow-2xl z-50 cursor-grabbing`
                 : isSelected
-                ? "ring-2 ring-brand-400 ring-offset-1 ring-offset-transparent z-40 cursor-grab"
-                : `hover:ring-1 hover:ring-brand-400/60 ${id === "bg-photo" ? "" : "hover:bg-white/5"} z-20 cursor-grab`
+                ? `ring-2 ${id === "bg-photo" ? "ring-inset" : "ring-offset-1 ring-offset-transparent"} ring-brand-400 z-40 cursor-grab`
+                : `hover:ring-1 ${id === "bg-photo" ? "hover:ring-inset" : ""} hover:ring-brand-400/60 ${id === "bg-photo" ? "" : "hover:bg-white/5"} z-20 cursor-grab`
             }`
           : ""
       } ${props.className || ""}`}
@@ -1143,7 +1164,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para redimensionar (esquina sup-izq)"
-            className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "top-1.5 left-1.5" : "-top-1.5 -left-1.5"
+            } size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform`}
           />
           <div
             data-resize-handle="true"
@@ -1151,7 +1174,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para redimensionar (esquina sup-der)"
-            className="absolute -top-1.5 -right-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "top-1.5 right-1.5" : "-top-1.5 -right-1.5"
+            } size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform`}
           />
           <div
             data-resize-handle="true"
@@ -1159,7 +1184,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para redimensionar (esquina inf-der)"
-            className="absolute -bottom-1.5 -right-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "bottom-1.5 right-1.5" : "-bottom-1.5 -right-1.5"
+            } size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nwse-resize z-50 hover:scale-125 transition-transform`}
           />
           <div
             data-resize-handle="true"
@@ -1167,7 +1194,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para redimensionar (esquina inf-izq)"
-            className="absolute -bottom-1.5 -left-1.5 size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "bottom-1.5 left-1.5" : "-bottom-1.5 -left-1.5"
+            } size-3 rounded-full bg-white border-2 border-brand-500 shadow-md cursor-nesw-resize z-50 hover:scale-125 transition-transform`}
           />
 
           {/* 4 Píldoras/Barras laterales estilo Canva para ancho y alto independientes */}
@@ -1178,7 +1207,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para cambiar altura (superior)"
-            className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "top-1.5 left-1/2 -translate-x-1/2" : "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            } w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform`}
           />
           {/* Borde Inferior (s) - cápsula horizontal */}
           <div
@@ -1187,7 +1218,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para cambiar altura (inferior)"
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "bottom-1.5 left-1/2 -translate-x-1/2" : "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2"
+            } w-5 h-2 rounded-full bg-white border border-brand-500 shadow-md cursor-ns-resize z-50 hover:scale-125 transition-transform`}
           />
           {/* Borde Izquierdo (w) - cápsula vertical */}
           <div
@@ -1196,7 +1229,9 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para cambiar anchura (izquierda)"
-            className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "left-1.5 top-1/2 -translate-y-1/2" : "left-0 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            } w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform`}
           />
           {/* Borde Derecho (e) - cápsula vertical */}
           <div
@@ -1205,11 +1240,13 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeUp}
             title="Arrastra para cambiar anchura (derecha)"
-            className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
+            className={`absolute ${
+              id === "bg-photo" ? "right-1.5 top-1/2 -translate-y-1/2" : "right-0 top-1/2 translate-x-1/2 -translate-y-1/2"
+            } w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform`}
           />
 
           {/* BARRA DE ACCIONES FLOTANTE ESTILO CANVA (GIRAR + MOVER CON MANITO) */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-50 pointer-events-auto">
+          <div className={`absolute ${id === "bg-photo" ? "bottom-3" : "-bottom-10"} left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-50 pointer-events-auto`}>
             {/* 1. Manija de Rotación Libre Estilo Canva */}
             <div
               data-rotate-handle="true"
@@ -1268,11 +1305,15 @@ export default function VisualEditorModal({
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("blank");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>("");
-  const [bgScale, setBgScale] = useState(1.15);
+  const [bgScale, setBgScale] = useState(1);
   const [bgDimming, setBgDimming] = useState(0);
 
   const handleBgZoomChange = (delta: number) => {
-    setBgScale((prev) => Math.min(3, Math.max(1, +(prev + delta).toFixed(2))));
+    setBgScale((prev) => {
+      const next = Math.min(3, Math.max(1, +(prev + delta).toFixed(2)));
+      handleScaleChange("bg-photo", next);
+      return next;
+    });
   };
   const [accentColor, setAccentColor] = useState("#0099ff");
   const [overlayOpacity, setOverlayOpacity] = useState(0.8);
@@ -1968,6 +2009,9 @@ export default function VisualEditorModal({
     setSelectedBgUrl(item.regularUrl);
     updateCurrentSlide({ bgUrl: item.regularUrl });
     setSelectedElement("background");
+    setBgScale(1);
+    handleScaleChange("bg-photo", 1);
+    handleOffsetChange("bg-photo", { x: 0, y: 0 });
     setExportFeedback(`Fondo actualizado: ${item.title}`);
     setTimeout(() => setExportFeedback(null), 2500);
   };
@@ -6297,8 +6341,6 @@ export default function VisualEditorModal({
                       isFreeMode={isFreeMode}
                       offset={currentSlide.offsets?.["bg-photo"]}
                       onOffsetChange={handleOffsetChange}
-                      onSizeChange={handleSizeChange}
-                      scale={currentSlide.scales?.["bg-photo"] ?? bgScale}
                       onScaleChange={(newScale) => {
                         handleScaleChange("bg-photo", newScale);
                         setBgScale(newScale);
@@ -6308,12 +6350,15 @@ export default function VisualEditorModal({
                       onSelect={() => setSelectedElement("background")}
                       className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
                     >
-                      <div className="w-full h-full relative">
+                      <div className="w-full h-full relative overflow-hidden">
                         <img
                           src={selectedBgUrl || undefined}
                           alt="Background"
                           crossOrigin="anonymous"
-                          style={{ transform: `scale(${bgScale})` }}
+                          style={{
+                            transform: `scale(${bgScale}) translate(${(currentSlide.offsets?.["bg-photo"]?.x || 0) / bgScale}px, ${(currentSlide.offsets?.["bg-photo"]?.y || 0) / bgScale}px)`,
+                            transformOrigin: "center center",
+                          }}
                           className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75"
                         />
                         {/* Filtro ambiental sutil (100% transparente y limpio por defecto, sólo si bgDimming > 0) */}
@@ -8006,7 +8051,7 @@ export default function VisualEditorModal({
                           <img
                             src={elem.content || undefined}
                             alt="Uploaded element"
-                            className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
+                            className="w-full h-full object-cover pointer-events-none select-none drop-shadow-md"
                           />
                         </div>
                       )}
