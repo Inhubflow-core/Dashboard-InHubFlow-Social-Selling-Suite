@@ -436,20 +436,10 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   className="custom-scrollbar w-full rounded-xl border border-gray-300 bg-white p-4 text-xs font-normal leading-relaxed text-gray-900 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                 />
 
-                {/* Contadores y Alerta de Pliegue de LinkedIn */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2 px-1 text-xs text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono">
-                      {charCount} / {maxChars} caracteres
-                    </span>
-                    <span>•</span>
-                    <span className={charCount > foldCutoff ? "text-amber-500 font-medium" : "text-emerald-500 font-medium"}>
-                      {charCount > foldCutoff ? "Gancho antes del 'ver más' activo" : "Gancho visible completo"}
-                    </span>
-                  </div>
-
-                  <span className="text-[11px] text-gray-400">
-                    LinkedIn premia saltos de línea legibles y ganchos limpios
+                {/* Contador de caracteres */}
+                <div className="flex items-center justify-between mt-2 px-1 text-xs text-gray-500">
+                  <span className="font-mono">
+                    {charCount} / {maxChars} caracteres
                   </span>
                 </div>
               </div>
