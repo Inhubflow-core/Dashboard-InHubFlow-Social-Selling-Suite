@@ -31,6 +31,7 @@ import {
   Move,
   GripHorizontal,
   RotateCcw,
+  RotateCw,
   LayoutGrid,
   Shapes,
   AlignLeft,
@@ -181,6 +182,7 @@ export interface CustomCanvasElement {
   width?: number;
   height?: number;
   scale?: number;
+  rotation?: number;
   color?: string;
   bgColor?: string;
   borderColor?: string;
@@ -218,6 +220,7 @@ export interface CarouselSlideItem {
   titleSuffix?: string;
   offsets?: Record<string, { x: number; y: number }>;
   scales?: Record<string, number>;
+  rotations?: Record<string, number>;
   dimensions?: Record<string, { width?: number; height?: number }>;
   hiddenElements?: Record<string, boolean>;
   customElements?: CustomCanvasElement[];
@@ -466,6 +469,8 @@ function InlineEditableText({
   const ref = useRef<HTMLElement>(null);
   const isEditingRef = useRef(false);
   const isSelected = selectedElement === elementKey && !isExporting;
+  const ctx = useContext(SlideCanvasContext);
+  const isEditing = Boolean(ctx?.editingElementKey === elementKey && !isExporting);
 
   // Sincronizar el contenido visual si el usuario no está activamente tecleando en él
   useEffect(() => {
@@ -476,14 +481,31 @@ function InlineEditableText({
     }
   }, [value]);
 
-  const ctx = useContext(SlideCanvasContext);
+  // Enfocar y seleccionar texto automáticamente al entrar en modo edición
+  useEffect(() => {
+    if (isEditing && ref.current) {
+      isEditingRef.current = true;
+      ref.current.focus();
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(ref.current);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      } catch {}
+    } else {
+      isEditingRef.current = false;
+    }
+  }, [isEditing]);
+
   const format = ctx?.currentSlide.elementStyles?.[elementKey];
+  const customElem = ctx?.currentSlide.customElements?.find((e) => e.id === elementKey);
 
   const computedStyle: React.CSSProperties = {
     ...style,
     ...(format?.fontFamily ? { fontFamily: format.fontFamily } : {}),
     ...(format?.fontSize ? { fontSize: `${format.fontSize}px` } : {}),
-    ...(format?.color ? { color: format.color } : {}),
+    ...(format?.color || customElem?.color ? { color: format?.color || customElem?.color } : {}),
     ...(format?.fontWeight ? { fontWeight: format.fontWeight } : {}),
     ...(format?.fontStyle ? { fontStyle: format.fontStyle } : {}),
     ...(format?.textDecoration ? { textDecoration: format.textDecoration } : {}),
@@ -497,38 +519,57 @@ function InlineEditableText({
   return (
     <Component
       ref={ref as any}
-      contentEditable={!isExporting}
+      contentEditable={isEditing}
       suppressContentEditableWarning
       spellCheck={false}
       style={computedStyle}
       data-element={elementKey}
       onClick={(e: React.MouseEvent) => {
+        if (!isEditing) {
+          onSelect(elementKey);
+        }
+      }}
+      onDoubleClick={(e: React.MouseEvent) => {
         e.stopPropagation();
         onSelect(elementKey);
+        ctx?.setEditingElementKey?.(elementKey);
       }}
       onFocus={() => {
         isEditingRef.current = true;
-        onSelect(elementKey);
       }}
       onBlur={(e: React.FocusEvent<HTMLElement>) => {
         isEditingRef.current = false;
+        ctx?.setEditingElementKey?.(null);
         const newText = e.currentTarget.innerText.trim();
         onChange(newText || value);
       }}
       onKeyDown={(e: React.KeyboardEvent) => {
-        if (!multiline && e.key === "Enter") {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          (e.target as HTMLElement).blur();
+        } else if (!multiline && e.key === "Enter") {
           e.preventDefault();
           (e.target as HTMLElement).blur();
         }
       }}
-      className={`transition-all duration-150 outline-hidden select-text ${
+      className={`transition-all duration-150 outline-hidden ${
+        isEditing ? "select-text cursor-text ring-2 ring-brand-400 bg-brand-500/20" : "select-none cursor-grab"
+      } ${
         isExporting
           ? ""
-          : isSelected
-          ? "ring-2 ring-brand-400 bg-brand-500/20 rounded px-1.5 -mx-1.5 shadow-sm"
-          : "hover:ring-1 hover:ring-brand-400/60 hover:bg-white/10 rounded px-1.5 -mx-1.5 cursor-text"
+          : isSelected && !isEditing
+          ? "rounded px-1.5 -mx-1.5"
+          : !isEditing
+          ? "hover:ring-1 hover:ring-brand-400/40 rounded px-1.5 -mx-1.5"
+          : "rounded px-1.5 -mx-1.5 shadow-sm"
       } ${className}`}
-      title={isExporting ? undefined : "Haz clic para editar este texto directamente"}
+      title={
+        isExporting
+          ? undefined
+          : isEditing
+          ? "Escribe tu texto • Pulsa Enter o Esc para terminar"
+          : "Arrastra para mover con la manito • Doble clic para editar"
+      }
     >
       {value || placeholder}
     </Component>
@@ -542,9 +583,12 @@ interface SlideCanvasContextType {
   canvasZoom: number;
   currentSlide: CarouselSlideItem;
   selectedElement: string | null;
+  editingElementKey?: string | null;
+  setEditingElementKey?: (key: string | null) => void;
   onSelectElement?: (id: string) => void;
   onOffsetChange?: (id: string, offset: { x: number; y: number }) => void;
   onScaleChange?: (id: string, scale: number) => void;
+  onRotationChange?: (id: string, rotation: number) => void;
   onSizeChange?: (id: string, newSize: { width?: number; height?: number }, newOffset?: { x: number; y: number }) => void;
   onDeleteElement?: (id: string) => void;
   onDuplicateElement?: (id: string) => void;
@@ -563,7 +607,9 @@ interface DraggableWrapperProps {
   offset?: { x: number; y: number };
   onOffsetChange?: (id: string, newOffset: { x: number; y: number }) => void;
   scale?: number;
+  rotation?: number;
   onScaleChange?: (id: string, newScale: number) => void;
+  onRotationChange?: (id: string, newRotation: number) => void;
   width?: number;
   height?: number;
   onSizeChange?: (
@@ -655,6 +701,14 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialOffset = useRef({ x: 0, y: 0 });
 
+  // Rotación libre estilo Canva
+  const [isRotating, setIsRotating] = useState(false);
+  const rotateCenterRef = useRef({ x: 0, y: 0 });
+  const initialAngleRef = useRef(0);
+  const startRotationRef = useRef(0);
+  const currentRotation = props.rotation ?? ctx?.currentSlide.rotations?.[id] ?? 0;
+  const onRotationChange = props.onRotationChange ?? ctx?.onRotationChange;
+
   // 8 Manijas de redimensionamiento estilo Canva (4 esquinas circulares + 4 barras/píldoras laterales)
   const [activeHandle, setActiveHandle] = useState<CanvaResizeHandle | null>(null);
   const resizeStartPos = useRef({ x: 0, y: 0 });
@@ -671,12 +725,13 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     if (!isFreeMode || isExporting) return;
     const target = e.target as HTMLElement;
     const isResize = target.closest('[data-resize-handle="true"]');
+    const isRotate = target.closest('[data-rotate-handle="true"]');
     const isControl = target.closest("button") || target.tagName === "BUTTON";
     const isContent = target.isContentEditable;
 
-    if (isControl || isResize) return;
+    if (isControl || isResize || isRotate) return;
 
-    if (isContent) {
+    if (isContent && document.activeElement === target) {
       onSelect?.();
       return;
     }
@@ -690,6 +745,77 @@ function DraggableWrapper(props: DraggableWrapperProps) {
     onSelect?.();
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     initialOffset.current = { x: offset?.x || 0, y: offset?.y || 0 };
+  };
+
+  // Manejador específico para la manito de mover (move handle knob)
+  const handleMoveHandleDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDragging(true);
+    onSelect?.();
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    initialOffset.current = { x: offset?.x || 0, y: offset?.y || 0 };
+  };
+
+  // Manejo de giro / rotación libre con PointerEvents (Estilo Canva)
+  const handleRotateDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    setIsRotating(true);
+    onSelect?.();
+
+    if (wrapperRef.current) {
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      rotateCenterRef.current = { x: cx, y: cy };
+      const startRad = Math.atan2(e.clientY - cy, e.clientX - cx);
+      initialAngleRef.current = startRad * (180 / Math.PI);
+      startRotationRef.current = currentRotation;
+    }
+  };
+
+  const handleRotateMove = (e: React.PointerEvent) => {
+    if (!isRotating) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const cx = rotateCenterRef.current.x;
+    const cy = rotateCenterRef.current.y;
+    const currentRad = Math.atan2(e.clientY - cy, e.clientX - cx);
+    const currentDeg = currentRad * (180 / Math.PI);
+
+    const deltaDeg = currentDeg - initialAngleRef.current;
+    let newDeg = Math.round((startRotationRef.current + deltaDeg) % 360);
+    if (newDeg > 180) newDeg -= 360;
+    if (newDeg < -180) newDeg += 360;
+
+    // Snapping magnético inteligente (Canva style: 0°, 45°, 90°, etc.)
+    const snapAngles = [0, 45, 90, 135, 180, -45, -90, -135, -180];
+    for (const snap of snapAngles) {
+      if (Math.abs(newDeg - snap) <= 3) {
+        newDeg = snap;
+        break;
+      }
+    }
+
+    onRotationChange?.(id, newDeg);
+  };
+
+  const handleRotateUp = (e: React.PointerEvent) => {
+    if (!isRotating) return;
+    e.stopPropagation();
+    setIsRotating(false);
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    onSelect?.();
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -922,20 +1048,20 @@ function DraggableWrapper(props: DraggableWrapperProps) {
   const posY = offset?.y || 0;
   const currentScale = scale ?? 1;
   const hasMoved = posX !== 0 || posY !== 0;
+  const hasRotated = currentRotation !== 0;
   const hasScaled = currentScale !== 1;
   const positionClass = props.className?.includes("absolute") ? "" : "relative";
-  const isCentered =
-    props.className?.includes("center") ||
-    props.className?.includes("mx-auto") ||
-    props.className?.includes("items-center");
 
   const resolvedWidth = props.width ?? ctx?.currentSlide.dimensions?.[id]?.width;
   const resolvedHeight = !isTextElement ? (props.height ?? ctx?.currentSlide.dimensions?.[id]?.height) : undefined;
-  const isTransforming = isDragging || Boolean(activeHandle);
+  const isTransforming = isDragging || isRotating || Boolean(activeHandle);
 
   const transformParts: string[] = [];
   if (hasMoved) {
     transformParts.push(`translate(${posX}px, ${posY}px)`);
+  }
+  if (hasRotated) {
+    transformParts.push(`rotate(${currentRotation}deg)`);
   }
   if (hasScaled) {
     transformParts.push(`scale(${currentScale})`);
@@ -956,17 +1082,17 @@ function DraggableWrapper(props: DraggableWrapperProps) {
         ...(resolvedWidth ? { width: `${resolvedWidth}px` } : {}),
         ...(resolvedHeight ? { height: `${resolvedHeight}px` } : {}),
         transform: transformParts.join(" ") || undefined,
-        transformOrigin: isCentered ? "center center" : "top left",
+        transformOrigin: "center center",
         touchAction: isFreeMode ? "none" : undefined,
       }}
       className={`${positionClass} ${isTransforming ? "" : "transition-transform duration-75"} ${
         isFreeMode && !isExporting
-          ? `group/drag ${
+          ? `group/drag select-none ${
               isDragging
                 ? `ring-2 ring-brand-400 ${id === "bg-photo" ? "" : "bg-brand-500/10"} shadow-2xl z-50 cursor-grabbing`
                 : isSelected
-                ? "ring-2 ring-brand-400 ring-offset-1 ring-offset-transparent z-40"
-                : `hover:ring-1 hover:ring-brand-400/60 ${id === "bg-photo" ? "" : "hover:bg-white/5"} z-20`
+                ? "ring-2 ring-brand-400 ring-offset-1 ring-offset-transparent z-40 cursor-grab"
+                : `hover:ring-1 hover:ring-brand-400/60 ${id === "bg-photo" ? "" : "hover:bg-white/5"} z-20 cursor-grab`
             }`
           : ""
       } ${props.className || ""}`}
@@ -1045,6 +1171,40 @@ function DraggableWrapper(props: DraggableWrapperProps) {
             title="Arrastra para cambiar anchura (derecha)"
             className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-5 rounded-full bg-white border border-brand-500 shadow-md cursor-ew-resize z-50 hover:scale-125 transition-transform"
           />
+
+          {/* BARRA DE ACCIONES FLOTANTE ESTILO CANVA (GIRAR + MOVER CON MANITO) */}
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-50 pointer-events-auto">
+            {/* 1. Manija de Rotación Libre Estilo Canva */}
+            <div
+              data-rotate-handle="true"
+              onPointerDown={handleRotateDown}
+              onPointerMove={handleRotateMove}
+              onPointerUp={handleRotateUp}
+              title={`Girar objeto (${Math.round(currentRotation)}°) - Arrastra en círculo para rotar`}
+              className="size-7 rounded-full bg-white border border-brand-500 shadow-xl flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-brand-50 hover:scale-110 transition-transform select-none"
+            >
+              <RotateCw className="size-3.5 text-brand-600" />
+            </div>
+
+            {/* 2. Manija de Mover con la Manito Estilo Canva */}
+            <div
+              data-move-handle="true"
+              onPointerDown={handleMoveHandleDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              title="Mover objeto (Arrastra con la manito)"
+              className="size-7 rounded-full bg-white border border-brand-500 shadow-xl flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-brand-50 hover:scale-110 transition-transform select-none"
+            >
+              <Move className="size-3.5 text-brand-600" />
+            </div>
+
+            {/* Tooltip con ángulo en vivo durante rotación */}
+            {isRotating && (
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-mono font-bold shadow-xl border border-white/20 whitespace-nowrap pointer-events-none z-50 animate-in fade-in">
+                {Math.round(currentRotation)}°
+              </div>
+            )}
+          </div>
         </>
       )}
       {props.children}
@@ -1068,6 +1228,7 @@ export default function VisualEditorModal({
 
   // Estados del editor
   const [editorMode, setEditorMode] = useState<EditorMode>("carousel");
+  const [editingElementKey, setEditingElementKey] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("blank");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [selectedBgUrl, setSelectedBgUrl] = useState<string>("");
@@ -2070,6 +2231,36 @@ export default function VisualEditorModal({
     });
   };
 
+  // Manejador de rotación libre / giro estilo Canva
+  const handleRotationChange = (elementId: string, newRotation: number) => {
+    let normalized = Math.round(newRotation % 360);
+    if (normalized > 180) normalized -= 360;
+    if (normalized < -180) normalized += 360;
+
+    setSlides((prev) => {
+      const next = [...prev];
+      const cur = next[currentSlideIndex];
+      const prevRotations = cur.rotations || {};
+
+      const updatedCustom = (cur.customElements || []).map((el) => {
+        if (el.id === elementId) {
+          return { ...el, rotation: normalized };
+        }
+        return el;
+      });
+
+      next[currentSlideIndex] = {
+        ...cur,
+        rotations: {
+          ...prevRotations,
+          [elementId]: normalized,
+        },
+        customElements: updatedCustom,
+      };
+      return next;
+    });
+  };
+
   // Manejador de redimensionamiento libre (ancho y alto independientes + offset) estilo Canva
   const handleSizeChange = (
     elementId: string,
@@ -2273,6 +2464,11 @@ export default function VisualEditorModal({
     const newId = `elem-${Date.now()}`;
     let newElement: CustomCanvasElement;
 
+    const isWhiteCanvas = selectedTemplate === "blank" && !selectedBgUrl;
+    const defaultHeadColor = isWhiteCanvas ? "#0f172a" : "#ffffff";
+    const defaultSubColor = isWhiteCanvas ? "#334155" : "#cbd5e1";
+    const defaultTextColor = isWhiteCanvas ? "#475569" : "#94a3b8";
+
     if (type === "heading") {
       newElement = {
         id: newId,
@@ -2281,9 +2477,10 @@ export default function VisualEditorModal({
         x: 35,
         y: 120,
         scale: 1,
+        rotation: 0,
         fontSize: 26,
         fontWeight: "bold",
-        color: "#ffffff",
+        color: defaultHeadColor,
       };
     } else if (type === "subheading") {
       newElement = {
@@ -2293,9 +2490,10 @@ export default function VisualEditorModal({
         x: 35,
         y: 180,
         scale: 1,
+        rotation: 0,
         fontSize: 17,
         fontWeight: "600",
-        color: "#cbd5e1",
+        color: defaultSubColor,
       };
     } else if (type === "text") {
       newElement = {
@@ -2305,8 +2503,9 @@ export default function VisualEditorModal({
         x: 35,
         y: 220,
         scale: 1,
+        rotation: 0,
         fontSize: 13,
-        color: "#94a3b8",
+        color: defaultTextColor,
       };
     } else if (type === "highlight") {
       newElement = {
@@ -5056,6 +5255,23 @@ export default function VisualEditorModal({
               {/* CASO A: ELEMENTO DE TEXTO SELECCIONADO */}
               {isText && (
                 <>
+                  {/* Botón Editar Texto */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingElementKey(selectedElement);
+                    }}
+                    className={`h-7 px-2.5 rounded-md flex items-center gap-1.5 text-xs font-semibold border transition ${
+                      editingElementKey === selectedElement
+                        ? "bg-brand-500 text-white border-brand-500 shadow-sm"
+                        : "bg-slate-800 border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700"
+                    }`}
+                    title="Editar texto directamente en el lienzo (o haz doble clic)"
+                  >
+                    <Pencil className="size-3 text-brand-400" />
+                    <span>Editar</span>
+                  </button>
+
                   {/* Selector de Fuente para el elemento */}
                   <select
                     value={currentFormat.fontFamily || selectedFont}
@@ -5938,6 +6154,47 @@ export default function VisualEditorModal({
                   )}
                 </>
               )}
+
+              {/* CONTROLES DE GIRO / ROTACIÓN ESTILO CANVA (PARA CUALQUIER OBJETO ACTIVO) */}
+              {selectedElement && selectedElement !== "background" && selectedElement !== "bg-photo" && (
+                <>
+                  <span className="h-4 w-px bg-slate-700 mx-1" />
+                  <div className="flex items-center gap-1 bg-slate-800 rounded-md border border-slate-700 h-7 px-1.5" title="Girar elemento (estilo Canva)">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const curRot = currentSlide.rotations?.[selectedElement!] ?? customElem?.rotation ?? 0;
+                        handleRotationChange(selectedElement!, curRot - 90);
+                      }}
+                      className="p-1 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition"
+                      title="Girar -90° (Hacia la izquierda)"
+                    >
+                      <RotateCcw className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleRotationChange(selectedElement!, 0);
+                      }}
+                      className="px-1 text-[11px] font-mono font-bold text-slate-300 hover:text-white hover:underline min-w-[34px] text-center"
+                      title="Restablecer giro a 0°"
+                    >
+                      {Math.round(currentSlide.rotations?.[selectedElement!] ?? customElem?.rotation ?? 0)}°
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const curRot = currentSlide.rotations?.[selectedElement!] ?? customElem?.rotation ?? 0;
+                        handleRotationChange(selectedElement!, curRot + 90);
+                      }}
+                      className="p-1 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition"
+                      title="Girar +90° (Hacia la derecha)"
+                    >
+                      <RotateCw className="size-3.5" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -5965,9 +6222,12 @@ export default function VisualEditorModal({
                   canvasZoom,
                   currentSlide,
                   selectedElement,
+                  editingElementKey,
+                  setEditingElementKey,
                   onSelectElement: setSelectedElement,
                   onOffsetChange: handleOffsetChange,
                   onScaleChange: handleScaleChange,
+                  onRotationChange: handleRotationChange,
                   onSizeChange: handleSizeChange,
                   onDeleteElement: handleDeleteElement,
                   onDuplicateElement: handleDuplicateElement,
@@ -7505,6 +7765,8 @@ export default function VisualEditorModal({
                       width={elem.width}
                       height={elem.height}
                       onSizeChange={handleSizeChange}
+                      rotation={currentSlide.rotations?.[elem.id] ?? elem.rotation ?? 0}
+                      onRotationChange={handleRotationChange}
                       onDelete={handleDeleteElement}
                       onDuplicate={handleDuplicateElement}
                       isExporting={isExporting}
@@ -7517,7 +7779,7 @@ export default function VisualEditorModal({
                       }}
                     >
                       {elem.type === "heading" && (
-                        <h2 className="text-2xl font-black text-white tracking-tight leading-tight select-text drop-shadow-md">
+                        <h2 className={`text-2xl font-black ${selectedTemplate === "blank" && !selectedBgUrl ? "text-slate-900" : "text-white"} tracking-tight leading-tight select-none drop-shadow-md`}>
                           <InlineEditableText
                             elementKey={elem.id}
                             as="span"
