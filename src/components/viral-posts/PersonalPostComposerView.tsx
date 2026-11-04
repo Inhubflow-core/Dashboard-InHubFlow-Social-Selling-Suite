@@ -597,26 +597,8 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 )}
               </div>
 
-              {/* Selector de Cuenta de LinkedIn y Acciones Finales */}
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-400 uppercase mb-1">
-                    Publicar desde la Cuenta:
-                  </label>
-                  <select
-                    value={selectedAccountId}
-                    onChange={(e) => setSelectedAccountId(e.target.value)}
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  >
-                    {accounts.map((acc) => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name} ({acc.status === "OK" ? "Conectada" : acc.status})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2.5">
+              {/* Acciones Finales */}
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => handleSaveOrPublish("draft")}
@@ -652,7 +634,6 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       </>
                     )}
                   </button>
-                </div>
               </div>
             </div>
           </ComponentCard>
