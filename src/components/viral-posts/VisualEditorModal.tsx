@@ -1303,6 +1303,15 @@ export default function VisualEditorModal({
   const fabricCanvasRef = useRef<FabricCanvasEditorHandle | null>(null);
   const [activeFabricObject, setActiveFabricObject] = useState<ActiveObjectInfo | null>(null);
 
+  const handleSelectFabricObject = useCallback((info: ActiveObjectInfo | null) => {
+    setActiveFabricObject(info);
+    if (info) {
+      setSelectedElement(info.id);
+    } else {
+      setSelectedElement(null);
+    }
+  }, []);
+
   // Estados del editor
   const [editorMode, setEditorMode] = useState<EditorMode>("carousel");
   const [editingElementKey, setEditingElementKey] = useState<string | null>(null);
@@ -1423,6 +1432,8 @@ export default function VisualEditorModal({
         borderRadius: 0,
       });
 
+      await fabricCanvasRef.current?.replaceActiveImage(cutoutDataUrl);
+
       setExportFeedback("¡Fondo removido con éxito! Sujeto recortado en PNG transparente.");
       setTimeout(() => setExportFeedback(null), 3500);
     } catch (err: any) {
@@ -1477,6 +1488,9 @@ export default function VisualEditorModal({
         return next;
       });
 
+      fabricCanvasRef.current?.clearBackgroundPhoto();
+      setSelectedBgUrl("");
+      await fabricCanvasRef.current?.addPhoto(cutoutDataUrl, false);
       setSelectedElement(newId);
       setExportFeedback("¡Fondo removido! Sujeto recortado listo para mover y redimensionar.");
       setTimeout(() => setExportFeedback(null), 3500);
@@ -1733,6 +1747,7 @@ export default function VisualEditorModal({
       metric: cur?.metric,
       authorName,
       authorHandle,
+      bgUrl: cur?.bgUrl || selectedBgUrl,
     });
   };
 
@@ -2023,7 +2038,7 @@ export default function VisualEditorModal({
   const handleApplyPixabayAsBg = (item: PixabayItem) => {
     setSelectedBgUrl(item.regularUrl);
     updateCurrentSlide({ bgUrl: item.regularUrl });
-    setSelectedElement("background");
+    setSelectedElement("bg-photo");
     setBgScale(1);
     handleScaleChange("bg-photo", 1);
     handleOffsetChange("bg-photo", { x: 0, y: 0 });
@@ -2295,6 +2310,7 @@ export default function VisualEditorModal({
           metric: cur?.metric,
           authorName,
           authorHandle,
+          bgUrl: cur?.bgUrl || selectedBgUrl,
         });
       }, 100);
       return () => clearTimeout(timer);
@@ -6144,6 +6160,7 @@ export default function VisualEditorModal({
                     <button
                       type="button"
                       onClick={() => {
+                        fabricCanvasRef.current?.zoomActiveObject(-0.1);
                         if (selectedElement === "background" || selectedElement === "bg-photo") {
                           handleBgZoomChange(-0.1);
                         } else if (customElem) {
@@ -6165,6 +6182,7 @@ export default function VisualEditorModal({
                     <button
                       type="button"
                       onClick={() => {
+                        fabricCanvasRef.current?.zoomActiveObject(0.1);
                         if (selectedElement === "background" || selectedElement === "bg-photo") {
                           handleBgZoomChange(0.1);
                         } else if (customElem) {
@@ -6193,7 +6211,11 @@ export default function VisualEditorModal({
                         max="80"
                         step="5"
                         value={bgDimming}
-                        onChange={(e) => setBgDimming(Number(e.target.value))}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setBgDimming(val);
+                          fabricCanvasRef.current?.setFilterDimming(val);
+                        }}
                         className="w-16 accent-amber-400 h-1 bg-slate-700 rounded-lg cursor-pointer"
                         title="Filtro de contraste para legibilidad de textos"
                       />
@@ -6407,14 +6429,7 @@ export default function VisualEditorModal({
                     accentColor={accentColor}
                     authorName={authorName}
                     authorHandle={authorHandle}
-                    onSelectObject={(info) => {
-                      setActiveFabricObject(info);
-                      if (info) {
-                        setSelectedElement(info.id);
-                      } else {
-                        setSelectedElement(null);
-                      }
-                    }}
+                    onSelectObject={handleSelectFabricObject}
                     onCanvasModified={() => {
                       // Canvas modificado
                     }}

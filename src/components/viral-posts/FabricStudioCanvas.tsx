@@ -16,9 +16,8 @@ import {
   Rect,
   Circle,
   Line,
-  Point,
 } from "fabric";
-import { customizeControls, getSelectionStyle } from "./fabric/fabricControls";
+import { customizeControls } from "./fabric/fabricControls";
 import type {
   ActiveObjectInfo,
   FabricCanvasEditorHandle,
@@ -38,6 +37,29 @@ const CANVAS_WIDTH = 540;
 const CANVAS_HEIGHT_4_5 = 675; // 540 * 1.25 = 675
 const CANVAS_HEIGHT_1_1 = 540;
 
+/**
+ * Carga una imagen de forma segura en Fabric.js probando primero acceso directo
+ * y aplicando fallback inmediato a través del proxy local (/api/proxy-image)
+ * para garantizar bypass total de restricciones CORS o hotlinking.
+ */
+async function loadFabricImage(url: string): Promise<FabricImage> {
+  if (!url) throw new Error("URL de imagen vacía");
+
+  // 1. Data URLs y blobs
+  if (url.startsWith("data:") || url.startsWith("blob:")) {
+    return await FabricImage.fromURL(url, { crossOrigin: "anonymous" });
+  }
+
+  // 2. Intentar cargar con proxy directamente para evitar CORS en el canvas HTML5
+  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  try {
+    return await FabricImage.fromURL(proxyUrl, { crossOrigin: "anonymous" });
+  } catch (proxyErr) {
+    // 3. Fallback directo si el endpoint proxy tiene alguna interrupción
+    return await FabricImage.fromURL(url, { crossOrigin: "anonymous" });
+  }
+}
+
 export const FabricStudioCanvas = forwardRef<
   FabricCanvasEditorHandle,
   FabricStudioCanvasProps
@@ -56,10 +78,18 @@ export const FabricStudioCanvas = forwardRef<
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const fabricRef = useRef<Canvas | null>(null);
 
-  const [isReady, setIsReady] = useState(false);
-  const [bgDimmingVal, setBgDimmingVal] = useState(0);
+  // Mantener referencias actualizadas de props para no recrear el canvas en cada render
+  const accentColorRef = useRef(accentColor);
+  accentColorRef.current = accentColor;
 
   const targetHeight = aspectRatio === "4:5" ? CANVAS_HEIGHT_4_5 : CANVAS_HEIGHT_1_1;
+  const targetHeightRef = useRef(targetHeight);
+  targetHeightRef.current = targetHeight;
+
+  const callbacksRef = useRef({ onSelectObject, onCanvasModified });
+  callbacksRef.current = { onSelectObject, onCanvasModified };
+
+  const [bgDimmingVal, setBgDimmingVal] = useState(0);
 
   // Extrae información limpia de un objeto seleccionado en Fabric
   const getObjectInfo = useCallback(
@@ -109,15 +139,15 @@ export const FabricStudioCanvas = forwardRef<
     []
   );
 
-  // Inicialización del Canvas de Fabric
+  // INICIALIZACIÓN DEL CANVAS DE FABRIC - SE EJECUTA ÚNICAMENTE AL MONTAR
   useEffect(() => {
     if (!canvasElRef.current) return;
 
-    // Crear instancia de Canvas Fabric
+    // Crear instancia permanente de Canvas Fabric
     const canvas = new Canvas(canvasElRef.current, {
       width: CANVAS_WIDTH,
-      height: targetHeight,
-      backgroundColor: "#ffffff", // Siempre blanco por defecto
+      height: targetHeightRef.current,
+      backgroundColor: "#ffffff", // Siempre blanco puro por defecto
       preserveObjectStacking: true,
       selection: true,
       stopContextMenu: true,
@@ -126,25 +156,24 @@ export const FabricStudioCanvas = forwardRef<
     });
 
     fabricRef.current = canvas;
-    setIsReady(true);
 
     // Eventos de selección de objetos
     const handleSelection = () => {
       const active = canvas.getActiveObject();
       if (active) {
-        customizeControls(active, accentColor);
-        onSelectObject?.(getObjectInfo(active));
+        customizeControls(active, accentColorRef.current);
+        callbacksRef.current.onSelectObject?.(getObjectInfo(active));
       } else {
-        onSelectObject?.(null);
+        callbacksRef.current.onSelectObject?.(null);
       }
     };
 
     const handleDeselection = () => {
-      onSelectObject?.(null);
+      callbacksRef.current.onSelectObject?.(null);
     };
 
     const handleModified = () => {
-      onCanvasModified?.();
+      callbacksRef.current.onCanvasModified?.();
     };
 
     canvas.on("selection:created", handleSelection);
@@ -153,7 +182,7 @@ export const FabricStudioCanvas = forwardRef<
     canvas.on("object:modified", handleModified);
     canvas.on("object:added", (e) => {
       if (e.target) {
-        customizeControls(e.target, accentColor);
+        customizeControls(e.target, accentColorRef.current);
       }
     });
 
@@ -162,7 +191,7 @@ export const FabricStudioCanvas = forwardRef<
       const active = canvas.getActiveObject();
       if (!active) return;
 
-      // Si está en modo edición de texto, no borrar el objeto
+      // Si está en modo edición inline de texto, permitir escribir/borrar caracteres
       if (active instanceof Textbox && active.isEditing) {
         return;
       }
@@ -175,8 +204,8 @@ export const FabricStudioCanvas = forwardRef<
         canvas.remove(active);
         canvas.discardActiveObject();
         canvas.requestRenderAll();
-        onSelectObject?.(null);
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(null);
+        callbacksRef.current.onCanvasModified?.();
       }
     };
 
@@ -187,9 +216,9 @@ export const FabricStudioCanvas = forwardRef<
       canvas.dispose();
       fabricRef.current = null;
     };
-  }, [accentColor, targetHeight, getObjectInfo, onSelectObject, onCanvasModified]);
+  }, [getObjectInfo]); // Array estático de dependencias: NUNCA se destruye por cambios de estado externos
 
-  // Actualizar altura cuando cambia aspectRatio
+  // Actualizar dimensiones suavemente cuando cambia aspectRatio (sin destruir el lienzo)
   useEffect(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
@@ -201,7 +230,7 @@ export const FabricStudioCanvas = forwardRef<
     canvas.requestRenderAll();
   }, [targetHeight]);
 
-  // Métodos imperativos para el VisualEditorModal
+  // MÉTODOS IMPERATIVOS EXPUESTOS HACIA VisualEditorModal
   useImperativeHandle(
     ref,
     () => ({
@@ -211,7 +240,7 @@ export const FabricStudioCanvas = forwardRef<
 
         const heading = new Textbox(text, {
           left: CANVAS_WIDTH / 2,
-          top: targetHeight * 0.35,
+          top: targetHeightRef.current * 0.35,
           originX: "center",
           originY: "center",
           width: CANVAS_WIDTH * 0.84,
@@ -227,13 +256,13 @@ export const FabricStudioCanvas = forwardRef<
 
         (heading as any).customType = "heading";
         (heading as any).id = `heading-${Date.now()}`;
-        customizeControls(heading, accentColor);
+        customizeControls(heading, accentColorRef.current);
 
         canvas.add(heading);
         canvas.setActiveObject(heading);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(heading));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(heading));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       addSubheading: (text = "Subtítulo explicativo de alto impacto para tu audiencia B2B") => {
@@ -242,7 +271,7 @@ export const FabricStudioCanvas = forwardRef<
 
         const sub = new Textbox(text, {
           left: CANVAS_WIDTH / 2,
-          top: targetHeight * 0.5,
+          top: targetHeightRef.current * 0.5,
           originX: "center",
           originY: "center",
           width: CANVAS_WIDTH * 0.8,
@@ -257,13 +286,13 @@ export const FabricStudioCanvas = forwardRef<
 
         (sub as any).customType = "subheading";
         (sub as any).id = `subheading-${Date.now()}`;
-        customizeControls(sub, accentColor);
+        customizeControls(sub, accentColorRef.current);
 
         canvas.add(sub);
         canvas.setActiveObject(sub);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(sub));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(sub));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       addBodyText: (text = "Haz doble clic para escribir tu texto explicativo o viñetas...") => {
@@ -272,7 +301,7 @@ export const FabricStudioCanvas = forwardRef<
 
         const body = new Textbox(text, {
           left: CANVAS_WIDTH / 2,
-          top: targetHeight * 0.6,
+          top: targetHeightRef.current * 0.6,
           originX: "center",
           originY: "center",
           width: CANVAS_WIDTH * 0.75,
@@ -287,13 +316,13 @@ export const FabricStudioCanvas = forwardRef<
 
         (body as any).customType = "body";
         (body as any).id = `body-${Date.now()}`;
-        customizeControls(body, accentColor);
+        customizeControls(body, accentColorRef.current);
 
         canvas.add(body);
         canvas.setActiveObject(body);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(body));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(body));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       addPhoto: async (url: string, asBackground = false) => {
@@ -301,55 +330,55 @@ export const FabricStudioCanvas = forwardRef<
         if (!canvas) return;
 
         try {
-          const img = await FabricImage.fromURL(url, { crossOrigin: "anonymous" });
+          const img = await loadFabricImage(url);
           const naturalW = img.width || 1;
           const naturalH = img.height || 1;
+          const curH = targetHeightRef.current;
 
           if (asBackground) {
-            // Ajustar para cubrir el lienzo como fondo
-            const scale = Math.max(CANVAS_WIDTH / naturalW, targetHeight / naturalH);
+            // Ajustar para cubrir todo el lienzo como fondo
+            const scale = Math.max(CANVAS_WIDTH / naturalW, curH / naturalH);
             img.set({
               left: CANVAS_WIDTH / 2,
-              top: targetHeight / 2,
+              top: curH / 2,
               originX: "center",
               originY: "center",
               scaleX: scale,
               scaleY: scale,
-              selectable: true, // Se puede seleccionar y mover
+              selectable: true,
               evented: true,
             });
             (img as any).isBackground = true;
             (img as any).id = "bg-photo";
-            customizeControls(img, accentColor);
+            customizeControls(img, accentColorRef.current);
 
-            // Enviar al fondo
-            canvas.insertAt(0, img);
+            // Insertar al fondo
+            canvas.add(img);
+            canvas.sendObjectToBack(img);
             canvas.setActiveObject(img);
           } else {
             // Foto como elemento regular centrado
-            const maxDimension = Math.min(CANVAS_WIDTH * 0.7, targetHeight * 0.5);
+            const maxDimension = Math.min(CANVAS_WIDTH * 0.75, curH * 0.55);
             const scale = Math.min(maxDimension / naturalW, maxDimension / naturalH);
 
             img.set({
               left: CANVAS_WIDTH / 2,
-              top: targetHeight / 2,
+              top: curH / 2,
               originX: "center",
               originY: "center",
               scaleX: scale,
               scaleY: scale,
-              cornerSize: 10,
-              cornerStyle: "circle",
             });
             (img as any).id = `photo-${Date.now()}`;
-            customizeControls(img, accentColor);
+            customizeControls(img, accentColorRef.current);
 
             canvas.add(img);
             canvas.setActiveObject(img);
           }
 
           canvas.requestRenderAll();
-          onSelectObject?.(getObjectInfo(img));
-          onCanvasModified?.();
+          callbacksRef.current.onSelectObject?.(getObjectInfo(img));
+          callbacksRef.current.onCanvasModified?.();
         } catch (err) {
           console.error("Error al cargar imagen en Fabric:", err);
         }
@@ -361,25 +390,25 @@ export const FabricStudioCanvas = forwardRef<
 
         const rect = new Rect({
           left: CANVAS_WIDTH / 2,
-          top: targetHeight / 2,
+          top: targetHeightRef.current / 2,
           originX: "center",
           originY: "center",
           width: opts.width || 220,
           height: opts.height || 140,
-          fill: opts.fill || accentColor,
+          fill: opts.fill || accentColorRef.current,
           rx: opts.rx ?? 14,
           ry: opts.ry ?? 14,
           strokeUniform: true,
         });
 
         (rect as any).id = `rect-${Date.now()}`;
-        customizeControls(rect, accentColor);
+        customizeControls(rect, accentColorRef.current);
 
         canvas.add(rect);
         canvas.setActiveObject(rect);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(rect));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(rect));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       addCircle: (opts = {}) => {
@@ -388,51 +417,51 @@ export const FabricStudioCanvas = forwardRef<
 
         const circle = new Circle({
           left: CANVAS_WIDTH / 2,
-          top: targetHeight / 2,
+          top: targetHeightRef.current / 2,
           originX: "center",
           originY: "center",
           radius: opts.radius || 60,
-          fill: opts.fill || accentColor,
+          fill: opts.fill || accentColorRef.current,
           strokeUniform: true,
         });
 
         (circle as any).id = `circle-${Date.now()}`;
-        customizeControls(circle, accentColor);
+        customizeControls(circle, accentColorRef.current);
 
         canvas.add(circle);
         canvas.setActiveObject(circle);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(circle));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(circle));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       addLine: (opts = {}) => {
         const canvas = fabricRef.current;
         if (!canvas) return;
 
-        const line = new Line([50, targetHeight / 2, CANVAS_WIDTH - 50, targetHeight / 2], {
-          stroke: opts.stroke || accentColor,
+        const line = new Line([50, targetHeightRef.current / 2, CANVAS_WIDTH - 50, targetHeightRef.current / 2], {
+          stroke: opts.stroke || accentColorRef.current,
           strokeWidth: opts.strokeWidth || 4,
           strokeUniform: true,
         });
 
         (line as any).id = `line-${Date.now()}`;
-        customizeControls(line, accentColor);
+        customizeControls(line, accentColorRef.current);
 
         canvas.add(line);
         canvas.setActiveObject(line);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(line));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(line));
+        callbacksRef.current.onCanvasModified?.();
       },
 
-      addBadge: (text, bgColor = accentColor, textColor = "#ffffff") => {
+      addBadge: (text, bgColor, textColor = "#ffffff") => {
         const canvas = fabricRef.current;
         if (!canvas) return;
 
         const badge = new Textbox(text.toUpperCase(), {
           left: CANVAS_WIDTH / 2,
-          top: targetHeight * 0.15,
+          top: targetHeightRef.current * 0.15,
           originX: "center",
           originY: "center",
           width: 220,
@@ -440,7 +469,7 @@ export const FabricStudioCanvas = forwardRef<
           fontSize: 12,
           fontWeight: 700,
           fill: textColor,
-          backgroundColor: bgColor,
+          backgroundColor: bgColor || accentColorRef.current,
           textAlign: "center",
           padding: 8,
           editable: true,
@@ -448,13 +477,13 @@ export const FabricStudioCanvas = forwardRef<
 
         (badge as any).customType = "badge";
         (badge as any).id = `badge-${Date.now()}`;
-        customizeControls(badge, accentColor);
+        customizeControls(badge, accentColorRef.current);
 
         canvas.add(badge);
         canvas.setActiveObject(badge);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(badge));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(badge));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       updateActiveObject: (props) => {
@@ -499,8 +528,8 @@ export const FabricStudioCanvas = forwardRef<
 
         active.set(updates);
         canvas.requestRenderAll();
-        onSelectObject?.(getObjectInfo(active));
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(active));
+        callbacksRef.current.onCanvasModified?.();
       },
 
       duplicateActiveObject: () => {
@@ -517,12 +546,12 @@ export const FabricStudioCanvas = forwardRef<
             evented: true,
           });
           (cloned as any).id = `copy-${Date.now()}`;
-          customizeControls(cloned, accentColor);
+          customizeControls(cloned, accentColorRef.current);
           canvas.add(cloned);
           canvas.setActiveObject(cloned);
           canvas.requestRenderAll();
-          onSelectObject?.(getObjectInfo(cloned));
-          onCanvasModified?.();
+          callbacksRef.current.onSelectObject?.(getObjectInfo(cloned));
+          callbacksRef.current.onCanvasModified?.();
         });
       },
 
@@ -536,8 +565,64 @@ export const FabricStudioCanvas = forwardRef<
         canvas.remove(active);
         canvas.discardActiveObject();
         canvas.requestRenderAll();
-        onSelectObject?.(null);
-        onCanvasModified?.();
+        callbacksRef.current.onSelectObject?.(null);
+        callbacksRef.current.onCanvasModified?.();
+      },
+
+      zoomActiveObject: (delta: number) => {
+        const canvas = fabricRef.current;
+        if (!canvas) return;
+
+        const active = canvas.getActiveObject();
+        if (!active) return;
+
+        const curScale = active.scaleX || 1;
+        const newScale = Math.min(4, Math.max(0.1, +(curScale + delta).toFixed(2)));
+        active.set({
+          scaleX: newScale,
+          scaleY: newScale,
+        });
+        canvas.requestRenderAll();
+        callbacksRef.current.onSelectObject?.(getObjectInfo(active));
+        callbacksRef.current.onCanvasModified?.();
+      },
+
+      replaceActiveImage: async (url: string) => {
+        const canvas = fabricRef.current;
+        if (!canvas) return;
+
+        const active = canvas.getActiveObject();
+        if (!active) return;
+
+        try {
+          const newImg = await loadFabricImage(url);
+          newImg.set({
+            left: active.left,
+            top: active.top,
+            originX: active.originX,
+            originY: active.originY,
+            scaleX: active.scaleX,
+            scaleY: active.scaleY,
+            angle: active.angle,
+          });
+          (newImg as any).id = (active as any).id || `photo-${Date.now()}`;
+          customizeControls(newImg, accentColorRef.current);
+
+          const all = canvas.getObjects();
+          const idx = all.indexOf(active);
+          canvas.remove(active);
+          if (idx >= 0) {
+            canvas.insertAt(idx, newImg);
+          } else {
+            canvas.add(newImg);
+          }
+          canvas.setActiveObject(newImg);
+          canvas.requestRenderAll();
+          callbacksRef.current.onSelectObject?.(getObjectInfo(newImg));
+          callbacksRef.current.onCanvasModified?.();
+        } catch (err) {
+          console.error("Error al reemplazar imagen activa en Fabric:", err);
+        }
       },
 
       bringForward: () => {
@@ -549,7 +634,7 @@ export const FabricStudioCanvas = forwardRef<
 
         canvas.bringObjectForward(active);
         canvas.requestRenderAll();
-        onCanvasModified?.();
+        callbacksRef.current.onCanvasModified?.();
       },
 
       sendBackward: () => {
@@ -561,7 +646,7 @@ export const FabricStudioCanvas = forwardRef<
 
         canvas.sendObjectBackwards(active);
         canvas.requestRenderAll();
-        onCanvasModified?.();
+        callbacksRef.current.onCanvasModified?.();
       },
 
       setBackgroundColor: (color: string) => {
@@ -570,7 +655,7 @@ export const FabricStudioCanvas = forwardRef<
 
         canvas.backgroundColor = color;
         canvas.requestRenderAll();
-        onCanvasModified?.();
+        callbacksRef.current.onCanvasModified?.();
       },
 
       setBackgroundPhoto: async (url: string) => {
@@ -583,14 +668,15 @@ export const FabricStudioCanvas = forwardRef<
           const oldBg = objects.find((o) => (o as any).isBackground);
           if (oldBg) canvas.remove(oldBg);
 
-          const img = await FabricImage.fromURL(url, { crossOrigin: "anonymous" });
+          const img = await loadFabricImage(url);
           const naturalW = img.width || 1;
           const naturalH = img.height || 1;
-          const scale = Math.max(CANVAS_WIDTH / naturalW, targetHeight / naturalH);
+          const curH = targetHeightRef.current;
+          const scale = Math.max(CANVAS_WIDTH / naturalW, curH / naturalH);
 
           img.set({
             left: CANVAS_WIDTH / 2,
-            top: targetHeight / 2,
+            top: curH / 2,
             originX: "center",
             originY: "center",
             scaleX: scale,
@@ -601,11 +687,22 @@ export const FabricStudioCanvas = forwardRef<
 
           (img as any).isBackground = true;
           (img as any).id = "bg-photo";
-          customizeControls(img, accentColor);
+          customizeControls(img, accentColorRef.current);
 
-          canvas.insertAt(0, img);
+          canvas.add(img);
+          canvas.sendObjectToBack(img);
+
+          // Si hay filtro de contraste/dimming activo, asegurar que quede sobre el fondo
+          const dimRect = canvas.getObjects().find((o) => (o as any).isDimOverlay);
+          if (dimRect) {
+            const bgIdx = canvas.getObjects().indexOf(img);
+            canvas.insertAt(bgIdx + 1, dimRect);
+          }
+
+          canvas.setActiveObject(img);
           canvas.requestRenderAll();
-          onCanvasModified?.();
+          callbacksRef.current.onSelectObject?.(getObjectInfo(img));
+          callbacksRef.current.onCanvasModified?.();
         } catch (err) {
           console.error("Error al establecer foto de fondo:", err);
         }
@@ -619,9 +716,13 @@ export const FabricStudioCanvas = forwardRef<
         const oldBg = objects.find((o) => (o as any).isBackground);
         if (oldBg) {
           canvas.remove(oldBg);
-          canvas.requestRenderAll();
-          onCanvasModified?.();
         }
+        const dimRect = objects.find((o) => (o as any).isDimOverlay);
+        if (dimRect) {
+          canvas.remove(dimRect);
+        }
+        canvas.requestRenderAll();
+        callbacksRef.current.onCanvasModified?.();
       },
 
       setFilterDimming: (percent: number) => {
@@ -630,20 +731,49 @@ export const FabricStudioCanvas = forwardRef<
         if (!canvas) return;
 
         const objects = canvas.getObjects();
-        const bgPhoto = objects.find((o) => (o as any).isBackground);
-        if (bgPhoto) {
-          // Ajustar opacidad según el dimming
-          bgPhoto.set("opacity", Math.max(0.2, 1 - percent / 150));
-          canvas.requestRenderAll();
-          onCanvasModified?.();
+        let dimRect = objects.find((o) => (o as any).isDimOverlay) as Rect | undefined;
+
+        if (percent > 0) {
+          const opacity = Math.min(0.85, percent / 100);
+          if (!dimRect) {
+            dimRect = new Rect({
+              left: 0,
+              top: 0,
+              width: CANVAS_WIDTH,
+              height: targetHeightRef.current,
+              fill: "#000000",
+              opacity,
+              selectable: false,
+              evented: false,
+            });
+            (dimRect as any).isDimOverlay = true;
+            canvas.add(dimRect);
+            const bgPhoto = canvas.getObjects().find((o) => (o as any).isBackground);
+            if (bgPhoto) {
+              const bgIdx = canvas.getObjects().indexOf(bgPhoto);
+              canvas.insertAt(bgIdx + 1, dimRect);
+            } else {
+              canvas.sendObjectToBack(dimRect);
+            }
+          } else {
+            dimRect.set({
+              opacity,
+              width: CANVAS_WIDTH,
+              height: targetHeightRef.current,
+            });
+          }
+        } else if (dimRect) {
+          canvas.remove(dimRect);
         }
+
+        canvas.requestRenderAll();
+        callbacksRef.current.onCanvasModified?.();
       },
 
       exportToDataUrl: (multiplier = 2) => {
         const canvas = fabricRef.current;
         if (!canvas) return "";
 
-        // Deseleccionar para que no aparezcan las manijas en la exportación
         canvas.discardActiveObject();
         canvas.renderAll();
 
@@ -660,13 +790,46 @@ export const FabricStudioCanvas = forwardRef<
         return getObjectInfo(canvas.getActiveObject());
       },
 
-      loadTemplate: async (templateId: string, data: any) => {
+      loadTemplate: async (templateId: string, data: any = {}) => {
         const canvas = fabricRef.current;
         if (!canvas) return;
 
         // Limpiar objetos
         canvas.clear();
-        canvas.backgroundColor = "#ffffff"; // 100% fondo blanco limpio
+        canvas.backgroundColor = "#ffffff"; // Fondo blanco limpio
+
+        const curH = targetHeightRef.current;
+        const curAccent = accentColorRef.current;
+
+        // Cargar foto de fondo si está presente en los datos
+        if (data.bgUrl) {
+          try {
+            const img = await loadFabricImage(data.bgUrl);
+            const naturalW = img.width || 1;
+            const naturalH = img.height || 1;
+            const scale = Math.max(CANVAS_WIDTH / naturalW, curH / naturalH);
+
+            img.set({
+              left: CANVAS_WIDTH / 2,
+              top: curH / 2,
+              originX: "center",
+              originY: "center",
+              scaleX: scale,
+              scaleY: scale,
+              selectable: true,
+              evented: true,
+            });
+
+            (img as any).isBackground = true;
+            (img as any).id = "bg-photo";
+            customizeControls(img, curAccent);
+
+            canvas.add(img);
+            canvas.sendObjectToBack(img);
+          } catch (bgErr) {
+            console.warn("No se pudo cargar foto de fondo en loadTemplate:", bgErr);
+          }
+        }
 
         const titleText = data.title || "5 Errores que Arruinan tus Conversiones en LinkedIn";
         const subtitleText = data.subtitle || "Framework probado para líderes B2B y fundadores de alto impacto";
@@ -675,50 +838,47 @@ export const FabricStudioCanvas = forwardRef<
 
         if (templateId === "blank") {
           canvas.requestRenderAll();
-          onCanvasModified?.();
+          callbacksRef.current.onCanvasModified?.();
           return;
         }
 
         if (templateId === "editorial") {
-          // 1. Tarjeta sutil
           const card = new Rect({
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.52,
+            top: curH * 0.52,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.88,
-            height: targetHeight * 0.72,
+            height: curH * 0.72,
             fill: "#ffffff",
             stroke: "#e2e8f0",
             strokeWidth: 1.5,
             rx: 20,
             ry: 20,
           });
-          customizeControls(card, accentColor);
+          customizeControls(card, curAccent);
           canvas.add(card);
 
-          // 2. Badge de Categoría
           const badge = new Textbox(categoryText.toUpperCase(), {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.24,
+            top: curH * 0.24,
             originX: "center",
             originY: "center",
             width: 220,
             fontFamily: "Inter",
             fontSize: 11,
             fontWeight: 800,
-            fill: accentColor,
+            fill: curAccent,
             textAlign: "center",
             editable: true,
           });
           (badge as any).customType = "badge";
-          customizeControls(badge, accentColor);
+          customizeControls(badge, curAccent);
           canvas.add(badge);
 
-          // 3. Título Principal
           const title = new Textbox(titleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.44,
+            top: curH * 0.44,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.76,
@@ -731,13 +891,12 @@ export const FabricStudioCanvas = forwardRef<
             editable: true,
           });
           (title as any).customType = "heading";
-          customizeControls(title, accentColor);
+          customizeControls(title, curAccent);
           canvas.add(title);
 
-          // 4. Subtítulo
           const sub = new Textbox(subtitleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.65,
+            top: curH * 0.65,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.72,
@@ -750,13 +909,12 @@ export const FabricStudioCanvas = forwardRef<
             editable: true,
           });
           (sub as any).customType = "subheading";
-          customizeControls(sub, accentColor);
+          customizeControls(sub, curAccent);
           canvas.add(sub);
 
-          // 5. Autor
           const author = new Textbox(authorText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.8,
+            top: curH * 0.8,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.7,
@@ -767,29 +925,28 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "center",
             editable: true,
           });
-          customizeControls(author, accentColor);
+          customizeControls(author, curAccent);
           canvas.add(author);
         } else if (templateId === "authority_quote") {
-          // Cita de Autoridad
           const quoteMark = new Textbox("“", {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.22,
+            top: curH * 0.22,
             originX: "center",
             originY: "center",
             width: 80,
             fontFamily: "Georgia",
             fontSize: 72,
             fontWeight: 900,
-            fill: accentColor,
+            fill: curAccent,
             textAlign: "center",
             editable: false,
           });
-          customizeControls(quoteMark, accentColor);
+          customizeControls(quoteMark, curAccent);
           canvas.add(quoteMark);
 
           const quoteText = new Textbox(`"${titleText}"`, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.46,
+            top: curH * 0.46,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.8,
@@ -802,12 +959,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.3,
             editable: true,
           });
-          customizeControls(quoteText, accentColor);
+          customizeControls(quoteText, curAccent);
           canvas.add(quoteText);
 
           const sub = new Textbox(subtitleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.68,
+            top: curH * 0.68,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.75,
@@ -817,45 +974,44 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "center",
             editable: true,
           });
-          customizeControls(sub, accentColor);
+          customizeControls(sub, curAccent);
           canvas.add(sub);
 
           const author = new Textbox(`— ${authorText}`, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.82,
+            top: curH * 0.82,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.7,
             fontFamily: "Inter",
             fontSize: 14,
             fontWeight: 700,
-            fill: accentColor,
+            fill: curAccent,
             textAlign: "center",
             editable: true,
           });
-          customizeControls(author, accentColor);
+          customizeControls(author, curAccent);
           canvas.add(author);
         } else if (templateId === "big_metric") {
-          // Métrica de Alto Impacto
           const metric = new Textbox(data.metric || "+340%", {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.3,
+            top: curH * 0.3,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.8,
             fontFamily: "Plus Jakarta Sans",
             fontSize: 76,
             fontWeight: 900,
-            fill: accentColor,
+            fill: curAccent,
             textAlign: "center",
             editable: true,
           });
-          customizeControls(metric, accentColor);
+          customizeControls(metric, curAccent);
           canvas.add(metric);
 
           const metricLabel = new Textbox("TASA DE CONVERSIÓN B2B", {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.44,
+            top: curH * 0.44,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.7,
@@ -866,12 +1022,12 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "center",
             editable: true,
           });
-          customizeControls(metricLabel, accentColor);
+          customizeControls(metricLabel, curAccent);
           canvas.add(metricLabel);
 
           const title = new Textbox(titleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.6,
+            top: curH * 0.6,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.8,
@@ -883,12 +1039,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.3,
             editable: true,
           });
-          customizeControls(title, accentColor);
+          customizeControls(title, curAccent);
           canvas.add(title);
 
           const author = new Textbox(authorText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.82,
+            top: curH * 0.82,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.7,
@@ -899,29 +1055,28 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "center",
             editable: true,
           });
-          customizeControls(author, accentColor);
+          customizeControls(author, curAccent);
           canvas.add(author);
         } else if (templateId === "social_card") {
-          // Tarjeta Social Feed
           const card = new Rect({
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.5,
+            top: curH * 0.5,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.86,
-            height: targetHeight * 0.76,
+            height: curH * 0.76,
             fill: "#ffffff",
             stroke: "#e2e8f0",
             strokeWidth: 2,
             rx: 16,
             ry: 16,
           });
-          customizeControls(card, accentColor);
+          customizeControls(card, curAccent);
           canvas.add(card);
 
           const header = new Textbox(`${authorName}  ✔\n${authorHandle} · 1er`, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.24,
+            top: curH * 0.24,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.72,
@@ -933,12 +1088,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.3,
             editable: true,
           });
-          customizeControls(header, accentColor);
+          customizeControls(header, curAccent);
           canvas.add(header);
 
           const postBody = new Textbox(`${titleText}\n\n${subtitleText}`, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.52,
+            top: curH * 0.52,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.72,
@@ -950,12 +1105,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.45,
             editable: true,
           });
-          customizeControls(postBody, accentColor);
+          customizeControls(postBody, curAccent);
           canvas.add(postBody);
 
           const metrics = new Textbox("❤️ 428   💬 89   🔄 34", {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.8,
+            top: curH * 0.8,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.72,
@@ -966,13 +1121,12 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "left",
             editable: true,
           });
-          customizeControls(metrics, accentColor);
+          customizeControls(metrics, curAccent);
           canvas.add(metrics);
         } else {
-          // bold_highlighter o default
           const title = new Textbox(titleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.38,
+            top: curH * 0.38,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.8,
@@ -984,12 +1138,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.25,
             editable: true,
           });
-          customizeControls(title, accentColor);
+          customizeControls(title, curAccent);
           canvas.add(title);
 
           const sub = new Textbox(subtitleText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.6,
+            top: curH * 0.6,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.75,
@@ -1001,12 +1155,12 @@ export const FabricStudioCanvas = forwardRef<
             lineHeight: 1.4,
             editable: true,
           });
-          customizeControls(sub, accentColor);
+          customizeControls(sub, curAccent);
           canvas.add(sub);
 
           const author = new Textbox(authorText, {
             left: CANVAS_WIDTH / 2,
-            top: targetHeight * 0.82,
+            top: curH * 0.82,
             originX: "center",
             originY: "center",
             width: CANVAS_WIDTH * 0.7,
@@ -1017,23 +1171,15 @@ export const FabricStudioCanvas = forwardRef<
             textAlign: "center",
             editable: true,
           });
-          customizeControls(author, accentColor);
+          customizeControls(author, curAccent);
           canvas.add(author);
         }
 
         canvas.requestRenderAll();
-        onCanvasModified?.();
+        callbacksRef.current.onCanvasModified?.();
       },
     }),
-    [
-      accentColor,
-      targetHeight,
-      authorName,
-      authorHandle,
-      getObjectInfo,
-      onSelectObject,
-      onCanvasModified,
-    ]
+    [authorName, authorHandle, getObjectInfo]
   );
 
   return (

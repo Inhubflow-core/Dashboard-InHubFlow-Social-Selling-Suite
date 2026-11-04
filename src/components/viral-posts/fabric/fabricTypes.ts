@@ -43,6 +43,8 @@ export interface FabricCanvasEditorHandle {
   updateActiveObject: (props: Partial<ActiveObjectInfo>) => void;
   duplicateActiveObject: () => void;
   deleteActiveObject: () => void;
+  zoomActiveObject: (delta: number) => void;
+  replaceActiveImage: (url: string) => Promise<void>;
   bringForward: () => void;
   sendBackward: () => void;
   setBackgroundColor: (color: string) => void;
