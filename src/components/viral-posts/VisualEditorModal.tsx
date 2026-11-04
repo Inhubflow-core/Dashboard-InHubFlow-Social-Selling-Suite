@@ -1636,15 +1636,8 @@ export default function VisualEditorModal({
     setSelectedTemplate(templateId);
     setActiveCustomTemplateId(null);
 
-    // Asignar fondo curado si no habia uno seleccionado
-    if (!selectedBgUrl) {
-      if (templateId === "editorial") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
-      else if (templateId === "authority_quote") setSelectedBgUrl(CURATED_BACKGROUNDS[1]?.url || CURATED_BACKGROUNDS[0].url);
-      else if (templateId === "social_card") setSelectedBgUrl(CURATED_BACKGROUNDS[2]?.url || CURATED_BACKGROUNDS[0].url);
-      else if (templateId === "split_focus") setSelectedBgUrl(CURATED_BACKGROUNDS[3]?.url || CURATED_BACKGROUNDS[0].url);
-      else if (templateId === "big_metric") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
-      else if (templateId === "bold_highlighter") setSelectedBgUrl(CURATED_BACKGROUNDS[0].url);
-    }
+    // El fondo del lienzo siempre es blanco limpio por defecto (inclusive en plantillas oficiales)
+    // El usuario puede añadir una foto libremente desde la pestaña Fotos si lo desea
 
     // Si la lamina estaba en blanco, poblar textos clave del estilo oficial
     setSlides((prev) => {
@@ -6246,7 +6239,7 @@ export default function VisualEditorModal({
             >
             {/* CONTENEDOR DEL LIENZO MAQUETADO CON TAILWIND (EXPORTABLE 1:1 / 4:5) */}
             <div
-              className={`relative shadow-2xl rounded-2xl border border-gray-800 bg-gray-950 overflow-hidden ring-1 ring-white/10 shrink-0 transition-all duration-300 ${
+              className={`relative shadow-2xl rounded-2xl border border-slate-200/80 bg-white overflow-hidden ring-1 ring-slate-200/60 shrink-0 transition-all duration-300 ${
                 aspectRatio === "4:5" ? "w-[420px] h-[525px]" : "w-[440px] h-[440px]"
               }`}
             >
@@ -6315,10 +6308,10 @@ export default function VisualEditorModal({
                       console.warn("Error al aplicar plantilla arrastrada:", err);
                     }
                   }}
-                  className={`relative w-full h-full flex flex-col justify-between overflow-hidden select-text transition-colors duration-200 ${
-                    selectedTemplate === "blank" && !selectedBgUrl
-                      ? "bg-white text-slate-900"
-                      : "bg-slate-950 text-white"
+                  className={`relative w-full h-full flex flex-col justify-between overflow-hidden select-text transition-colors duration-200 bg-white ${
+                    !selectedBgUrl
+                      ? "text-slate-900"
+                      : "text-white"
                   }`}
                 >
                 {/* 1. FOTO DE FONDO (Tratada como objeto Canva de primera clase con manijas y herramientas) */}
@@ -6438,13 +6431,15 @@ export default function VisualEditorModal({
                           >
                             <div
                               style={{
-                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                                backgroundColor: !selectedBgUrl
+                                  ? (overlayMode === "fullscreen" ? "#ffffff" : "rgba(255, 255, 255, 0.95)")
+                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className={`w-full h-full border border-white/15 shadow-2xl backdrop-blur-md ${
+                              className={`w-full h-full border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"} ${
                                 overlayMode === "fullscreen"
                                   ? "rounded-none"
                                   : "rounded-3xl"
@@ -6505,7 +6500,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("title")}
                                 className="pointer-events-auto"
                               >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight break-words drop-shadow-md`}>
+                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight break-words drop-shadow-sm`}>
                                   <InlineEditableText
                                     elementKey="title"
                                     as="span"
@@ -6532,7 +6527,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("subtitle")}
                                 className="pointer-events-auto"
                               >
-                                <p className="text-xs sm:text-sm text-slate-200 mt-2.5 leading-relaxed font-normal">
+                                <p className={`text-xs sm:text-sm ${!selectedBgUrl ? "text-slate-600" : "text-slate-200"} mt-2.5 leading-relaxed font-normal`}>
                                   <InlineEditableText
                                     elementKey="subtitle"
                                     as="span"
@@ -6558,7 +6553,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="pt-4 mt-3 border-t border-white/10 flex items-center justify-between pointer-events-auto"
+                              className={`pt-4 mt-3 border-t ${!selectedBgUrl ? "border-slate-200" : "border-white/10"} flex items-center justify-between pointer-events-auto`}
                             >
                               <div className="flex items-center gap-2">
                                 <div
@@ -6567,7 +6562,7 @@ export default function VisualEditorModal({
                                 >
                                   {nameText.substring(0, 2).toUpperCase()}
                                 </div>
-                                <span className="text-xs font-bold text-white">
+                                <span className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"}`}>
                                   <InlineEditableText
                                     elementKey="author-name"
                                     value={nameText}
@@ -6613,13 +6608,15 @@ export default function VisualEditorModal({
                           >
                             <div
                               style={{
-                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                                backgroundColor: !selectedBgUrl
+                                  ? "rgba(248, 250, 252, 0.95)"
+                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
                             />
                           </DraggableWrapper>
                         </div>
@@ -6671,7 +6668,7 @@ export default function VisualEditorModal({
                                 className="size-10 mx-auto mb-2 opacity-80"
                                 style={{ color: accentColor }}
                               />
-                              <h1 className={`${getTitleSizeClass(titleSize)} font-bold italic text-white leading-relaxed`}>
+                              <h1 className={`${getTitleSizeClass(titleSize)} font-bold italic ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-relaxed`}>
                                 "
                                 <InlineEditableText
                                   elementKey="title"
@@ -6686,7 +6683,7 @@ export default function VisualEditorModal({
                                 />
                                 "
                               </h1>
-                              <p className="text-xs text-slate-300 mt-3 font-normal">
+                              <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-3 font-normal`}>
                                 <InlineEditableText
                                   elementKey="subtitle"
                                   as="span"
@@ -6711,7 +6708,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/90 border border-white/15 shadow-md pointer-events-auto"
+                              className={`flex items-center gap-3 px-4 py-2 rounded-full ${!selectedBgUrl ? "bg-white border-slate-200 shadow-md text-slate-900" : "bg-slate-900/90 border-white/15 shadow-md text-white"} border pointer-events-auto`}
                             >
                               <div
                                 style={{ backgroundColor: accentColor }}
@@ -6720,7 +6717,7 @@ export default function VisualEditorModal({
                                 {nameText.substring(0, 2).toUpperCase()}
                               </div>
                               <div className="text-left">
-                                <div className="text-xs font-bold text-white leading-tight">
+                                <div className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight`}>
                                   <InlineEditableText
                                     elementKey="author-name"
                                     value={nameText}
@@ -6777,13 +6774,15 @@ export default function VisualEditorModal({
                           >
                             <div
                               style={{
-                                backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                                backgroundColor: !selectedBgUrl
+                                  ? "#ffffff"
+                                  : `rgba(15, 23, 42, ${overlayOpacity})`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
                             />
                           </DraggableWrapper>
                         </div>
@@ -6805,7 +6804,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               isSelected={selectedElement === "author-name"}
                               onSelect={() => setSelectedElement("author-name")}
-                              className="flex items-center gap-3 pb-3 border-b border-white/10 pointer-events-auto"
+                              className={`flex items-center gap-3 pb-3 border-b ${!selectedBgUrl ? "border-slate-200" : "border-white/10"} pointer-events-auto`}
                             >
                               <div
                                 style={{ backgroundColor: accentColor }}
@@ -6815,7 +6814,7 @@ export default function VisualEditorModal({
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-xs font-bold text-white">
+                                  <span className={`text-xs font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"}`}>
                                     <InlineEditableText
                                       elementKey="author-name"
                                       value={nameText}
@@ -6895,7 +6894,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("title")}
                                 className="pointer-events-auto"
                               >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
+                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-snug`}>
                                   <InlineEditableText
                                     elementKey="title"
                                     as="span"
@@ -6993,7 +6992,7 @@ export default function VisualEditorModal({
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className="h-full w-full bg-slate-950/95 border-t-4 backdrop-blur-md"
+                              className={`h-full w-full ${!selectedBgUrl ? "bg-white border-t-4 border-slate-200/90 shadow-xl" : "bg-slate-950/95 border-t-4 backdrop-blur-md"}`}
                             />
                           </DraggableWrapper>
                         </div>
@@ -7040,7 +7039,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("title")}
                                 className="pointer-events-auto"
                               >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold text-white leading-tight`}>
+                                <h1 className={`${getTitleSizeClass(titleSize)} font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-tight`}>
                                   <InlineEditableText
                                     elementKey="title"
                                     as="span"
@@ -7133,13 +7132,15 @@ export default function VisualEditorModal({
                           >
                             <div
                               style={{
-                                backgroundColor: `rgba(9, 13, 24, ${overlayOpacity})`,
+                                backgroundColor: !selectedBgUrl
+                                  ? "rgba(248, 250, 252, 0.95)"
+                                  : `rgba(9, 13, 24, ${overlayOpacity})`,
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedElement("brand");
                               }}
-                              className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                              className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
                             />
                           </DraggableWrapper>
                         </div>
@@ -7226,7 +7227,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("title")}
                                 className="pointer-events-auto"
                               >
-                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold text-white mt-3`}>
+                                <h1 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} mt-3`}>
                                   <InlineEditableText
                                     elementKey="title"
                                     as="span"
@@ -7239,7 +7240,7 @@ export default function VisualEditorModal({
                                     placeholder="Explicación del resultado..."
                                   />
                                 </h1>
-                                <p className="text-xs text-slate-300 mt-1 font-normal">
+                                <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-1 font-normal`}>
                                   <InlineEditableText
                                     elementKey="subtitle"
                                     as="span"
@@ -7316,7 +7317,9 @@ export default function VisualEditorModal({
                       return (
                         <>
                           {/* Capa z-10: Degradado inteligente lateral para lectura perfecta sobre fotos */}
-                          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/20" />
+                          {Boolean(selectedBgUrl && selectedBgUrl.trim() !== "") && (
+                            <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/20" />
+                          )}
 
                           {/* Capa z-20: Contenidos de la Lámina */}
                           <div className="absolute inset-0 z-20 pointer-events-none p-6 sm:p-7 flex flex-col justify-between">
@@ -7338,7 +7341,7 @@ export default function VisualEditorModal({
                                 isExporting={isExporting}
                                 className="pointer-events-auto"
                               >
-                                <span className="text-sm font-black font-mono text-white/80 tracking-wider">
+                                <span className={`text-sm font-black font-mono ${!selectedBgUrl ? "text-slate-900" : "text-white/80"} tracking-wider`}>
                                   {nameText.charAt(0).toUpperCase()}.
                                 </span>
                               </DraggableWrapper>
@@ -7355,7 +7358,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("tag")}
                                 className="pointer-events-auto"
                               >
-                                <div className="text-[11px] font-black tracking-[0.2em] text-white/90 uppercase drop-shadow-md">
+                                <div className={`text-[11px] font-black tracking-[0.2em] ${!selectedBgUrl ? "text-slate-800" : "text-white/90"} uppercase drop-shadow-sm`}>
                                   <InlineEditableText
                                     elementKey="tag"
                                     value={currentSlide.tag || "INSIGHTS B2B"}
@@ -7383,7 +7386,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("title")}
                                 className="pointer-events-auto"
                               >
-                                <div className="font-extrabold text-white tracking-tight leading-[1.08] select-text">
+                                <div className={`font-extrabold ${!selectedBgUrl ? "text-slate-900" : "text-white"} tracking-tight leading-[1.08] select-text`}>
                                   {/* Prefijo en minúsculas */}
                                   <div className={`${headlineSizeClass} drop-shadow-md`}>
                                     <InlineEditableText
@@ -7463,7 +7466,7 @@ export default function VisualEditorModal({
                                 onSelect={() => setSelectedElement("subtitle")}
                                 className="pointer-events-auto pt-2"
                               >
-                                <p className="text-xs sm:text-[13px] text-slate-200/90 leading-relaxed font-normal drop-shadow-sm">
+                                <p className={`text-xs sm:text-[13px] ${!selectedBgUrl ? "text-slate-600" : "text-slate-200/90"} leading-relaxed font-normal drop-shadow-sm`}>
                                   <InlineEditableText
                                     elementKey="subtitle"
                                     as="span"
@@ -7495,7 +7498,7 @@ export default function VisualEditorModal({
                               isExporting={isExporting}
                               className="pointer-events-auto self-end flex items-center gap-2"
                             >
-                              <div className="flex items-center gap-2 text-white/80">
+                              <div className={`flex items-center gap-2 ${!selectedBgUrl ? "text-slate-700" : "text-white/80"}`}>
                                 {editorMode === "carousel" && (
                                   <InlineEditableText
                                     elementKey="bold-swipe"
@@ -7535,13 +7538,15 @@ export default function VisualEditorModal({
                       >
                         <div
                           style={{
-                            backgroundColor: `rgba(15, 23, 42, ${overlayOpacity})`,
+                            backgroundColor: !selectedBgUrl
+                              ? "rgba(248, 250, 252, 0.96)"
+                              : `rgba(15, 23, 42, ${overlayOpacity})`,
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedElement("brand");
                           }}
-                          className="w-full h-full rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md"
+                          className={`w-full h-full rounded-3xl border ${!selectedBgUrl ? "border-slate-200/90 shadow-xl" : "border-white/15 shadow-2xl backdrop-blur-md"}`}
                         />
                       </DraggableWrapper>
                     </div>
@@ -7589,7 +7594,7 @@ export default function VisualEditorModal({
                             onSelect={() => setSelectedElement("title")}
                             className="pointer-events-auto"
                           >
-                            <h2 className={`${getTitleSizeClass(titleSize)} font-bold text-white leading-snug`}>
+                            <h2 className={`${getTitleSizeClass(titleSize)} font-bold ${!selectedBgUrl ? "text-slate-900" : "text-white"} leading-snug`}>
                               <InlineEditableText
                                 elementKey="title"
                                 as="span"
@@ -7602,7 +7607,7 @@ export default function VisualEditorModal({
                                 placeholder="Título de la lámina..."
                               />
                             </h2>
-                            <p className="text-xs text-slate-300 mt-1">
+                            <p className={`text-xs ${!selectedBgUrl ? "text-slate-600" : "text-slate-300"} mt-1`}>
                               <InlineEditableText
                                 elementKey="subtitle"
                                 as="span"
@@ -7636,7 +7641,7 @@ export default function VisualEditorModal({
                             className="my-auto space-y-2.5 pointer-events-auto"
                           >
                             {(currentSlide.bullets || ["Punto 1", "Punto 2", "Punto 3"]).map((bullet, idx) => (
-                              <div key={idx} className="flex items-start gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
+                              <div key={idx} className={`flex items-start gap-3 p-2.5 rounded-xl ${!selectedBgUrl ? "bg-slate-50 border border-slate-200/80 text-slate-800" : "bg-white/5 border border-white/5 text-slate-100"}`}>
                                 <span
                                   style={{ backgroundColor: accentColor }}
                                   className="size-5 rounded-full text-[11px] font-black text-black flex items-center justify-center shrink-0 mt-0.5"
