@@ -299,10 +299,10 @@ export async function GET(req: NextRequest) {
 
   const testMode = searchParams.get("test") === "true";
   const userKey =
+    process.env.PIXABAY_API_KEY ||
     req.headers.get("x-pixabay-key") ||
     searchParams.get("key") ||
-    process.env.PIXABAY_API_KEY ||
-    "";
+    "58409897-b3c110054005d6f3e0f80eabc";
 
   // Endpoint de test de conexión para validar la clave ingresada
   if (testMode) {

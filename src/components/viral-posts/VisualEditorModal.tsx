@@ -1606,7 +1606,7 @@ export default function VisualEditorModal({
   const [isExporting, setIsExporting] = useState(false);
   const [exportFeedback, setExportFeedback] = useState<string | null>(null);
 
-  // Estados de Pixabay API Engine
+  // Estados HD API Engine
   const [pixabayKey, setPixabayKey] = useState<string>("");
   const [isPixabayModalOpen, setIsPixabayModalOpen] = useState(false);
   const [pixabayKeyInput, setPixabayKeyInput] = useState("");
@@ -1639,7 +1639,7 @@ export default function VisualEditorModal({
   const [videoSearchQuery, setVideoSearchQuery] = useState("");
   const [activeVideoTag, setActiveVideoTag] = useState("all");
 
-  // Carga inicial de API Key de Pixabay
+  // Carga inicial de API Key HD
   useEffect(() => {
     const k = getStoredPixabayKey();
     if (k) {
@@ -1663,7 +1663,7 @@ export default function VisualEditorModal({
       setPixabayPhotos(res.items || []);
       setTotalPhotos(res.total || 0);
     } catch (err) {
-      console.error("Error al cargar fotos de Pixabay:", err);
+      console.error("Error al cargar fotos HD:", err);
     } finally {
       setIsLoadingPhotos(false);
     }
@@ -1681,7 +1681,7 @@ export default function VisualEditorModal({
       });
       setPixabayElements(res.items || []);
     } catch (err) {
-      console.error("Error al cargar elementos de Pixabay:", err);
+      console.error("Error al cargar elementos HD:", err);
     } finally {
       setIsLoadingElements(false);
     }
@@ -1699,7 +1699,7 @@ export default function VisualEditorModal({
       });
       setPixabayBackgrounds(res.items || []);
     } catch (err) {
-      console.error("Error al cargar fondos de Pixabay:", err);
+      console.error("Error al cargar fondos HD:", err);
     } finally {
       setIsLoadingBackgrounds(false);
     }
@@ -1717,7 +1717,7 @@ export default function VisualEditorModal({
       });
       setPixabayVideos(res.items || []);
     } catch (err) {
-      console.error("Error al cargar videos de Pixabay:", err);
+      console.error("Error al cargar videos HD:", err);
     } finally {
       setIsLoadingVideos(false);
     }
@@ -1773,7 +1773,7 @@ export default function VisualEditorModal({
     loadPixabayVideos,
   ]);
 
-  // Manejador para aplicar foto o fondo de Pixabay como background del lienzo
+  // Manejador para aplicar foto o fondo HD como background del lienzo
   const handleApplyPixabayAsBg = (item: PixabayItem) => {
     setSelectedBgUrl(item.regularUrl);
     updateCurrentSlide({ bgUrl: item.regularUrl });
@@ -1782,7 +1782,7 @@ export default function VisualEditorModal({
     setTimeout(() => setExportFeedback(null), 2500);
   };
 
-  // Manejador para insertar recurso de Pixabay como elemento libre en el lienzo
+  // Manejador para insertar recurso HD como elemento libre en el lienzo
   const handleInsertPixabayAsElement = (item: PixabayItem) => {
     setIsFreeMode(true);
     const newId = `elem-${Date.now()}`;
@@ -1818,7 +1818,7 @@ export default function VisualEditorModal({
     setTimeout(() => setExportFeedback(null), 2500);
   };
 
-  // Manejador para probar API Key de Pixabay
+  // Manejador para probar API Key HD
   const handleTestPixabayKey = async () => {
     if (!pixabayKeyInput.trim()) {
       setPixabayTestState({ loading: false, ok: false, message: "Ingresa tu API Key antes de probar" });
@@ -1841,13 +1841,13 @@ export default function VisualEditorModal({
     }
   };
 
-  // Manejador para guardar API Key de Pixabay
+  // Manejador para guardar API Key HD
   const handleSavePixabayKey = () => {
     const trimmed = pixabayKeyInput.trim();
     setStoredPixabayKey(trimmed);
     setPixabayKey(trimmed);
     setIsPixabayModalOpen(false);
-    setExportFeedback(trimmed ? "¡API Key de Pixabay guardada y activada!" : "API Key removida. Usando catálogo base.");
+    setExportFeedback(trimmed ? "¡API Key HD guardada y activada!" : "API Key removida. Usando catálogo base.");
     setTimeout(() => setExportFeedback(null), 3000);
     // Recargar pestaña activa
     if (activeDockTab === "photos") loadPixabayPhotos(photoSearchQuery, activePhotoTag, photoOrientation);
@@ -3100,7 +3100,7 @@ export default function VisualEditorModal({
                 ? "bg-brand-600 text-white shadow-md font-bold"
                 : "text-slate-400 hover:text-white hover:bg-slate-900"
             }`}
-            title="Videos corporativos y motion clips de Pixabay"
+            title="Videos corporativos y motion clips HD"
           >
             <Video className="size-5" />
             <span className="text-[10px] tracking-tight">Videos</span>
@@ -3726,21 +3726,11 @@ export default function VisualEditorModal({
             {/* PESTAÑA 3: ELEMENTOS */}
             {activeDockTab === "elements" && (
               <div className="space-y-4 select-none">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Elementos & Gráficos</h3>
-                    <p className="text-xs text-slate-400">
-                      Formas geométricas, vectores, iconos e ilustraciones de Pixabay.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPixabayModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
-                    title="Configurar Pixabay API Key gratuita"
-                  >
-                    <Key className="size-4 text-amber-400" />
-                  </button>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Elementos & Gráficos</h3>
+                  <p className="text-xs text-slate-400">
+                    Formas geométricas, vectores, iconos e ilustraciones en alta definición.
+                  </p>
                 </div>
 
                 {/* Subselector Segmented: Formas | Vectores | Ilustraciones */}
@@ -3957,7 +3947,7 @@ export default function VisualEditorModal({
                     {isLoadingElements ? (
                       <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
                         <Loader2 className="size-6 animate-spin text-brand-400" />
-                        <span className="text-xs">Cargando recursos de Pixabay...</span>
+                        <span className="text-xs">Cargando recursos en alta definición...</span>
                       </div>
                     ) : pixabayElements.length === 0 ? (
                       <div className="py-10 text-center text-slate-400">
@@ -4005,27 +3995,11 @@ export default function VisualEditorModal({
 
             {activeDockTab === "photos" && (
               <div className="space-y-4 select-none">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-bold text-white">Fotografías Pixabay HD</h3>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold">
-                        {pixabayKey ? "API Conectada" : "Catálogo Base"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      Millones de fotos libres en alta definición. Clic para fondo o pulsa (+) para elemento.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsPixabayModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
-                    title="Configurar Pixabay API Key gratuita"
-                  >
-                    <Key className="size-4 text-amber-400" />
-                  </button>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Fotografías HD</h3>
+                  <p className="text-xs text-slate-400">
+                    Millones de fotografías de alta resolución. Clic para fondo o pulsa (+) para añadir al lienzo.
+                  </p>
                 </div>
 
                 {/* Buscador de Fotos */}
@@ -4094,30 +4068,13 @@ export default function VisualEditorModal({
                   </div>
                 </div>
 
-                {/* Banner amigable si no hay API key */}
-                {!pixabayKey && (
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Key className="size-3.5 text-amber-400 shrink-0" />
-                      <span className="text-[10px] text-amber-300">
-                        ¿Quieres más de 4.3M de fotos en vivo? Conecta tu API Key gratuita.
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsPixabayModalOpen(true)}
-                      className="text-[10px] font-bold text-amber-400 hover:underline shrink-0"
-                    >
-                      Conectar
-                    </button>
-                  </div>
-                )}
+
 
                 {/* Grid de Fotos Pixabay */}
                 {isLoadingPhotos ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
                     <Loader2 className="size-6 animate-spin text-brand-400" />
-                    <span className="text-xs">Cargando fotos de Pixabay...</span>
+                    <span className="text-xs">Cargando fotos en alta definición...</span>
                   </div>
                 ) : pixabayPhotos.length === 0 ? (
                   <div className="py-10 text-center text-slate-400">
@@ -4183,7 +4140,7 @@ export default function VisualEditorModal({
                               {photo.title}
                             </span>
                             <span className="text-[8px] text-slate-300 block truncate drop-shadow">
-                              por {photo.author} • Pixabay
+                              por {photo.author}
                             </span>
                           </div>
                         </div>
@@ -4196,21 +4153,11 @@ export default function VisualEditorModal({
 
             {activeDockTab === "backgrounds" && (
               <div className="space-y-4 select-none">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Fondos & Marca</h3>
-                    <p className="text-xs text-slate-400">
-                      Configura el modo de fondo, opacidad y fondos HD de Pixabay.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPixabayModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
-                    title="Configurar Pixabay API Key gratuita"
-                  >
-                    <Key className="size-4 text-amber-400" />
-                  </button>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Fondos & Marca</h3>
+                  <p className="text-xs text-slate-400">
+                    Configura el modo de fondo, opacidad y biblioteca de fondos HD.
+                  </p>
                 </div>
 
                 {/* Modo de Fondo */}
@@ -4262,7 +4209,7 @@ export default function VisualEditorModal({
                 {/* SECCIÓN NUEVA: GALERÍA DE FONDOS PIXABAY */}
                 <div className="pt-3 border-t border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider block">Galería de Fondos Pixabay</span>
+                    <span className="text-xs font-bold text-white uppercase tracking-wider block">Galería de Fondos HD</span>
                     <span className="text-[9px] font-mono text-emerald-400 font-bold">HD</span>
                   </div>
 
@@ -4356,21 +4303,11 @@ export default function VisualEditorModal({
             {/* PESTAÑA NUEVA: VIDEOS Y MOTION PIXABAY */}
             {activeDockTab === "videos" && (
               <div className="space-y-4 select-none">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Videos & Motion HD</h3>
-                    <p className="text-xs text-slate-400">
-                      Clips de video corporativo y fondos animados de Pixabay.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPixabayModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
-                    title="Configurar Pixabay API Key gratuita"
-                  >
-                    <Key className="size-4 text-amber-400" />
-                  </button>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Videos & Motion HD</h3>
+                  <p className="text-xs text-slate-400">
+                    Clips de video corporativo y fondos animados en alta definición.
+                  </p>
                 </div>
 
                 {/* Buscador de Videos */}
@@ -4426,7 +4363,7 @@ export default function VisualEditorModal({
                 {isLoadingVideos ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
                     <Loader2 className="size-6 animate-spin text-brand-400" />
-                    <span className="text-xs">Cargando clips de Pixabay...</span>
+                    <span className="text-xs">Cargando clips en alta definición...</span>
                   </div>
                 ) : pixabayVideos.length === 0 ? (
                   <div className="py-10 text-center text-slate-400">
@@ -4469,7 +4406,7 @@ export default function VisualEditorModal({
                               {vid.title}
                             </span>
                             <span className="text-[8px] text-slate-300 block truncate drop-shadow">
-                              por {vid.author} • Pixabay
+                              por {vid.author}
                             </span>
                           </div>
                         </div>
