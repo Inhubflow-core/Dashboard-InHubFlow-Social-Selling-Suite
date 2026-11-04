@@ -149,9 +149,22 @@ export function renderVerticalPill(
   ctx.restore();
 }
 
+const ROTATE_SVG_PATH = "M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8 M21 3v5h-5";
+const MOVE_SVG_PATH = "M5 9l-3 3 3 3 M9 5l3-3 3 3 M15 19l-3 3-3-3 M19 9l3 3-3 3 M2 12h20 M12 2v20";
+
+let rotatePath2D: Path2D | null = null;
+let movePath2D: Path2D | null = null;
+
+if (typeof Path2D !== "undefined") {
+  try {
+    rotatePath2D = new Path2D(ROTATE_SVG_PATH);
+    movePath2D = new Path2D(MOVE_SVG_PATH);
+  } catch {}
+}
+
 /**
- * 4. HERRAMIENTA FLOTANTE 1: GIRAR (Rotate Button)
- * Botón circular blanco flotante inferior con ícono de flecha circular de giro.
+ * 4. HERRAMIENTA FLOTANTE 1: GIRAR (Rotate Button estilo Canva)
+ * Botón circular blanco flotante inferior con ícono SVG nítido Lucide RotateCw.
  */
 export function renderRotateButton(
   ctx: CanvasRenderingContext2D,
@@ -160,57 +173,64 @@ export function renderRotateButton(
   _style: unknown,
   fabricObject: FabricObject
 ): void {
-  const accent = typeof fabricObject.borderColor === "string" ? fabricObject.borderColor : "#0099ff";
-  const r = 13; // Diámetro 26px (estilo size-7 Canva)
+  const r = 14.5; // Diámetro 29px
   const angleRad = ((fabricObject.angle || 0) * Math.PI) / 180;
 
   ctx.save();
   ctx.translate(left, top);
   ctx.rotate(angleRad);
 
-  // Sombra elegante
-  ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 2;
+  // Sombra suave estilo Canva
+  ctx.shadowColor = "rgba(15, 23, 42, 0.22)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+  ctx.shadowOffsetX = 0;
 
   // Botón circular blanco
   ctx.fillStyle = "#ffffff";
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.5;
-
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
 
+  // Resetear sombra para que el borde y el ícono queden 100% nítidos sin borrosidad
   ctx.shadowColor = "transparent";
+  ctx.strokeStyle = "#cbd5e1"; // slate-300 sutil y elegante
+  ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // Ícono de giro estilo Lucide RotateCw
-  ctx.strokeStyle = accent;
-  ctx.fillStyle = accent;
-  ctx.lineWidth = 1.6;
-  const innerR = 6;
+  // Dibujar ícono SVG vectorial Lucide RotateCw
+  ctx.strokeStyle = "#1e293b"; // slate-800 oscuro de alto contraste
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  ctx.beginPath();
-  ctx.arc(0, 0, innerR, Math.PI * 0.15, Math.PI * 1.72);
-  ctx.stroke();
+  if (rotatePath2D) {
+    ctx.save();
+    ctx.scale(15 / 24, 15 / 24);
+    ctx.translate(-12, -12);
+    ctx.stroke(rotatePath2D);
+    ctx.restore();
+  } else {
+    // Fallback vectorial manual limpio
+    ctx.beginPath();
+    ctx.arc(0, 0, 5.5, -Math.PI * 0.8, Math.PI * 0.25);
+    ctx.stroke();
 
-  // Punta de flecha
-  const tipX = Math.cos(Math.PI * 0.15) * innerR;
-  const tipY = Math.sin(Math.PI * 0.15) * innerR;
-  ctx.beginPath();
-  ctx.moveTo(tipX, tipY);
-  ctx.lineTo(tipX + 3.2, tipY - 1.8);
-  ctx.lineTo(tipX + 1.0, tipY + 3.2);
-  ctx.closePath();
-  ctx.fill();
+    const tipX = Math.cos(Math.PI * 0.25) * 5.5;
+    const tipY = Math.sin(Math.PI * 0.25) * 5.5;
+    ctx.beginPath();
+    ctx.moveTo(tipX - 1.5, tipY - 4.5);
+    ctx.lineTo(tipX + 0.5, tipY);
+    ctx.lineTo(tipX - 4.5, tipY + 0.5);
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
 
 /**
- * 5. HERRAMIENTA FLOTANTE 2: MOVER (Move Button)
- * Botón circular blanco flotante inferior junto a Girar con ícono de 4 flechas de movimiento.
+ * 5. HERRAMIENTA FLOTANTE 2: MOVER (Move Button estilo Canva)
+ * Botón circular blanco flotante inferior junto a Girar con ícono SVG nítido Lucide Move.
  */
 export function renderMoveButton(
   ctx: CanvasRenderingContext2D,
@@ -219,72 +239,54 @@ export function renderMoveButton(
   _style: unknown,
   fabricObject: FabricObject
 ): void {
-  const accent = typeof fabricObject.borderColor === "string" ? fabricObject.borderColor : "#0099ff";
-  const r = 13; // Diámetro 26px (estilo size-7 Canva)
+  const r = 14.5; // Diámetro 29px
   const angleRad = ((fabricObject.angle || 0) * Math.PI) / 180;
 
   ctx.save();
   ctx.translate(left, top);
   ctx.rotate(angleRad);
 
-  // Sombra elegante
-  ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 2;
+  // Sombra suave estilo Canva
+  ctx.shadowColor = "rgba(15, 23, 42, 0.22)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+  ctx.shadowOffsetX = 0;
 
   // Botón circular blanco
   ctx.fillStyle = "#ffffff";
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.5;
-
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
 
+  // Resetear sombra para que el borde y el ícono queden 100% nítidos
   ctx.shadowColor = "transparent";
+  ctx.strokeStyle = "#cbd5e1"; // slate-300 sutil y elegante
+  ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // Ícono de 4 flechas de movimiento estilo Canva
-  ctx.strokeStyle = accent;
-  ctx.fillStyle = accent;
-  ctx.lineWidth = 1.5;
+  // Dibujar ícono SVG vectorial Lucide Move (4 flechas de movimiento)
+  ctx.strokeStyle = "#1e293b"; // slate-800 oscuro de alto contraste
+  ctx.lineWidth = 2.0;
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  // Cruz central
-  ctx.beginPath();
-  ctx.moveTo(-5.5, 0);
-  ctx.lineTo(5.5, 0);
-  ctx.moveTo(0, -5.5);
-  ctx.lineTo(0, 5.5);
-  ctx.stroke();
-
-  // Flecha Arriba
-  ctx.beginPath();
-  ctx.moveTo(-2.8, -4.2);
-  ctx.lineTo(0, -7.5);
-  ctx.lineTo(2.8, -4.2);
-  ctx.stroke();
-
-  // Flecha Abajo
-  ctx.beginPath();
-  ctx.moveTo(-2.8, 4.2);
-  ctx.lineTo(0, 7.5);
-  ctx.lineTo(2.8, 4.2);
-  ctx.stroke();
-
-  // Flecha Izquierda
-  ctx.beginPath();
-  ctx.moveTo(-4.2, -2.8);
-  ctx.lineTo(-7.5, 0);
-  ctx.lineTo(-4.2, 2.8);
-  ctx.stroke();
-
-  // Flecha Derecha
-  ctx.beginPath();
-  ctx.moveTo(4.2, -2.8);
-  ctx.lineTo(7.5, 0);
-  ctx.lineTo(4.2, 2.8);
-  ctx.stroke();
+  if (movePath2D) {
+    ctx.save();
+    ctx.scale(15 / 24, 15 / 24);
+    ctx.translate(-12, -12);
+    ctx.stroke(movePath2D);
+    ctx.restore();
+  } else {
+    // Fallback vectorial manual limpio
+    ctx.beginPath();
+    ctx.moveTo(-6.5, 0); ctx.lineTo(6.5, 0);
+    ctx.moveTo(0, -6.5); ctx.lineTo(0, 6.5);
+    ctx.moveTo(-3, -4); ctx.lineTo(0, -7); ctx.lineTo(3, -4);
+    ctx.moveTo(-3, 4); ctx.lineTo(0, 7); ctx.lineTo(3, 4);
+    ctx.moveTo(-4, -3); ctx.lineTo(-7, 0); ctx.lineTo(-4, 3);
+    ctx.moveTo(4, -3); ctx.lineTo(7, 0); ctx.lineTo(4, 3);
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
@@ -411,37 +413,38 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
   }
 
   // 3. LAS DOS HERRAMIENTAS FLOTANTES JUNTAS (GIRAR + MOVER):
-  // Ubicadas centradas horizontalmente, 32px debajo del borde inferior (y: 0.5)
+  // Ubicadas centradas horizontalmente, 42px debajo del borde inferior (y: 0.5)
+  // con separación limpia y sin solapar la manija de borde mb
 
-  // Herramienta 1: GIRAR (mtr) - Botón izquierdo (-16px)
+  // Herramienta 1: GIRAR (mtr) - Botón izquierdo (-19px)
   if (controls.mtr) {
     controls.mtr.visible = true;
     controls.mtr.x = 0;
     controls.mtr.y = 0.5;
-    controls.mtr.offsetX = -16;
-    controls.mtr.offsetY = 32;
+    controls.mtr.offsetX = -19;
+    controls.mtr.offsetY = 42;
     controls.mtr.cursorStyleHandler = controlsUtils.rotationStyleHandler;
     controls.mtr.actionHandler = controlsUtils.rotationWithSnapping;
     controls.mtr.render = renderRotateButton;
-    controls.mtr.sizeX = 28;
-    controls.mtr.sizeY = 28;
-    controls.mtr.touchSizeX = 36;
-    controls.mtr.touchSizeY = 36;
+    controls.mtr.sizeX = 30;
+    controls.mtr.sizeY = 30;
+    controls.mtr.touchSizeX = 38;
+    controls.mtr.touchSizeY = 38;
   }
 
-  // Herramienta 2: MOVER (move) - Botón derecho (+16px)
+  // Herramienta 2: MOVER (move) - Botón derecho (+19px)
   controls.move = new Control({
     x: 0,
     y: 0.5,
-    offsetX: 16,
-    offsetY: 32,
+    offsetX: 19,
+    offsetY: 42,
     cursorStyle: "grab",
     actionHandler: controlsUtils.dragHandler,
     actionName: "drag",
     render: renderMoveButton,
-    sizeX: 28,
-    sizeY: 28,
-    touchSizeX: 36,
-    touchSizeY: 36,
+    sizeX: 30,
+    sizeY: 30,
+    touchSizeX: 38,
+    touchSizeY: 38,
   });
 }
