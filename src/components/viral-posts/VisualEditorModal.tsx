@@ -4301,49 +4301,23 @@ export default function VisualEditorModal({
                   )}
                 </div>
 
-                {/* Filtros de Categoría y Orientación */}
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-1">
-                    {[
-                      { id: "all", label: "Todas" },
-                      { id: "business", label: "Negocios" },
-                      { id: "computer", label: "Tecnología" },
-                      { id: "office", label: "Oficina" },
-                      { id: "people", label: "Líderes" },
-                      { id: "buildings", label: "Arquitectura" },
-                    ].map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => setActivePhotoTag(tag.id)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${
-                          activePhotoTag === tag.id
-                            ? "bg-brand-600 text-white shadow-xs"
-                            : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-750"
-                        }`}
-                      >
-                        {tag.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
-                    <span className="text-[10px] text-slate-400 font-semibold">Orientación:</span>
-                    {(["all", "horizontal", "vertical"] as const).map((ori) => (
-                      <button
-                        key={ori}
-                        type="button"
-                        onClick={() => setPhotoOrientation(ori)}
-                        className={`text-[10px] px-2 py-0.5 rounded transition capitalize ${
-                          photoOrientation === ori
-                            ? "bg-slate-700 text-white font-bold"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        {ori === "all" ? "Todas" : ori === "horizontal" ? "Horizontal" : "Vertical"}
-                      </button>
-                    ))}
-                  </div>
+                {/* Filtro de Orientación */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[10px] text-slate-400 font-semibold">Orientación:</span>
+                  {(["all", "horizontal", "vertical"] as const).map((ori) => (
+                    <button
+                      key={ori}
+                      type="button"
+                      onClick={() => setPhotoOrientation(ori)}
+                      className={`text-[10px] px-2 py-0.5 rounded transition capitalize ${
+                        photoOrientation === ori
+                          ? "bg-slate-700 text-white font-bold"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {ori === "all" ? "Todas" : ori === "horizontal" ? "Horizontal" : "Vertical"}
+                    </button>
+                  ))}
                 </div>
 
 
