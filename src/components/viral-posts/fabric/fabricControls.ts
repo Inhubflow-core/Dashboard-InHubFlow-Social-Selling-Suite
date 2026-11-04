@@ -419,6 +419,7 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
   // Herramienta 1: GIRAR (mtr) - Botón izquierdo (-19px)
   if (controls.mtr) {
     controls.mtr.visible = true;
+    controls.mtr.withConnection = false; // Elimina la línea azul de conexión entre el cuadro y el botón
     controls.mtr.x = 0;
     controls.mtr.y = 0.5;
     controls.mtr.offsetX = -19;
@@ -438,6 +439,7 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
     y: 0.5,
     offsetX: 19,
     offsetY: 42,
+    withConnection: false,
     cursorStyle: "grab",
     actionHandler: controlsUtils.dragHandler,
     actionName: "drag",
