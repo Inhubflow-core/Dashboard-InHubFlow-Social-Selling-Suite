@@ -171,6 +171,10 @@ export interface CarouselSlideItem {
   hiddenElements?: Record<string, boolean>;
   customElements?: CustomCanvasElement[];
   elementStyles?: Record<string, ElementFormatting>;
+  bgUrl?: string;
+  category?: string;
+  authorName?: string;
+  authorHandle?: string;
 }
 
 export interface CustomVisualTemplate {

@@ -54,4 +54,9 @@ export interface FabricCanvasEditorHandle {
   exportToDataUrl: (multiplier?: number) => string;
   getActiveObjectInfo: () => ActiveObjectInfo | null;
   loadTemplate: (templateId: string, data: any) => Promise<void>;
+  startCropActiveImage: () => Promise<boolean>;
+  applyCrop: () => boolean;
+  cancelCrop: () => void;
+  resetCrop: () => void;
+  isCropping: () => boolean;
 }

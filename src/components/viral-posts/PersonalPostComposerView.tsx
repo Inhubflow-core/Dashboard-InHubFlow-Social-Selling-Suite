@@ -658,7 +658,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     suppressHydrationWarning
                     className="text-[11px] text-gray-500 dark:text-gray-400 truncate"
                   >
-                    {activeAccount?.headline || "Líder B2B • Social Selling & Automatización de Demanda"}
+                    {(activeAccount as any)?.headline || "Líder B2B • Social Selling & Automatización de Demanda"}
                   </p>
                   <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
                     <span>Ahora</span>

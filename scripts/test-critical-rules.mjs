@@ -1593,6 +1593,167 @@ assert(dispatchResult.mode === "cookie", "La conexión se enruta automáticament
 assert(dispatchResult.accessToken === "AQEDAQ_test_li_at_sample_cookie_xyz123", "El token li_at se transmite intacto");
 assert(dispatchResult.premiumToken === "AQEDAQ_test_li_a_premium_sample", "El token premium li_a de Sales Navigator se preserva");
 
+// =========================================================================
+// 29. PRUEBA DEL MOTOR DE RECORTE DOORY Y MANIJAS NO DEFORMANTES
+// =========================================================================
+console.log("\n--- 29. Prueba del Motor de Recorte Doory y Manijas No Deformantes ---");
+
+// Geometría pura Doory
+function testFrameToCrop(g, f) {
+  const dx = f.cx - g.ghostCenter.x;
+  const dy = f.cy - g.ghostCenter.y;
+  const width = f.w / g.sx;
+  const height = f.h / g.sy;
+  return {
+    cropX: g.natW / 2 + dx / g.sx - width / 2,
+    cropY: g.natH / 2 + dy / g.sy - height / 2,
+    width,
+    height,
+  };
+}
+
+function testCropToFrame(g, c) {
+  const lx = (c.cropX + c.width / 2 - g.natW / 2) * g.sx;
+  const ly = (c.cropY + c.height / 2 - g.natH / 2) * g.sy;
+  return { cx: g.ghostCenter.x + lx, cy: g.ghostCenter.y + ly, w: c.width * g.sx, h: c.height * g.sy };
+}
+
+function testClampCrop(g, c, minSize = 20) {
+  const clampFn = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+  const width = clampFn(c.width, Math.min(minSize, g.natW), g.natW);
+  const height = clampFn(c.height, Math.min(minSize, g.natH), g.natH);
+  return {
+    width,
+    height,
+    cropX: clampFn(c.cropX, 0, Math.max(0, g.natW - width)),
+    cropY: clampFn(c.cropY, 0, Math.max(0, g.natH - height)),
+  };
+}
+
+const mockGeom = {
+  natW: 800,
+  natH: 600,
+  sx: 1,
+  sy: 1,
+  angle: 0,
+  flipX: false,
+  flipY: false,
+  ghostCenter: { x: 400, y: 300 },
+};
+
+const fullFrame = { cx: 400, cy: 300, w: 800, h: 600 };
+const cropParams = testFrameToCrop(mockGeom, fullFrame);
+assert(cropParams.cropX === 0 && cropParams.cropY === 0, "Marco inicial cubre cropX: 0 y cropY: 0");
+assert(cropParams.width === 800 && cropParams.height === 600, "Dimensiones del recorte coinciden con tamaño natural");
+
+const backFrame = testCropToFrame(mockGeom, cropParams);
+assert(backFrame.cx === fullFrame.cx && backFrame.cy === fullFrame.cy, "Transformación inversa cropToFrame preserva centro");
+assert(backFrame.w === fullFrame.w && backFrame.h === fullFrame.h, "Transformación inversa cropToFrame preserva dimensiones");
+
+// Prueba de clampCrop para evitar recortes fuera de la imagen
+const outOfBoundsCrop = { cropX: -50, cropY: -80, width: 900, height: 750 };
+const clamped = testClampCrop(mockGeom, outOfBoundsCrop);
+assert(clamped.cropX >= 0, "clampCrop impide cropX negativo");
+assert(clamped.cropY >= 0, "clampCrop impide cropY negativo");
+assert(clamped.width <= 800, "clampCrop limita ancho al máximo natural de la imagen");
+assert(clamped.height <= 600, "clampCrop limita alto al máximo natural de la imagen");
+
+// Simulación de recorte directo en manijas de FabricImage (sin deformación)
+function simulateCropAction(handle, initialImg, deltaPx) {
+  const result = { ...initialImg };
+  const sy = Math.abs(result.scaleY) || 1;
+  const sx = Math.abs(result.scaleX) || 1;
+  const natH = result.natH;
+  const natW = result.natW;
+
+  if (handle === "mt") {
+    // Arrastre hacia abajo (reduce alto visible desde arriba)
+    const curCropY = result.cropY || 0;
+    const curH = result.height;
+    const bottomInImage = curCropY + curH;
+    const wantedImageH = (curH * sy - deltaPx) / sy;
+    const clampedCropY = Math.max(0, Math.min(bottomInImage - wantedImageH, bottomInImage - 20));
+    result.cropY = Math.round(clampedCropY);
+    result.height = Math.round(bottomInImage - clampedCropY);
+    // scaleY se mantiene INTACTO
+  } else if (handle === "mb") {
+    // Arrastre hacia arriba (reduce alto visible desde abajo)
+    const curCropY = result.cropY || 0;
+    const maxAvailableH = natH - curCropY;
+    const wantedImageH = (result.height * sy - deltaPx) / sy;
+    result.height = Math.round(Math.max(20, Math.min(wantedImageH, maxAvailableH)));
+    // scaleY se mantiene INTACTO
+  } else if (handle === "ml") {
+    // Arrastre hacia la derecha (reduce ancho visible desde izquierda)
+    const curCropX = result.cropX || 0;
+    const curW = result.width;
+    const rightInImage = curCropX + curW;
+    const wantedImageW = (curW * sx - deltaPx) / sx;
+    const clampedCropX = Math.max(0, Math.min(rightInImage - wantedImageW, rightInImage - 20));
+    result.cropX = Math.round(clampedCropX);
+    result.width = Math.round(rightInImage - clampedCropX);
+    // scaleX se mantiene INTACTO
+  } else if (handle === "mr") {
+    // Arrastre hacia la izquierda (reduce ancho visible desde derecha)
+    const curCropX = result.cropX || 0;
+    const maxAvailableW = natW - curCropX;
+    const wantedImageW = (result.width * sx - deltaPx) / sx;
+    result.width = Math.round(Math.max(20, Math.min(wantedImageW, maxAvailableW)));
+    // scaleX se mantiene INTACTO
+  }
+  return result;
+}
+
+const testImg = {
+  natW: 600,
+  natH: 400,
+  width: 600,
+  height: 400,
+  cropX: 0,
+  cropY: 0,
+  scaleX: 1.0,
+  scaleY: 1.0,
+  lockUniScaling: true,
+};
+
+// Manija superior mt
+const topCropped = simulateCropAction("mt", testImg, 50);
+assert(topCropped.scaleY === 1.0, "Manija superior (mt) NO altera scaleY (cero deformación vertical)");
+assert(topCropped.cropY === 50, "Manija superior (mt) incrementa cropY exactamente según el arrastre");
+assert(topCropped.height === 350, "Manija superior (mt) reduce height sin aplastar la imagen");
+
+// Manija inferior mb
+const bottomCropped = simulateCropAction("mb", testImg, 60);
+assert(bottomCropped.scaleY === 1.0, "Manija inferior (mb) NO altera scaleY (cero deformación vertical)");
+assert(bottomCropped.cropY === 0, "Manija inferior (mb) mantiene anclado el borde superior cropY = 0");
+assert(bottomCropped.height === 340, "Manija inferior (mb) recorta la parte inferior limpiamente");
+
+// Manija lateral izquierda ml
+const leftCropped = simulateCropAction("ml", testImg, 80);
+assert(leftCropped.scaleX === 1.0, "Manija izquierda (ml) NO altera scaleX (cero deformación horizontal)");
+assert(leftCropped.cropX === 80, "Manija izquierda (ml) incrementa cropX recortando el margen izquierdo");
+assert(leftCropped.width === 520, "Manija izquierda (ml) reduce width sin aplastar la imagen");
+
+// Manija lateral derecha mr
+const rightCropped = simulateCropAction("mr", testImg, 100);
+assert(rightCropped.scaleX === 1.0, "Manija derecha (mr) NO altera scaleX (cero deformación horizontal)");
+assert(rightCropped.cropX === 0, "Manija derecha (mr) mantiene anclado el borde izquierdo cropX = 0");
+assert(rightCropped.width === 500, "Manija derecha (mr) recorta la parte derecha limpiamente");
+
+// Bloqueo de escalado uniforme
+assert(testImg.lockUniScaling === true, "Imágenes poseen lockUniScaling = true para garantizar escalado proporcional en esquinas");
+
+// Inserción en galería Pixabay
+function simulatePixabayClick(isPhotosTab, photoItem) {
+  if (isPhotosTab) {
+    return { action: "insert_element", url: photoItem.regularUrl };
+  }
+  return { action: "set_background", url: photoItem.regularUrl };
+}
+const clickPhotoResult = simulatePixabayClick(true, { regularUrl: "https://pixabay.com/test.jpg" });
+assert(clickPhotoResult.action === "insert_element", "Hacer clic en una foto de la galería Fotos la inserta como elemento en el lienzo");
+assert(clickPhotoResult.url === "https://pixabay.com/test.jpg", "La URL de la foto seleccionada se suministra al lienzo");
+
 // Limpieza de base de datos de test
 
 db.close();

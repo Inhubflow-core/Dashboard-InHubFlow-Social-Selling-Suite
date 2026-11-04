@@ -2,10 +2,17 @@ import {
   ActiveSelection,
   Control,
   controlsUtils,
+  FabricImage,
   type FabricObject,
   IText,
   Textbox,
 } from "fabric";
+import {
+  cropBottomAction,
+  cropLeftAction,
+  cropRightAction,
+  cropTopAction,
+} from "./fabricCrop";
 
 /**
  * Dibuja un rectángulo con bordes redondeados (píldora / cápsula) en el contexto 2D.
@@ -314,7 +321,17 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
   const controls = obj.controls as Record<string, any>;
   if (!controls) return;
 
+  const isImage = obj instanceof FabricImage;
   const isWrapTextbox = obj instanceof Textbox;
+
+  // Bloquear deformación en imágenes: siempre escala proporcional desde esquinas
+  if (isImage) {
+    obj.set({
+      lockUniScaling: true,
+      lockSkewingX: true,
+      lockSkewingY: true,
+    });
+  }
 
   // 1. LAS 4 ESQUINAS (tl, tr, bl, br)
   const CORNERS = ["tl", "tr", "bl", "br"] as const;
@@ -326,28 +343,39 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
       controls[c].sizeY = 14;
       controls[c].touchSizeX = 28;
       controls[c].touchSizeY = 28;
+      if (isImage) {
+        controls[c].actionHandler = controlsUtils.scalingEqually;
+      }
     }
   }
 
   // 2. LAS 4 MANIJAS LATERALES (mt, mb, ml, mr)
   // Borde Superior (mt) - Cápsula horizontal
   if (controls.mt) {
-    controls.mt.visible = true;
+    controls.mt.visible = !isWrapTextbox;
     controls.mt.render = renderHorizontalPill;
     controls.mt.sizeX = 24;
     controls.mt.sizeY = 10;
     controls.mt.touchSizeX = 32;
     controls.mt.touchSizeY = 24;
+    if (isImage) {
+      controls.mt.actionHandler = cropTopAction;
+      controls.mt.actionName = "cropTop";
+    }
   }
 
   // Borde Inferior (mb) - Cápsula horizontal
   if (controls.mb) {
-    controls.mb.visible = true;
+    controls.mb.visible = !isWrapTextbox;
     controls.mb.render = renderHorizontalPill;
     controls.mb.sizeX = 24;
     controls.mb.sizeY = 10;
     controls.mb.touchSizeX = 32;
     controls.mb.touchSizeY = 24;
+    if (isImage) {
+      controls.mb.actionHandler = cropBottomAction;
+      controls.mb.actionName = "cropBottom";
+    }
   }
 
   // Borde Izquierdo (ml) - Cápsula vertical
@@ -358,7 +386,10 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
     controls.ml.sizeY = 24;
     controls.ml.touchSizeX = 24;
     controls.ml.touchSizeY = 32;
-    if (isWrapTextbox) {
+    if (isImage) {
+      controls.ml.actionHandler = cropLeftAction;
+      controls.ml.actionName = "cropLeft";
+    } else if (isWrapTextbox) {
       controls.ml.actionHandler = controlsUtils.changeWidth;
     }
   }
@@ -371,7 +402,10 @@ export function customizeControls(obj: FabricObject, accent: string = "#0099ff")
     controls.mr.sizeY = 24;
     controls.mr.touchSizeX = 24;
     controls.mr.touchSizeY = 32;
-    if (isWrapTextbox) {
+    if (isImage) {
+      controls.mr.actionHandler = cropRightAction;
+      controls.mr.actionName = "cropRight";
+    } else if (isWrapTextbox) {
       controls.mr.actionHandler = controlsUtils.changeWidth;
     }
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { CustomVisualTemplate } from "./types";
+export type { CustomVisualTemplate } from "./types";
 
 const TEMPLATES_KEY = "inhubflow_custom_visual_templates";
 const CHANGE_EVENT = "inhubflow_visual_templates_changed";

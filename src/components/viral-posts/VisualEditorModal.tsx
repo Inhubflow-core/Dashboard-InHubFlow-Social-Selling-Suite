@@ -50,6 +50,7 @@ import {
   SlidersHorizontal,
   Tag,
   Maximize2,
+  Crop,
   ZoomIn,
   ZoomOut,
   SplitSquareVertical,
@@ -227,6 +228,10 @@ export interface CarouselSlideItem {
   hiddenElements?: Record<string, boolean>;
   customElements?: CustomCanvasElement[];
   elementStyles?: Record<string, ElementFormatting>;
+  bgUrl?: string;
+  category?: string;
+  authorName?: string;
+  authorHandle?: string;
 }
 
 /** Descompone y gestiona degradados lineales hacia transparente para figuras y fondos */
@@ -978,7 +983,7 @@ function DraggableWrapper(props: DraggableWrapperProps) {
         delta = -(dx - dy) / 2;
       }
       const factor = Math.max(1, Math.min(3, +(initialScaleRef.current + delta / 150).toFixed(2)));
-      onScaleChange?.(factor);
+      onScaleChange?.(id, factor);
       return;
     }
 
@@ -2180,17 +2185,10 @@ export default function VisualEditorModal({
 
         setUploadedMedia((prev) => [item, ...prev]);
 
-        // Auto-inserción inteligente en el lienzo
+        // Auto-inserción inteligente en el lienzo como elemento activo
         if (autoInsert && mediaType === "image") {
-          if (!selectedBgUrl) {
-            setSelectedBgUrl(fileUrl);
-            updateCurrentSlide({ bgUrl: fileUrl });
-            setSelectedElement("background");
-            setExportFeedback(`¡Foto "${file.name}" colocada como fondo!`);
-          } else {
-            handleInsertUploadedElement(item);
-            setExportFeedback(`¡Foto "${file.name}" insertada en el lienzo!`);
-          }
+          handleInsertUploadedElement(item);
+          setExportFeedback(`¡Foto "${file.name}" insertada en el lienzo!`);
         } else if (autoInsert && mediaType === "video") {
           handleInsertUploadedElement(item);
           setExportFeedback(`¡Video "${file.name}" insertado en el lienzo!`);
@@ -4495,7 +4493,7 @@ export default function VisualEditorModal({
                             ? "border-brand-500 ring-2 ring-brand-500/40"
                             : "border-slate-800 hover:border-slate-600"
                         }`}
-                        onClick={() => handleApplyPixabayAsBg(photo)}
+                        onClick={() => handleInsertPixabayAsElement(photo)}
                       >
                         <img
                           src={photo.previewUrl}
@@ -4513,9 +4511,20 @@ export default function VisualEditorModal({
                                 handleInsertPixabayAsElement(photo);
                               }}
                               className="size-6 rounded-md bg-black/70 hover:bg-brand-600 text-white flex items-center justify-center shadow-md transition"
-                              title="Añadir como elemento en el lienzo"
+                              title="Añadir foto en el lienzo"
                             >
                               <Plus className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyPixabayAsBg(photo);
+                              }}
+                              className="size-6 rounded-md bg-black/70 hover:bg-emerald-600 text-white flex items-center justify-center shadow-md transition"
+                              title="Establecer foto como fondo"
+                            >
+                              <Maximize2 className="size-3" />
                             </button>
                             <button
                               type="button"
@@ -6150,6 +6159,31 @@ export default function VisualEditorModal({
                   >
                     <ImageIcon className="size-3.5 text-brand-400" />
                     <span>Cambiar Foto</span>
+                  </button>
+
+                  {/* 2.1 RECORTAR FOTO (DOORY ENGINE) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fabricCanvasRef.current?.startCropActiveImage();
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition"
+                    title="Recortar imagen (o arrastra las manijas laterales / doble clic en la foto)"
+                  >
+                    <Crop className="size-3.5 text-brand-400" />
+                    <span>Recortar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fabricCanvasRef.current?.resetCrop();
+                    }}
+                    className="flex items-center gap-1 px-2 h-7 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-medium transition"
+                    title="Restaurar dimensiones completas de la foto original"
+                  >
+                    <RotateCcw className="size-3 text-slate-400" />
+                    <span>Restaurar</span>
                   </button>
 
                   <span className="h-4 w-px bg-slate-700 mx-1" />

@@ -18,6 +18,7 @@ import {
   Line,
 } from "fabric";
 import { customizeControls } from "./fabric/fabricControls";
+import { CropSession } from "./fabric/fabricCrop";
 import type {
   ActiveObjectInfo,
   FabricCanvasEditorHandle,
@@ -77,6 +78,7 @@ export const FabricStudioCanvas = forwardRef<
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const fabricRef = useRef<Canvas | null>(null);
+  const cropSessionRef = useRef<CropSession | null>(null);
 
   // Mantener referencias actualizadas de props para no recrear el canvas en cada render
   const accentColorRef = useRef(accentColor);
@@ -186,8 +188,47 @@ export const FabricStudioCanvas = forwardRef<
       }
     });
 
-    // Tecla Delete / Backspace para borrar objeto seleccionado
+    // Doble clic en imagen para entrar en modo recorte interactivo (Doory CropSession)
+    const handleDblClick = async (e: any) => {
+      const target = e.target;
+      if (target && target instanceof FabricImage && !cropSessionRef.current) {
+        try {
+          cropSessionRef.current = await CropSession.start(
+            canvas,
+            target,
+            accentColorRef.current,
+            () => {
+              cropSessionRef.current = null;
+              callbacksRef.current.onCanvasModified?.();
+            }
+          );
+        } catch (err) {
+          console.error("Error al iniciar CropSession por doble clic:", err);
+        }
+      }
+    };
+    canvas.on("mouse:dblclick", handleDblClick);
+
+    // Tecla Delete / Backspace para borrar objeto seleccionado, Enter / Esc para modo recorte
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Atajos de modo recorte
+      if (cropSessionRef.current) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          cropSessionRef.current.apply();
+          cropSessionRef.current = null;
+          callbacksRef.current.onCanvasModified?.();
+          return;
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cropSessionRef.current.cancel();
+          cropSessionRef.current = null;
+          callbacksRef.current.onCanvasModified?.();
+          return;
+        }
+      }
+
       const active = canvas.getActiveObject();
       if (!active) return;
 
@@ -368,6 +409,7 @@ export const FabricStudioCanvas = forwardRef<
               originY: "center",
               scaleX: scale,
               scaleY: scale,
+              lockUniScaling: true,
             });
             (img as any).id = `photo-${Date.now()}`;
             customizeControls(img, accentColorRef.current);
@@ -787,7 +829,7 @@ export const FabricStudioCanvas = forwardRef<
       getActiveObjectInfo: () => {
         const canvas = fabricRef.current;
         if (!canvas) return null;
-        return getObjectInfo(canvas.getActiveObject());
+        return getObjectInfo(canvas.getActiveObject() || null);
       },
 
       loadTemplate: async (templateId: string, data: any = {}) => {
@@ -1178,6 +1220,68 @@ export const FabricStudioCanvas = forwardRef<
         canvas.requestRenderAll();
         callbacksRef.current.onCanvasModified?.();
       },
+
+      startCropActiveImage: async () => {
+        const canvas = fabricRef.current;
+        if (!canvas || cropSessionRef.current) return false;
+        const active = canvas.getActiveObject();
+        if (!active || !(active instanceof FabricImage)) return false;
+
+        try {
+          cropSessionRef.current = await CropSession.start(
+            canvas,
+            active,
+            accentColorRef.current,
+            () => {
+              cropSessionRef.current = null;
+              callbacksRef.current.onCanvasModified?.();
+            }
+          );
+          return true;
+        } catch (err) {
+          console.error("Error al iniciar recorte:", err);
+          return false;
+        }
+      },
+
+      applyCrop: () => {
+        if (!cropSessionRef.current) return false;
+        const res = cropSessionRef.current.apply();
+        cropSessionRef.current = null;
+        callbacksRef.current.onCanvasModified?.();
+        return res;
+      },
+
+      cancelCrop: () => {
+        if (!cropSessionRef.current) return;
+        cropSessionRef.current.cancel();
+        cropSessionRef.current = null;
+        callbacksRef.current.onCanvasModified?.();
+      },
+
+      resetCrop: () => {
+        if (cropSessionRef.current) {
+          cropSessionRef.current.reset();
+        } else {
+          const canvas = fabricRef.current;
+          if (!canvas) return;
+          const active = canvas.getActiveObject();
+          if (active && active instanceof FabricImage) {
+            const nat = active.getOriginalSize ? active.getOriginalSize() : { width: active.width, height: active.height };
+            active.set({
+              cropX: 0,
+              cropY: 0,
+              width: nat.width || active.width,
+              height: nat.height || active.height,
+            });
+            active.setCoords();
+            canvas.requestRenderAll();
+            callbacksRef.current.onCanvasModified?.();
+          }
+        }
+      },
+
+      isCropping: () => cropSessionRef.current !== null,
     }),
     [authorName, authorHandle, getObjectInfo]
   );
