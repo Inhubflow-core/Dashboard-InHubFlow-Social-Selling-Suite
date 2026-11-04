@@ -2241,10 +2241,7 @@ export default function VisualEditorModal({
     });
 
     if (fabricCanvasRef.current) {
-      if (type === "heading") fabricCanvasRef.current.addHeading(newElement.content);
-      else if (type === "subheading") fabricCanvasRef.current.addSubheading(newElement.content);
-      else if (type === "badge" || type === "highlight") fabricCanvasRef.current.addBadge(newElement.content || "DESTACADO B2B", accentColor, "#ffffff");
-      else fabricCanvasRef.current.addBodyText(newElement.content);
+      fabricCanvasRef.current.addPhoto(item.url, false);
     }
 
     setSelectedElement(newId);
