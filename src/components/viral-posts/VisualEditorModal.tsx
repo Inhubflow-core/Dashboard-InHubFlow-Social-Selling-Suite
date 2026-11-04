@@ -1887,17 +1887,9 @@ export default function VisualEditorModal({
   const [uploadSearchQuery, setUploadSearchQuery] = useState("");
   const fileUploadInputRef = useRef<HTMLInputElement>(null);
 
-  // Manejador general de subida de archivos multimediales
-  const handleFileUpload = (files: FileList | null) => {
+  // Manejador general de subida de archivos multimediales (Persistencia DataURL y Auto-inserción)
+  const handleFileUpload = (files: FileList | null, autoInsert: boolean = true) => {
     if (!files || files.length === 0) return;
-    const newItems: Array<{
-      id: string;
-      name: string;
-      type: "image" | "video" | "audio";
-      url: string;
-      format: string;
-      uploadedAt: number;
-    }> = [];
 
     Array.from(files).forEach((file) => {
       const ext = file.name.split(".").pop()?.toUpperCase() || "FILE";
@@ -1908,24 +1900,65 @@ export default function VisualEditorModal({
         mediaType = "audio";
       }
 
-      const fileUrl = URL.createObjectURL(file);
-      const item = {
-        id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        name: file.name,
-        type: mediaType,
-        url: fileUrl,
-        format: ext,
-        uploadedAt: Date.now(),
-      };
-      newItems.push(item);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileUrl = (event.target?.result as string) || URL.createObjectURL(file);
+        const item = {
+          id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          name: file.name,
+          type: mediaType,
+          url: fileUrl,
+          format: ext,
+          uploadedAt: Date.now(),
+        };
 
-      // Si es imagen o video, cambiar pestaña automáticamente al tipo correspondiente
+        setUploadedMedia((prev) => [item, ...prev]);
+
+        // Auto-inserción inteligente en el lienzo
+        if (autoInsert && mediaType === "image") {
+          if (!selectedBgUrl) {
+            setSelectedBgUrl(fileUrl);
+            updateCurrentSlide({ bgUrl: fileUrl });
+            setSelectedElement("background");
+            setExportFeedback(`¡Foto "${file.name}" colocada como fondo!`);
+          } else {
+            handleInsertUploadedElement(item);
+            setExportFeedback(`¡Foto "${file.name}" insertada en el lienzo!`);
+          }
+        } else if (autoInsert && mediaType === "video") {
+          handleInsertUploadedElement(item);
+          setExportFeedback(`¡Video "${file.name}" insertado en el lienzo!`);
+        } else {
+          setExportFeedback(`¡Archivo "${file.name}" subido a tu galería!`);
+        }
+        setTimeout(() => setExportFeedback(null), 3000);
+      };
+
+      if (mediaType === "image") {
+        reader.readAsDataURL(file);
+      } else {
+        const fileUrl = URL.createObjectURL(file);
+        const item = {
+          id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          name: file.name,
+          type: mediaType,
+          url: fileUrl,
+          format: ext,
+          uploadedAt: Date.now(),
+        };
+        setUploadedMedia((prev) => [item, ...prev]);
+        if (autoInsert) handleInsertUploadedElement(item);
+      }
+
       if (mediaType === "video") setActiveUploadTab("videos");
       else if (mediaType === "audio") setActiveUploadTab("audio");
       else setActiveUploadTab("images");
     });
 
-    setUploadedMedia((prev) => [...newItems, ...prev]);
+    // Resetear valor para permitir seleccionar el mismo archivo si se desea
+    if (fileUploadInputRef.current) {
+      fileUploadInputRef.current.value = "";
+    }
   };
 
   // Insertar archivo subido en el lienzo como elemento independiente
@@ -2836,6 +2869,15 @@ export default function VisualEditorModal({
 
   return (
     <div className="fixed inset-0 z-50 w-screen h-screen overflow-hidden flex flex-col bg-slate-950 text-white select-none animate-in fade-in duration-150">
+      {/* Input de subida de archivos permanente para todo el editor */}
+      <input
+        ref={fileUploadInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,audio/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.mp4,.mov,.webm,.mp3,.wav"
+        onChange={(e) => handleFileUpload(e.target.files, true)}
+        className="hidden"
+      />
       
       {/* 1. BARRA SUPERIOR CANVA (HEADER SLIM - 48px) */}
       <header className="h-12 border-b border-slate-800 bg-slate-900/95 px-4 flex items-center justify-between shrink-0 select-none z-30">
@@ -3998,9 +4040,19 @@ export default function VisualEditorModal({
                 <div>
                   <h3 className="text-sm font-bold text-white">Fotografías HD</h3>
                   <p className="text-xs text-slate-400">
-                    Millones de fotografías de alta resolución. Clic para fondo o pulsa (+) para añadir al lienzo.
+                    Millones de fotografías de alta resolución o sube las tuyas propias.
                   </p>
                 </div>
+
+                {/* Botón Destacado: Subir foto desde el ordenador */}
+                <button
+                  type="button"
+                  onClick={() => fileUploadInputRef.current?.click()}
+                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 transition hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  <UploadCloud className="size-4" />
+                  <span>Subir Foto desde mi Ordenador</span>
+                </button>
 
                 {/* Buscador de Fotos */}
                 <div className="relative">
@@ -4448,14 +4500,6 @@ export default function VisualEditorModal({
 
                 {/* Botón Principal Púrpura Estilo Canva: [ Upload files ] */}
                 <div>
-                  <input
-                    ref={fileUploadInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*,video/*,audio/*,.png,.jpg,.jpeg,.webp,.svg,.gif,.mp4,.mov,.webm,.mp3,.wav"
-                    onChange={(e) => handleFileUpload(e.target.files)}
-                    className="hidden"
-                  />
                   <button
                     type="button"
                     onClick={() => fileUploadInputRef.current?.click()}
@@ -5953,6 +5997,14 @@ export default function VisualEditorModal({
                   onDrop={(e) => {
                     e.preventDefault();
                     setIsCanvasDragOver(false);
+
+                    // 1. Archivos arrastrados directamente desde el ordenador
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleFileUpload(e.dataTransfer.files, true);
+                      return;
+                    }
+
+                    // 2. Plantillas arrastradas desde el dock
                     try {
                       const dataStr = e.dataTransfer.getData("application/json");
                       if (!dataStr) return;
