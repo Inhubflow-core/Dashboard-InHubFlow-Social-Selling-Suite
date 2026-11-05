@@ -34,6 +34,12 @@ import { Toaster } from './ui/Toaster'
 import { PageStrip } from './workspace/PageStrip'
 import { LazyTimelineHost } from './workspace/TimelineLoader'
 import { Workspace } from './workspace/Workspace'
+import { registerBackgroundRemover } from './engine/bgRemoval'
+import { BriaTransformersRemover } from './engine/bgRemoval/briaRemover'
+
+if (typeof window !== 'undefined') {
+  registerBackgroundRemover(new BriaTransformersRemover())
+}
 import styles from './EditorApp.module.css'
 
 /** How many times the code of the live session is fetched again (after 1, 2, 4, 8 s …) before the person is told to reload. */
