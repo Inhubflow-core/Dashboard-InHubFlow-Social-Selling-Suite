@@ -2,7 +2,11 @@
   position: fixed;
   z-index: var(--z-drawer);
   min-width: 220px;
-  max-width: 320px;
+  max-width: 330px;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   padding: var(--space-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -177,4 +181,68 @@
 .featureHint {
   color: var(--color-text-muted);
   font: 500 12px / 1.3 var(--font-sans);
+}
+
+.expandableGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.expandableItem {
+  justify-content: flex-start;
+  font-weight: 600;
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.expandableItem:hover {
+  background: var(--color-bg-muted);
+}
+
+.expandableItem.expanded {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.expandableItem.expanded .icon {
+  color: var(--color-brand);
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: var(--color-text-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.childrenContainer {
+  margin: 3px 4px 6px 6px;
+  padding: 4px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-brand);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: submenu-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nestedItem {
+  min-height: 30px;
+  padding: 0 var(--space-2) 0 var(--space-2);
+}
+
+@keyframes submenu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

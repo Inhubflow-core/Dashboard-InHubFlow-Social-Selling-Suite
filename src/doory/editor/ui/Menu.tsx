@@ -1,5 +1,6 @@
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { usePortalRoot } from '../context'
 import { formatShortcut } from '../shortcuts'
 import styles from './Menu.module.css'
@@ -23,6 +24,8 @@ export interface MenuItem {
   tile?: boolean
   /** A highlighted row with this short badge at the start (a file type), the hint under the label and the icon at the end. */
   feature?: string
+  /** Expandable child menu items */
+  children?: MenuItem[]
 }
 
 interface MenuProps {
@@ -41,6 +44,11 @@ export function Menu({ items, label, at, anchorRef, onClose, className }: MenuPr
   const root = usePortalRoot()
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
+
+  const toggleExpand = (id: string): void => {
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
   useLayoutEffect(() => {
     const panel = ref.current
@@ -56,7 +64,7 @@ export function Menu({ items, label, at, anchorRef, onClose, className }: MenuPr
     left = Math.max(8, Math.min(left, window.innerWidth - r.width - 8))
     top = Math.max(8, Math.min(top, window.innerHeight - r.height - 8))
     setPos({ left, top })
-  }, [at, anchorRef, items.length])
+  }, [at, anchorRef, items.length, expandedIds])
 
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>('[role^="menuitem"]:not([aria-disabled="true"])')?.focus({ preventScroll: true })
@@ -140,7 +148,47 @@ export function Menu({ items, label, at, anchorRef, onClose, className }: MenuPr
             {entry.label}
           </div>
         ) : (
-          renderItem(entry, onClose)
+          entry.children && entry.children.length > 0 ? (
+            <div key={entry.id} className={styles.expandableGroup}>
+              <button
+                type="button"
+                role="menuitem"
+                aria-expanded={!!expandedIds[entry.id]}
+                aria-haspopup="menu"
+                tabIndex={-1}
+                className={`${styles.item} ${styles.expandableItem} ${expandedIds[entry.id] ? styles.expanded : ''}`}
+                data-item={entry.id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  toggleExpand(entry.id)
+                }}
+              >
+                {entry.icon ? <span className={styles.icon}>{entry.icon}</span> : null}
+                <span className={styles.label}>{entry.label}</span>
+                <span className={styles.chevron}>
+                  {expandedIds[entry.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </span>
+              </button>
+              {expandedIds[entry.id] ? (
+                <div className={styles.childrenContainer} role="group" aria-label={entry.label}>
+                  {entry.children.map((child) =>
+                    child.separator ? (
+                      <div key={child.id} role="separator" className={styles.sep} />
+                    ) : child.heading ? (
+                      <div key={child.id} role="presentation" className={styles.heading}>
+                        {child.label}
+                      </div>
+                    ) : (
+                      renderItem(child, onClose, true)
+                    ),
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            renderItem(entry, onClose)
+          )
         ),
       )}
     </div>,
@@ -159,8 +207,8 @@ function groupTiles(items: MenuItem[]): (MenuItem | MenuItem[])[] {
   return out
 }
 
-function renderItem(item: MenuItem, onClose: () => void) {
-  const className = item.tile ? styles.tile : item.feature !== undefined ? `${styles.item} ${styles.feature}` : `${styles.item} ${item.danger ? styles.danger : ''}`
+function renderItem(item: MenuItem, onClose: () => void, isChild = false) {
+  const className = item.tile ? styles.tile : item.feature !== undefined ? `${styles.item} ${styles.feature}` : `${styles.item} ${item.danger ? styles.danger : ''} ${isChild ? styles.nestedItem : ''}`
   return (
     <button
       key={item.id}

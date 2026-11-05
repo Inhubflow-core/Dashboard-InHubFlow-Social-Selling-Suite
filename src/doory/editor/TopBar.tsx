@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, Download, History, Menu as MenuIcon, Presentation, Share2, SlidersHorizontal, Users } from 'lucide-react'
+import { ChevronDown, Copy, Download, Eye, History, Menu as MenuIcon, Presentation, Share2, SlidersHorizontal, Users } from 'lucide-react'
 import { useContrast } from '@doory/lib/contrast'
 import { useSizePresets } from '@doory/lib/sizePresets'
 import { getPageSize } from './engine/pageSizes'
@@ -280,23 +280,6 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
     }
   }
   const notesDownloads: MenuItem[] = [cmd('file.notesMarkdown'), cmd('file.notesText')]
-  const fileItems: MenuItem[] = readOnly
-    ? [cmd('file.download'), ...notesDownloads]
-    : [
-        cmd('file.rename'),
-        cmd('file.resize'),
-        cmd('file.bulkCreate'),
-        cmd('file.history'),
-        cmd('file.save'),
-        { id: 'f1', separator: true },
-        cmd('page.add', t.menu.newPage),
-        { id: 'f2', separator: true },
-        cmd('file.download'),
-        ...notesDownloads,
-        ...(mode === 'guest' ? [cmd('file.exportProject')] : []),
-        { id: 'f3', separator: true },
-        cmd('file.reset'),
-      ]
   const viewItems: MenuItem[] = [
     ...(readOnly
       ? []
@@ -317,15 +300,36 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
     { id: 'v2', separator: true },
     cmd('file.shortcuts'),
   ]
+  const fileItems: MenuItem[] = readOnly
+    ? [cmd('file.download'), ...notesDownloads]
+    : [
+        cmd('file.rename'),
+        cmd('file.resize'),
+        cmd('file.bulkCreate'),
+        cmd('file.history'),
+        cmd('file.save'),
+        { id: 'f-view-sep-top', separator: true },
+        {
+          id: 'file-view-accordion',
+          label: t.topbar.view,
+          icon: <Eye size={15} aria-hidden="true" />,
+          children: viewItems,
+        },
+        { id: 'f-view-sep-bottom', separator: true },
+        cmd('page.add', t.menu.newPage),
+        { id: 'f2', separator: true },
+        cmd('file.download'),
+        ...notesDownloads,
+        ...(mode === 'guest' ? [cmd('file.exportProject')] : []),
+        { id: 'f3', separator: true },
+        cmd('file.reset'),
+      ]
   /** Phone widths: one menu with a heading per group, and Comments joins it so the bar keeps room for the title. */
   const combinedItems: MenuItem[] = [
     ...endTools.map((p) => ({ id: `tool-${p.id}`, label: p.label, icon: p.icon, checked: openId === p.id || undefined, onSelect: () => toggle(p.id) })),
     ...(endTools.length > 0 ? [{ id: 'c0', separator: true }] : []),
     { id: 'h-file', label: t.topbar.file, heading: true },
     ...fileItems,
-    { id: 'c1', separator: true },
-    { id: 'h-view', label: t.topbar.view, heading: true },
-    ...viewItems,
   ]
 
   useEffect(() => {
@@ -341,7 +345,6 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
         ) : (
           <nav className={styles.menus} aria-label={t.topbar.menus}>
             <MenuButton label={t.topbar.file} items={fileItems} testId="ed-menu-file" onOpen={() => preloadDialog('download')} />
-            <MenuButton label={t.topbar.view} items={viewItems} testId="ed-menu-view" />
           </nav>
         )}
         {readOnly ? null : (
