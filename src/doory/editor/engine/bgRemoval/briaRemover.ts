@@ -1,19 +1,24 @@
 import type { BackgroundRemover, BgRemovalProgress } from '../bgRemoval'
 import { BackgroundRemovalError } from '../bgRemoval'
 
-type SegmenterPipeline = any
+type LoadedModels = {
+  model: any
+  processor: any
+}
 
-let cachedPipeline: Promise<SegmenterPipeline> | null = null
+let cachedModelsPromise: Promise<LoadedModels> | null = null
 
-async function getPipeline(onProgress?: BgRemovalProgress, signal?: AbortSignal): Promise<SegmenterPipeline> {
-  if (cachedPipeline) {
-    return cachedPipeline
+async function getModels(onProgress?: BgRemovalProgress, signal?: AbortSignal): Promise<LoadedModels> {
+  if (cachedModelsPromise) {
+    return cachedModelsPromise
   }
 
-  cachedPipeline = (async () => {
-    const { pipeline, env } = await import('@huggingface/transformers')
+  cachedModelsPromise = (async () => {
+    const { AutoModel, AutoProcessor, env } = await import('@huggingface/transformers')
     // Ensure we don't try to look for local fs models in browser
     env.allowLocalModels = false
+
+    const modelId = 'briaai/RMBG-1.4'
 
     const handleProgress = (info: any) => {
       if (signal?.aborted) return
@@ -23,10 +28,16 @@ async function getPipeline(onProgress?: BgRemovalProgress, signal?: AbortSignal)
       }
     }
 
+    // Load processor
+    const processor = await AutoProcessor.from_pretrained(modelId, {
+      progress_callback: handleProgress,
+    })
+
     // Try WebGPU first for maximum speed
+    let model: any = null
     if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
       try {
-        return await pipeline('image-segmentation', 'briaai/RMBG-1.4', {
+        model = await AutoModel.from_pretrained(modelId, {
           device: 'webgpu',
           progress_callback: handleProgress,
         })
@@ -35,17 +46,45 @@ async function getPipeline(onProgress?: BgRemovalProgress, signal?: AbortSignal)
       }
     }
 
-    // Fallback to WASM
-    return await pipeline('image-segmentation', 'briaai/RMBG-1.4', {
-      device: 'wasm',
-      progress_callback: handleProgress,
-    })
+    if (!model) {
+      model = await AutoModel.from_pretrained(modelId, {
+        device: 'wasm',
+        progress_callback: handleProgress,
+      })
+    }
+
+    return { model, processor }
   })().catch((err) => {
-    cachedPipeline = null // reset on failure so the user can retry
+    cachedModelsPromise = null // reset on failure so user can retry
     throw err
   })
 
-  return cachedPipeline
+  return cachedModelsPromise
+}
+
+async function rawImageToBlob(rawImg: any): Promise<Blob> {
+  if (typeof rawImg.toBlob === 'function') {
+    try {
+      const b = await rawImg.toBlob('image/png')
+      if (b instanceof Blob) return b
+    } catch {
+      // Fallback to canvas
+    }
+  }
+  const canvas = rawImg.toCanvas()
+  if (typeof canvas.convertToBlob === 'function') {
+    return await canvas.convertToBlob({ type: 'image/png' })
+  }
+  return new Promise<Blob>((resolve, reject) => {
+    if (typeof canvas.toBlob === 'function') {
+      canvas.toBlob((blob: Blob | null) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Canvas toBlob returned null'))
+      }, 'image/png')
+    } else {
+      reject(new Error('Neither convertToBlob nor toBlob is available on canvas'))
+    }
+  })
 }
 
 export class BriaTransformersRemover implements BackgroundRemover {
@@ -56,7 +95,7 @@ export class BriaTransformersRemover implements BackgroundRemover {
 
     try {
       onProgress?.('downloading', 0)
-      const pipe = await getPipeline(onProgress, signal)
+      const { model, processor } = await getModels(onProgress, signal)
 
       if (signal?.aborted) {
         throw new BackgroundRemovalError('Operación cancelada')
@@ -70,21 +109,36 @@ export class BriaTransformersRemover implements BackgroundRemover {
         throw new BackgroundRemovalError('Operación cancelada')
       }
 
-      onProgress?.('processing', 40)
-      const output = await pipe(rawImage)
+      onProgress?.('processing', 35)
+      const { pixel_values } = await processor(rawImage)
 
       if (signal?.aborted) {
         throw new BackgroundRemovalError('Operación cancelada')
       }
 
-      onProgress?.('processing', 85)
-      const resultImage = Array.isArray(output) ? output[0] : output
+      onProgress?.('processing', 60)
+      const output = await model({ input: pixel_values })
 
-      if (!resultImage || typeof resultImage.toBlob !== 'function') {
-        throw new BackgroundRemovalError('No se pudo generar el recorte transparente')
+      if (signal?.aborted) {
+        throw new BackgroundRemovalError('Operación cancelada')
       }
 
-      const transparentBlob = await resultImage.toBlob('image/png')
+      onProgress?.('processing', 80)
+      const outTensor = output.output
+      const [batch, channels, height, width] = outTensor.dims
+      const outData = outTensor.data as Float32Array
+      const maskData = new Uint8ClampedArray(height * width)
+
+      for (let i = 0; i < maskData.length; i++) {
+        maskData[i] = Math.round(Math.min(1, Math.max(0, outData[i])) * 255)
+      }
+
+      const mask = new RawImage(maskData, width, height, 1)
+      const resizedMask = await mask.resize(rawImage.width, rawImage.height)
+      rawImage.putAlpha(resizedMask)
+
+      onProgress?.('processing', 95)
+      const transparentBlob = await rawImageToBlob(rawImage)
       onProgress?.('processing', 100)
 
       return transparentBlob
