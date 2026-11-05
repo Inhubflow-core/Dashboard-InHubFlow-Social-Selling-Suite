@@ -1,7 +1,7 @@
 /*
  * InHubFlow design tokens — styled for InHubFlow Social Selling Suite.
  * Primary brand: InHubFlow Electric Blue (#0099ff).
- * Canvas workspace: Sleek dark slate (#0b0f19) for maximum contrast against the white canvas.
+ * Canvas workspace: Original Doory soft lavender (#ebe7f5) with dot pattern.
  * Typography: Outfit (var(--font-outfit)) across all chrome, sidebar titles, and dialogs.
  */
 :root {
@@ -61,7 +61,7 @@
   --color-bg-muted: #e2e8f0;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-canvas-workspace: #0b0f19; /* dark sleek canvas workspace for maximum contrast */
+  --color-canvas-workspace: #ebe7f5; /* Original Doory soft lavender canvas background */
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
   --color-checker: #e2e8f0;

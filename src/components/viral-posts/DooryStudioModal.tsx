@@ -278,7 +278,7 @@ export default function DooryStudioModal({
   );
 
   return (
-    <div className="fixed inset-0 z-[99999] flex flex-col bg-[#0b0f19] select-none overflow-hidden animate-fadeIn">
+    <div className="fixed inset-0 z-[99999] flex flex-col bg-[#ebe7f5] select-none overflow-hidden animate-fadeIn">
       {/* Área del Editor Doory — TopBar unificado */}
       <main className="flex-1 relative w-full h-full overflow-hidden doory-modal-container">
         <EditorApp
