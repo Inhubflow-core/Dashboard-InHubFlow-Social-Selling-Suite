@@ -338,7 +338,7 @@ export function MagicEraserDialog() {
   return (
     <Dialog
       title="Borrador Mágico (IA)"
-      width={860}
+      width={1040}
       onClose={() => editor.closeDialog()}
       footer={
         <div className={styles.footerActions}>
@@ -367,16 +367,133 @@ export function MagicEraserDialog() {
       }
     >
       <div className={styles.container}>
-        {/* Instruction Banner */}
-        <div className={styles.instructionBar}>
-          <div className={styles.instructionText}>
-            <Sparkles size={16} color="#10b981" />
-            <span>Pasa el pincel sobre las personas, textos o elementos que quieras hacer desaparecer.</span>
+        {/* Left Sidebar for Tool Controls */}
+        <aside className={styles.sidebar}>
+          {/* Instrucciones */}
+          <div className={styles.instructionCard}>
+            <div className={styles.instructionHeader}>
+              <Sparkles size={16} color="#10b981" />
+              <span>Borrador Mágico</span>
+            </div>
+            <p style={{ margin: 0 }}>
+              Pasa el pincel verde sobre cualquier persona, texto o elemento que quieras hacer desaparecer del fondo.
+            </p>
           </div>
-          {hasChanges && <span style={{ color: '#10b981', fontWeight: 600 }}>✓ Cambios realizados</span>}
-        </div>
 
-        {/* Painting Canvas Viewport */}
+          {/* Control del Pincel */}
+          <div className={styles.sidebarSection}>
+            <span className={styles.sectionTitle}>Pincel</span>
+            <div className={styles.sliderCard}>
+              <div className={styles.sliderHeader}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Eraser size={15} color="#10b981" />
+                  Grosor
+                </span>
+                <span style={{ color: '#0284c7', fontWeight: 700 }}>{brushSize}px</span>
+              </div>
+              <div className={styles.sliderRow}>
+                <input
+                  type="range"
+                  min="10"
+                  max="90"
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(Number(e.target.value))}
+                  className={styles.sliderInput}
+                  aria-label="Grosor del pincel"
+                />
+                <div className={styles.previewBox} title={`Diámetro del pincel: ${brushSize}px`}>
+                  <div
+                    className={styles.brushPreviewCircle}
+                    style={{
+                      width: `${Math.min(36, Math.max(6, brushSize * 0.4))}px`,
+                      height: `${Math.min(36, Math.max(6, brushSize * 0.4))}px`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Acciones de trazo */}
+          <div className={styles.sidebarSection}>
+            <span className={styles.sectionTitle}>Trazos</span>
+            <div className={styles.actionButtons}>
+              <Button
+                variant="ghost"
+                onClick={handleUndoStroke}
+                disabled={maskHistory.current.length === 0 || status.kind === 'running'}
+                title="Deshacer último trazo"
+              >
+                <Undo2 size={15} />
+                Deshacer
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={handleClearMask}
+                disabled={!hasMask || status.kind === 'running'}
+                title="Borrar todos los trazos"
+              >
+                <Trash2 size={15} />
+                Limpiar
+              </Button>
+            </div>
+          </div>
+
+          {/* Botón de acción principal de IA */}
+          <div className={styles.mainActionBox}>
+            <Button
+              variant="primary"
+              onClick={handleRunInpaint}
+              disabled={!hasMask || status.kind === 'running'}
+            >
+              {status.kind === 'running' ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Borrando objeto...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  Borrar objeto
+                </>
+              )}
+            </Button>
+
+            {hasChanges && (
+              <div className={styles.changesBadge}>
+                <Check size={14} />
+                <span>Elemento eliminado con éxito</span>
+              </div>
+            )}
+          </div>
+
+          {/* Progreso IA */}
+          {status.kind === 'running' && (
+            <div className={styles.progressBarContainer}>
+              <div className={styles.progressLabel}>
+                <span>
+                  {status.phase === 'downloading'
+                    ? 'Descargando modelo IA...'
+                    : 'Reconstruyendo fondo...'}
+                </span>
+                <span>{status.percent}%</span>
+              </div>
+              <div className={styles.progressBarTrack}>
+                <div className={styles.progressBarFill} style={{ width: `${status.percent}%` }} />
+              </div>
+            </div>
+          )}
+
+          {/* Error */}
+          {status.kind === 'error' && (
+            <div style={{ color: '#ef4444', fontSize: '12px', padding: '8px 10px', backgroundColor: '#fef2f2', borderRadius: '8px' }}>
+              ⚠️ {status.message}
+            </div>
+          )}
+        </aside>
+
+        {/* Right Canvas Viewport with Dot-Grid Background */}
         <div ref={viewportRef} className={styles.viewport}>
           <div className={styles.canvasWrapper}>
             <canvas ref={imageCanvasRef} className={styles.imageCanvas} />
@@ -403,93 +520,6 @@ export function MagicEraserDialog() {
             />
           )}
         </div>
-
-        {/* Tool Controls Bar */}
-        <div className={styles.toolbar}>
-          <div className={styles.toolGroup}>
-            <label className={styles.sliderLabel}>
-              <Eraser size={16} />
-              Grosor del pincel:
-              <input
-                type="range"
-                min="10"
-                max="90"
-                value={brushSize}
-                onChange={(e) => setBrushSize(Number(e.target.value))}
-                className={styles.sliderInput}
-              />
-              <span
-                className={styles.brushPreviewCircle}
-                style={{ width: `${Math.max(8, brushSize / 2)}px`, height: `${Math.max(8, brushSize / 2)}px` }}
-              />
-              <span style={{ fontSize: '12px', color: '#64748b', minWidth: '32px' }}>{brushSize}px</span>
-            </label>
-          </div>
-
-          <div className={styles.toolGroup}>
-            <Button
-              variant="ghost"
-              onClick={handleUndoStroke}
-              disabled={maskHistory.current.length === 0 || status.kind === 'running'}
-              title="Deshacer último trazo"
-            >
-              <Undo2 size={16} />
-              Deshacer trazo
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={handleClearMask}
-              disabled={!hasMask || status.kind === 'running'}
-              title="Borrar selección de trazos"
-            >
-              <Trash2 size={16} />
-              Limpiar
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={handleRunInpaint}
-              disabled={!hasMask || status.kind === 'running'}
-            >
-              {status.kind === 'running' ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={16} />
-                  Borrar objeto
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Progress bar during AI download/inference */}
-        {status.kind === 'running' && (
-          <div className={styles.progressBarContainer}>
-            <div className={styles.progressLabel}>
-              <span>
-                {status.phase === 'downloading'
-                  ? 'Descargando modelo de borrado inteligente (solo la primera vez)...'
-                  : 'Reconstruyendo el fondo con IA...'}
-              </span>
-              <span>{status.percent}%</span>
-            </div>
-            <div className={styles.progressBarTrack}>
-              <div className={styles.progressBarFill} style={{ width: `${status.percent}%` }} />
-            </div>
-          </div>
-        )}
-
-        {/* Error message */}
-        {status.kind === 'error' && (
-          <div style={{ color: '#ef4444', fontSize: '13px', padding: '8px 12px', backgroundColor: '#fef2f2', borderRadius: '8px' }}>
-            ⚠️ {status.message}
-          </div>
-        )}
       </div>
     </Dialog>
   )
