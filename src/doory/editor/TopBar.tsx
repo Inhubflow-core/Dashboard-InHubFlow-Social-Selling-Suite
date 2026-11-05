@@ -1,7 +1,5 @@
-import { ChevronDown, Copy, Download, Eye, History, Menu as MenuIcon, Presentation, Share2, SlidersHorizontal, Users } from 'lucide-react'
-import { useContrast } from '@doory/lib/contrast'
+import { ChevronDown, Copy, Download, History, Presentation, Share2, SlidersHorizontal, Users } from 'lucide-react'
 import { useSizePresets } from '@doory/lib/sizePresets'
-import { getPageSize } from './engine/pageSizes'
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useCollabState } from './collab/context'
 import { PresenceStack } from './chrome/PresenceStack'
@@ -9,12 +7,10 @@ import { openAccountDialog } from './chrome/accountGate'
 import { I } from './chrome/icons'
 import { useChrome, useOpenTool } from './chrome/ChromeContext'
 import { useEditor, useEditorState } from './context'
-import { commands, isCommandEnabled } from './commands'
+import { commands } from './commands'
 import { DEFAULT_EXPORT_OPTIONS, exportFormats } from './engine/export/registry'
 import { type ExportChoice, describeChoice, designPreset, loadLastExport, saveLastExport, suggestionFor } from './engine/export/choices'
 import { copyPageAsPng, downloadFiles, runExport } from './engine/export/exporter'
-import { useNotesOpen } from './panels/notesVisibility'
-import { useTimelineView } from './workspace/timelineVisibility'
 import { type PanelDefinition } from './panels/registry'
 import { preloadDialog } from './dialogs/registry'
 import { useVisiblePanels } from './panels/useVisiblePanels'
@@ -81,30 +77,6 @@ function EndTool({ panel, open, onToggle }: { panel: PanelDefinition; open: bool
         {panel.icon}
       </button>
     </Tooltip>
-  )
-}
-
-/** A text button in the bar that opens a menu (File, View). */
-function MenuButton({ label, items, testId, icon, onOpen }: { label: string; items: MenuItem[]; testId: string; icon?: ReactNode; onOpen?: () => void }) {
-  const [open, setOpen] = useState(false)
-  const anchor = useRef<HTMLButtonElement>(null)
-  return (
-    <>
-      <button
-        ref={anchor}
-        type="button"
-        className={`${styles.menuBtn} ${icon ? styles.menuIcon : ''}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={icon ? label : undefined}
-        data-testid={testId}
-        onPointerEnter={onOpen}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {icon ?? label}
-      </button>
-      {open ? <Menu label={label} items={items} anchorRef={anchor} onClose={() => setOpen(false)} /> : null}
-    </>
   )
 }
 
@@ -248,18 +220,6 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
   const editor = useEditor()
   const history = useEditorState((s) => s.history)
   const readOnly = useEditorState((s) => s.readOnly)
-  const mode = useEditorState((s) => s.mode)
-  const ui = useEditorState((s) => s.ui)
-  const notesOpen = useNotesOpen()
-  const timelineOpen = useTimelineView().open
-  const highContrast = useContrast().effective === 'more'
-  const guideCount = useEditorState((s) => s.doc.pages.find((p) => p.id === s.activePageId)?.guides?.length ?? 0)
-  // Re-read when the server's size presets arrive: they say which sizes have a safe zone.
-  useSizePresets()
-  const hasSafeZone = useEditorState((s) => {
-    const size = getPageSize(s.doc, s.activePageId)
-    return editor.safeZoneFor(size.width, size.height) !== null
-  })
   const visible = useVisiblePanels()
   const { openId, toggle } = useOpenTool()
   const barRef = useRef<HTMLElement>(null)
@@ -267,70 +227,6 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
   const narrow = barWidth > 0 && barWidth < NARROW_BAR
 
   const endTools = visible.filter((p) => p.slot === 'end' && (!readOnly || p.readOnly))
-
-  const cmd = (id: string, label?: string): MenuItem => {
-    const c = commands.get(id)
-    return {
-      id,
-      label: label ?? c?.label ?? id,
-      shortcut: c?.shortcut,
-      icon: c?.icon,
-      disabled: c ? !isCommandEnabled(c, { editor, state: editor.state }) : true,
-      onSelect: () => c && void c.run(editor),
-    }
-  }
-  const notesDownloads: MenuItem[] = [cmd('file.notesMarkdown'), cmd('file.notesText')]
-  const viewItems: MenuItem[] = [
-    ...(readOnly
-      ? []
-      : [
-          { id: 'rulers', label: t.menu.rulers, checked: ui.rulers, onSelect: () => editor.patchUi({ rulers: !ui.rulers }) },
-          { id: 'grid', label: t.menu.grid, checked: ui.grid, onSelect: () => editor.patchUi({ grid: !ui.grid }) },
-          { id: 'guides', label: t.menu.guides, checked: ui.guides, onSelect: () => editor.patchUi({ guides: !ui.guides }) },
-          { id: 'snap', label: t.menu.snapping, checked: ui.snapping, onSelect: () => editor.patchUi({ snapping: !ui.snapping }) },
-          { id: 'bleed', label: t.menu.bleed, checked: ui.bleed, onSelect: () => editor.patchUi({ bleed: !ui.bleed }) },
-          ...(hasSafeZone ? [{ id: 'safe-zone', label: t.menu.safeZone, checked: ui.safeZone, onSelect: () => editor.patchUi({ safeZone: !ui.safeZone }) }] : []),
-          ...(guideCount > 0 ? [{ id: 'clear-guides', label: t.design.clearGuides(guideCount), onSelect: () => editor.pages.setGuides(editor.state.activePageId, []) }] : []),
-          { id: 'v1', separator: true },
-        ]),
-    { ...cmd('view.notes'), checked: notesOpen },
-    { ...cmd('view.timeline'), checked: timelineOpen },
-    cmd('view.playPage'),
-    { ...cmd('view.highContrast'), checked: highContrast },
-    { id: 'v2', separator: true },
-    cmd('file.shortcuts'),
-  ]
-  const fileItems: MenuItem[] = readOnly
-    ? [cmd('file.download'), ...notesDownloads]
-    : [
-        cmd('file.rename'),
-        cmd('file.resize'),
-        cmd('file.bulkCreate'),
-        cmd('file.history'),
-        cmd('file.save'),
-        { id: 'f-view-sep-top', separator: true },
-        {
-          id: 'file-view-accordion',
-          label: t.topbar.view,
-          icon: <Eye size={15} aria-hidden="true" />,
-          children: viewItems,
-        },
-        { id: 'f-view-sep-bottom', separator: true },
-        cmd('page.add', t.menu.newPage),
-        { id: 'f2', separator: true },
-        cmd('file.download'),
-        ...notesDownloads,
-        ...(mode === 'guest' ? [cmd('file.exportProject')] : []),
-        { id: 'f3', separator: true },
-        cmd('file.reset'),
-      ]
-  /** Phone widths: one menu with a heading per group, and Comments joins it so the bar keeps room for the title. */
-  const combinedItems: MenuItem[] = [
-    ...endTools.map((p) => ({ id: `tool-${p.id}`, label: p.label, icon: p.icon, checked: openId === p.id || undefined, onSelect: () => toggle(p.id) })),
-    ...(endTools.length > 0 ? [{ id: 'c0', separator: true }] : []),
-    { id: 'h-file', label: t.topbar.file, heading: true },
-    ...fileItems,
-  ]
 
   useEffect(() => {
     if (readOnly) editor.patchUi({ panelId: null })
@@ -340,13 +236,6 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
     <header ref={barRef} className={styles.bar} data-testid="ed-topbar" data-narrow={narrow || undefined}>
       <div className={styles.left}>
         {start}
-        {narrow ? (
-          <MenuButton label={t.topbar.menu} items={combinedItems} testId="ed-more" icon={<MenuIcon size={18} aria-hidden="true" />} onOpen={() => preloadDialog('download')} />
-        ) : (
-          <nav className={styles.menus} aria-label={t.topbar.menus}>
-            <MenuButton label={t.topbar.file} items={fileItems} testId="ed-menu-file" onOpen={() => preloadDialog('download')} />
-          </nav>
-        )}
         {readOnly ? null : (
           <span className={styles.history}>
             <Tooltip label={history.undoLabel ? `${t.topbar.undo} ${history.undoLabel.toLowerCase()}` : t.topbar.undo} shortcut="Mod+Z" disabled={!history.canUndo}>

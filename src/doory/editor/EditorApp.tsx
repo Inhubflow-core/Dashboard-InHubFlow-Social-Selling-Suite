@@ -150,7 +150,7 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1023px)')
     const apply = (): void => engine.patchUi({ compact: mq.matches })
-    engine.patchUi({ compact: mq.matches, panelId: null })
+    engine.patchUi({ compact: mq.matches, panelId: null, guides: true, snapping: true })
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
   }, [engine])
