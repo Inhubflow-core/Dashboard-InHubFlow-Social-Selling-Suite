@@ -27,7 +27,7 @@ import {
 import { DoryLine, installLineControls } from './DoryLine'
 import { asDory } from './dory'
 
-const ROTATE_RADIUS = 12
+const ROTATE_RADIUS = 13
 export const ROTATE_OFFSET = 32
 const EDGES = ['ml', 'mr', 'mt', 'mb'] as const
 
@@ -101,42 +101,69 @@ function paintCircleHandle(ctx: CanvasRenderingContext2D, left: number, top: num
   ctx.restore()
 }
 
-/** Draws Canva-style floating rotate button with soft drop shadow and rotate arrow */
-function paintRotateGlyph(ctx: CanvasRenderingContext2D, left: number, top: number, accent: string): void {
+/** Draws Canva-style floating rotate button with soft drop shadow and dual circular arrows */
+function paintRotateGlyph(ctx: CanvasRenderingContext2D, left: number, top: number, _accent: string): void {
   ctx.save()
-  // Drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.18)'
+  // Drop shadow for the white badge
+  ctx.shadowColor = 'rgba(15, 23, 42, 0.16)'
   ctx.shadowBlur = 6
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = 2
 
+  // Badge background circle
   ctx.fillStyle = '#ffffff'
-  ctx.strokeStyle = '#cbd5e1'
+  ctx.strokeStyle = '#e2e8f0'
   ctx.lineWidth = 1
   ctx.beginPath()
   ctx.arc(left, top, ROTATE_RADIUS, 0, Math.PI * 2)
   ctx.fill()
   ctx.stroke()
 
-  // Reset shadow for icon glyph
+  // Reset shadow for the rotate icon inside
   ctx.shadowColor = 'transparent'
-  const inner = 5.5
-  ctx.strokeStyle = accent
+  const glyphColor = '#1e293b' // Elegant high-contrast slate (Canva style)
+  ctx.fillStyle = glyphColor
+  ctx.strokeStyle = glyphColor
   ctx.lineWidth = 1.6
-  ctx.beginPath()
-  ctx.arc(left, top, inner, Math.PI * 0.15, Math.PI * 1.65)
-  ctx.stroke()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
 
-  // Arrow tip
-  const tipX = left + Math.cos(Math.PI * 0.15) * inner
-  const tipY = top + Math.sin(Math.PI * 0.15) * inner
+  const r = 5.2
+  const L = 2.4
+  const W = 1.7
+
+  // Helper to draw clean directional arrowhead at arc endpoint
+  const drawArrowhead = (theta: number) => {
+    const tipX = left + r * Math.cos(theta)
+    const tipY = top + r * Math.sin(theta)
+    const dx = -Math.sin(theta)
+    const dy = Math.cos(theta)
+    const nx = Math.cos(theta)
+    const ny = Math.sin(theta)
+
+    const bx = tipX - dx * (L * 0.9)
+    const by = tipY - dy * (L * 0.9)
+
+    ctx.beginPath()
+    ctx.moveTo(tipX + dx * 0.4, tipY + dy * 0.4)
+    ctx.lineTo(bx + nx * W, by + ny * W)
+    ctx.lineTo(bx - nx * W, by - ny * W)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  // 1. Top arc (curves clockwise from top-left ~212° to top-right ~342°)
   ctx.beginPath()
-  ctx.moveTo(tipX, tipY)
-  ctx.lineTo(tipX + 2.8, tipY - 0.8)
-  ctx.lineTo(tipX + 0.8, tipY + 2.6)
-  ctx.closePath()
-  ctx.fillStyle = accent
-  ctx.fill()
+  ctx.arc(left, top, r, Math.PI * 1.18, Math.PI * 1.90)
+  ctx.stroke()
+  drawArrowhead(Math.PI * 1.90)
+
+  // 2. Bottom arc (curves clockwise from bottom-right ~32° to bottom-left ~162°)
+  ctx.beginPath()
+  ctx.arc(left, top, r, Math.PI * 0.18, Math.PI * 0.90)
+  ctx.stroke()
+  drawArrowhead(Math.PI * 0.90)
+
   ctx.restore()
 }
 
