@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
 import { Sparkles, Image as ImageIcon, Bot } from "lucide-react";
-import VisualEditorModal from "./VisualEditorModal";
+import DooryStudioModal from "./DooryStudioModal";
 
 export default function CreateViralPostView({
   onTabChange,
@@ -601,7 +601,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                       </div>
                       <div>
                         <p className="text-xs font-bold text-gray-900 dark:text-white">
-                          Estudio Visual Interactivo (Fabric.js)
+                          Estudio Gr�fico Doory (Canva Suite)
                         </p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400">
                           Diseña tu imagen con plantillas virales, fotos de stock y degradé de alto impacto.
@@ -1016,7 +1016,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       </div>
 
       {/* Modal de Estudio Visual Integrado */}
-      <VisualEditorModal
+      <DooryStudioModal
         isOpen={isVisualStudioOpen}
         onClose={() => setIsVisualStudioOpen(false)}
         initialTitle={referenceHook || topic || content.split("\n")[0] || "Tu Titular de Alto Impacto"}

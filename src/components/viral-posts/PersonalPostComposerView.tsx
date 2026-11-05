@@ -32,7 +32,7 @@ import {
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost, PostFormat } from "@/lib/viral-posts/types";
-import VisualEditorModal from "./VisualEditorModal";
+import DooryStudioModal from "./DooryStudioModal";
 
 export default function PersonalPostComposerView({
   onTabChange,
@@ -707,7 +707,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       </div>
 
       {/* MODAL DE ESTUDIO VISUAL INTEGRADO */}
-      <VisualEditorModal
+      <DooryStudioModal
         isOpen={isVisualStudioOpen}
         onClose={() => setIsVisualStudioOpen(false)}
         initialTitle={title || bodyText.split("\n")[0] || "Tu Titular de Alto Impacto"}
