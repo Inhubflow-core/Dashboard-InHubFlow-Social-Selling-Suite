@@ -107,24 +107,15 @@ export async function getLamaSession(onProgress?: InpaintingProgressCallback): P
     onProgress?.('processing', 5)
     console.log('[Magic Eraser] Creating ONNX session...')
 
-    // Configure ONNX Web session: Try WebGPU first, fallback to WASM
-    let session: ort.InferenceSession
-    if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
-      try {
-        session = await ort.InferenceSession.create(buffer, {
-          executionProviders: ['webgpu'],
-        })
-        console.log('[Magic Eraser] Initialized with WebGPU provider')
-        return session
-      } catch (e) {
-        console.warn('[Magic Eraser] WebGPU initialization failed, falling back to wasm:', e)
-      }
-    }
-
-    session = await ort.InferenceSession.create(buffer, {
+    // LaMa uses Fast Fourier Convolutions (FFC), which require WASM CPU operators.
+    // Initializing directly with WASM avoids 30+ seconds of unsupported GPU shader compilation
+    // and eliminates JSEP binary op kernel errors in the console.
+    const session = await ort.InferenceSession.create(buffer, {
       executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all',
+      logSeverityLevel: 3, // Suppress non-fatal kernel mapping warnings
     })
-    console.log('[Magic Eraser] Initialized with WASM provider')
+    console.log('[Magic Eraser] Initialized directly with optimized WASM provider')
     return session
   })().catch((err) => {
     cachedSessionPromise = null // allow retry on error
@@ -187,26 +178,19 @@ export async function runLamaInpainting(
   const imageTensor = new ort.Tensor('float32', imgTensorData, [1, 3, S, S])
   const maskTensor = new ort.Tensor('float32', maskTensorData, [1, 1, S, S])
 
-  // Run model inference
+  // Yield event loop before heavy inference so the browser paints the 65% progress bar
   onProgress?.('processing', 65)
-  console.log('[Magic Eraser] Running inference session...')
+  console.log('[Magic Eraser] Running WASM inference session...')
+  await new Promise((r) => setTimeout(r, 60))
+
   const feeds: Record<string, ort.Tensor> = {
     image: imageTensor,
     mask: maskTensor,
   }
 
-  let results: any
-  try {
-    results = await session.run(feeds)
-  } catch (runErr) {
-    console.warn('[Magic Eraser] Session run failed with current provider, retrying with WASM:', runErr)
-    const buffer = await fetchModelWithProgress(LAMA_MODEL_URL)
-    const wasmSession = await ort.InferenceSession.create(buffer, {
-      executionProviders: ['wasm'],
-    })
-    results = await wasmSession.run(feeds)
-  }
+  const results = await session.run(feeds)
   onProgress?.('processing', 85)
+  await new Promise((r) => setTimeout(r, 30))
 
   // Extract inpaint result
   const outputTensor = results.output || results[Object.keys(results)[0]]
