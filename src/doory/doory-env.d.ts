@@ -3,6 +3,20 @@ declare module '*?url' {
   export default url;
 }
 
+declare module 'onnxruntime-web' {
+  export const env: any;
+  export class InferenceSession {
+    static create(model: any, options?: any): Promise<any>;
+    run(feeds: any, ...args: any[]): Promise<any>;
+  }
+  export class Tensor {
+    constructor(type: string, data: any, dims?: number[]);
+    data: any;
+    dims: number[];
+    type: string;
+  }
+}
+
 declare module 'onnxruntime-web/wasm' {
   export const env: any;
   export class InferenceSession {

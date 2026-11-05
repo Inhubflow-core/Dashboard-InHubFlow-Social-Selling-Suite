@@ -1,4 +1,4 @@
-import { Crop, Frame, Replace } from 'lucide-react'
+import { Crop, Frame, Replace, Eraser } from 'lucide-react'
 import { I } from '../../chrome/icons'
 import { useEditor, useSelection } from '../../context'
 import { isBackgroundRemovalAvailable } from '../../engine/bgRemoval'
@@ -126,6 +126,10 @@ export function ImageSection() {
           <span className={ed.toolText}>{t.ctx.removeBackground}</span>
         </ToolButton>
       ) : null}
+      <ToolButton label="Borrador mágico" featured testId="ed-magic-eraser" onClick={() => editor.openDialog('magic-eraser')}>
+        <Eraser size={18} aria-hidden="true" />
+        <span className={ed.toolText}>Borrador mágico</span>
+      </ToolButton>
       {editor.style.canEditSvgColors() ? (
         <ToolButton label={t.toolbar.editColors} testId="ed-edit-svg-colors" onClick={() => void editor.style.editSvgColors()}>
           <span className={ed.textButton}>{t.toolbar.editColors}</span>
