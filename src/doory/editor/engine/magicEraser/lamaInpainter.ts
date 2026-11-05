@@ -1,5 +1,10 @@
 import * as ort from 'onnxruntime-web'
 
+if (typeof window !== 'undefined') {
+  ort.env.wasm.wasmPaths = '/'
+  ort.env.wasm.numThreads = 1
+}
+
 const LAMA_MODEL_URL = 'https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx'
 const CACHE_NAME = 'inhubflow-lama-cache-v1'
 
@@ -101,7 +106,7 @@ export async function getLamaSession(onProgress?: InpaintingProgressCallback): P
 
     onProgress?.('processing', 5)
     console.log('[Magic Eraser] Creating ONNX session...')
-    
+
     // Configure ONNX Web session: Try WebGPU first, fallback to WASM
     let session: ort.InferenceSession
     if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
@@ -190,18 +195,28 @@ export async function runLamaInpainting(
     mask: maskTensor,
   }
 
-  const results = await session.run(feeds)
+  let results: any
+  try {
+    results = await session.run(feeds)
+  } catch (runErr) {
+    console.warn('[Magic Eraser] Session run failed with current provider, retrying with WASM:', runErr)
+    const buffer = await fetchModelWithProgress(LAMA_MODEL_URL)
+    const wasmSession = await ort.InferenceSession.create(buffer, {
+      executionProviders: ['wasm'],
+    })
+    results = await wasmSession.run(feeds)
+  }
   onProgress?.('processing', 85)
 
   // Extract inpaint result
   const outputTensor = results.output || results[Object.keys(results)[0]]
   const outData = outputTensor.data as Float32Array
 
-  // Check if output is in 0..1 or 0..255 range
-  let isNormalized = true
-  for (let i = 0; i < Math.min(100, outData.length); i++) {
+  // Check whether output values are already in 0..255 range (LaMa output)
+  let alreadyIn255 = false
+  for (let i = 0; i < Math.min(2000, outData.length); i += 20) {
     if (outData[i] > 1.5) {
-      isNormalized = false
+      alreadyIn255 = true
       break
     }
   }
@@ -215,9 +230,9 @@ export async function runLamaInpainting(
 
   for (let i = 0; i < numPixels; i++) {
     const dstOffset = i * 4
-    const r = isNormalized ? outData[i] * 255 : outData[i]
-    const g = isNormalized ? outData[numPixels + i] * 255 : outData[numPixels + i]
-    const b = isNormalized ? outData[2 * numPixels + i] * 255 : outData[2 * numPixels + i]
+    const r = alreadyIn255 ? outData[i] : outData[i] * 255
+    const g = alreadyIn255 ? outData[numPixels + i] : outData[numPixels + i] * 255
+    const b = alreadyIn255 ? outData[2 * numPixels + i] : outData[2 * numPixels + i] * 255
 
     outPixels[dstOffset] = Math.min(255, Math.max(0, Math.round(r)))
     outPixels[dstOffset + 1] = Math.min(255, Math.max(0, Math.round(g)))

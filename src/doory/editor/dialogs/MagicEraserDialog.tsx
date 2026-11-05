@@ -25,7 +25,7 @@ export function MagicEraserDialog() {
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
 
-  const [brushSize, setBrushSize] = useState(32)
+  const [brushSize, setBrushSize] = useState(36)
   const [hasMask, setHasMask] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [status, setStatus] = useState<EraserStatus>({ kind: 'idle' })
@@ -36,42 +36,80 @@ export function MagicEraserDialog() {
   const maskHistory = useRef<ImageData[]>([])
   const imageHistory = useRef<ImageData[]>([])
 
-  // Initialize and render base image into canvas
+  // Initialize and render base image into canvas safely
   useEffect(() => {
     if (!selectedObj || selectedObj.type !== 'image') {
       editor.closeDialog()
       return
     }
 
+    let isMounted = true
     const anyObj = selectedObj as any
-    const src = anyObj.getSrc?.() || anyObj._element?.src || ''
-    if (!src) return
 
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
+    const setupCanvasWithSource = (imageSource: CanvasImageSource, width: number, height: number) => {
       const imgCanvas = imageCanvasRef.current
       const maskCanvas = maskCanvasRef.current
-      if (!imgCanvas || !maskCanvas) return
+      if (!imgCanvas || !maskCanvas || !isMounted) return
 
-      imgCanvas.width = img.naturalWidth || img.width
-      imgCanvas.height = img.naturalHeight || img.height
-      maskCanvas.width = imgCanvas.width
-      maskCanvas.height = imgCanvas.height
+      imgCanvas.width = width
+      imgCanvas.height = height
+      maskCanvas.width = width
+      maskCanvas.height = height
 
       const imgCtx = imgCanvas.getContext('2d')
       if (imgCtx) {
-        imgCtx.drawImage(img, 0, 0)
-        // Store initial image state
-        imageHistory.current = [imgCtx.getImageData(0, 0, imgCanvas.width, imgCanvas.height)]
+        imgCtx.drawImage(imageSource, 0, 0, width, height)
+        imageHistory.current = [imgCtx.getImageData(0, 0, width, height)]
       }
 
       const maskCtx = maskCanvas.getContext('2d')
       if (maskCtx) {
-        maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+        maskCtx.clearRect(0, 0, width, height)
       }
     }
-    img.src = src
+
+    // 1. Direct from existing FabricImage element (fastest, no CORS, pristine quality)
+    const el = anyObj.getElement?.() || anyObj._element
+    if (el && (el.naturalWidth || el.width)) {
+      const w = el.naturalWidth || el.width
+      const h = el.naturalHeight || el.height
+      setupCanvasWithSource(el, w, h)
+      return
+    }
+
+    // 2. Fallback: resolve and load with proxy protection
+    const loadSafely = async () => {
+      const rawSrc = anyObj.getSrc?.() || anyObj._element?.src || ''
+      if (!rawSrc) return
+
+      try {
+        const resolved = await editor.assets.resolve(rawSrc)
+        let finalUrl = resolved
+        if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+          finalUrl = `/api/proxy-image?url=${encodeURIComponent(resolved)}`
+        }
+
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          if (!isMounted) return
+          setupCanvasWithSource(img, img.naturalWidth || img.width, img.naturalHeight || img.height)
+        }
+        img.onerror = (e) => {
+          console.error('[Magic Eraser] Failed to load image element:', e)
+          if (isMounted) setStatus({ kind: 'error', message: 'No se pudo cargar la imagen para editarla.' })
+        }
+        img.src = finalUrl
+      } catch (err) {
+        console.error('[Magic Eraser] Error resolving image source:', err)
+      }
+    }
+
+    loadSafely()
+
+    return () => {
+      isMounted = false
+    }
   }, [selectedObj, editor])
 
   // Coordinate mapper from mouse pointer to native canvas resolution
@@ -192,11 +230,11 @@ export function MagicEraserDialog() {
     setHasMask(false)
   }, [])
 
-  // Execute inpainting with LaMa
-  const handleRunInpaint = useCallback(async () => {
+  // Internal helper to run inpaint on current canvases
+  const executeInpaintInternal = useCallback(async (): Promise<boolean> => {
     const imgCanvas = imageCanvasRef.current
     const maskCanvas = maskCanvasRef.current
-    if (!imgCanvas || !maskCanvas || !hasMask || status.kind === 'running') return
+    if (!imgCanvas || !maskCanvas) return false
 
     try {
       setStatus({ kind: 'running', phase: 'downloading', percent: 0 })
@@ -207,7 +245,9 @@ export function MagicEraserDialog() {
 
       // Load new inpainted result back into base image canvas
       const img = new Image()
-      img.src = URL.createObjectURL(resultBlob)
+      const objectUrl = URL.createObjectURL(resultBlob)
+      img.src = objectUrl
+
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve()
         img.onerror = reject
@@ -229,38 +269,71 @@ export function MagicEraserDialog() {
       setHasMask(false)
       setHasChanges(true)
       setStatus({ kind: 'idle' })
-      editor.toast('Elemento eliminado del fondo', 'success')
+      URL.revokeObjectURL(objectUrl)
+      return true
     } catch (err: any) {
       console.error('[Magic Eraser] Error during inpainting:', err)
       setStatus({ kind: 'error', message: err instanceof Error ? err.message : 'Error al procesar el borrado.' })
+      return false
     }
-  }, [editor, hasMask, status.kind])
+  }, [])
+
+  // Button handler for "Borrar objeto"
+  const handleRunInpaint = useCallback(async () => {
+    if (!hasMask || status.kind === 'running') return
+    const success = await executeInpaintInternal()
+    if (success) {
+      editor.toast('Elemento eliminado con éxito', 'success')
+    }
+  }, [editor, executeInpaintInternal, hasMask, status.kind])
 
   // Apply cleaned image to canvas
   const handleApply = useCallback(async () => {
     const imgCanvas = imageCanvasRef.current
-    if (!imgCanvas) return
+    if (!imgCanvas || status.kind === 'running') return
+
+    // If user painted a mask but hasn't clicked "Borrar objeto", run inpaint automatically first!
+    if (hasMask) {
+      const ok = await executeInpaintInternal()
+      if (!ok) return
+    }
+
+    setStatus({ kind: 'running', phase: 'processing', percent: 90 })
 
     imgCanvas.toBlob(async (blob) => {
-      if (!blob) return
+      if (!blob) {
+        setStatus({ kind: 'error', message: 'No se pudo generar la imagen para aplicar.' })
+        return
+      }
+
       try {
         console.log('[Magic Eraser] Uploading cleaned image asset...')
         const ref = await editor.assets.upload(blob, 'magic-erased.png')
-        const view = editor.activeView()
         const target = targetObjRef.current
-        if (view && target) {
-          view.selectObjects([target])
-        }
-        console.log('[Magic Eraser] Replacing selected image on canvas...')
+        console.log('[Magic Eraser] Replacing image on canvas...', ref, target)
+
         await editor.insert.replaceSelectedImage(ref, 'Borrador mágico', undefined, target)
-        editor.toast('Imagen actualizada', 'success')
+
+        // Force canvas refresh
+        const view = editor.activeView()
+        if (view) {
+          if (target) {
+            target.dirty = true
+            if (typeof target.clearCache === 'function') target.clearCache()
+            view.selectObjects([target])
+          }
+          view.canvas.requestRenderAll()
+        }
+
+        editor.toast('Imagen actualizada en el diseño', 'success')
         editor.closeDialog()
       } catch (err) {
         console.error('[Magic Eraser] Failed to replace image:', err)
         editor.toast('Error al aplicar la imagen al diseño', 'error')
+        setStatus({ kind: 'error', message: 'Error al aplicar los cambios al diseño.' })
       }
     }, 'image/png')
-  }, [editor])
+  }, [editor, executeInpaintInternal, hasMask, status.kind])
 
   return (
     <Dialog
@@ -269,17 +342,26 @@ export function MagicEraserDialog() {
       onClose={() => editor.closeDialog()}
       footer={
         <div className={styles.footerActions}>
-          <Button variant="ghost" onClick={() => editor.closeDialog()}>
+          <Button variant="ghost" onClick={() => editor.closeDialog()} disabled={status.kind === 'running'}>
             Cancelar
           </Button>
           <Button
             variant="primary"
             onClick={handleApply}
-            disabled={!hasChanges && !hasMask}
-            title={hasChanges ? 'Aplica los cambios al diseño' : 'Primero elimina algún elemento'}
+            disabled={(!hasChanges && !hasMask) || status.kind === 'running'}
+            title={hasChanges || hasMask ? 'Aplica la imagen limpia a tu diseño' : 'Pinta con el pincel el objeto que deseas eliminar'}
           >
-            <Check size={16} />
-            Aplicar al diseño
+            {status.kind === 'running' ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Aplicando...
+              </>
+            ) : (
+              <>
+                <Check size={16} />
+                {hasMask && !hasChanges ? 'Borrar y aplicar al diseño' : 'Aplicar al diseño'}
+              </>
+            )}
           </Button>
         </div>
       }
@@ -348,7 +430,7 @@ export function MagicEraserDialog() {
             <Button
               variant="ghost"
               onClick={handleUndoStroke}
-              disabled={maskHistory.current.length === 0}
+              disabled={maskHistory.current.length === 0 || status.kind === 'running'}
               title="Deshacer último trazo"
             >
               <Undo2 size={16} />
@@ -358,7 +440,7 @@ export function MagicEraserDialog() {
             <Button
               variant="ghost"
               onClick={handleClearMask}
-              disabled={!hasMask}
+              disabled={!hasMask || status.kind === 'running'}
               title="Borrar selección de trazos"
             >
               <Trash2 size={16} />

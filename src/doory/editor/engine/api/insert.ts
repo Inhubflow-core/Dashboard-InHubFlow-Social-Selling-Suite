@@ -459,8 +459,9 @@ export class InsertApi {
     await img.setSrc(url, { crossOrigin: 'anonymous' })
     d.docSrc = ref.url
     d.assetId = ref.id
-    const natW = img.getElement().width || img.width || 1
-    const natH = img.getElement().height || img.height || 1
+    const el = img.getElement() as HTMLImageElement | undefined
+    const natW = el?.naturalWidth || el?.width || img.width || 1
+    const natH = el?.naturalHeight || el?.height || img.height || 1
     img.set({ cropX: 0, cropY: 0, width: natW, height: natH })
     if (d.slot) {
       const cover = coverSlotTransform(d.slot, natW, natH)
@@ -480,6 +481,10 @@ export class InsertApi {
     if (d.filterSpecs && d.filterSpecs.length > 0) applyImageFilters(img, d.filterSpecs)
     applyMask(img)
     img.setCoords()
+    img.dirty = true
+    if (typeof (img as any).clearCache === 'function') {
+      (img as any).clearCache()
+    }
     view.canvas.requestRenderAll()
     this.engine.commit(this.engine.state.activePageId, { label })
   }

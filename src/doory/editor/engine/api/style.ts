@@ -439,6 +439,66 @@ export class StyleApi {
    * Either way the cut-out is a new asset and the swap is one undo step. Resolves `false` without touching the
    * design when cancelled or when the selection moved to another object while it ran.
    */
+  /**
+   * Safely retrieves a Blob from a FabricImage, bypassing CORS issues via proxy fallback
+   * or extracting directly from the loaded DOM element / canvas if needed.
+   */
+  private async fetchImageBlob(img: FabricImage, signal?: AbortSignal): Promise<Blob> {
+    const rawSrc = img.getSrc() || asDory(img).docSrc || ''
+    const resolved = rawSrc ? await this.engine.assets.resolve(rawSrc) : ''
+
+    // 1. Direct fetch if blob: or data:
+    if (resolved.startsWith('blob:') || resolved.startsWith('data:')) {
+      const res = await fetch(resolved, { signal })
+      return await res.blob()
+    }
+
+    // 2. Try direct fetch for http(s)
+    if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+      try {
+        const res = await fetch(resolved, { signal })
+        if (res.ok) {
+          return await res.blob()
+        }
+      } catch {
+        // Fallback to proxy on CORS or network error
+      }
+
+      // 3. Fallback to local Next.js proxy
+      try {
+        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(resolved)}`
+        const proxyRes = await fetch(proxyUrl, { signal })
+        if (proxyRes.ok) {
+          return await proxyRes.blob()
+        }
+      } catch {
+        // Fallback to canvas
+      }
+    }
+
+    // 4. Fallback to drawing current FabricImage element onto an offscreen canvas
+    const el = img.getElement() as HTMLImageElement | HTMLCanvasElement
+    if (el) {
+      try {
+        const c = document.createElement('canvas')
+        const w = 'naturalWidth' in el ? (el.naturalWidth || el.width) : el.width
+        const h = 'naturalHeight' in el ? (el.naturalHeight || el.height) : el.height
+        c.width = w || (img.width ?? 512)
+        c.height = h || (img.height ?? 512)
+        const ctx = c.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(el, 0, 0, c.width, c.height)
+          const b = await new Promise((resolve) => c.toBlob(resolve, 'image/png'))
+          if (b) return b as Blob
+        }
+      } catch {
+        // Canvas tainted fallback
+      }
+    }
+
+    throw new BackgroundRemovalError('No se pudo obtener la imagen para procesarla. Por favor verifica tu conexión.')
+  }
+
   async removeBackground(onProgress?: (phase: BgRemovalPhase, percent: number) => void, signal?: AbortSignal, option: string = DEVICE_OPTION): Promise<boolean> {
     const img = this.images()[0]
     if (!img || signal?.aborted) return false
@@ -447,7 +507,7 @@ export class StyleApi {
     if (option !== DEVICE_OPTION && !ai) throw new BackgroundRemovalError('No server option is available here.')
     let result: Blob | AssetRef
     try {
-      const getImage = async () => (await fetch(img.getSrc(), { signal })).blob()
+      const getImage = async () => this.fetchImageBlob(img, signal)
       result = ai
         ? await ai.run(BACKGROUND_REMOVAL_TASK, { model: option, image: getImage, assetId: asDory(img).assetId, signal })
         : await runRemoval(await getImage(), onProgress, signal)
@@ -459,7 +519,7 @@ export class StyleApi {
     if (stale()) return false
     const ref = result instanceof Blob ? await this.engine.assets.upload(result, 'cutout.png') : result
     if (stale()) return false
-    await this.engine.insert.replaceSelectedImage(ref)
+    await this.engine.insert.replaceSelectedImage(ref, t.history.replaceImage, undefined, img)
     return true
   }
 
@@ -488,7 +548,7 @@ export class StyleApi {
     const stale = (): boolean => signal?.aborted === true || this.images()[0] !== img
     let result: Blob
     try {
-      const blob = await (await fetch(img.getSrc(), { signal })).blob()
+      const blob = await this.fetchImageBlob(img, signal)
       result = await runUpscale(blob, { ...options, maxBytes: MAX_UPLOAD_BYTES }, onProgress, signal)
     } catch (error) {
       // Cancel is not a failure: the engine has stopped its work and the design stays as it was.
@@ -500,7 +560,7 @@ export class StyleApi {
     const ref = await this.engine.assets.upload(result, `upscaled-${target.width}x${target.height}.${ext}`)
     if (stale()) return false
     const crop = source.crop ? scaledCrop(source.crop, source.width, source.height, options.scale) : null
-    await this.engine.insert.replaceSelectedImage(ref, t.history.upscale, crop ?? undefined)
+    await this.engine.insert.replaceSelectedImage(ref, t.history.upscale, crop ?? undefined, img)
     return true
   }
 

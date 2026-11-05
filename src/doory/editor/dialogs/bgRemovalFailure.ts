@@ -12,6 +12,12 @@ const FAILURE_MESSAGE: Record<BgRemovalFailure, string> = {
 /** What went wrong, in words, and whether trying the same option again could help. */
 export function describeFailure(error: unknown, option: AiOption): { message: string; retry: boolean } {
   if (option.kind === 'device' || !isApiError(error)) {
+    if (error instanceof BackgroundRemovalError && error.message && error.reason === 'unavailable') {
+      return { message: error.message, retry: true }
+    }
+    if (error instanceof Error && error.message) {
+      return { message: error.message, retry: true }
+    }
     const reason = error instanceof BackgroundRemovalError ? error.reason : 'unavailable'
     return { message: FAILURE_MESSAGE[reason], retry: reason !== 'no-subject' }
   }

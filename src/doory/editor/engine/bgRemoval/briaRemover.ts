@@ -6,6 +6,7 @@ type LoadedModels = {
   processor: any
 }
 
+const BRIA_MODEL_ID = 'briaai/RMBG-1.4'
 let cachedModelsPromise: Promise<LoadedModels> | null = null
 
 async function getModels(onProgress?: BgRemovalProgress, signal?: AbortSignal): Promise<LoadedModels> {
@@ -18,7 +19,7 @@ async function getModels(onProgress?: BgRemovalProgress, signal?: AbortSignal): 
     // Ensure we don't try to look for local fs models in browser
     env.allowLocalModels = false
 
-    const modelId = 'briaai/RMBG-1.4'
+    const modelId = BRIA_MODEL_ID
 
     const handleProgress = (info: any) => {
       if (signal?.aborted) return
@@ -95,7 +96,7 @@ export class BriaTransformersRemover implements BackgroundRemover {
 
     try {
       onProgress?.('downloading', 0)
-      const { model, processor } = await getModels(onProgress, signal)
+      let { model, processor } = await getModels(onProgress, signal)
 
       if (signal?.aborted) {
         throw new BackgroundRemovalError('Operación cancelada')
@@ -117,14 +118,22 @@ export class BriaTransformersRemover implements BackgroundRemover {
       }
 
       onProgress?.('processing', 60)
-      const output = await model({ input: pixel_values })
+      let output: any
+      try {
+        output = await model({ input: pixel_values })
+      } catch (inferenceErr) {
+        console.warn('[InHubFlow BG Remover] Inference failed on current device, falling back to WASM:', inferenceErr)
+        const { AutoModel } = await import('@huggingface/transformers')
+        model = await AutoModel.from_pretrained(BRIA_MODEL_ID, { device: 'wasm' })
+        output = await model({ input: pixel_values })
+      }
 
       if (signal?.aborted) {
         throw new BackgroundRemovalError('Operación cancelada')
       }
 
       onProgress?.('processing', 80)
-      const outTensor = output.output
+      const outTensor = output.output || output[Object.keys(output)[0]]
       const [batch, channels, height, width] = outTensor.dims
       const outData = outTensor.data as Float32Array
       const maskData = new Uint8ClampedArray(height * width)
