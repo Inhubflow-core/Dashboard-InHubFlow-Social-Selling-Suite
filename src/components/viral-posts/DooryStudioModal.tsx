@@ -4,8 +4,6 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { 
   X, 
   Check, 
-  Sparkles, 
-  Download, 
   Smartphone, 
   Square as SquareIcon, 
   Loader2 
@@ -206,16 +204,15 @@ export default function DooryStudioModal({
 
   if (!isOpen) return null;
 
-  // Custom unified topbar start (InHubFlow branding + aspect ratio toggle)
+  // Custom unified topbar start: solo el icono de InHubFlow sin texto (estilo Doory)
   const topBarStart = (
-    <div className="flex items-center gap-3 pr-2.5 mr-1 border-r border-slate-200">
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 via-[#0099ff] to-indigo-600 flex items-center justify-center text-white shadow-sm">
-          <Sparkles size={15} />
-        </div>
-        <span className="font-bold text-sm tracking-tight text-slate-800 leading-none hidden md:inline">
-          Estudio InHubFlow
-        </span>
+    <div className="flex items-center gap-2.5 pr-2.5 mr-1 border-r border-slate-200">
+      <div className="flex items-center justify-center" title="InHubFlow">
+        <img
+          src="/images/logo/inhubflow-icon-dark.png"
+          alt="InHubFlow"
+          className="h-7 w-7 object-contain hover:scale-105 transition-transform"
+        />
       </div>
 
       {/* Switcher 4:5 vs 1:1 */}
