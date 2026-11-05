@@ -37,7 +37,7 @@ export const t = {
     redo: 'Rehacer',
     title: 'Título del diseño',
     present: 'Presentar',
-    share: 'Exportar',
+    share: 'Share',
     comments: 'Comentarios',
     versionHistory: 'Version history…',
     moreDownloadOptions: 'All formats and options…',

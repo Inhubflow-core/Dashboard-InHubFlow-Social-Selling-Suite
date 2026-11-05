@@ -372,11 +372,8 @@ export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
           <PresenceStack />
         </div>
         {!narrow ? endTools.map((p) => <EndTool key={p.id} panel={p} open={openId === p.id} onToggle={() => toggle(p.id)} />) : null}
-        {end ? (
-          <div className={styles.end}>{end}</div>
-        ) : (
-          <ShareMenu onPresent={onPresent} />
-        )}
+        <ShareMenu onPresent={onPresent} />
+        {end ? <div className={styles.end}>{end}</div> : null}
       </div>
     </header>
   )

@@ -248,24 +248,14 @@ export default function DooryStudioModal({
     </div>
   );
 
-  // Custom unified topbar end (Download PNG + Apply to Post + Close)
+  // Custom unified topbar end (Apply to Post + Close; ShareMenu is provided natively by Doory TopBar)
   const topBarEnd = (
     <div className="flex items-center gap-2">
       <button
         type="button"
-        onClick={handleDownloadPng}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
-        title="Descargar lámina en alta resolución PNG"
-      >
-        <Download size={14} />
-        <span className="hidden sm:inline">Descargar PNG</span>
-      </button>
-
-      <button
-        type="button"
         onClick={handleApplyToPost}
         disabled={isExporting}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
       >
         {isExporting ? (
           <Loader2 size={14} className="animate-spin" />

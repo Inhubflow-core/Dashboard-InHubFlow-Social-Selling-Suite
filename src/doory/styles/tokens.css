@@ -50,11 +50,11 @@
   --color-on-brand: #ffffff;
   --accent-lilac: #0099ff;
 
-  /* Call to action: InHubFlow brand blue */
-  --color-cta: #0099ff;
-  --color-cta-hover: #0082db;
+  /* Call to action: original Doory dark slate pill for Share */
+  --color-cta: #0f172a;
+  --color-cta-hover: #1e293b;
   --color-on-cta: #ffffff;
-  --color-cta-shadow: rgba(0, 153, 255, 0.25);
+  --color-cta-shadow: rgba(15, 23, 42, 0.25);
 
   --color-bg: #f8fafc;
   --color-bg-subtle: #f1f5f9;
