@@ -27,6 +27,7 @@ import styles from './TopBar.module.css'
 
 interface TopBarProps {
   start?: ReactNode
+  action?: ReactNode
   end?: ReactNode
   onTitle: (title: string) => void
   onPresent: () => void
@@ -243,7 +244,7 @@ function useWidth(ref: React.RefObject<HTMLElement | null>): number {
 /**
  * The bar: the design's menus, history and save state on the left, its title in the middle, and the actions on the right.
  */
-export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
+export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) {
   const editor = useEditor()
   const history = useEditorState((s) => s.history)
   const readOnly = useEditorState((s) => s.readOnly)
@@ -372,6 +373,7 @@ export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
           <PresenceStack />
         </div>
         {!narrow ? endTools.map((p) => <EndTool key={p.id} panel={p} open={openId === p.id} onToggle={() => toggle(p.id)} />) : null}
+        {action ? <div className={styles.end}>{action}</div> : null}
         <ShareMenu onPresent={onPresent} />
         {end ? <div className={styles.end}>{end}</div> : null}
       </div>

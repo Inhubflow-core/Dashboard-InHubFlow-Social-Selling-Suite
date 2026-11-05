@@ -245,25 +245,27 @@ export default function DooryStudioModal({
     </div>
   );
 
-  // Custom unified topbar end (Apply to Post + Close; ShareMenu is provided natively by Doory TopBar)
+  // Acción principal: "Aplicar al Post" de primero (antes de Share)
+  const topBarAction = (
+    <button
+      type="button"
+      onClick={handleApplyToPost}
+      disabled={isExporting}
+      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+    >
+      {isExporting ? (
+        <Loader2 size={14} className="animate-spin" />
+      ) : (
+        <Check size={14} />
+      )}
+      <span>Aplicar al Post</span>
+    </button>
+  );
+
+  // Fin de la barra: Separador y botón de cierre (después de Share)
   const topBarEnd = (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={handleApplyToPost}
-        disabled={isExporting}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
-      >
-        {isExporting ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Check size={14} />
-        )}
-        <span>Aplicar al Post</span>
-      </button>
-
-      <div className="h-4 w-px bg-slate-200 mx-1" />
-
+    <div className="flex items-center">
+      <div className="h-4 w-px bg-slate-200 ml-1 mr-2" />
       <button
         type="button"
         onClick={onClose}
@@ -277,7 +279,7 @@ export default function DooryStudioModal({
 
   return (
     <div className="fixed inset-0 z-[99999] flex flex-col bg-[#0b0f19] select-none overflow-hidden animate-fadeIn">
-      {/* Área del Editor Doory — TopBar unificado sin duplicidad */}
+      {/* Área del Editor Doory — TopBar unificado */}
       <main className="flex-1 relative w-full h-full overflow-hidden doory-modal-container">
         <EditorApp
           key={`doory-${docKey}-${aspectRatio}`}
@@ -290,6 +292,7 @@ export default function DooryStudioModal({
           }}
           adapter={adapterPackage.adapter}
           topBarStart={topBarStart}
+          topBarAction={topBarAction}
           topBarEnd={topBarEnd}
         />
       </main>

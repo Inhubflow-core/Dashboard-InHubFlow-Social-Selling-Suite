@@ -390,6 +390,7 @@ export interface EditorAppProps {
   onConflictResolve?: (choice: 'reload' | 'save-as-copy') => void
   /** Slots in the editor's top bar. */
   topBarStart?: ReactNode
+  topBarAction?: ReactNode
   topBarEnd?: ReactNode
 }
 

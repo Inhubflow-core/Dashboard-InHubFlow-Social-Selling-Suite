@@ -53,7 +53,7 @@ function LiveRegion() {
  * panels, history, export, autosave triggering) lives inside.
  */
 export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function EditorApp(props, ref) {
-  const { document: doc, meta, adapter, onTitleChange, onSaveStateChange, onConflictResolve, topBarStart, topBarEnd } = props
+  const { document: doc, meta, adapter, onTitleChange, onSaveStateChange, onConflictResolve, topBarStart, topBarAction, topBarEnd } = props
   const [engine] = useState(() => new EditorEngine({ adapter, document: doc, meta }))
   const [root, setRoot] = useState<HTMLDivElement | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -169,7 +169,7 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
     <div ref={setRootEl} className={styles.root} data-editor-root aria-label={t.appLabel} role="application">
       <EditorProvider engine={engine} portalRoot={root} collab={session}>
         <ChromeProvider>
-          <TopBar start={topBarStart} end={topBarEnd} onTitle={onTitle} onPresent={() => engine.openDialog('presenter')} />
+          <TopBar start={topBarStart} action={topBarAction} end={topBarEnd} onTitle={onTitle} onPresent={() => engine.openDialog('presenter')} />
           <ConflictBanner onResolve={onConflictResolve} />
           <CollabBanner />
           <MissingFontsNotice />
