@@ -1,4 +1,4 @@
-import { Clapperboard, Images, LayoutTemplate, Layers, Music, PaintBucket, Palette, Shapes, Sparkles, Type } from 'lucide-react'
+import { Clapperboard, Images, LayoutTemplate, Layers, PaintBucket, Palette, Shapes, Sparkles, Type } from 'lucide-react'
 import { ImageDrawer } from '../drawers/ImageDrawer'
 import { ShapesDrawer } from '../drawers/ShapesDrawer'
 import { TextDrawer } from '../drawers/TextDrawer'
@@ -11,7 +11,6 @@ import { loadable } from '../ui/loadable'
 // Tools loaded on demand
 const TemplatesPanel = loadable(() => import('../panels/TemplatesPanel').then((m) => m.TemplatesPanel))
 const VideosPanel = loadable(() => import('../panels/VideosPanel').then((m) => m.VideosPanel))
-const AudioPanel = loadable(() => import('../panels/AudioPanel').then((m) => m.AudioPanel))
 const AnimatePanel = loadable(() => import('../panels/AnimatePanel').then((m) => m.AnimatePanel))
 const BrandPanel = loadable(() => import('../panels/BrandPanel').then((m) => m.BrandPanel))
 
@@ -22,14 +21,14 @@ const icon = (Glyph: typeof Type) => <Glyph size={20} strokeWidth={1.8} aria-hid
  * Rail tools in the exact requested order:
  * 1. Templates
  * 2. Texto
- * 3. Elementos (shapes) — Stickers eliminado
+ * 3. Elementos (shapes)
  * 4. Imagen
  * 5. Video
- * 6. Audio
- * 7. Background
- * 8. Animate
- * 9. Brand
- * 10. Layers
+ * 6. Background
+ * 7. Animate
+ * 8. Brand
+ * 9. Layers
+ * (Eliminados: Stickers, Audio)
  */
 export function registerBuiltinPanels(): void {
   const editable = ({ state }: { state: { readOnly: boolean } }): boolean => !state.readOnly
@@ -91,19 +90,6 @@ export function registerBuiltinPanels(): void {
     component: VideosPanel, 
     preload: VideosPanel.preload, 
     requires: editable 
-  })
-
-  // 6. Audio
-  registerPanel({ 
-    id: 'audio', 
-    label: t.rail.audio, 
-    title: t.audio.title, 
-    icon: icon(Music), 
-    order: 60, 
-    placement: 'sidebar', 
-    component: AudioPanel, 
-    preload: AudioPanel.preload, 
-    readOnly: true 
   })
 
   // 7. Background
