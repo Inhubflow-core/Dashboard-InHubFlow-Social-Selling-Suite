@@ -442,9 +442,9 @@ export class InsertApi {
   }
 
   /** Replaces the selected image's source keeping its frame (size, position, mask, filters). */
-  async replaceSelectedImage(ref: AssetRef, label: string = t.history.replaceImage, crop?: CropRect): Promise<void> {
+  async replaceSelectedImage(ref: AssetRef, label: string = t.history.replaceImage, crop?: CropRect, target?: FabricImage): Promise<void> {
     const view = this.engine.activeView()
-    const obj = view?.selectedObjects()[0]
+    const obj = target ?? view?.selectedObjects()[0]
     if (!view || !obj) return
     const d = asDory(obj)
     if (d.isPlaceholder) {

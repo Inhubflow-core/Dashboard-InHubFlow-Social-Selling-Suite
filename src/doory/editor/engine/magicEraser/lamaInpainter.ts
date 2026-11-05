@@ -17,6 +17,7 @@ async function fetchModelWithProgress(url: string, onProgress?: InpaintingProgre
       const cache = await caches.open(CACHE_NAME)
       const cachedResponse = await cache.match(url)
       if (cachedResponse) {
+        console.log('[Magic Eraser] Model found in CacheStorage')
         onProgress?.('downloading', 100)
         return await cachedResponse.arrayBuffer()
       }
@@ -25,7 +26,7 @@ async function fetchModelWithProgress(url: string, onProgress?: InpaintingProgre
     }
   }
 
-  // Fetch with progress reporting
+  console.log('[Magic Eraser] Fetching LaMa model from Hugging Face...')
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Error al descargar el modelo de borrado (${response.status} ${response.statusText})`)
@@ -77,6 +78,7 @@ async function fetchModelWithProgress(url: string, onProgress?: InpaintingProgre
           },
         }),
       )
+      console.log('[Magic Eraser] Model cached into CacheStorage successfully')
     } catch (e) {
       console.warn('[Magic Eraser] Could not persist model into CacheStorage:', e)
     }
@@ -98,12 +100,26 @@ export async function getLamaSession(onProgress?: InpaintingProgressCallback): P
     const buffer = await fetchModelWithProgress(LAMA_MODEL_URL, onProgress)
 
     onProgress?.('processing', 5)
-    // Configure ONNX Web session: WebGPU if available, else WASM
-    const session = await ort.InferenceSession.create(buffer, {
-      executionProviders: ['webgpu', 'wasm'],
-      graphOptimizationLevel: 'all',
-    })
+    console.log('[Magic Eraser] Creating ONNX session...')
+    
+    // Configure ONNX Web session: Try WebGPU first, fallback to WASM
+    let session: ort.InferenceSession
+    if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+      try {
+        session = await ort.InferenceSession.create(buffer, {
+          executionProviders: ['webgpu'],
+        })
+        console.log('[Magic Eraser] Initialized with WebGPU provider')
+        return session
+      } catch (e) {
+        console.warn('[Magic Eraser] WebGPU initialization failed, falling back to wasm:', e)
+      }
+    }
 
+    session = await ort.InferenceSession.create(buffer, {
+      executionProviders: ['wasm'],
+    })
+    console.log('[Magic Eraser] Initialized with WASM provider')
     return session
   })().catch((err) => {
     cachedSessionPromise = null // allow retry on error
@@ -115,10 +131,6 @@ export async function getLamaSession(onProgress?: InpaintingProgressCallback): P
 
 /**
  * Runs LaMa inpainting on a high-resolution image using a user-painted binary mask.
- * 
- * @param originalCanvas Canvas holding the source image at full native resolution
- * @param maskCanvas Canvas holding the binary/painted mask (white/semi-white = pixels to erase)
- * @param onProgress Callback for download/processing progress
  */
 export async function runLamaInpainting(
   originalCanvas: HTMLCanvasElement,
@@ -128,6 +140,7 @@ export async function runLamaInpainting(
   const origW = originalCanvas.width
   const origH = originalCanvas.height
 
+  console.log(`[Magic Eraser] Processing image of dimensions ${origW}x${origH}`)
   onProgress?.('processing', 10)
   const session = await getLamaSession(onProgress)
 
@@ -162,7 +175,7 @@ export async function runLamaInpainting(
 
     // Mask: check alpha or color intensity of painted strokes
     const maskVal = Math.max(maskData[srcOffset], maskData[srcOffset + 1], maskData[srcOffset + 2], maskData[srcOffset + 3])
-    maskTensorData[i] = maskVal > 20 ? 1.0 : 0.0
+    maskTensorData[i] = maskVal > 15 ? 1.0 : 0.0
   }
 
   onProgress?.('processing', 45)
@@ -171,6 +184,7 @@ export async function runLamaInpainting(
 
   // Run model inference
   onProgress?.('processing', 65)
+  console.log('[Magic Eraser] Running inference session...')
   const feeds: Record<string, ort.Tensor> = {
     image: imageTensor,
     mask: maskTensor,
@@ -230,7 +244,7 @@ export async function runLamaInpainting(
   // 1. Draw original pristine image
   finalCtx.drawImage(originalCanvas, 0, 0)
 
-  // 2. Blend the inpainted regions over the masked spots using destination-over / source-over with mask
+  // 2. Blend the inpainted regions over the masked spots with full opacity inside the stroke
   const origMaskCtx = maskCanvas.getContext('2d')!
   const fullMaskData = origMaskCtx.getImageData(0, 0, origW, origH).data
   const upscaledData = upscaledCtx.getImageData(0, 0, origW, origH).data
@@ -239,17 +253,19 @@ export async function runLamaInpainting(
 
   for (let i = 0; i < origW * origH; i++) {
     const offset = i * 4
-    const alpha = fullMaskData[offset + 3] / 255.0
-    if (alpha > 0.01) {
-      // Soft alpha blend between original and inpainted
-      finalPixels[offset] = Math.round(finalPixels[offset] * (1 - alpha) + upscaledData[offset] * alpha)
-      finalPixels[offset + 1] = Math.round(finalPixels[offset + 1] * (1 - alpha) + upscaledData[offset + 1] * alpha)
-      finalPixels[offset + 2] = Math.round(finalPixels[offset + 2] * (1 - alpha) + upscaledData[offset + 2] * alpha)
+    const maskAlpha = fullMaskData[offset + 3]
+    if (maskAlpha > 5) {
+      // Scale blend weight up so the painted stroke completely replaces the original
+      const blendWeight = Math.min(1.0, (maskAlpha / 255.0) * 2.5)
+      finalPixels[offset] = Math.round(finalPixels[offset] * (1 - blendWeight) + upscaledData[offset] * blendWeight)
+      finalPixels[offset + 1] = Math.round(finalPixels[offset + 1] * (1 - blendWeight) + upscaledData[offset + 1] * blendWeight)
+      finalPixels[offset + 2] = Math.round(finalPixels[offset + 2] * (1 - blendWeight) + upscaledData[offset + 2] * blendWeight)
     }
   }
 
   finalCtx.putImageData(finalData, 0, 0)
   onProgress?.('processing', 100)
+  console.log('[Magic Eraser] Inpainting completed successfully!')
 
   // Convert final canvas to PNG Blob
   return new Promise<Blob>((resolve, reject) => {

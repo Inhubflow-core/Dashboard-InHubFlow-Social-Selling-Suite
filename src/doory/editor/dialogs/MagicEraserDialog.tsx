@@ -15,6 +15,11 @@ export function MagicEraserDialog() {
   const editor = useEditor()
   const view = editor.activeView()
   const selectedObj = view?.selectedObjects()[0]
+  const targetObjRef = useRef<any>(selectedObj)
+
+  if (selectedObj && targetObjRef.current !== selectedObj) {
+    targetObjRef.current = selectedObj
+  }
 
   const imageCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -239,8 +244,15 @@ export function MagicEraserDialog() {
     imgCanvas.toBlob(async (blob) => {
       if (!blob) return
       try {
+        console.log('[Magic Eraser] Uploading cleaned image asset...')
         const ref = await editor.assets.upload(blob, 'magic-erased.png')
-        await editor.insert.replaceSelectedImage(ref, 'Borrador mágico')
+        const view = editor.activeView()
+        const target = targetObjRef.current
+        if (view && target) {
+          view.selectObjects([target])
+        }
+        console.log('[Magic Eraser] Replacing selected image on canvas...')
+        await editor.insert.replaceSelectedImage(ref, 'Borrador mágico', undefined, target)
         editor.toast('Imagen actualizada', 'success')
         editor.closeDialog()
       } catch (err) {
