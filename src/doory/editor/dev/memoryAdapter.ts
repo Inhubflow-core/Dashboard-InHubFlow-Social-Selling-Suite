@@ -101,6 +101,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
   const objectUrls = new Map<string, string>()
   /** Audio files uploaded in this session, for the Uploads tab of the Audio tool. */
   const audioUploads: { ref: AssetRef; size: number; type: string }[] = []
+  const videoUploads: { ref: AssetRef; size: number }[] = []
 
   const packs: ElementPack[] = [
     { id: 'pack-1', slug: 'starter', name: 'Starter pack', kind: 'illustration', thumbnail_url: null, element_count: ELEMENTS.length, license: 'CC0-1.0', license_url: '', attribution: '', source_url: '' },
@@ -194,6 +195,53 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
         async remove(id) {
           const at = audioUploads.findIndex((u) => u.ref.id === id)
           if (at >= 0) audioUploads.splice(at, 1)
+        },
+      },
+            video: {
+        async info() {
+          return {
+            enabled: true,
+            max_upload_bytes: 200 * 1024 * 1024,
+            max_duration_ms: 600000,
+            providers: [],
+            all: [],
+            default: 'all',
+          }
+        },
+        async list(p = 1) {
+          const slice = videoUploads.map((v) => v.ref)
+          return page(slice, { page: p, page_size: 20 })
+        },
+        async get(id) {
+          const found = videoUploads.find((v) => v.ref.id === id)
+          if (!found) throw new Error('Video not found')
+          return found.ref
+        },
+        async upload(file) {
+          const ref = await adapter.uploadAsset(file, { name: file.name })
+          return ref
+        },
+        async search() {
+          return {
+            results: [],
+            configured: false,
+            provider: 'all',
+            total: 0,
+            next_page: null,
+          }
+        },
+        async importVideo(v) {
+          const ref: AssetRef = {
+            id: newId(),
+            url: v.preview_url || v.thumb_url,
+            thumbUrl: v.thumb_url,
+            width: v.width,
+            height: v.height,
+            name: v.author ? `Video by ${v.author}` : 'Video',
+            kind: 'video',
+          }
+          videoUploads.push({ ref, size: 0 })
+          return ref
         },
       },
       brand: null,
