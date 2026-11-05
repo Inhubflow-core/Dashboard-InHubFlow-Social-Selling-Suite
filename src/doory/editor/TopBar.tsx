@@ -241,8 +241,7 @@ function useWidth(ref: React.RefObject<HTMLElement | null>): number {
 }
 
 /**
- * The bar: the design's menus, history and save state on the left, its title in the middle, and the people,
- * comments and the one Share menu on the right. The tools that add to the design live in the rail (ToolRail).
+ * The bar: the design's menus, history and save state on the left, its title in the middle, and the actions on the right.
  */
 export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
   const editor = useEditor()
@@ -373,8 +372,11 @@ export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
           <PresenceStack />
         </div>
         {!narrow ? endTools.map((p) => <EndTool key={p.id} panel={p} open={openId === p.id} onToggle={() => toggle(p.id)} />) : null}
-        {end ? <div className={styles.end}>{end}</div> : null}
-        <ShareMenu onPresent={onPresent} />
+        {end ? (
+          <div className={styles.end}>{end}</div>
+        ) : (
+          <ShareMenu onPresent={onPresent} />
+        )}
       </div>
     </header>
   )
