@@ -1,6 +1,6 @@
 export const MIN_ZOOM = 0.1
 export const MAX_ZOOM = 8
-export const ZOOM_STEPS: readonly number[] = [0.1, 0.15, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4, 6, 8]
+export const ZOOM_STEPS: readonly number[] = [0.1, 0.15, 0.25, 0.33, 0.36, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4, 6, 8]
 
 export type ZoomMode = 'fit-width' | 'fit-page' | 'custom'
 

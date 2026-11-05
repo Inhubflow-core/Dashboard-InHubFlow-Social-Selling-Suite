@@ -8,7 +8,7 @@ import { Menu, type MenuItem } from '../ui/Menu'
 import { Tooltip } from '../ui/Tooltip'
 import styles from './Floating.module.css'
 
-const PRESETS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 8]
+const PRESETS = [0.25, 0.36, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 8]
 
 // Slider position 0..100 <-> zoom on a log scale so every zoom range gets equal travel.
 const toSlider = (z: number): number => (Math.log(z / MIN_ZOOM) / Math.log(MAX_ZOOM / MIN_ZOOM)) * 100

@@ -200,11 +200,12 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     const pageChanged = last.pageId === activePageId && (last.pageWidth !== activeSize.width || last.pageHeight !== activeSize.height)
     const widestChanged = last.widest !== widest
     lastFit.current = { width: viewport.width, windowWidth: window.innerWidth, windowHeight: window.innerHeight, pageId: activePageId, pageWidth: activeSize.width, pageHeight: activeSize.height, widest }
-    if (windowChanged || widthChanged || pageChanged || widestChanged || !fitted.current) editor.view.refit()
-    if (!fitted.current) {
+        if (!fitted.current) {
       fitted.current = true
-      editor.view.fit('fit-page')
+      editor.view.setZoom(0.36)
+      return
     }
+    if (windowChanged || widthChanged || pageChanged || widestChanged) editor.view.refit()
   }, [viewport.width, viewport.height, activePageId, activeSize.width, activeSize.height, widest, editor])
 
   // Keep the point under the cursor (or the viewport centre) fixed while zooming.
