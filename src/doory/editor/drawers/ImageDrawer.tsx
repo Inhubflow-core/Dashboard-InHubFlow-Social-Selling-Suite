@@ -15,6 +15,7 @@ import ed from '../chrome/ed.module.css'
 import styles from './Drawers.module.css'
 import { beginImageAssetDrag, endImageAssetDrag } from './imageAssetDrag'
 import { uploadToLibrary } from './uploads'
+import { StockTab } from './StockTab'
 
 function toRef(a: Asset): AssetRef {
   return { id: a.id, url: a.url, thumbUrl: a.thumb_url, width: a.width, height: a.height, name: a.name, kind: a.kind }
@@ -140,7 +141,7 @@ function UploadsTab({ close }: PanelProps) {
   )
 }
 
-const StockTab = loadable(() => import('./StockTab').then((m) => m.StockTab))
+
 const GridTab = loadable(() => import('./GridTab').then((m) => m.GridTab))
 
 /** Image drawer: uploaded photos, image-grid layouts, and stock photos when the server offers them. */

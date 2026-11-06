@@ -16,7 +16,7 @@ import { backgroundFill, fillToBackground } from './backgroundFill'
 import { PATTERN_IDS, type PatternId, patternUrl, tileSize } from './patterns'
 import styles from './Panel.module.css'
 
-const StockTab = loadable(() => import('../drawers/StockTab').then((m) => m.StockTab))
+import { StockTab } from '../drawers/StockTab'
 
 function UploadSwatch({ src, active, onPick }: { src: string; active: boolean; onPick: () => void }) {
   const url = useResolvedSrc(src)
