@@ -9,6 +9,7 @@ export interface PixabayNormalizedItem {
   regularUrl: string;
   fullUrl: string;
   videoUrl?: string;
+  duration?: number;
   width?: number;
   height?: number;
   author: string;
@@ -446,15 +447,22 @@ export async function GET(req: NextRequest) {
       const normalizedVideos: PixabayNormalizedItem[] = (data.hits || []).map((hit: any) => {
         const videoFiles = hit.videos || {};
         const chosen = videoFiles.medium || videoFiles.large || videoFiles.small || videoFiles.tiny || {};
+        const thumb =
+          chosen.thumbnail ||
+          videoFiles.tiny?.thumbnail ||
+          videoFiles.small?.thumbnail ||
+          videoFiles.medium?.thumbnail ||
+          (hit.picture_id ? `https://i.vimeocdn.com/video/${hit.picture_id}_640x360.jpg` : "");
         return {
           id: hit.id,
           type: "video",
           title: (hit.tags || "Video corporativo").split(",")[0].trim(),
           tags: (hit.tags || "").split(",").map((t: string) => t.trim()),
-          previewUrl: `https://i.vimeocdn.com/video/${hit.picture_id}_640x360.jpg`,
-          regularUrl: `https://i.vimeocdn.com/video/${hit.picture_id}_640x360.jpg`,
-          fullUrl: `https://i.vimeocdn.com/video/${hit.picture_id}_1280x720.jpg`,
+          previewUrl: thumb,
+          regularUrl: thumb,
+          fullUrl: chosen.thumbnail || thumb,
           videoUrl: chosen.url || "",
+          duration: hit.duration || 10,
           width: chosen.width || 1280,
           height: chosen.height || 720,
           author: hit.user || "Pixabay Creator",

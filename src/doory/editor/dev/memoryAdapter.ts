@@ -5,7 +5,9 @@
  */
 import { newId } from '@doory/lib/document'
 import type { AssetRef, EditorAdapter, SaveInput, SaveResult } from '@doory/types/adapter'
-import type { ElementItem, ElementPack, FontFamily, Page } from '@doory/types/api'
+import type { Asset, ElementItem, ElementPack, FontFamily, Page } from '@doory/types/api'
+import { createPixabayStockService } from '../../services/pixabayStockService'
+import { createPixabayVideoService } from '../../services/pixabayVideoService'
 import type { DoryDocument } from '@doory/types/document'
 import { readImageSize } from '../engine/assets'
 import { createBlankDemo } from './demoDocument'
@@ -73,6 +75,8 @@ export interface MemoryAdapterOptions {
   commentRole?: CommentRole
   /** Threads to start with: `demo`, or a number of pins spread over the pages. */
   commentSeed?: string | null
+  /** Enable stock resources (photos, illustrations, vectors, backgrounds, videos). */
+  enableStock?: boolean
 }
 
 export interface MemoryAdapterHandle {
@@ -102,6 +106,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
   /** Audio files uploaded in this session, for the Uploads tab of the Audio tool. */
   const audioUploads: { ref: AssetRef; size: number; type: string }[] = []
   const videoUploads: { ref: AssetRef; size: number }[] = []
+  const imageAssets: Asset[] = []
 
   const packs: ElementPack[] = [
     { id: 'pack-1', slug: 'starter', name: 'Starter pack', kind: 'illustration', thumbnail_url: null, element_count: ELEMENTS.length, license: 'CC0-1.0', license_url: '', attribution: '', source_url: '' },
@@ -155,7 +160,22 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
       const url = `idb://${id}`
       const name = opts?.name ?? (file instanceof File ? file.name : 'image')
       uploads.push({ name, size: file.size })
-      return { id, url, thumbUrl: url, width: size.width, height: size.height, name, kind: file.type === 'image/svg+xml' ? 'svg' : 'image' }
+      const ref: AssetRef = { id, url, thumbUrl: url, width: size.width, height: size.height, name, kind: file.type === 'image/svg+xml' ? 'svg' : 'image' }
+      imageAssets.unshift({
+        id,
+        kind: ref.kind,
+        name,
+        url,
+        thumb_url: url,
+        width: size.width,
+        height: size.height,
+        size: file.size,
+        mime: file.type || 'image/png',
+        tags: [],
+        attribution: null,
+        created_at: new Date().toISOString(),
+      })
+      return ref
     },
     async resolveSrc(src: string): Promise<string> {
       const match = /^idb:\/\/([0-9a-f-]{36})$/i.exec(src)
@@ -186,7 +206,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
       templates: createTemplatesService(),
       assets: {
         async list(q) {
-          if (q?.kind !== 'audio') return page([])
+          if (q?.kind !== 'audio') return page(imageAssets, q)
           return page(
             audioUploads.map(({ ref, size, type }) => ({ id: ref.id, kind: 'audio' as const, name: ref.name, url: ref.url, thumb_url: '', width: 0, height: 0, size, mime: type, tags: [], attribution: null, duration_ms: null, created_at: new Date(0).toISOString() })),
             q,
@@ -195,57 +215,33 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
         async remove(id) {
           const at = audioUploads.findIndex((u) => u.ref.id === id)
           if (at >= 0) audioUploads.splice(at, 1)
+          const atImg = imageAssets.findIndex((u) => u.id === id)
+          if (atImg >= 0) imageAssets.splice(atImg, 1)
         },
       },
-            video: {
-        async info() {
-          return {
-            enabled: true,
-            max_upload_bytes: 200 * 1024 * 1024,
-            max_duration_ms: 600000,
-            providers: [],
-            all: [],
-            default: 'all',
-          }
-        },
-        async list(p = 1) {
-          const slice = videoUploads.map((v) => v.ref)
-          return page(slice, { page: p, page_size: 20 })
-        },
-        async get(id) {
-          const found = videoUploads.find((v) => v.ref.id === id)
-          if (!found) throw new Error('Video not found')
-          return found.ref
-        },
-        async upload(file) {
-          const ref = await adapter.uploadAsset(file, { name: file.name })
-          return ref
-        },
-        async search() {
-          return {
-            results: [],
-            configured: false,
-            provider: 'all',
-            total: 0,
-            next_page: null,
-          }
-        },
-        async importVideo(v) {
-          const ref: AssetRef = {
-            id: newId(),
-            url: v.preview_url || v.thumb_url,
-            thumbUrl: v.thumb_url,
-            width: v.width,
-            height: v.height,
-            name: v.author ? `Video by ${v.author}` : 'Video',
-            kind: 'video',
-          }
-          videoUploads.push({ ref, size: 0 })
-          return ref
-        },
-      },
+      video: createPixabayVideoService((f, opts) => adapter.uploadAsset(f, opts)),
       brand: null,
-      stock: null,
+      stock: options.enableStock === false ? null : createPixabayStockService((ref) => {
+        imageAssets.unshift({
+          id: ref.id,
+          kind: 'image',
+          name: ref.name,
+          url: ref.url,
+          thumb_url: ref.thumbUrl || ref.url,
+          width: ref.width,
+          height: ref.height,
+          size: 0,
+          mime: 'image/jpeg',
+          tags: [],
+          attribution: {
+            provider: 'pixabay',
+            author: ref.name,
+            author_url: 'https://pixabay.com',
+            source_url: ref.url,
+          },
+          created_at: new Date().toISOString(),
+        })
+      }),
       versions: null,
       ...(options.account ? createAccountFakes(() => (currentDocument ? currentDocument() : createBlankDemo()), comments.service) : {}),
     },

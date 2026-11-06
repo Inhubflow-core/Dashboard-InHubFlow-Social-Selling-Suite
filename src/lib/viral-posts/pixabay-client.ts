@@ -7,6 +7,7 @@ export interface PixabayItem {
   regularUrl: string;
   fullUrl: string;
   videoUrl?: string;
+  duration?: number;
   width?: number;
   height?: number;
   author: string;
