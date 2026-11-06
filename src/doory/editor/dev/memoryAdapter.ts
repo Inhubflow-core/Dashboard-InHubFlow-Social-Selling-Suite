@@ -8,6 +8,7 @@ import type { AssetRef, EditorAdapter, SaveInput, SaveResult } from '@doory/type
 import type { Asset, ElementItem, ElementPack, FontFamily, Page } from '@doory/types/api'
 import { createPixabayStockService } from '../../services/pixabayStockService'
 import { createPixabayVideoService } from '../../services/pixabayVideoService'
+import { createPersistentTemplatesService } from '../../services/persistentTemplatesService'
 import type { DoryDocument } from '@doory/types/document'
 import { readImageSize } from '../engine/assets'
 import { createBlankDemo } from './demoDocument'
@@ -203,7 +204,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
           return page(filtered, q)
         },
       },
-      templates: createTemplatesService(),
+      templates: createPersistentTemplatesService(),
       assets: {
         async list(q) {
           if (q?.kind !== 'audio') return page(imageAssets, q)

@@ -1,6 +1,7 @@
-import { FilePlus2, Files, Maximize2, Replace } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { FilePlus2, Files, Maximize2, Replace, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TemplateSummary } from '@doory/types/api'
+import { getSessionUser } from '@/lib/saas/store'
 import { useEditor, useEditorState } from '../context'
 import { migrateDocument } from '../engine/migrations'
 import { formatSize, getPageSize, sameSize } from '../engine/pageSizes'
@@ -62,6 +63,16 @@ export function TemplatesPanel({ close }: { close: () => void }) {
   const { loadMore } = list
   const sentinel = useSentinel(list.hasMore && !list.loading && !list.error && list.items.length > 0, loadMore)
 
+  // Auto-reload when Super Admin publishes or deletes templates
+  useEffect(() => {
+    const handleUpdate = () => {
+      void list.reload()
+      void categories.reload()
+    }
+    window.addEventListener('inhubflow:templates-updated', handleUpdate)
+    return () => window.removeEventListener('inhubflow:templates-updated', handleUpdate)
+  }, [list.reload, categories.reload])
+
   const menu = useMemo(() => {
     const byId = new Map<string, Filter>([['all', { type: 'all' }]])
     const entries: CategoryEntry[] = [{ kind: 'option', id: 'all', label: t.templates.all }]
@@ -117,12 +128,43 @@ export function TemplatesPanel({ close }: { close: () => void }) {
   const chosenSize = choose ? { width: choose.width, height: choose.height } : null
   const sizeHint = chosenSize ? formatSize(chosenSize, editor.state.doc.unit) : ''
   const sameAsPage = !chosenSize || sameSize(chosenSize, getPageSize(editor.state.doc, editor.state.activePageId))
+
+  const sessionUser = typeof window !== 'undefined' ? getSessionUser?.() : null
+  const isSuperAdmin = sessionUser?.role === 'super_admin' || sessionUser?.email?.trim().toLowerCase() === 'inhubflow@gmail.com'
+
   const items: MenuItem[] = choose
     ? [
         { id: 'replace', label: t.templates.replacePage, icon: <Replace size={16} aria-hidden="true" />, onSelect: () => void apply(choose, 'replace') },
         ...(sameAsPage ? [] : [{ id: 'replace-resize', label: t.templates.replaceResize, hint: sizeHint, icon: <Maximize2 size={16} aria-hidden="true" />, onSelect: () => void apply(choose, 'replace-resize') }]),
         { id: 'add', label: t.templates.addPage, hint: sizeHint, icon: <FilePlus2 size={16} aria-hidden="true" />, onSelect: () => void apply(choose, 'add') },
         ...(choose.page_count > 1 ? [{ id: 'all', label: t.templates.addAll(choose.page_count), icon: <Files size={16} aria-hidden="true" />, onSelect: () => void apply(choose, 'add-all') }] : []),
+        ...(isSuperAdmin
+          ? [
+              {
+                id: 'delete-global',
+                label: 'Eliminar plantilla de la plataforma',
+                danger: true,
+                icon: <Trash2 size={16} aria-hidden="true" />,
+                onSelect: async () => {
+                  if (typeof window !== 'undefined' && window.confirm(`¿Estás seguro de eliminar la plantilla global "${choose.title}" de toda la plataforma?`)) {
+                    try {
+                      const res = await fetch(`/api/templates?slug=${encodeURIComponent(choose.slug)}`, { method: 'DELETE' })
+                      if (res.ok) {
+                        editor.toast('Plantilla global eliminada con éxito', 'success')
+                        void list.reload()
+                        void categories.reload()
+                      } else {
+                        const d = await res.json()
+                        editor.toast(d.error || 'No se pudo eliminar la plantilla', 'error')
+                      }
+                    } catch {
+                      editor.toast('Error al eliminar plantilla', 'error')
+                    }
+                  }
+                },
+              },
+            ]
+          : []),
       ]
     : []
 

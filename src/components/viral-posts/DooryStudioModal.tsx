@@ -6,7 +6,8 @@ import {
   Check, 
   Smartphone, 
   Square as SquareIcon, 
-  Loader2 
+  Loader2,
+  BookmarkPlus 
 } from "lucide-react";
 import "@doory/styles/tokens.css";
 import { initContrast } from "@doory/lib/contrast";
@@ -16,6 +17,8 @@ import type { DoryDocument } from "@doory/types/document";
 import { createMemoryAdapter } from "@doory/editor/dev/memoryAdapter";
 import { createBlankDemo } from "@doory/editor/dev/demoDocument";
 import { newId } from "@doory/lib/document";
+import { useAuth } from "@/context/AuthContext";
+import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
 
 export interface DooryStudioModalProps {
   isOpen: boolean;
@@ -39,10 +42,16 @@ export default function DooryStudioModal({
   authorHandle,
   onApplyImage,
 }: DooryStudioModalProps) {
+  const { isSuperAdmin, currentUser } = useAuth();
   const editorRef = useRef<EditorHandle>(null);
   const [aspectRatio, setAspectRatio] = useState<"4:5" | "1:1">("4:5");
   const [isExporting, setIsExporting] = useState(false);
   const [docKey, setDocKey] = useState(0);
+
+  // Estados para Guardar Plantilla Global (Super Admin)
+  const [isSaveGlobalModalOpen, setIsSaveGlobalModalOpen] = useState(false);
+  const [previewThumbnail, setPreviewThumbnail] = useState<string | null>(null);
+  const [docSnapshot, setDocSnapshot] = useState<DoryDocument | null>(null);
 
   // Initialize Doory contrast tokens once on mount
   useEffect(() => {
@@ -190,17 +199,14 @@ export default function DooryStudioModal({
     }
   }, [getRenderedImageDataUrl, onApplyImage, onClose]);
 
-  // Handle Direct Download PNG
-  const handleDownloadPng = useCallback(() => {
-    const dataUrl = getRenderedImageDataUrl();
-    if (!dataUrl) return;
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `inhubflow-post-${aspectRatio === "4:5" ? "vertical-4x5" : "cuadrado-1x1"}-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }, [getRenderedImageDataUrl, aspectRatio]);
+  // Handle Open Save Global Template Modal (Strictly Super Admin)
+  const handleOpenSaveGlobalModal = useCallback(() => {
+    const thumb = getRenderedImageDataUrl();
+    const doc = editorRef.current?.getDocument?.() || null;
+    setPreviewThumbnail(thumb);
+    setDocSnapshot(doc);
+    setIsSaveGlobalModalOpen(true);
+  }, [getRenderedImageDataUrl]);
 
   if (!isOpen) return null;
 
@@ -245,21 +251,38 @@ export default function DooryStudioModal({
     </div>
   );
 
-  // Acción principal: "Aplicar al Post" de primero (antes de Share)
+  // TopBar Actions: Botón Guardar Plantilla Global (Solo Super Admin) + Aplicar al Post
   const topBarAction = (
-    <button
-      type="button"
-      onClick={handleApplyToPost}
-      disabled={isExporting}
-      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
-    >
-      {isExporting ? (
-        <Loader2 size={14} className="animate-spin" />
-      ) : (
-        <Check size={14} />
+    <div className="flex items-center gap-2">
+      {/* Botón exclusivo visible ÚNICAMENTE para Super Admin */}
+      {isSuperAdmin && (
+        <button
+          type="button"
+          onClick={handleOpenSaveGlobalModal}
+          disabled={isExporting}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
+          title="Guardar diseño actual como plantilla global para toda la plataforma (Solo Super Admin)"
+        >
+          <BookmarkPlus size={14} />
+          <span>Guardar Plantilla Global</span>
+        </button>
       )}
-      <span>Aplicar al Post</span>
-    </button>
+
+      {/* Acción principal: "Aplicar al Post" */}
+      <button
+        type="button"
+        onClick={handleApplyToPost}
+        disabled={isExporting}
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0099ff] hover:bg-[#0082db] active:bg-[#006bb8] text-white shadow-sm shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+      >
+        {isExporting ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <Check size={14} />
+        )}
+        <span>Aplicar al Post</span>
+      </button>
+    </div>
   );
 
   // Fin de la barra: Separador y botón de cierre (después de Share)
@@ -296,6 +319,22 @@ export default function DooryStudioModal({
           topBarEnd={topBarEnd}
         />
       </main>
+
+      {/* Modal para Guardar Plantilla Global (Exclusivo Super Admin) */}
+      {isSuperAdmin && (
+        <SaveGlobalTemplateModal
+          isOpen={isSaveGlobalModalOpen}
+          onClose={() => setIsSaveGlobalModalOpen(false)}
+          document={docSnapshot}
+          thumbnailUrl={previewThumbnail}
+          dimensions={dimensions}
+          aspectRatio={aspectRatio}
+          authorName={currentUser?.name || "Super Admin"}
+          onSuccess={(templateTitle) => {
+            console.log(`[DooryStudio] ¡Plantilla global guardada con éxito!: ${templateTitle}`);
+          }}
+        />
+      )}
     </div>
   );
 }

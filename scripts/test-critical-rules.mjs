@@ -1754,6 +1754,105 @@ const clickPhotoResult = simulatePixabayClick(true, { regularUrl: "https://pixab
 assert(clickPhotoResult.action === "insert_element", "Hacer clic en una foto de la galería Fotos la inserta como elemento en el lienzo");
 assert(clickPhotoResult.url === "https://pixabay.com/test.jpg", "La URL de la foto seleccionada se suministra al lienzo");
 
+console.log("\n--- 30. Prueba de Plantillas Globales Doory (Persistencia y Acceso Exclusivo Super Admin) ---");
+
+// Verificación de regla estricta de rol Super Admin
+function checkCanSaveGlobalTemplate(user) {
+  return (
+    user.role === "super_admin" ||
+    (typeof user.email === "string" && user.email.trim().toLowerCase() === "inhubflow@gmail.com")
+  );
+}
+
+const regUser = { id: "user_client_1", role: "client_admin", email: "client@empresa.com" };
+const teamMemberUser = { id: "user_team_1", role: "team_member", email: "operator@empresa.com" };
+const saUser = { id: "user_sa_1", role: "super_admin", email: "admin@inhubflow.com" };
+const founderUser = { id: "user_sa_founder", role: "custom", email: "inhubflow@gmail.com" };
+
+assert(!checkCanSaveGlobalTemplate(regUser), "Usuario Client Admin NO puede ver ni guardar plantillas globales");
+assert(!checkCanSaveGlobalTemplate(teamMemberUser), "Usuario Team Member NO puede ver ni guardar plantillas globales");
+assert(checkCanSaveGlobalTemplate(saUser), "Super Admin role = 'super_admin' tiene permiso exclusivo de plantilla global");
+assert(checkCanSaveGlobalTemplate(founderUser), "Cuenta oficial inhubflow@gmail.com tiene permiso exclusivo de plantilla global");
+
+// Verificación de persistencia SQLite de Plantillas Globales
+db.exec(`
+  CREATE TABLE IF NOT EXISTS global_templates (
+    id TEXT PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    category_id TEXT NOT NULL,
+    category_name TEXT NOT NULL,
+    tags_json TEXT NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    orientation TEXT NOT NULL,
+    thumbnail_url TEXT,
+    document_json TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    use_count INTEGER DEFAULT 0,
+    is_featured INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+`);
+
+// Insertar plantilla global simulada creada por Super Admin
+const mockDoc = {
+  version: 1,
+  width: 1080,
+  height: 1350,
+  unit: "px",
+  pages: [
+    {
+      id: "page_1",
+      objects: [
+        { id: "txt_1", kind: "text", text: "Estrategia B2B de Crecimiento" }
+      ]
+    }
+  ]
+};
+
+const insertStmt = db.prepare(`
+  INSERT INTO global_templates (
+    id, slug, title, category_id, category_name, tags_json,
+    width, height, orientation, thumbnail_url, document_json,
+    created_by, use_count, is_featured, created_at, updated_at
+  ) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, datetime('now'), datetime('now')
+  )
+`);
+
+insertStmt.run(
+  "gtpl_test_123",
+  "estrategia-b2b-crecimiento",
+  "Estrategia B2B de Crecimiento",
+  "thought-leadership",
+  "Autoridad & Thought Leadership",
+  JSON.stringify(["b2b", "linkedin", "estrategia"]),
+  1080,
+  1350,
+  "portrait",
+  "data:image/png;base64,mockthumb",
+  JSON.stringify(mockDoc),
+  "Super Admin Roberto"
+);
+
+// Lectura de la plantilla global por cualquier cliente de la plataforma
+const fetchedTpl = db.prepare("SELECT * FROM global_templates WHERE slug = ?").get("estrategia-b2b-crecimiento");
+assert(fetchedTpl !== undefined, "La plantilla global existe y es recuperable de la base de datos");
+assert(fetchedTpl.title === "Estrategia B2B de Crecimiento", "El título de la plantilla coincide");
+assert(fetchedTpl.orientation === "portrait", "La orientación vertical 4:5 se preserva");
+assert(fetchedTpl.is_featured === 1, "La plantilla se registra como destacada");
+
+const parsedDoc = JSON.parse(fetchedTpl.document_json);
+assert(parsedDoc.pages.length === 1, "El documento JSON de la plantilla contiene sus páginas intactas");
+assert(parsedDoc.pages[0].objects[0].text === "Estrategia B2B de Crecimiento", "Los objetos del lienzo se conservan íntegros");
+
+// Eliminación de plantilla global por Super Admin
+db.prepare("DELETE FROM global_templates WHERE slug = ?").run("estrategia-b2b-crecimiento");
+const deletedCheck = db.prepare("SELECT * FROM global_templates WHERE slug = ?").get("estrategia-b2b-crecimiento");
+assert(deletedCheck === undefined, "La plantilla global eliminada ya no es visible para los usuarios");
+
 // Limpieza de base de datos de test
 
 db.close();
