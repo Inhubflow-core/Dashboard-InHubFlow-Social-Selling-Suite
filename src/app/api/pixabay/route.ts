@@ -444,7 +444,11 @@ export async function GET(req: NextRequest) {
     const data = await pixabayRes.json();
 
     if (isVideo) {
-      const normalizedVideos: PixabayNormalizedItem[] = (data.hits || []).map((hit: any) => {
+      const seenVideoIds = new Set<string | number>();
+      const normalizedVideos: PixabayNormalizedItem[] = [];
+      for (const hit of data.hits || []) {
+        if (seenVideoIds.has(hit.id)) continue;
+        seenVideoIds.add(hit.id);
         const videoFiles = hit.videos || {};
         const chosen = videoFiles.medium || videoFiles.large || videoFiles.small || videoFiles.tiny || {};
         const thumb =
@@ -453,7 +457,7 @@ export async function GET(req: NextRequest) {
           videoFiles.small?.thumbnail ||
           videoFiles.medium?.thumbnail ||
           (hit.picture_id ? `https://i.vimeocdn.com/video/${hit.picture_id}_640x360.jpg` : "");
-        return {
+        normalizedVideos.push({
           id: hit.id,
           type: "video",
           title: (hit.tags || "Video corporativo").split(",")[0].trim(),
@@ -467,8 +471,8 @@ export async function GET(req: NextRequest) {
           height: chosen.height || 720,
           author: hit.user || "Pixabay Creator",
           source: "pixabay",
-        };
-      });
+        });
+      }
 
       return NextResponse.json({
         configured: true,
@@ -480,13 +484,17 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const normalizedImages: PixabayNormalizedItem[] = (data.hits || []).map((hit: any) => {
+    const seenImageIds = new Set<string | number>();
+    const normalizedImages: PixabayNormalizedItem[] = [];
+    for (const hit of data.hits || []) {
+      if (seenImageIds.has(hit.id)) continue;
+      seenImageIds.add(hit.id);
       let itemType: "photo" | "vector" | "illustration" | "background" = "photo";
       if (resource === "vectors" || hit.type === "vector") itemType = "vector";
       else if (resource === "illustrations" || hit.type === "illustration") itemType = "illustration";
       else if (resource === "backgrounds") itemType = "background";
 
-      return {
+      normalizedImages.push({
         id: hit.id,
         type: itemType,
         title: (hit.tags || "Recurso Pixabay").split(",")[0].trim(),
@@ -498,8 +506,8 @@ export async function GET(req: NextRequest) {
         height: hit.imageHeight,
         author: hit.user || "Pixabay Artist",
         source: "pixabay",
-      };
-    });
+      });
+    }
 
     return NextResponse.json({
       configured: true,

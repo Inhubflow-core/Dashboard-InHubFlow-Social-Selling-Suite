@@ -164,9 +164,9 @@ export function StockTab({ close, onPick }: PanelProps & { onPick?: (ref: AssetR
         </div>
       ) : null}
       <div className={styles.photos}>
-        {photos.items.map((p) => (
+        {photos.items.map((p, index) => (
           <button
-            key={`${p.provider}:${p.id}`}
+            key={`${p.provider}:${p.id}:${index}`}
             type="button"
             className={styles.photo}
             data-testid="stock-photo"

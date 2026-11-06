@@ -114,10 +114,15 @@ export function createPixabayVideoService(
                 : 'all',
         })
 
-        const results: StockVideo[] = (data.items || []).map((item) => {
+        const seenIds = new Set<string>()
+        const results: StockVideo[] = []
+        for (const item of data.items || []) {
+          const idStr = String(item.id)
+          if (seenIds.has(idStr)) continue
+          seenIds.add(idStr)
           const durationSeconds = item.duration || 12
-          return {
-            id: String(item.id),
+          results.push({
+            id: idStr,
             provider: 'pixabay',
             thumb_url: item.previewUrl,
             preview_url: item.videoUrl || item.regularUrl,
@@ -127,8 +132,8 @@ export function createPixabayVideoService(
             author: item.author || 'Pixabay Creator',
             author_url: `https://pixabay.com/users/${encodeURIComponent(item.author || '')}`,
             source_url: item.videoUrl || item.previewUrl,
-          }
-        })
+          })
+        }
 
         const perPage = data.per_page || 20
         const hasNext = data.total > pageNum * perPage

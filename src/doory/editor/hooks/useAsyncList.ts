@@ -20,7 +20,19 @@ function reducer<T>(state: State<T>, action: Action<T>): State<T> {
     case 'start':
       return action.reset ? { items: [], page: 0, loading: true, error: null, hasMore: true } : { ...state, loading: true, error: null }
     case 'done':
-      return { items: action.reset ? action.items : [...state.items, ...action.items], page: action.page, loading: false, error: null, hasMore: action.hasMore }
+      if (action.reset) {
+        return { items: action.items, page: action.page, loading: false, error: null, hasMore: action.hasMore }
+      }
+      const existingKeys = new Set(
+        state.items.map((it: any) => (it && typeof it === 'object' && 'id' in it ? `${it.provider || ''}:${it.id}` : it))
+      )
+      const freshItems = action.items.filter((it: any) => {
+        const key = it && typeof it === 'object' && 'id' in it ? `${it.provider || ''}:${it.id}` : it
+        if (existingKeys.has(key)) return false
+        existingKeys.add(key)
+        return true
+      })
+      return { items: [...state.items, ...freshItems], page: action.page, loading: false, error: null, hasMore: action.hasMore }
     case 'fail':
       return { ...state, loading: false, error: action.message }
   }

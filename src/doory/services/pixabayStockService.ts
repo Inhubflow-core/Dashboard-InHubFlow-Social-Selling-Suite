@@ -56,9 +56,14 @@ export function createPixabayStockService(
           perPage: 28,
         })
 
-        const results: StockPhoto[] = (data.items || []).map((item) => {
-          return {
-            id: String(item.id),
+        const seenIds = new Set<string>()
+        const results: StockPhoto[] = []
+        for (const item of data.items || []) {
+          const idStr = String(item.id)
+          if (seenIds.has(idStr)) continue
+          seenIds.add(idStr)
+          results.push({
+            id: idStr,
             provider: effectiveProvider,
             thumb_url: item.previewUrl,
             preview_url: item.regularUrl || item.previewUrl,
@@ -67,8 +72,8 @@ export function createPixabayStockService(
             author: item.author || 'Pixabay Creator',
             author_url: `https://pixabay.com/users/${encodeURIComponent(item.author || '')}`,
             source_url: item.fullUrl || item.regularUrl || item.previewUrl,
-          }
-        })
+          })
+        }
 
         const perPage = data.per_page || 28
         const hasNext = data.total > pageNum * perPage

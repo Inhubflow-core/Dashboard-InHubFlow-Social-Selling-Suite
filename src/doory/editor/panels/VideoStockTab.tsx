@@ -194,8 +194,8 @@ export function VideoStockTab({ close, service, info }: PanelProps & { service: 
         </div>
       ) : null}
       <div className={styles.grid}>
-        {videos.items.map((v) => (
-          <StockClip key={`${v.provider}:${v.id}`} video={v} provider={label(v.provider)} badge={source === ALL} busy={importing !== null} onPick={() => void add(v)} />
+        {videos.items.map((v, index) => (
+          <StockClip key={`${v.provider}:${v.id}:${index}`} video={v} provider={label(v.provider)} badge={source === ALL} busy={importing !== null} onPick={() => void add(v)} />
         ))}
       </div>
       {importing ? (
