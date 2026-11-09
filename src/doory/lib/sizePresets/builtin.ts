@@ -122,7 +122,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'business-card',
-                  label: 'Business Card (3.5 × 2 in)',
+                  label: 'Business Card (3.5 Ã— 2 in)',
                   width: 3.5,
                   height: 2,
                   unit: 'in',
@@ -140,7 +140,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'postcard',
-                  label: 'Postcard (6 × 4 in)',
+                  label: 'Postcard (6 Ã— 4 in)',
                   width: 6,
                   height: 4,
                   unit: 'in',
@@ -158,7 +158,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'greeting-card',
-                  label: 'Greeting Card (4.25 × 5.5 in)',
+                  label: 'Greeting Card (4.25 Ã— 5.5 in)',
                   width: 4.25,
                   height: 5.5,
                   unit: 'in',
@@ -170,7 +170,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
                 },
                 {
                   slug: 'invitation',
-                  label: 'Invitation (5 × 7 in)',
+                  label: 'Invitation (5 Ã— 7 in)',
                   width: 5,
                   height: 7,
                   unit: 'in',
@@ -194,7 +194,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'flyer',
-                  label: 'Flyer (5.5 × 8.5 in)',
+                  label: 'Flyer (5.5 Ã— 8.5 in)',
                   width: 5.5,
                   height: 8.5,
                   unit: 'in',
@@ -212,7 +212,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'brochure',
-                  label: 'Brochure (11 × 8.5 in)',
+                  label: 'Brochure (11 Ã— 8.5 in)',
                   width: 11,
                   height: 8.5,
                   unit: 'in',
@@ -230,7 +230,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
               presets: [
                 {
                   slug: 'poster',
-                  label: 'Poster (18 × 24 in)',
+                  label: 'Poster (18 Ã— 24 in)',
                   width: 18,
                   height: 24,
                   unit: 'in',
@@ -315,7 +315,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
       presets: [
         {
           slug: 'web-banner',
-          label: 'Web Banner (728 × 90)',
+          label: 'Web Banner (728 Ã— 90)',
           width: 728,
           height: 90,
           unit: 'px',
@@ -334,7 +334,7 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
           presets: [
             {
               slug: 'logo',
-              label: 'Logo (512 × 512)',
+              label: 'Logo (512 Ã— 512)',
               width: 512,
               height: 512,
               unit: 'px',
@@ -432,13 +432,31 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
           label: 'LinkedIn',
           presets: [
             {
-              slug: 'linkedin-post',
-              label: 'LinkedIn Post',
+              slug: 'linkedin-post-horizontal',
+              label: 'Imagen de Publicación (Horizontal)',
               width: 1200,
               height: 627,
               unit: 'px',
               icon: 'rectangle-horizontal',
-              tags: ['1.91:1'],
+              tags: ['1.91:1', 'horizontal', 'landscape'],
+            },
+            {
+              slug: 'linkedin-post-square',
+              label: 'Imagen de Publicación (Cuadrada)',
+              width: 1200,
+              height: 1200,
+              unit: 'px',
+              icon: 'square',
+              tags: ['1:1', 'square', 'cuadrada'],
+            },
+            {
+              slug: 'linkedin-post-vertical',
+              label: 'Imagen de Publicación (Vertical)',
+              width: 1200,
+              height: 1500,
+              unit: 'px',
+              icon: 'rectangle-vertical',
+              tags: ['4:5', 'vertical', 'portrait'],
             },
             {
               slug: 'linkedin-banner',

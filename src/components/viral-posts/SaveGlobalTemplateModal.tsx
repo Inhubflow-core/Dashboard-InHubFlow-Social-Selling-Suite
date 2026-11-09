@@ -20,7 +20,7 @@ interface SaveGlobalTemplateModalProps {
   document: DoryDocument | null;
   thumbnailUrl: string | null;
   dimensions: { width: number; height: number };
-  aspectRatio: "4:5" | "1:1";
+  aspectRatio: "4:5" | "1:1" | "1.91:1";
   authorName?: string;
   onSuccess?: (templateTitle: string) => void;
 }
@@ -92,7 +92,7 @@ export default function SaveGlobalTemplateModal({
           tags: tags.length > 0 ? tags : ["b2b", "plantilla"],
           width: dimensions.width,
           height: dimensions.height,
-          orientation: aspectRatio === "4:5" ? "portrait" : "square",
+          orientation: aspectRatio === "4:5" ? "portrait" : aspectRatio === "1:1" ? "square" : "landscape",
           thumbnailUrl: thumbnailUrl || null,
           document,
           createdBy: authorName || "Super Admin",
@@ -201,7 +201,7 @@ export default function SaveGlobalTemplateModal({
                     {dimensions.width} &times; {dimensions.height} px
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 border border-blue-200 text-blue-700">
-                    {aspectRatio === "4:5" ? "4:5 Vertical" : "1:1 Cuadrado"}
+                    {aspectRatio === "4:5" ? "4:5 Vertical" : aspectRatio === "1:1" ? "1:1 Cuadrada" : "1.91:1 Horizontal"}
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
                     {document?.pages?.length || 1} página(s)

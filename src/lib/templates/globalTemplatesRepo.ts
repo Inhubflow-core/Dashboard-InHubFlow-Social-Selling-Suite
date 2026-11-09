@@ -98,11 +98,11 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     )
   `);
 
-  // Template 1: Post de Autoridad B2B (4:5)
+  // Template 1: Post de Autoridad B2B (Vertical 4:5 - 1200 x 1500 px)
   const doc1: DoryDocument = {
     schemaVersion: 1,
-    width: 1080,
-    height: 1350,
+    width: 1200,
+    height: 1500,
     unit: "px",
     pages: [
       {
@@ -228,11 +228,11 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     ],
   };
 
-  // Template 2: Anuncio / Lanzamiento Estratégico (1:1)
+  // Template 2: Anuncio / Lanzamiento Estratégico (Cuadrada 1:1 - 1200 x 1200 px)
   const doc2: DoryDocument = {
     schemaVersion: 1,
-    width: 1080,
-    height: 1080,
+    width: 1200,
+    height: 1200,
     unit: "px",
     pages: [
       {
@@ -328,6 +328,122 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     ],
   };
 
+  // Template 3: Post de Análisis / Reporte B2B (Horizontal 1.91:1 - 1200 x 627 px)
+  const doc3: DoryDocument = {
+    schemaVersion: 1,
+    width: 1200,
+    height: 627,
+    unit: "px",
+    pages: [
+      {
+        id: "page-1",
+        background: { type: "solid", color: "#0f172a" },
+        objects: [
+          {
+            id: "rect-badge-h",
+            type: "rect",
+            left: 80,
+            top: 70,
+            width: 200,
+            height: 38,
+            rx: 19,
+            ry: 19,
+            fill: "#0099ff",
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "txt-badge-h",
+            type: "textbox",
+            left: 96,
+            top: 80,
+            width: 170,
+            fontSize: 16,
+            fontFamily: "Outfit",
+            fontWeight: 700,
+            fill: "#ffffff",
+            text: "REPORTE B2B",
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "txt-headline-h",
+            type: "textbox",
+            left: 80,
+            top: 135,
+            width: 1040,
+            fontSize: 48,
+            lineHeight: 1.15,
+            fontFamily: "Outfit",
+            fontWeight: 800,
+            fill: "#ffffff",
+            text: "Benchmark de Conversión en LinkedIn Outreach 2026",
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "txt-sub-h",
+            type: "textbox",
+            left: 80,
+            top: 270,
+            width: 1040,
+            fontSize: 24,
+            lineHeight: 1.3,
+            fontFamily: "Outfit",
+            fontWeight: 400,
+            fill: "#94a3b8",
+            text: "Datos extraídos de más de 120,000 interacciones multicanal B2B en el ecosistema InHubFlow.",
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "rect-metric-h",
+            type: "rect",
+            left: 80,
+            top: 380,
+            width: 320,
+            height: 160,
+            rx: 16,
+            ry: 16,
+            fill: "#1e293b",
+            stroke: "#334155",
+            strokeWidth: 2,
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "txt-metric-val-h",
+            type: "textbox",
+            left: 104,
+            top: 404,
+            width: 280,
+            fontSize: 48,
+            fontFamily: "Outfit",
+            fontWeight: 800,
+            fill: "#38bdf8",
+            text: "+42.8%",
+            originX: "left",
+            originY: "top",
+          },
+          {
+            id: "txt-metric-lbl-h",
+            type: "textbox",
+            left: 104,
+            top: 476,
+            width: 280,
+            fontSize: 18,
+            fontFamily: "Outfit",
+            fontWeight: 500,
+            fill: "#cbd5e1",
+            text: "Tasa de Aceptación con Señales",
+            originX: "left",
+            originY: "top",
+          },
+        ],
+      },
+    ],
+  };
+
   const svgThumb1 = `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300" width="240" height="300"><rect width="240" height="300" fill="#0b0f19"/><rect x="24" y="24" width="60" height="12" rx="6" fill="#0099ff"/><rect x="24" y="52" width="192" height="40" rx="4" fill="#ffffff"/><rect x="24" y="106" width="160" height="16" rx="3" fill="#94a3b8"/><rect x="24" y="145" width="192" height="120" rx="8" fill="#131c2e" stroke="#1e293b"/></svg>`
   )}`;
@@ -336,15 +452,19 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><rect width="240" height="240" fill="#0066cc"/><rect x="24" y="24" width="70" height="12" rx="3" fill="#ffffff"/><rect x="24" y="50" width="192" height="48" rx="4" fill="#ffffff"/><rect x="24" y="112" width="170" height="24" rx="3" fill="#e0f2fe"/><rect x="24" y="170" width="90" height="24" rx="12" fill="#ffffff"/></svg>`
   )}`;
 
+  const svgThumb3 = `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 157" width="300" height="157"><rect width="300" height="157" fill="#0f172a"/><rect x="20" y="20" width="80" height="12" rx="4" fill="#0099ff"/><rect x="20" y="44" width="260" height="36" rx="4" fill="#ffffff"/><rect x="20" y="92" width="200" height="16" rx="3" fill="#94a3b8"/><rect x="20" y="118" width="100" height="20" rx="10" fill="#10b981"/></svg>`
+  )}`;
+
   insert.run({
     id: "tpl_seed_1",
     slug: "post-autoridad-b2b-dark",
-    title: "Post de Autoridad B2B (Dark Minimal)",
+    title: "Post de Autoridad B2B (Vertical 4:5)",
     category_id: "autoridad",
     category_name: "Autoridad & Thought Leadership",
-    tags_json: JSON.stringify(["b2b", "autoridad", "estrategia", "linkedin"]),
-    width: 1080,
-    height: 1350,
+    tags_json: JSON.stringify(["b2b", "autoridad", "estrategia", "vertical", "linkedin"]),
+    width: 1200,
+    height: 1500,
     orientation: "portrait",
     thumbnail_url: svgThumb1,
     document_json: JSON.stringify(doc1),
@@ -356,17 +476,34 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
   insert.run({
     id: "tpl_seed_2",
     slug: "lanzamiento-estrategico-cuadrado",
-    title: "Anuncio / Lanzamiento Estratégico",
+    title: "Anuncio / Lanzamiento Estratégico (Cuadrada 1:1)",
     category_id: "anuncios",
     category_name: "Lanzamientos & Ofertas",
-    tags_json: JSON.stringify(["anuncio", "lanzamiento", "oferta", "b2b"]),
-    width: 1080,
-    height: 1080,
+    tags_json: JSON.stringify(["anuncio", "lanzamiento", "oferta", "cuadrada", "b2b"]),
+    width: 1200,
+    height: 1200,
     orientation: "square",
     thumbnail_url: svgThumb2,
     document_json: JSON.stringify(doc2),
     created_by: "Sistema InHubFlow",
     use_count: 64,
+    is_featured: 1,
+  });
+
+  insert.run({
+    id: "tpl_seed_3",
+    slug: "reporte-benchmark-horizontal",
+    title: "Reporte / Análisis de Tendencias B2B (Horizontal 1.91:1)",
+    category_id: "autoridad",
+    category_name: "Autoridad & Thought Leadership",
+    tags_json: JSON.stringify(["reporte", "benchmark", "estadisticas", "horizontal", "b2b"]),
+    width: 1200,
+    height: 627,
+    orientation: "landscape",
+    thumbnail_url: svgThumb3,
+    document_json: JSON.stringify(doc3),
+    created_by: "Sistema InHubFlow",
+    use_count: 51,
     is_featured: 1,
   });
 }

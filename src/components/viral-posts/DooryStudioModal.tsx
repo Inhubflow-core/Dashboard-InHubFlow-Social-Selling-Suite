@@ -6,6 +6,7 @@ import {
   Check, 
   Smartphone, 
   Square as SquareIcon, 
+  RectangleHorizontal,
   Loader2,
   BookmarkPlus 
 } from "lucide-react";
@@ -19,6 +20,52 @@ import { createBlankDemo } from "@doory/editor/dev/demoDocument";
 import { newId } from "@doory/lib/document";
 import { useAuth } from "@/context/AuthContext";
 import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
+
+export type LinkedInAspectRatio = "4:5" | "1:1" | "1.91:1";
+
+export interface LinkedInSizeConfig {
+  ratio: LinkedInAspectRatio;
+  label: string;
+  name: string;
+  width: number;
+  height: number;
+  ratioText: string;
+  format: "PNG/JPEG";
+  description: string;
+}
+
+export const LINKEDIN_SIZES: Record<LinkedInAspectRatio, LinkedInSizeConfig> = {
+  "4:5": {
+    ratio: "4:5",
+    label: "Vertical",
+    name: "Imagen de Publicación (Vertical)",
+    width: 1200,
+    height: 1500,
+    ratioText: "4:5",
+    format: "PNG/JPEG",
+    description: "1200 × 1500 px · 4:5 · Máxima visibilidad móvil en LinkedIn",
+  },
+  "1:1": {
+    ratio: "1:1",
+    label: "Cuadrada",
+    name: "Imagen de Publicación (Cuadrada)",
+    width: 1200,
+    height: 1200,
+    ratioText: "1:1",
+    format: "PNG/JPEG",
+    description: "1200 × 1200 px · 1:1 · Formato cuadrado estándar universal",
+  },
+  "1.91:1": {
+    ratio: "1.91:1",
+    label: "Horizontal",
+    name: "Imagen de Publicación (Horizontal)",
+    width: 1200,
+    height: 627,
+    ratioText: "1.91:1",
+    format: "PNG/JPEG",
+    description: "1200 × 627 px · 1.91:1 · Formato panorámico para desktop y artículos",
+  },
+};
 
 export interface DooryStudioModalProps {
   isOpen: boolean;
@@ -44,7 +91,9 @@ export default function DooryStudioModal({
 }: DooryStudioModalProps) {
   const { isSuperAdmin, currentUser } = useAuth();
   const editorRef = useRef<EditorHandle>(null);
-  const [aspectRatio, setAspectRatio] = useState<"4:5" | "1:1">("4:5");
+  
+  // 3 Tamaños Principales Oficiales de Publicación en LinkedIn
+  const [aspectRatio, setAspectRatio] = useState<LinkedInAspectRatio>("4:5");
   const [isExporting, setIsExporting] = useState(false);
   const [docKey, setDocKey] = useState(0);
 
@@ -58,30 +107,36 @@ export default function DooryStudioModal({
     initContrast();
   }, []);
 
-  // Compute dimensions
+  // Compute dimensions based on active LinkedIn ratio:
+  // - Horizontal: 1200 x 627 px (1.91:1)
+  // - Cuadrada: 1200 x 1200 px (1:1)
+  // - Vertical: 1200 x 1500 px (4:5)
   const dimensions = useMemo(() => {
-    if (aspectRatio === "4:5") {
-      return { width: 1080, height: 1350 };
-    }
-    return { width: 1080, height: 1080 };
+    return {
+      width: LINKEDIN_SIZES[aspectRatio].width,
+      height: LINKEDIN_SIZES[aspectRatio].height,
+    };
   }, [aspectRatio]);
 
   // Create initial document with InHubFlow signature Outfit typography
   const initialDoc = useMemo<DoryDocument>(() => {
     const blank = createBlankDemo(dimensions.width, dimensions.height);
     
-    // If we have an initial title, add a clean initial heading object
+    // If we have an initial title, add a clean initial heading object adapted to the aspect ratio
     if (initialTitle && blank.pages[0]) {
       const page = blank.pages[0];
       const headingId = newId();
+      const isHorizontal = aspectRatio === "1.91:1";
+      const isSquare = aspectRatio === "1:1";
+
       page.objects.push({
         id: headingId,
         kind: "text",
         name: "Título del Post",
         x: Math.round(dimensions.width * 0.1),
-        y: Math.round(dimensions.height * 0.25),
+        y: Math.round(dimensions.height * (isHorizontal ? 0.22 : isSquare ? 0.24 : 0.26)),
         width: Math.round(dimensions.width * 0.8),
-        height: 160,
+        height: isHorizontal ? 120 : 160,
         rotation: 0,
         flipX: false,
         flipY: false,
@@ -89,7 +144,7 @@ export default function DooryStudioModal({
         locked: false,
         text: initialTitle,
         fontFamily: "Outfit",
-        fontSize: 54,
+        fontSize: isHorizontal ? 44 : isSquare ? 52 : 56,
         fontWeight: "bold",
         fontStyle: "normal",
         fill: "#0f172a",
@@ -110,7 +165,7 @@ export default function DooryStudioModal({
           kind: "text",
           name: "Subtítulo",
           x: Math.round(dimensions.width * 0.12),
-          y: Math.round(dimensions.height * 0.42),
+          y: Math.round(dimensions.height * (isHorizontal ? 0.50 : isSquare ? 0.44 : 0.42)),
           width: Math.round(dimensions.width * 0.76),
           height: 100,
           rotation: 0,
@@ -120,7 +175,7 @@ export default function DooryStudioModal({
           locked: false,
           text: initialSubtitle,
           fontFamily: "Outfit",
-          fontSize: 32,
+          fontSize: isHorizontal ? 24 : isSquare ? 30 : 32,
           fontWeight: "normal",
           fontStyle: "normal",
           fill: "#475569",
@@ -137,7 +192,7 @@ export default function DooryStudioModal({
     }
 
     return blank;
-  }, [dimensions, initialTitle, initialSubtitle, docKey]);
+  }, [dimensions, initialTitle, initialSubtitle, docKey, aspectRatio]);
 
   // Create in-memory adapter (account: false to bypass external signup gates)
   const adapterPackage = useMemo(() => {
@@ -147,8 +202,8 @@ export default function DooryStudioModal({
     });
   }, [docKey]);
 
-  // Handle ratio change
-  const handleChangeRatio = (newRatio: "4:5" | "1:1") => {
+  // Handle ratio change among the 3 LinkedIn formats
+  const handleChangeRatio = (newRatio: LinkedInAspectRatio) => {
     if (newRatio === aspectRatio) return;
     setAspectRatio(newRatio);
     setDocKey((k) => k + 1);
@@ -199,6 +254,19 @@ export default function DooryStudioModal({
     }
   }, [getRenderedImageDataUrl, onApplyImage, onClose]);
 
+  // Handle Direct Download PNG
+  const handleDownloadPng = useCallback(() => {
+    const dataUrl = getRenderedImageDataUrl();
+    if (!dataUrl) return;
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    const ratioSlug = aspectRatio === "4:5" ? "vertical-4x5" : aspectRatio === "1:1" ? "cuadrada-1x1" : "horizontal-191x1";
+    a.download = `inhubflow-post-${ratioSlug}-${dimensions.width}x${dimensions.height}-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [getRenderedImageDataUrl, aspectRatio, dimensions]);
+
   // Handle Open Save Global Template Modal (Strictly Super Admin)
   const handleOpenSaveGlobalModal = useCallback(() => {
     const thumb = getRenderedImageDataUrl();
@@ -210,10 +278,10 @@ export default function DooryStudioModal({
 
   if (!isOpen) return null;
 
-  // Custom unified topbar start: solo el icono de InHubFlow sin texto (estilo Doory)
+  // Custom unified topbar start: Icono de InHubFlow + Switcher de 3 Formatos Principales de LinkedIn
   const topBarStart = (
     <div className="flex items-center gap-2.5 pr-2.5 mr-1 border-r border-slate-200">
-      <div className="flex items-center justify-center" title="InHubFlow">
+      <div className="flex items-center justify-center" title="InHubFlow Social Selling Suite">
         <img
           src="/images/logo/inhubflow-icon-dark.png"
           alt="InHubFlow"
@@ -221,32 +289,63 @@ export default function DooryStudioModal({
         />
       </div>
 
-      {/* Switcher 4:5 vs 1:1 */}
+      {/* Switcher de los 3 Tamaños Principales de LinkedIn: Horizontal, Cuadrada, Vertical */}
       <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+        {/* Horizontal: 1200 x 627 px (1.91:1) */}
         <button
           type="button"
-          onClick={() => handleChangeRatio("4:5")}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all ${
-            aspectRatio === "4:5"
+          onClick={() => handleChangeRatio("1.91:1")}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
+            aspectRatio === "1.91:1"
               ? "bg-[#0099ff] text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
           }`}
+          title="Imagen de Publicación (Horizontal) — 1200 × 627 px · 1.91:1 · PNG/JPEG"
         >
-          <Smartphone size={12} />
-          <span>4:5</span>
+          <RectangleHorizontal size={13} />
+          <span>Horizontal</span>
+          <span className="text-[10px] opacity-80 hidden md:inline font-mono">1.91:1</span>
         </button>
+
+        {/* Cuadrada: 1200 x 1200 px (1:1) */}
         <button
           type="button"
           onClick={() => handleChangeRatio("1:1")}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
             aspectRatio === "1:1"
               ? "bg-[#0099ff] text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
           }`}
+          title="Imagen de Publicación (Cuadrada) — 1200 × 1200 px · 1:1 · PNG/JPEG"
         >
           <SquareIcon size={12} />
-          <span>1:1</span>
+          <span>Cuadrada</span>
+          <span className="text-[10px] opacity-80 hidden md:inline font-mono">1:1</span>
         </button>
+
+        {/* Vertical: 1200 x 1500 px (4:5) */}
+        <button
+          type="button"
+          onClick={() => handleChangeRatio("4:5")}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
+            aspectRatio === "4:5"
+              ? "bg-[#0099ff] text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+          }`}
+          title="Imagen de Publicación (Vertical) — 1200 × 1500 px · 4:5 · PNG/JPEG"
+        >
+          <Smartphone size={12} />
+          <span>Vertical</span>
+          <span className="text-[10px] opacity-80 hidden md:inline font-mono">4:5</span>
+        </button>
+      </div>
+
+      {/* Badge con las dimensiones exactas en px */}
+      <div 
+        className="hidden lg:flex items-center text-[11px] font-semibold text-slate-500 bg-white/70 px-2 py-0.5 rounded border border-slate-200/70 font-mono shadow-2xs"
+        title={LINKEDIN_SIZES[aspectRatio].description}
+      >
+        {dimensions.width} &times; {dimensions.height} px
       </div>
     </div>
   );

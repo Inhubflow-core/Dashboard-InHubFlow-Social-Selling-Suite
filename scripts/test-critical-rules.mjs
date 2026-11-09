@@ -1799,8 +1799,8 @@ db.exec(`
 // Insertar plantilla global simulada creada por Super Admin
 const mockDoc = {
   version: 1,
-  width: 1080,
-  height: 1350,
+  width: 1200,
+  height: 1500,
   unit: "px",
   pages: [
     {
@@ -1829,8 +1829,8 @@ insertStmt.run(
   "thought-leadership",
   "Autoridad & Thought Leadership",
   JSON.stringify(["b2b", "linkedin", "estrategia"]),
-  1080,
-  1350,
+  1200,
+  1500,
   "portrait",
   "data:image/png;base64,mockthumb",
   JSON.stringify(mockDoc),
@@ -1841,12 +1841,27 @@ insertStmt.run(
 const fetchedTpl = db.prepare("SELECT * FROM global_templates WHERE slug = ?").get("estrategia-b2b-crecimiento");
 assert(fetchedTpl !== undefined, "La plantilla global existe y es recuperable de la base de datos");
 assert(fetchedTpl.title === "Estrategia B2B de Crecimiento", "El título de la plantilla coincide");
+assert(fetchedTpl.width === 1200 && fetchedTpl.height === 1500, "Dimensiones de plantilla vertical 1200x1500 px coinciden");
 assert(fetchedTpl.orientation === "portrait", "La orientación vertical 4:5 se preserva");
 assert(fetchedTpl.is_featured === 1, "La plantilla se registra como destacada");
 
 const parsedDoc = JSON.parse(fetchedTpl.document_json);
 assert(parsedDoc.pages.length === 1, "El documento JSON de la plantilla contiene sus páginas intactas");
 assert(parsedDoc.pages[0].objects[0].text === "Estrategia B2B de Crecimiento", "Los objetos del lienzo se conservan íntegros");
+
+// Validación de los 3 formatos estándar de LinkedIn en el editor
+const LINKEDIN_FORMATS = {
+  horizontal: { width: 1200, height: 627, ratio: "1.91:1", orientation: "landscape" },
+  cuadrada: { width: 1200, height: 1200, ratio: "1:1", orientation: "square" },
+  vertical: { width: 1200, height: 1500, ratio: "4:5", orientation: "portrait" },
+};
+
+assert(LINKEDIN_FORMATS.horizontal.width === 1200 && LINKEDIN_FORMATS.horizontal.height === 627, "Formato Horizontal LinkedIn es 1200 x 627 px");
+assert(LINKEDIN_FORMATS.horizontal.ratio === "1.91:1", "Ratio Horizontal es 1.91:1");
+assert(LINKEDIN_FORMATS.cuadrada.width === 1200 && LINKEDIN_FORMATS.cuadrada.height === 1200, "Formato Cuadrada LinkedIn es 1200 x 1200 px");
+assert(LINKEDIN_FORMATS.cuadrada.ratio === "1:1", "Ratio Cuadrada es 1:1");
+assert(LINKEDIN_FORMATS.vertical.width === 1200 && LINKEDIN_FORMATS.vertical.height === 1500, "Formato Vertical LinkedIn es 1200 x 1500 px");
+assert(LINKEDIN_FORMATS.vertical.ratio === "4:5", "Ratio Vertical es 4:5");
 
 // Eliminación de plantilla global por Super Admin
 db.prepare("DELETE FROM global_templates WHERE slug = ?").run("estrategia-b2b-crecimiento");

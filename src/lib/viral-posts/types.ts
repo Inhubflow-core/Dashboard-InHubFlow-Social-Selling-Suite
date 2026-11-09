@@ -86,7 +86,7 @@ export type TemplateId =
   | "big_metric"
   | "bold_highlighter";
 
-export type AspectRatio = "4:5" | "1:1";
+export type AspectRatio = "4:5" | "1:1" | "1.91:1";
 export type EditorMode = "single" | "carousel";
 
 export interface ElementFormatting {
