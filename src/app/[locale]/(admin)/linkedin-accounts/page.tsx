@@ -191,8 +191,9 @@ export default function LinkedInAccountsPage() {
     } catch {
       // Ignorar error si está en demo
     }
-    const updated = removeStoredAccount(id);
-    setAccounts(updated);
+    removeStoredAccount(id);
+    const visible = getVisibleAccountsForUser(currentUser);
+    setAccounts(visible);
     const newActive = getActiveAccountId();
     setActiveId(newActive);
     refreshUserData();
