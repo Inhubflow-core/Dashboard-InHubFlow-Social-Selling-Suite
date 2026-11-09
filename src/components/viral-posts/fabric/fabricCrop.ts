@@ -288,7 +288,7 @@ export const cropRightAction = controlsUtils.wrapWithFixedAnchor(
 );
 
 // =========================================================================
-// SESIÓN DE RECORTE INTERACTIVO (DOORY CROPSESSION)
+// SESIÓN DE RECORTE INTERACTIVO (VISUAL STUDIO CROPSESSION)
 // Modo interactivo completo con imagen fantasma traslúcida y marco de recorte
 // =========================================================================
 

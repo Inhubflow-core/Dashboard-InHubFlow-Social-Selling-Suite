@@ -1594,7 +1594,7 @@ assert(dispatchResult.accessToken === "AQEDAQ_test_li_at_sample_cookie_xyz123", 
 assert(dispatchResult.premiumToken === "AQEDAQ_test_li_a_premium_sample", "El token premium li_a de Sales Navigator se preserva");
 
 // =========================================================================
-// 29. PRUEBA DEL MOTOR DE RECORTE DOORY Y MANIJAS NO DEFORMANTES
+// 29. PRUEBA DEL MOTOR DE RECORTE VISUAL STUDIO Y MANIJAS NO DEFORMANTES
 // =========================================================================
 console.log("\n--- 29. Prueba del Motor de Recorte Doory y Manijas No Deformantes ---");
 
@@ -1754,7 +1754,7 @@ const clickPhotoResult = simulatePixabayClick(true, { regularUrl: "https://pixab
 assert(clickPhotoResult.action === "insert_element", "Hacer clic en una foto de la galería Fotos la inserta como elemento en el lienzo");
 assert(clickPhotoResult.url === "https://pixabay.com/test.jpg", "La URL de la foto seleccionada se suministra al lienzo");
 
-console.log("\n--- 30. Prueba de Plantillas Globales Doory (Persistencia y Acceso Exclusivo Super Admin) ---");
+console.log("\n--- 30. Prueba de Plantillas Globales Visual Studio (Persistencia y Acceso Exclusivo Super Admin) ---");
 
 // Verificación de regla estricta de rol Super Admin
 function checkCanSaveGlobalTemplate(user) {

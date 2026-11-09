@@ -188,7 +188,7 @@ export const FabricStudioCanvas = forwardRef<
       }
     });
 
-    // Doble clic en imagen para entrar en modo recorte interactivo (Doory CropSession)
+    // Doble clic en imagen para entrar en modo recorte interactivo (Visual Studio CropSession)
     const handleDblClick = async (e: any) => {
       const target = e.target;
       if (target && target instanceof FabricImage && !cropSessionRef.current) {

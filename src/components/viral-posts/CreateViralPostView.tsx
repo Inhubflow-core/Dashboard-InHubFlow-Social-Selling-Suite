@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
 import { Sparkles, Image as ImageIcon, Bot } from "lucide-react";
-import DooryStudioModal from "./DooryStudioModal";
+import VisualStudioModal from "./VisualStudioModal";
 
 export default function CreateViralPostView({
   onTabChange,
@@ -1069,7 +1069,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       </div>
 
       {/* Modal de Estudio Visual Integrado */}
-      <DooryStudioModal
+      <VisualStudioModal
         isOpen={isVisualStudioOpen}
         onClose={handleCloseVisualStudio}
         initialTitle={parsePostHeader(content, referenceHook || topic).hook}
