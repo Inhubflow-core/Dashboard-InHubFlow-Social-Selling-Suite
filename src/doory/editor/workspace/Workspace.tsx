@@ -314,6 +314,13 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
         return
       }
       const handTool = editor.state.ui.spaceDown || editor.state.ui.tool === 'hand'
+      if (e.button === 0 && !handTool) {
+        const target = e.target as HTMLElement | null
+        if (target && !target.closest('[data-artboard]') && !target.closest('button, input, select, textarea, [role="button"], [role="menuitem"]')) {
+          editor.clearSelection()
+          editor.patchUi({ contextMenu: null })
+        }
+      }
       if (e.button === 1 || (handTool && e.button === 0)) {
         e.preventDefault()
         e.stopPropagation()
@@ -355,12 +362,16 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     }
   }, [editor])
 
-  // Clicking the empty workspace clears the selection.
-  const onBackgroundPointerDown = (e: React.PointerEvent): void => {
-    if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.workspaceBg !== undefined) {
-      editor.clearSelection()
-      editor.patchUi({ contextMenu: null })
-    }
+  // Clicking the empty workspace outside the image canvas clears the selection.
+  const onBackgroundPointerDown = (e: React.PointerEvent | React.MouseEvent): void => {
+    if (e.button !== 0) return
+    const target = e.target as HTMLElement | null
+    if (!target) return
+    if (target.closest('[data-artboard]')) return
+    if (target.closest('button, input, select, textarea, [role="button"], [role="menuitem"]')) return
+
+    editor.clearSelection()
+    editor.patchUi({ contextMenu: null })
   }
 
   const clearImageAssetDrop = useCallback(() => {
@@ -433,13 +444,19 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
   }
 
   return (
-    <div className={styles.workspace} data-dropping={dropping || undefined}>
+    <div
+      className={styles.workspace}
+      data-dropping={dropping || undefined}
+      onPointerDown={onBackgroundPointerDown}
+      onClick={onBackgroundPointerDown}
+    >
       {rulers ? <Rulers scrollRef={scrollRef} artboards={artboards} /> : null}
       <div
         ref={scrollRef}
         className={`${styles.scroller} ${rulers ? styles.withRulers : ''} ${panning ? styles.hand : ''} ${tool === 'text' ? styles.textTool : ''}`}
         data-workspace-bg
         onPointerDown={onBackgroundPointerDown}
+        onClick={onBackgroundPointerDown}
         onDragOver={onDragOver}
         onDragLeave={(event) => {
           if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return

@@ -601,7 +601,7 @@ export class PageCanvas {
   }
 
   clearSelection(): void {
-    if (this.canvas.getActiveObject()) {
+    if (this.canvas.getActiveObject() || this.canvas.getActiveObjects().length > 0) {
       this.suppress += 1
       this.canvas.discardActiveObject()
       this.suppress -= 1
@@ -856,6 +856,10 @@ export class PageCanvas {
       return
     }
     if (ev.button !== 0) return
+    if (!e.target) {
+      this.clearSelection()
+      host.onSelectionChange(this.pageId)
+    }
     if (this.editingGrid && e.target === this.editingGrid) {
       const hit = imageGridCellAtPoint(this.editingGrid, e.scenePoint)
       this.gridCellPress = hit

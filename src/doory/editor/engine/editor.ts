@@ -596,7 +596,9 @@ export class EditorEngine implements PageCanvasHost {
   }
 
   clearSelection(): void {
-    this.activeView()?.clearSelection()
+    for (const [, v] of this.views) {
+      v.clearSelection()
+    }
     this.refreshSelection()
   }
 

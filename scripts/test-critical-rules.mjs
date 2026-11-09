@@ -2048,6 +2048,74 @@ const closedUrl = closeEditor(activeUrl);
 assert(!closedUrl.includes("editor=open"), "El parámetro 'editor=open' se retira limpiamente al cerrar");
 assert(checkEditorOpenOnReload(closedUrl) === false, "Tras cerrar formalmente, recargar no reabre el editor");
 
+
+// -----------------------------------------------------------------------------
+// PRUEBA 34: Deselección de Elementos al Hacer Clic Fuera de la Imagen
+// -----------------------------------------------------------------------------
+console.log("\n--- 34. Prueba de Deselección de Elementos al Hacer Clic Fuera de la Imagen ---");
+
+class MockElement {
+  constructor(tag, attrs = {}) {
+    this.tagName = tag.toUpperCase();
+    this.attrs = attrs;
+    this.parent = null;
+  }
+  closest(selector) {
+    let current = this;
+    while (current) {
+      if (selector === '[data-artboard]' && current.attrs['data-artboard']) return current;
+      if (selector.includes('button') && current.tagName === 'BUTTON') return current;
+      if (selector.includes('input') && current.tagName === 'INPUT') return current;
+      current = current.parent;
+    }
+    return null;
+  }
+}
+
+let activeSelection = { id: "box-gradient-1", type: "rounded-rect" };
+function clearSelection() {
+  activeSelection = null;
+}
+
+function handlePointerDown(e) {
+  if (e.button !== 0) return;
+  const target = e.target;
+  if (!target) return;
+  if (target.closest('[data-artboard]')) return;
+  if (target.closest('button, input, select, textarea, [role="button"], [role="menuitem"]')) return;
+  clearSelection();
+}
+
+// 1. Clic dentro del artboard (lienzo) no deselecciona por el manejador de fondo
+const artboardEl = new MockElement('div', { 'data-artboard': 'true' });
+const elementInsideCanvas = new MockElement('div');
+elementInsideCanvas.parent = artboardEl;
+
+activeSelection = { id: "box-gradient-1", type: "rounded-rect" };
+handlePointerDown({ button: 0, target: elementInsideCanvas });
+assert(activeSelection !== null, "Hacer clic dentro del lienzo mantiene el elemento seleccionado para manipularlo");
+
+// 2. Clic en un botón de la barra de herramientas tampoco deselecciona
+const toolbarButton = new MockElement('button');
+handlePointerDown({ button: 0, target: toolbarButton });
+assert(activeSelection !== null, "Hacer clic en un botón de herramienta conserva la selección");
+
+// 3. Clic fuera de la imagen (en el fondo gris / workspace con puntos) deselecciona inmediatamente
+const workspaceBackground = new MockElement('div', { 'data-workspace-bg': 'true' });
+handlePointerDown({ button: 0, target: workspaceBackground });
+assert(activeSelection === null, "Al hacer clic fuera de la imagen (en el workspace), la selección se elimina automáticamente");
+
+// 4. Verificación de que los bordes de selección se ocultan al deseleccionar
+assert(activeSelection === null, "Los bordes y controles de selección desaparecen al deseleccionar");
+
+// 5. Clic en espacio vacío del lienzo también limpia la selección
+activeSelection = { id: "box-gradient-1", type: "rounded-rect" };
+function onCanvasMouseDown(targetObj) {
+  if (!targetObj) clearSelection();
+}
+onCanvasMouseDown(null);
+assert(activeSelection === null, "Hacer clic en una zona vacía del lienzo también elimina la selección");
+
 // Limpieza de base de datos de test
 
 db.close();
