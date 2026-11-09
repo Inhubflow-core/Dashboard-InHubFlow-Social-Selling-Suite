@@ -60,12 +60,12 @@ export default function SaveGlobalTemplateModal({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError("Por favor ingresa un título para la plantilla global.");
+      setError("Por favor ingresa un tÃ­tulo para la plantilla global.");
       return;
     }
 
     if (!document || !document.pages || document.pages.length === 0) {
-      setError("El documento de diseño no es válido.");
+      setError("El documento de diseÃ±o no es vÃ¡lido.");
       return;
     }
 
@@ -118,7 +118,7 @@ export default function SaveGlobalTemplateModal({
       }, 1200);
     } catch (err: any) {
       console.error("[SaveGlobalTemplate] Error:", err);
-      setError(err.message || "Ocurrió un error inesperado al guardar la plantilla.");
+      setError(err.message || "OcurriÃ³ un error inesperado al guardar la plantilla.");
     } finally {
       setIsSaving(false);
     }
@@ -144,7 +144,7 @@ export default function SaveGlobalTemplateModal({
                 </span>
               </div>
               <p className="text-xs text-emerald-100/90 font-medium">
-                Disponible inmediatamente para todos los clientes en la suite Doory
+                Disponible inmediatamente para todos los clientes en el Editor Visual
               </p>
             </div>
           </div>
@@ -163,9 +163,9 @@ export default function SaveGlobalTemplateModal({
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
               <CheckCircle2 size={36} />
             </div>
-            <h4 className="text-lg font-bold text-slate-800">¡Plantilla Global Publicada!</h4>
+            <h4 className="text-lg font-bold text-slate-800">Â¡Plantilla Global Publicada!</h4>
             <p className="text-sm text-slate-500 max-w-sm mt-1">
-              Todos los clientes ya pueden ver y utilizar esta plantilla en la pestaña &quot;Plantillas&quot; de Doory.
+              Todos los clientes ya pueden ver y utilizar esta plantilla en la pestaña &quot;Plantillas&quot; del Editor Visual.
             </p>
           </div>
         ) : (
@@ -194,7 +194,7 @@ export default function SaveGlobalTemplateModal({
                   Vista Previa del Lienzo
                 </span>
                 <p className="text-sm font-semibold text-slate-800 truncate mt-0.5">
-                  {title.trim() || "Título sin definir..."}
+                  {title.trim() || "TÃ­tulo sin definir..."}
                 </p>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-white border border-slate-200 text-slate-700">
@@ -204,16 +204,16 @@ export default function SaveGlobalTemplateModal({
                     {aspectRatio === "4:5" ? "4:5 Vertical" : aspectRatio === "1:1" ? "1:1 Cuadrada" : "1.91:1 Horizontal"}
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
-                    {document?.pages?.length || 1} página(s)
+                    {document?.pages?.length || 1} pÃ¡gina(s)
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Input Título */}
+            {/* Input TÃ­tulo */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Título de la Plantilla <span className="text-red-500">*</span>
+                TÃ­tulo de la Plantilla <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -225,11 +225,11 @@ export default function SaveGlobalTemplateModal({
               />
             </div>
 
-            {/* Categoría */}
+            {/* CategorÃ­a */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Categoría
+                  CategorÃ­a
                 </label>
                 <select
                   value={isCustomCategory ? "custom" : category}
@@ -248,20 +248,20 @@ export default function SaveGlobalTemplateModal({
                       {cat.name}
                     </option>
                   ))}
-                  <option value="custom">+ Otra Categoría Personalizada</option>
+                  <option value="custom">+ Otra CategorÃ­a Personalizada</option>
                 </select>
               </div>
 
               {isCustomCategory ? (
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nueva Categoría
+                    Nueva CategorÃ­a
                   </label>
                   <input
                     type="text"
                     value={customCategory}
                     onChange={(e) => setCustomCategory(e.target.value)}
-                    placeholder="Nombre de la categoría..."
+                    placeholder="Nombre de la categorÃ­a..."
                     className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800"
                   />
                 </div>

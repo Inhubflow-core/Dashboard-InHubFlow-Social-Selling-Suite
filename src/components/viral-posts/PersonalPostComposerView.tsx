@@ -48,7 +48,7 @@ export default function PersonalPostComposerView({
   const [accounts, setAccounts] = useState<UnipileAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
-  // Modo de composición: 'scratch' (desde cero) o 'external' (modelar texto ajeno)
+  // Modo de composiciÃ³n: 'scratch' (desde cero) o 'external' (modelar texto ajeno)
   const [compositionMode, setCompositionMode] = useState<"scratch" | "external">("scratch");
   const [externalPastedText, setExternalPastedText] = useState("");
   const [isAiPolishing, setIsAiPolishing] = useState(false);
@@ -56,17 +56,17 @@ export default function PersonalPostComposerView({
   // Campos del post
   const [title, setTitle] = useState("");
   const [bodyText, setBodyText] = useState(
-    `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
+    `La mayorÃ­a de lÃ­deres B2B cometen el mismo error al prospectar en LinkedIn:
 
 Hablan de su producto antes de entender el dolor del decisor.
 
-Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
+AquÃ­ tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
-1. Identifica una señal de compra real (contrataciones, cambios de puesto).
-2. Abre con un diagnóstico personalizado en lugar de un pitch en frío.
-3. Entrega un activo de valor concreto (plantilla, guía o cálculo).
+1. Identifica una seÃ±al de compra real (contrataciones, cambios de puesto).
+2. Abre con un diagnÃ³stico personalizado en lugar de un pitch en frÃ­o.
+3. Entrega un activo de valor concreto (plantilla, guÃ­a o cÃ¡lculo).
 
-¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`
+Â¿CuÃ¡l ha sido tu mayor reto de prospecciÃ³n este trimestre? Te leo en los comentarios.`
   );
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
 
@@ -78,10 +78,10 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
   const [leadMagnetKeyword, setLeadMagnetKeyword] = useState("SISTEMA");
   const [autoLikeComment, setAutoLikeComment] = useState(true);
   const [autoDmMessage, setAutoDmMessage] = useState(
-    `¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicación. Aquí tienes el documento completo con el framework accionable en PDF. ¿En qué reto comercial estás enfocado este trimestre?`
+    `Â¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicaciÃ³n. AquÃ­ tienes el documento completo con el framework accionable en PDF. Â¿En quÃ© reto comercial estÃ¡s enfocado este trimestre?`
   );
 
-  // Estados de publicación
+  // Estados de publicaciÃ³n
   const [isPublishing, setIsPublishing] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState(() => {
@@ -115,10 +115,10 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
     return () => window.removeEventListener("storage", syncAccounts);
   }, [currentUser]);
 
-  // Contadores y métricas de LinkedIn
+  // Contadores y mÃ©tricas de LinkedIn
   const charCount = bodyText.length;
   const maxChars = 3000;
-  const foldCutoff = 190; // Caracteres antes del botón "ver más..." de LinkedIn
+  const foldCutoff = 190; // Caracteres antes del botÃ³n "ver mÃ¡s..." de LinkedIn
 
   // Pulir o transformar texto externo con IA
   const handlePolishWithAi = async (instruction: "reformat_b2b" | "strong_hook" | "bullet_points") => {
@@ -153,7 +153,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
         setCompositionMode("scratch"); // Pasar al editor principal
         setFeedback({
           type: "success",
-          message: "¡Texto optimizado y formateado para el feed de LinkedIn con éxito!",
+          message: "Â¡Texto optimizado y formateado para el feed de LinkedIn con Ã©xito!",
         });
         setTimeout(() => setFeedback(null), 4000);
       }
@@ -170,7 +170,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
   // Guardar o Publicar post
   const handleSaveOrPublish = async (status: "published" | "scheduled" | "draft") => {
     if (!bodyText.trim()) {
-      setFeedback({ type: "error", message: "El contenido del post no puede estar vacío." });
+      setFeedback({ type: "error", message: "El contenido del post no puede estar vacÃ­o." });
       return;
     }
 
@@ -236,9 +236,9 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       type: "success",
       message:
         status === "published"
-          ? "¡Publicación emitida con éxito en tu feed de LinkedIn!"
+          ? "Â¡PublicaciÃ³n emitida con Ã©xito en tu feed de LinkedIn!"
           : status === "scheduled"
-          ? `¡Publicación agendada para el ${scheduledDate} a las ${scheduledTime}!`
+          ? `Â¡PublicaciÃ³n agendada para el ${scheduledDate} a las ${scheduledTime}!`
           : "Borrador guardado exitosamente.",
     });
 
@@ -247,7 +247,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
     }, 1500);
   };
 
-  // Insertar emojis o viñetas rápidas
+  // Insertar emojis o viÃ±etas rÃ¡pidas
   const insertTextSnippet = (snippet: string) => {
     setBodyText((prev) => prev + snippet);
   };
@@ -256,7 +256,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Post Personal & Creación Libre" />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Post Personal & CreaciÃ³n Libre" />}
 
       {/* Alerta de Feedback */}
       {feedback && (
@@ -280,8 +280,8 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
         {/* PANEL IZQUIERDO: COMPOSITOR Y HERRAMIENTAS */}
         <div className="col-span-12 xl:col-span-7 space-y-6">
           <ComponentCard
-            title="Creación Libre de Publicaciones"
-            desc="Escribe de tu propia inspiración o pega un borrador externo para optimizarlo y complementarlo con gráficos de alto impacto."
+            title="CreaciÃ³n Libre de Publicaciones"
+            desc="Escribe de tu propia inspiraciÃ³n o pega un borrador externo para optimizarlo y complementarlo con grÃ¡ficos de alto impacto."
           >
             <div className="space-y-5">
               {/* Selector de Modo: Escribir vs Modelar Texto Externo */}
@@ -308,19 +308,19 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   }`}
                 >
                   <Copy className="size-3.5" />
-                  <span>Pegar Post / Inspiración Externa</span>
+                  <span>Pegar Post / InspiraciÃ³n Externa</span>
                 </button>
               </div>
 
-              {/* Si está en modo Externo: Caja de pegado con botones rápidos de IA */}
+              {/* Si estÃ¡ en modo Externo: Caja de pegado con botones rÃ¡pidos de IA */}
               {compositionMode === "external" && (
                 <div className="p-4 rounded-xl border border-brand-200 bg-brand-50/50 dark:border-brand-900/60 dark:bg-brand-950/20 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center gap-1.5">
-                      <Sparkles className="size-3.5" /> Asistente de Transformación IA
+                      <Sparkles className="size-3.5" /> Asistente de TransformaciÃ³n IA
                     </span>
                     <span className="text-[11px] text-gray-500">
-                      Pega aquí cualquier publicación que te haya gustado
+                      Pega aquÃ­ cualquier publicaciÃ³n que te haya gustado
                     </span>
                   </div>
 
@@ -328,7 +328,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     rows={4}
                     value={externalPastedText}
                     onChange={(e) => setExternalPastedText(e.target.value)}
-                    placeholder="Pega aquí el texto de un post de LinkedIn, artículo o apunte personal para modelarlo con tu voz..."
+                    placeholder="Pega aquÃ­ el texto de un post de LinkedIn, artÃ­culo o apunte personal para modelarlo con tu voz..."
                     className="w-full rounded-lg border border-gray-300 bg-white p-3 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
 
@@ -358,7 +358,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       onClick={() => handlePolishWithAi("strong_hook")}
                       className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 transition disabled:opacity-40"
                     >
-                      Crear Gancho Magnético
+                      Crear Gancho MagnÃ©tico
                     </button>
 
                     <button
@@ -373,7 +373,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 </div>
               )}
 
-              {/* Título o Concepto Central (Opcional) */}
+              {/* TÃ­tulo o Concepto Central (Opcional) */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
                   Idea Central o Tema Principal
@@ -382,7 +382,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ej. 5 Errores al prospectar en LinkedIn / Cómo vender en frío..."
+                  placeholder="Ej. 5 Errores al prospectar en LinkedIn / CÃ³mo vender en frÃ­o..."
                   className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-xs text-gray-900 font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
@@ -391,39 +391,39 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Cuerpo de la Publicación
+                    Cuerpo de la PublicaciÃ³n
                   </label>
 
-                  {/* Barra rápida de inserción */}
+                  {/* Barra rÃ¡pida de inserciÃ³n */}
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => insertTextSnippet("\n• ")}
+                      onClick={() => insertTextSnippet("\nâ€¢ ")}
                       className="rounded px-2 py-0.5 text-[11px] font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
-                      title="Insertar viñeta"
+                      title="Insertar viÃ±eta"
                     >
-                      • Lista
+                      â€¢ Lista
                     </button>
                     <button
                       type="button"
-                      onClick={() => insertTextSnippet(" 🚀 ")}
+                      onClick={() => insertTextSnippet(" ðŸš€ ")}
                       className="rounded px-1.5 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-800"
                     >
-                      🚀
+                      ðŸš€
                     </button>
                     <button
                       type="button"
-                      onClick={() => insertTextSnippet(" 👇 ")}
+                      onClick={() => insertTextSnippet(" ðŸ‘‡ ")}
                       className="rounded px-1.5 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-800"
                     >
-                      👇
+                      ðŸ‘‡
                     </button>
                     <button
                       type="button"
-                      onClick={() => insertTextSnippet(" 💡 ")}
+                      onClick={() => insertTextSnippet(" ðŸ’¡ ")}
                       className="rounded px-1.5 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-800"
                     >
-                      💡
+                      ðŸ’¡
                     </button>
                   </div>
                 </div>
@@ -432,7 +432,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   rows={10}
                   value={bodyText}
                   onChange={(e) => setBodyText(e.target.value)}
-                  placeholder="Escribe tu publicación aquí..."
+                  placeholder="Escribe tu publicaciÃ³n aquÃ­..."
                   className="custom-scrollbar w-full rounded-xl border border-gray-300 bg-white p-4 text-xs font-normal leading-relaxed text-gray-900 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                 />
 
@@ -444,7 +444,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 </div>
               </div>
 
-              {/* SECCIÓN DE IMAGEN / ESTUDIO VISUAL */}
+              {/* SECCIÃ“N DE IMAGEN / ESTUDIO VISUAL */}
               <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 bg-gray-50/70 dark:bg-gray-900/40 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -463,7 +463,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110 transition flex items-center gap-2 shrink-0"
                   >
                     <Sparkles className="size-3.5" />
-                    <span>{attachedImage ? "Editar en Estudio" : "Crear Imagen con Estudio"}</span>
+                    <span>{attachedImage ? "Editar en Editor Visual" : "Crear Imagen en Editor Visual"}</span>
                   </button>
                 </div>
 
@@ -479,7 +479,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       <div>
                         <p className="text-xs font-bold text-white">Imagen de Portada Adjunta</p>
                         <p className="text-[11px] text-emerald-400">
-                          Diseñada con resolución nítida para LinkedIn
+                          DiseÃ±ada con resoluciÃ³n nÃ­tida para LinkedIn
                         </p>
                       </div>
                     </div>
@@ -505,7 +505,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 )}
               </div>
 
-              {/* SECCIÓN CENTINELA INBOUND LEAD MAGNET & AUTO-DM (Feature #1) */}
+              {/* SECCIÃ“N CENTINELA INBOUND LEAD MAGNET & AUTO-DM (Feature #1) */}
               <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-4 space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -516,11 +516,11 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
                         <span>Centinela Inbound & Despacho Auto-DM</span>
                         <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-sm font-semibold">
-                          Conversión B2B
+                          ConversiÃ³n B2B
                         </span>
                       </h4>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        Monitorea los comentarios del post y envía el recurso por DM a quien comente la palabra clave.
+                        Monitorea los comentarios del post y envÃ­a el recurso por DM a quien comente la palabra clave.
                       </p>
                     </div>
                   </div>
@@ -542,7 +542,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
-                          Palabra Clave de Activación
+                          Palabra Clave de ActivaciÃ³n
                         </label>
                         <input
                           type="text"
@@ -564,7 +564,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                             onChange={(e) => setAutoLikeComment(e.target.checked)}
                             className="accent-brand-500 rounded"
                           />
-                          <span className="text-xs font-medium text-gray-800 truncate">Dar Like automático al comentario</span>
+                          <span className="text-xs font-medium text-gray-800 truncate">Dar Like automÃ¡tico al comentario</span>
                         </label>
                       </div>
                     </div>
@@ -580,7 +580,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                         className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-hidden leading-relaxed shadow-xs"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">
-                        InHubFlow reemplaza automáticamente: {'{nombre}'}, {'{palabra_clave}'} e inicia el chat en el CRM.
+                        InHubFlow reemplaza automÃ¡ticamente: {'{nombre}'}, {'{palabra_clave}'} e inicia el chat en el CRM.
                       </p>
                     </div>
                   </div>
@@ -629,11 +629,11 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
           </ComponentCard>
         </div>
 
-        {/* PANEL DERECHO: PREVISUALIZACIÓN FIEL DE LINKEDIN */}
+        {/* PANEL DERECHO: PREVISUALIZACIÃ“N FIEL DE LINKEDIN */}
         <div className="col-span-12 xl:col-span-5 space-y-6">
           <ComponentCard
             title="Vista Previa en Feed de LinkedIn"
-            desc="Así verán tu publicación los decisores y tu red de contactos."
+            desc="AsÃ­ verÃ¡n tu publicaciÃ³n los decisores y tu red de contactos."
           >
             <div className="rounded-xl border border-gray-300 bg-white shadow-xs dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
               {/* Header de LinkedIn */}
@@ -652,23 +652,23 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     >
                       {activeAccount?.name || currentUser.name}
                     </p>
-                    <span className="text-[10px] text-gray-400">• 1º</span>
+                    <span className="text-[10px] text-gray-400">â€¢ 1Âº</span>
                   </div>
                   <p
                     suppressHydrationWarning
                     className="text-[11px] text-gray-500 dark:text-gray-400 truncate"
                   >
-                    {(activeAccount as any)?.headline || "Líder B2B • Social Selling & Automatización de Demanda"}
+                    {(activeAccount as any)?.headline || "LÃ­der B2B â€¢ Social Selling & AutomatizaciÃ³n de Demanda"}
                   </p>
                   <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
                     <span>Ahora</span>
-                    <span>•</span>
-                    <span>🌐</span>
+                    <span>â€¢</span>
+                    <span>ðŸŒ</span>
                   </p>
                 </div>
               </div>
 
-              {/* Texto de la Publicación */}
+              {/* Texto de la PublicaciÃ³n */}
               <div className="px-4 pb-3">
                 <p className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
                   {bodyText}
@@ -680,25 +680,25 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                 <div className="w-full bg-black/90 border-y border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center">
                   <img
                     src={attachedImage || undefined}
-                    alt="Arte de la publicación"
+                    alt="Arte de la publicaciÃ³n"
                     className="w-full max-h-[460px] object-contain"
                   />
                 </div>
               )}
 
-              {/* Barra de Interacción Social de LinkedIn */}
+              {/* Barra de InteracciÃ³n Social de LinkedIn */}
               <div className="p-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-around text-xs font-semibold text-gray-600 dark:text-gray-400">
                 <span className="flex items-center gap-1.5 hover:text-brand-500 cursor-pointer">
-                  👍 Recomendar
+                  ðŸ‘ Recomendar
                 </span>
                 <span className="flex items-center gap-1.5 hover:text-brand-500 cursor-pointer">
-                  💬 Comentar
+                  ðŸ’¬ Comentar
                 </span>
                 <span className="flex items-center gap-1.5 hover:text-brand-500 cursor-pointer">
-                  🔄 Compartir
+                  ðŸ”„ Compartir
                 </span>
                 <span className="flex items-center gap-1.5 hover:text-brand-500 cursor-pointer">
-                  ✈️ Enviar
+                  âœˆï¸ Enviar
                 </span>
               </div>
             </div>
@@ -718,18 +718,18 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
           setAttachedImage(dataUrl);
           setFeedback({
             type: "success",
-            message: "¡Diseño visual del Estudio aplicado con éxito a tu post!",
+            message: "¡Diseño aplicado con éxito a tu post desde el Editor Visual!",
           });
           setTimeout(() => setFeedback(null), 3000);
         }}
       />
 
-      {/* Modal de Programación en Calendario */}
+      {/* Modal de ProgramaciÃ³n en Calendario */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-800 shadow-xl space-y-4">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Programar Publicación en Calendario
+              Programar PublicaciÃ³n en Calendario
             </h3>
 
             <div className="grid grid-cols-2 gap-3">

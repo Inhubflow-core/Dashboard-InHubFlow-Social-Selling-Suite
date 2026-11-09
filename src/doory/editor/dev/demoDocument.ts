@@ -99,7 +99,7 @@ export function createAnimatedDemo(): DoryDocument {
     const star = createStar({ x: 250, y: 560 }, 120, 5, 0.45)
     star.set({ fill: '#1c1517' })
     text(c, 'Animate anything', 640, 300, 84, '#1c1517', 1000)
-    text(c, 'Doory brings your pages to life.', 640, 450, 36, '#6b6165', 900)
+    text(c, 'Editor Visual da vida a tus páginas.', 640, 450, 36, '#6b6165', 900)
     c.add(disc, star)
   })
   const cards = build((c) => {

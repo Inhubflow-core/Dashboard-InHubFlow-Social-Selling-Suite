@@ -85,7 +85,7 @@ async function pdfFile(ctx: ExportContext): Promise<ExportFile[]> {
   const geometries = ctx.pages.map(({ page }) => printGeometry(pageSize(ctx.document, page), bleedMm, cropMarks))
   const first = geometries[0]
   const pdf = new jsPDF({ unit: 'mm', format: [mm(first.sheetWidth), mm(first.sheetHeight)], orientation: orientation(first.sheetWidth, first.sheetHeight), compress: true })
-  pdf.setProperties({ title: ctx.title, creator: 'Doory' })
+  pdf.setProperties({ title: ctx.title, creator: 'Editor Visual - InHubFlow' })
   pdf.setLanguage(documentLanguage() as Parameters<typeof pdf.setLanguage>[0])
   const total = ctx.pages.length
   for (let i = 0; i < total; i++) {
