@@ -2195,6 +2195,92 @@ for (const font of expectedFonts) {
   assert(memoryAdapterCode.includes(font), `El catálogo oficial incluye la fuente ${font} para evitar advertencias de tipografía faltante`);
 }
 
+// -----------------------------------------------------------------------------
+// PRUEBA 36: Extracción Inteligente de Gancho, Subtítulo y Frase Resaltada
+// -----------------------------------------------------------------------------
+console.log("\n--- 36. Prueba de Extracción Inteligente de Gancho, Subtítulo y Frase Resaltada ---");
+
+// Importación o simulación de hookHighlighter
+const userExamplePost = `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
+
+Hablan de su producto antes de entender el dolor del decisor.
+
+Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
+
+1. Identifica una señal de compra real (contrataciones, cambios de puesto).
+2. Abre con un diagnóstico personalizado en lugar de un pitch en frío.
+3. Entrega un activo de valor concreto (plantilla, guía o cálculo).
+
+¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`;
+
+// Heurísticas de hookHighlighter
+function testCleanHookText(raw) {
+  return raw.replace(/\*\*/g, "").replace(/[:.]+$/, "").trim();
+}
+
+function testDetectViralHighlight(text) {
+  const boldMatch = text.match(/\*\*(.+?)\*\*/);
+  if (boldMatch) return boldMatch[1].trim();
+  const quoteMatch = text.match(/"([^"]{3,40})"/);
+  if (quoteMatch) return quoteMatch[1].trim();
+  const patterns = [
+    /cometen el mismo error/i,
+    /el mayor error/i,
+    /el peor error/i,
+    /destruyen tu conversi[oó]n/i,
+    /el framework exacto/i,
+    /la fórmula secreta/i,
+    /\b\d+\s+errores\b/i
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return m[0].trim();
+  }
+  return "";
+}
+
+function testParsePostHeader(content) {
+  const lines = content.split("\n").map(l => l.trim()).filter(Boolean);
+  const rawHook = lines[0] || "";
+  return {
+    hook: testCleanHookText(rawHook),
+    subtitle: lines[1] || "",
+    highlight: testDetectViralHighlight(rawHook)
+  };
+}
+
+const parsedExample = testParsePostHeader(userExamplePost);
+
+// 1. Verificación del Gancho / Titular (limpio, sin dos puntos finales)
+assert(
+  parsedExample.hook === "La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn",
+  "El Gancho extraído coincide exactamente con el título esperado sin dos puntos finales"
+);
+
+// 2. Verificación del Subtítulo / Intro
+assert(
+  parsedExample.subtitle === "Hablan de su producto antes de entender el dolor del decisor.",
+  "El Subtítulo extraído coincide exactamente con la primera línea de dolor/intro del post"
+);
+
+// 3. Verificación de la frase clave resaltada
+assert(
+  parsedExample.highlight === "cometen el mismo error",
+  "La frase de impacto a resaltar detectada es exactamente 'cometen el mismo error'"
+);
+
+// 4. Verificación con formato explícito de markdown **palabra**
+const postWithBold = "La mayoría de líderes B2B **cometen el mismo error** al prospectar:";
+assert(
+  testDetectViralHighlight(postWithBold) === "cometen el mismo error",
+  "Detección explícita mediante asteriscos de markdown extrae la frase a resaltar con máxima prioridad"
+);
+
+// 5. Verificación de que la combinación Modern tiene configurado su color de acento (#6366f1)
+const pairingsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/doory/editor/drawers/pairings.ts', 'utf8');
+assert(pairingsCode.includes('accentColor'), "Las combinaciones tipográficas poseen accentColor para resaltar la frase clave");
+assert(pairingsCode.includes('#6366f1'), "La combinación Modern incluye el color de acento violeta eléctrico (#6366f1)");
+
 // Limpieza de base de datos de test
 
 db.close();

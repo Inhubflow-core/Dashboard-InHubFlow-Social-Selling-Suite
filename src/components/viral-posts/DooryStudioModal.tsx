@@ -74,6 +74,7 @@ export interface DooryStudioModalProps {
   onClose: () => void;
   initialTitle?: string;
   initialSubtitle?: string;
+  initialHighlight?: string;
   initialCategory?: string;
   initialMetric?: string;
   authorName?: string;
@@ -87,6 +88,7 @@ export default function DooryStudioModal({
   onClose,
   initialTitle,
   initialSubtitle,
+  initialHighlight,
   authorName,
   authorHandle,
   onApplyImage,
@@ -127,6 +129,7 @@ export default function DooryStudioModal({
     if (typeof window !== "undefined") {
       if (initialTitle) sessionStorage.setItem("inhubflow_active_post_hook", initialTitle);
       if (initialSubtitle) sessionStorage.setItem("inhubflow_active_post_intro", initialSubtitle);
+      if (initialHighlight) sessionStorage.setItem("inhubflow_active_post_highlight", initialHighlight);
     }
     if (typeof document !== "undefined") {
       const fontLinkId = "inhubflow-doory-fonts";
@@ -538,6 +541,7 @@ export default function DooryStudioModal({
             mode: "guest",
             postTitle: initialTitle,
             postSubtitle: initialSubtitle,
+            postHighlight: initialHighlight,
             authorName: authorName,
             authorHandle: authorHandle,
           }}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { IText } from 'fabric'
 import { useEditor } from '../context'
 import { TEXT_PRESETS, createTextbox } from '../engine/objects/factories'
@@ -13,7 +13,7 @@ import styles from './Drawers.module.css'
 const ARC_UP = <path d="M2 18 Q20 0 38 18" stroke="currentColor" strokeWidth="2" fill="none" />
 const ARC_DOWN = <path d="M2 2 Q20 20 38 2" stroke="currentColor" strokeWidth="2" fill="none" />
 
-/** Text drawer: the three starter styles and the two arcs with dynamic post hook & intro auto-fill. */
+/** Text drawer: starter styles, arcs, and font pairings with dynamic hook, intro & highlight. */
 export function TextDrawer({ close }: PanelProps) {
   const editor = useEditor()
 
@@ -26,7 +26,7 @@ export function TextDrawer({ close }: PanelProps) {
     }
   }, [editor])
 
-  // Hook (título) e intro (subtítulo) dinámicos del post activo en InHubFlow
+  // Hook (título), intro (subtítulo) y frase resaltada del post activo
   const rawHook =
     editor.meta?.postTitle?.trim() ||
     (typeof window !== 'undefined' ? window.sessionStorage?.getItem('inhubflow_active_post_hook')?.trim() : '') ||
@@ -34,6 +34,13 @@ export function TextDrawer({ close }: PanelProps) {
   const rawIntro =
     editor.meta?.postSubtitle?.trim() ||
     (typeof window !== 'undefined' ? window.sessionStorage?.getItem('inhubflow_active_post_intro')?.trim() : '')
+
+  const rawHighlight =
+    editor.meta?.postHighlight?.trim() ||
+    (typeof window !== 'undefined' ? window.sessionStorage?.getItem('inhubflow_active_post_highlight')?.trim() : '') ||
+    ''
+
+  const [highlightWord, setHighlightWord] = useState(rawHighlight)
 
   const hookText = rawHook || t.drawers.pairingHeading
   const introText = rawIntro || t.drawers.pairingBody
@@ -112,6 +119,16 @@ export function TextDrawer({ close }: PanelProps) {
         width: Math.round(page.width * 0.8),
       }
     )
+
+    // Aplicar estilo de resaltado sobre la frase clave
+    const targetHighlight = highlightWord.trim()
+    if (targetHighlight && hookText.toLowerCase().includes(targetHighlight.toLowerCase())) {
+      const start = hookText.toLowerCase().indexOf(targetHighlight.toLowerCase())
+      const end = start + targetHighlight.length
+      const accent = pairing.accentColor || '#6366f1'
+      heading.setSelectionStyles({ fill: accent, fontWeight: 'bold' }, start, end)
+    }
+
     const body = createTextbox(
       page,
       { x: at.x, y: bodyY },
@@ -169,6 +186,33 @@ export function TextDrawer({ close }: PanelProps) {
       </div>
 
       <p className={ed.sectionTitle}>{t.drawers.pairings}</p>
+      
+      {/* Selector de Resaltado del Gancho */}
+      <div style={{ padding: '8px 10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+          <span>✨ Frase Resaltada en Gancho:</span>
+          {highlightWord && (
+            <button
+              type="button"
+              onClick={() => setHighlightWord('')}
+              style={{ fontSize: '10px', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Quitar
+            </button>
+          )}
+        </div>
+        <input
+          type="text"
+          value={highlightWord}
+          onChange={(e) => setHighlightWord(e.target.value)}
+          placeholder="Ej: cometen el mismo error"
+          style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#4f46e5', fontWeight: 600, boxSizing: 'border-box' }}
+        />
+        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
+          Esta frase se destacará automáticamente con el color de impacto de cada tipografía.
+        </div>
+      </div>
+
       <div className={styles.pairings}>
         {PAIRINGS.map((p) => (
           <button
@@ -193,7 +237,25 @@ export function TextDrawer({ close }: PanelProps) {
                 textOverflow: 'ellipsis',
               }}
             >
-              {hookText}
+              {(() => {
+                const targetHighlight = highlightWord.trim()
+                if (!targetHighlight || !hookText.toLowerCase().includes(targetHighlight.toLowerCase())) {
+                  return hookText
+                }
+                const start = hookText.toLowerCase().indexOf(targetHighlight.toLowerCase())
+                const before = hookText.slice(0, start)
+                const match = hookText.slice(start, start + targetHighlight.length)
+                const after = hookText.slice(start + targetHighlight.length)
+                return (
+                  <>
+                    {before}
+                    <span style={{ color: p.accentColor || '#6366f1', fontWeight: 800 }}>
+                      {match}
+                    </span>
+                    {after}
+                  </>
+                )
+              })()}
             </span>
             <span
               className={styles.pairBody}

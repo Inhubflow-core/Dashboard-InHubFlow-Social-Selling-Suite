@@ -1,3 +1,4 @@
+import { parsePostHeader } from '@/lib/viral-posts/hookHighlighter';
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -800,14 +801,9 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       <DooryStudioModal
         isOpen={isVisualStudioOpen}
         onClose={handleCloseVisualStudio}
-        initialTitle={(() => {
-          const clean = bodyText.split("\n").map((l) => l.trim()).filter(Boolean);
-          return title.trim() || clean[0] || "Tu Titular de Alto Impacto";
-        })()}
-        initialSubtitle={(() => {
-          const clean = bodyText.split("\n").map((l) => l.trim()).filter(Boolean);
-          return clean.length > 1 ? clean[1] : "Framework B2B";
-        })()}
+        initialTitle={parsePostHeader(bodyText, title).hook}
+        initialSubtitle={parsePostHeader(bodyText, title).subtitle}
+        initialHighlight={parsePostHeader(bodyText, title).highlight}
         authorName={activeAccount?.name || currentUser.name}
         authorHandle={`@${(activeAccount?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {

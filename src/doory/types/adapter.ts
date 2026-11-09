@@ -66,6 +66,7 @@ export interface EditorMeta {
   revision?: number
   postTitle?: string
   postSubtitle?: string
+  postHighlight?: string
   authorName?: string
   authorHandle?: string
 }
