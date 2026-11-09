@@ -53,10 +53,19 @@ export default function PersonalPostComposerView({
   const [externalPastedText, setExternalPastedText] = useState("");
   const [isAiPolishing, setIsAiPolishing] = useState(false);
 
-  // Campos del post
-  const [title, setTitle] = useState("");
-  const [bodyText, setBodyText] = useState(
-    `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
+  // Campos del post (con persistencia de borrador para sobrevivir recargas F5)
+  const [title, setTitle] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("inhubflow_personal_post_title") || "";
+    }
+    return "";
+  });
+  const [bodyText, setBodyText] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("inhubflow_personal_post_body");
+      if (saved) return saved;
+    }
+    return `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
 
 Hablan de su producto antes de entender el dolor del decisor.
 
@@ -66,12 +75,80 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 2. Abre con un diagnóstico personalizado en lugar de un pitch en frío.
 3. Entrega un activo de valor concreto (plantilla, guía o cálculo).
 
-¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`
-  );
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`;
+  });
+  const [attachedImage, setAttachedImage] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("inhubflow_personal_post_image");
+    }
+    return null;
+  });
 
-  // Modal de Estudio Visual (Canva / Fabric.js)
-  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
+  // Modal de Estudio Visual (Canva / Fabric.js): recuerda si estaba abierto al recargar (F5)
+  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
+    }
+    return false;
+  });
+
+  // Sincronización de borrador de texto en sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("inhubflow_personal_post_title", title);
+    }
+  }, [title]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("inhubflow_personal_post_body", bodyText);
+    }
+  }, [bodyText]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (attachedImage) {
+        sessionStorage.setItem("inhubflow_personal_post_image", attachedImage);
+      } else {
+        sessionStorage.removeItem("inhubflow_personal_post_image");
+      }
+    }
+  }, [attachedImage]);
+
+  // Manejadores de apertura/cierre sincronizados con URL y sessionStorage
+  const handleOpenVisualStudio = () => {
+    setIsVisualStudioOpen(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("inhubflow_visual_studio_open", "true");
+      const url = new URL(window.location.href);
+      url.searchParams.set("editor", "open");
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
+
+  const handleCloseVisualStudio = () => {
+    setIsVisualStudioOpen(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("inhubflow_visual_studio_open");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("editor");
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const shouldBeOpen = params.get("editor") === "open";
+      setIsVisualStudioOpen(shouldBeOpen);
+      if (!shouldBeOpen) {
+        sessionStorage.removeItem("inhubflow_visual_studio_open");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Estados de Inbound Lead Magnet & Auto-DM (Feature #1)
   const [autoDmEnabled, setAutoDmEnabled] = useState(true);
@@ -459,7 +536,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
                   <button
                     type="button"
-                    onClick={() => setIsVisualStudioOpen(true)}
+                    onClick={handleOpenVisualStudio}
                     className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110 transition flex items-center gap-2 shrink-0"
                   >
                     <Sparkles className="size-3.5" />
@@ -487,7 +564,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setIsVisualStudioOpen(true)}
+                        onClick={handleOpenVisualStudio}
                         className="px-3 py-1.5 text-xs font-semibold text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
                       >
                         Ajustar
@@ -709,13 +786,14 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       {/* MODAL DE ESTUDIO VISUAL INTEGRADO */}
       <DooryStudioModal
         isOpen={isVisualStudioOpen}
-        onClose={() => setIsVisualStudioOpen(false)}
+        onClose={handleCloseVisualStudio}
         initialTitle={title || bodyText.split("\n")[0] || "Tu Titular de Alto Impacto"}
         initialSubtitle={bodyText.split("\n").filter((l) => l.trim().length > 10)[1] || "Framework B2B"}
         authorName={activeAccount?.name || currentUser.name}
         authorHandle={`@${(activeAccount?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {
           setAttachedImage(dataUrl);
+          handleCloseVisualStudio();
           setFeedback({
             type: "success",
             message: "¡Diseño aplicado con éxito a tu post desde el Editor Visual!",

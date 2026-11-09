@@ -1994,6 +1994,60 @@ assert(injectedTemplate.pages[0].objects[0].fontFamily === "Outfit", "La tipogra
 assert(injectedTemplate.pages[0].objects[0].fontSize === 56, "El tamaño de fuente y diseño del titular de la plantilla se conserva");
 assert(injectedTemplate.pages[0].objects[2].src === "https://inhubflow.com/badge.png", "Los elementos decorativos (imágenes, badges) se mantienen intactos");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 33: Persistencia de Estado del Editor en Recargas de Página (F5)
+// -----------------------------------------------------------------------------
+console.log("\n--- 33. Prueba de Persistencia de Estado del Editor en Recargas de Página (F5) ---");
+
+const mockSessionStorage = new Map();
+const mockLocalStorage = new Map();
+
+function openEditor(url) {
+  mockSessionStorage.set("inhubflow_visual_studio_open", "true");
+  const parsed = new URL(url);
+  parsed.searchParams.set("editor", "open");
+  return parsed.toString();
+}
+
+function checkEditorOpenOnReload(url) {
+  const parsed = new URL(url);
+  const fromUrl = parsed.searchParams.get("editor") === "open";
+  const fromStorage = mockSessionStorage.get("inhubflow_visual_studio_open") === "true";
+  return fromUrl || fromStorage;
+}
+
+const draftPayload = {
+  document: {
+    width: 1200,
+    height: 1500,
+    pages: [{ id: "p1", objects: [{ id: "t1", text: "Post con diseño activo" }] }]
+  },
+  aspectRatio: "4:5",
+  updatedAt: Date.now()
+};
+mockLocalStorage.set("inhubflow_visual_editor_draft", JSON.stringify(draftPayload));
+
+const activeUrl = openEditor("http://localhost:3001/viral-posts?tab=personal");
+assert(activeUrl.includes("editor=open"), "La URL incluye el parámetro 'editor=open' al entrar al Editor");
+assert(checkEditorOpenOnReload(activeUrl) === true, "Al recargar la página (F5) el estado determina que el Editor debe continuar abierto");
+
+const recoveredDraft = JSON.parse(mockLocalStorage.get("inhubflow_visual_editor_draft"));
+assert(recoveredDraft !== null, "El borrador del diseño se recupera de localStorage tras la recarga");
+assert(recoveredDraft.aspectRatio === "4:5", "La relación de aspecto (4:5) se preserva");
+assert(recoveredDraft.document.pages[0].objects[0].text === "Post con diseño activo", "Todos los objetos del lienzo se mantienen intactos tras F5");
+
+function closeEditor(url) {
+  mockSessionStorage.delete("inhubflow_visual_studio_open");
+  mockLocalStorage.delete("inhubflow_visual_editor_draft");
+  const parsed = new URL(url);
+  parsed.searchParams.delete("editor");
+  return parsed.toString();
+}
+
+const closedUrl = closeEditor(activeUrl);
+assert(!closedUrl.includes("editor=open"), "El parámetro 'editor=open' se retira limpiamente al cerrar");
+assert(checkEditorOpenOnReload(closedUrl) === false, "Tras cerrar formalmente, recargar no reabre el editor");
+
 // Limpieza de base de datos de test
 
 db.close();

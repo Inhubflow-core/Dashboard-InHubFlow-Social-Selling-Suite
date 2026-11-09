@@ -52,7 +52,33 @@ export default function CreateViralPostView({
   const [imagePrompt, setImagePrompt] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
+  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
+    }
+    return false;
+  });
+
+  const handleOpenVisualStudio = () => {
+    setIsVisualStudioOpen(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("inhubflow_visual_studio_open", "true");
+      const url = new URL(window.location.href);
+      url.searchParams.set("editor", "open");
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
+
+  const handleCloseVisualStudio = () => {
+    setIsVisualStudioOpen(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("inhubflow_visual_studio_open");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("editor");
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
 
   // Referencia original si vino de Radar Viral
   const [referenceHook, setReferenceHook] = useState("");
@@ -610,7 +636,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsVisualStudioOpen(true)}
+                      onClick={handleOpenVisualStudio}
                       className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
                     >
                       <Sparkles className="size-3.5" />
@@ -1018,13 +1044,14 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       {/* Modal de Estudio Visual Integrado */}
       <DooryStudioModal
         isOpen={isVisualStudioOpen}
-        onClose={() => setIsVisualStudioOpen(false)}
+        onClose={handleCloseVisualStudio}
         initialTitle={referenceHook || topic || content.split("\n")[0] || "Tu Titular de Alto Impacto"}
         initialSubtitle={topic || "Estrategia B2B"}
         authorName={activeAccObj?.name || currentUser.name}
         authorHandle={`@${(activeAccObj?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {
           setPreviewImage(dataUrl);
+          handleCloseVisualStudio();
           setPublishFeedback({
             type: "success",
             message: "Â¡DiseÃ±o visual aplicado con Ã©xito a la publicaciÃ³n!",

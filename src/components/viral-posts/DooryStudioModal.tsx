@@ -23,6 +23,8 @@ import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
 
 export type LinkedInAspectRatio = "4:5" | "1:1" | "1.91:1";
 
+export const DRAFT_STORAGE_KEY = "inhubflow_visual_editor_draft";
+
 export interface LinkedInSizeConfig {
   ratio: LinkedInAspectRatio;
   label: string;
@@ -92,8 +94,21 @@ export default function DooryStudioModal({
   const { isSuperAdmin, currentUser } = useAuth();
   const editorRef = useRef<EditorHandle>(null);
   
-  // 3 Tamaños Principales Oficiales de Publicación en LinkedIn
-  const [aspectRatio, setAspectRatio] = useState<LinkedInAspectRatio>("4:5");
+  // 3 Tamaños Principales Oficiales de Publicación en LinkedIn (recupera borrador previo si existe)
+  const [aspectRatio, setAspectRatio] = useState<LinkedInAspectRatio>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.aspectRatio && LINKEDIN_SIZES[parsed.aspectRatio as LinkedInAspectRatio]) {
+            return parsed.aspectRatio as LinkedInAspectRatio;
+          }
+        }
+      } catch {}
+    }
+    return "4:5";
+  });
   const [isExporting, setIsExporting] = useState(false);
   const [docKey, setDocKey] = useState(0);
 
@@ -118,8 +133,22 @@ export default function DooryStudioModal({
     };
   }, [aspectRatio]);
 
-  // Create initial document with InHubFlow signature Outfit typography
+  // Create initial document (restaura borrador local íntegro en recarga o crea lienzo inicial)
   const initialDoc = useMemo<DoryDocument>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.document?.pages && parsed.document.pages.length > 0) {
+            return parsed.document;
+          }
+        }
+      } catch (err) {
+        console.warn("No se pudo cargar el borrador de localStorage:", err);
+      }
+    }
+
     const blank = createBlankDemo(dimensions.width, dimensions.height);
     
     // If we have an initial title, add a clean initial heading object adapted to the aspect ratio
@@ -194,13 +223,35 @@ export default function DooryStudioModal({
     return blank;
   }, [docKey, initialTitle, initialSubtitle]);
 
-  // Create in-memory adapter (account: false to bypass external signup gates)
+  // Create in-memory adapter con auto-persistencia en localStorage para que no se pierda al recargar (F5)
   const adapterPackage = useMemo(() => {
-    return createMemoryAdapter({
+    const memory = createMemoryAdapter({
       saveDelayMs: 0,
       account: false,
     });
-  }, [docKey]);
+
+    const originalSave = memory.adapter.save;
+    memory.adapter.save = async (input) => {
+      const res = await originalSave(input);
+      if (typeof window !== "undefined" && input?.document) {
+        try {
+          localStorage.setItem(
+            DRAFT_STORAGE_KEY,
+            JSON.stringify({
+              document: input.document,
+              aspectRatio,
+              updatedAt: Date.now(),
+            })
+          );
+        } catch (err) {
+          console.warn("Fallo al guardar borrador en localStorage:", err);
+        }
+      }
+      return res;
+    };
+
+    return memory;
+  }, [docKey, aspectRatio]);
 
   // Handle ratio change among the 3 LinkedIn formats (estilo Canva: redimensionamiento inteligente que preserva todos los objetos)
   const handleChangeRatio = (newRatio: LinkedInAspectRatio) => {
@@ -213,6 +264,22 @@ export default function DooryStudioModal({
       // Canva-style smart resize: recalcula posiciones relativas y escala sin perder textos, imágenes ni formas
       engine.pages.resize(targetSize.width, targetSize.height, "magic", { scope: "all" });
       setAspectRatio(newRatio);
+
+      if (typeof window !== "undefined") {
+        try {
+          const doc = engine.getDocument?.();
+          if (doc) {
+            localStorage.setItem(
+              DRAFT_STORAGE_KEY,
+              JSON.stringify({
+                document: doc,
+                aspectRatio: newRatio,
+                updatedAt: Date.now(),
+              })
+            );
+          }
+        } catch {}
+      }
     } else {
       setAspectRatio(newRatio);
     }
@@ -286,6 +353,9 @@ export default function DooryStudioModal({
     try {
       const dataUrl = getRenderedImageDataUrl();
       if (dataUrl && onApplyImage) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+        }
         onApplyImage(dataUrl);
         onClose();
       } else {
