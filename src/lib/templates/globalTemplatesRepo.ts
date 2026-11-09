@@ -1,13 +1,13 @@
 import { getSocialSellingDb } from "@/lib/persistence/db";
-import { newId } from "@doory/lib/document";
+import { newId } from "@visual-studio/lib/document";
 import type {
   Page,
   TemplateCategory,
   TemplateDetail,
   TemplateQuery,
   TemplateSummary,
-} from "@doory/types/api";
-import type { DoryDocument } from "@doory/types/document";
+} from "@visual-studio/types/api";
+import type { DoryDocument } from "@visual-studio/types/document";
 
 export interface GlobalTemplateRow {
   id: string;

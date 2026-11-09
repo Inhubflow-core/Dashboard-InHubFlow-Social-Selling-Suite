@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   CheckCircle2
 } from "lucide-react";
-import type { DoryDocument } from "@doory/types/document";
+import type { DoryDocument } from "@visual-studio/types/document";
 
 interface SaveGlobalTemplateModalProps {
   isOpen: boolean;

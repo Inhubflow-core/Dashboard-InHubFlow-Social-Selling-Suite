@@ -769,11 +769,11 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
               {/* Recurso Visual Adjunto (si existe) */}
               {Boolean(attachedImage && attachedImage.trim() !== "") && (
-                <div className="w-full bg-black/90 border-y border-gray-200 dark:border-gray-800 overflow-hidden flex items-center justify-center">
+                <div className="w-full overflow-hidden flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/30">
                   <img
                     src={attachedImage || undefined}
                     alt="Arte de la publicación"
-                    className="w-full max-h-[460px] object-contain"
+                    className="w-full h-auto max-h-[520px] object-contain block"
                   />
                 </div>
               )}

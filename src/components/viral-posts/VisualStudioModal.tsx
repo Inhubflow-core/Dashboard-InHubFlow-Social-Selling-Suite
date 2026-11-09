@@ -10,14 +10,14 @@ import {
   Loader2,
   BookmarkPlus 
 } from "lucide-react";
-import "@doory/styles/tokens.css";
-import { initContrast } from "@doory/lib/contrast";
-import { EditorApp } from "@doory/editor/EditorApp";
-import type { EditorHandle } from "@doory/types/adapter";
-import type { DoryDocument } from "@doory/types/document";
-import { createMemoryAdapter } from "@doory/editor/dev/memoryAdapter";
-import { createBlankDemo } from "@doory/editor/dev/demoDocument";
-import { newId } from "@doory/lib/document";
+import "@visual-studio/styles/tokens.css";
+import { initContrast } from "@visual-studio/lib/contrast";
+import { EditorApp } from "@visual-studio/editor/EditorApp";
+import type { EditorHandle } from "@visual-studio/types/adapter";
+import type { DoryDocument } from "@visual-studio/types/document";
+import { createMemoryAdapter } from "@visual-studio/editor/dev/memoryAdapter";
+import { createBlankDemo } from "@visual-studio/editor/dev/demoDocument";
+import { newId } from "@visual-studio/lib/document";
 import { useAuth } from "@/context/AuthContext";
 import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
 
@@ -348,7 +348,7 @@ export default function VisualStudioModal({
       const engine = editorRef.current?.getEngine?.();
       if (!engine) {
         // Fallback: search document DOM canvas
-        const canvasEl = document.querySelector(".doory-canvas-container canvas") as HTMLCanvasElement;
+        const canvasEl = document.querySelector(".canvas-container canvas, .doory-canvas-container canvas") as HTMLCanvasElement;
         if (canvasEl) return canvasEl.toDataURL("image/png");
         return null;
       }

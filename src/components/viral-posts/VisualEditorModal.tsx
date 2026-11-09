@@ -6161,7 +6161,7 @@ export default function VisualEditorModal({
                     <span>Cambiar Foto</span>
                   </button>
 
-                  {/* 2.1 RECORTAR FOTO (DOORY ENGINE) */}
+                  {/* 2.1 RECORTAR FOTO (VISUAL STUDIO ENGINE) */}
                   <button
                     type="button"
                     onClick={() => {

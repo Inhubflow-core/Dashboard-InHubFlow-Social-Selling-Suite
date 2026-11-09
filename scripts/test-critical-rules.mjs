@@ -2189,7 +2189,7 @@ assert(selectedCanvasObjects[1].fontFamily === "Open Sans", "El cuerpo cambia a 
 assert(selectedCanvasObjects[1].text === derivedIntro, "El texto genérico 'A short line of body text' se reemplaza automáticamente con la intro");
 
 // 3. Verificación de catálogo de fuentes en memoryAdapter
-const memoryAdapterCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/doory/editor/dev/memoryAdapter.ts', 'utf8');
+const memoryAdapterCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/dev/memoryAdapter.ts', 'utf8');
 const expectedFonts = ['Bebas Neue', 'Roboto', 'Playfair Display', 'Montserrat', 'Pacifico', 'Lora', 'Cormorant Garamond'];
 for (const font of expectedFonts) {
   assert(memoryAdapterCode.includes(font), `El catálogo oficial incluye la fuente ${font} para evitar advertencias de tipografía faltante`);
@@ -2277,7 +2277,7 @@ assert(
 );
 
 // 5. Verificación de que la combinación Modern tiene configurado su color de acento (#6366f1)
-const pairingsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/doory/editor/drawers/pairings.ts', 'utf8');
+const pairingsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/pairings.ts', 'utf8');
 assert(pairingsCode.includes('accentColor'), "Las combinaciones tipográficas poseen accentColor para resaltar la frase clave");
 assert(pairingsCode.includes('#6366f1'), "La combinación Modern incluye el color de acento violeta eléctrico (#6366f1)");
 

@@ -26,8 +26,11 @@
       "@/*": [
         "./src/*"
       ],
+      "@visual-studio/*": [
+        "./src/visual-studio/*"
+      ],
       "@doory/*": [
-        "./src/doory/*"
+        "./src/visual-studio/*"
       ]
     }
   },
