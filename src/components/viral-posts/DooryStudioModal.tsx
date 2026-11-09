@@ -192,7 +192,7 @@ export default function DooryStudioModal({
     }
 
     return blank;
-  }, [dimensions, initialTitle, initialSubtitle, docKey, aspectRatio]);
+  }, [docKey, initialTitle, initialSubtitle]);
 
   // Create in-memory adapter (account: false to bypass external signup gates)
   const adapterPackage = useMemo(() => {
@@ -202,12 +202,56 @@ export default function DooryStudioModal({
     });
   }, [docKey]);
 
-  // Handle ratio change among the 3 LinkedIn formats
+  // Handle ratio change among the 3 LinkedIn formats (estilo Canva: redimensionamiento inteligente que preserva todos los objetos)
   const handleChangeRatio = (newRatio: LinkedInAspectRatio) => {
     if (newRatio === aspectRatio) return;
-    setAspectRatio(newRatio);
-    setDocKey((k) => k + 1);
+
+    const targetSize = LINKEDIN_SIZES[newRatio];
+    const engine = editorRef.current?.getEngine?.();
+
+    if (engine && engine.pages?.resize) {
+      // Canva-style smart resize: recalcula posiciones relativas y escala sin perder textos, imágenes ni formas
+      engine.pages.resize(targetSize.width, targetSize.height, "magic", { scope: "all" });
+      setAspectRatio(newRatio);
+    } else {
+      setAspectRatio(newRatio);
+    }
   };
+
+  // Sincroniza el selector de proporción si el documento cambia de tamaño (por ejemplo al cargar una plantilla o usar deshacer)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isSubscribed = true;
+    let cleanup: (() => void) | undefined;
+
+    const timer = setTimeout(() => {
+      const engine = editorRef.current?.getEngine?.();
+      if (!engine?.store || !isSubscribed) return;
+
+      cleanup = engine.store.subscribe((state: any) => {
+        const page = state.doc?.pages?.[0];
+        const w = page?.width ?? state.doc?.width;
+        const h = page?.height ?? state.doc?.height;
+        if (w && h) {
+          const ratio = w / h;
+          if (Math.abs(ratio - 1200 / 627) < 0.1) {
+            setAspectRatio("1.91:1");
+          } else if (Math.abs(ratio - 1) < 0.1) {
+            setAspectRatio("1:1");
+          } else if (Math.abs(ratio - 1200 / 1500) < 0.1) {
+            setAspectRatio("4:5");
+          }
+        }
+      });
+    }, 150);
+
+    return () => {
+      isSubscribed = false;
+      clearTimeout(timer);
+      cleanup?.();
+    };
+  }, [isOpen]);
 
   // Helper to extract high-res PNG data URL from active canvas
   const getRenderedImageDataUrl = useCallback((): string | null => {
@@ -396,7 +440,7 @@ export default function DooryStudioModal({
       {/* Área del Editor Doory — TopBar unificado */}
       <main className="flex-1 relative w-full h-full overflow-hidden doory-modal-container">
         <EditorApp
-          key={`doory-${docKey}-${aspectRatio}`}
+          key={`doory-${docKey}`}
           ref={editorRef}
           document={initialDoc}
           meta={{

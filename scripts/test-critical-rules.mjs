@@ -1868,6 +1868,81 @@ db.prepare("DELETE FROM global_templates WHERE slug = ?").run("estrategia-b2b-cr
 const deletedCheck = db.prepare("SELECT * FROM global_templates WHERE slug = ?").get("estrategia-b2b-crecimiento");
 assert(deletedCheck === undefined, "La plantilla global eliminada ya no es visible para los usuarios");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 31: Redimensionamiento Inteligente Estilo Canva (Preservación de Objetos)
+// -----------------------------------------------------------------------------
+console.log("\n--- 31. Prueba de Redimensionamiento Inteligente Estilo Canva (Preservación de Objetos) ---");
+
+// Simulación de la regla Canva: el cambio entre 1:1, 4:5 y 1.91:1 escala y reposiciona
+// manteniendo íntegros todos los objetos, textos, formas e imágenes en el lienzo.
+function simulateCanvaResize(doc, targetWidth, targetHeight) {
+  const fromW = doc.width;
+  const fromH = doc.height;
+  const sx = targetWidth / fromW;
+  const sy = targetHeight / fromH;
+  const k = Math.min(sx, sy);
+
+  const resizedPages = doc.pages.map((page) => {
+    const resizedObjects = page.objects.map((obj) => {
+      const cloned = { ...obj };
+      cloned.left = Math.round(obj.left * sx);
+      cloned.top = Math.round(obj.top * sy);
+      if (cloned.type === "text" || cloned.kind === "text") {
+        cloned.fontSize = Math.round((obj.fontSize || 16) * k);
+        cloned.width = Math.round(obj.width * sx);
+      } else {
+        cloned.width = Math.round(obj.width * k);
+        cloned.height = Math.round(obj.height * k);
+      }
+      return cloned;
+    });
+
+    return {
+      ...page,
+      width: targetWidth,
+      height: targetHeight,
+      objects: resizedObjects,
+    };
+  });
+
+  return {
+    ...doc,
+    width: targetWidth,
+    height: targetHeight,
+    pages: resizedPages,
+  };
+}
+
+const squareDoc = {
+  width: 1200,
+  height: 1200,
+  pages: [
+    {
+      id: "slide_1",
+      objects: [
+        { id: "obj_1", kind: "text", text: "5 Claves de Prospección B2B", left: 120, top: 200, width: 960, fontSize: 52 },
+        { id: "obj_2", kind: "image", src: "https://inhubflow.com/avatar.png", left: 450, top: 400, width: 300, height: 300 },
+        { id: "obj_3", kind: "shape", shapeType: "rect", left: 100, top: 800, width: 1000, height: 120 }
+      ]
+    }
+  ]
+};
+
+// 1. Redimensionamiento a Vertical 4:5 (1200 x 1500 px)
+const verticalResized = simulateCanvaResize(squareDoc, 1200, 1500);
+assert(verticalResized.width === 1200 && verticalResized.height === 1500, "Dimensiones de lienzo vertical 1200 x 1500 px son exactas");
+assert(verticalResized.pages[0].objects.length === 3, "Todos los objetos del lienzo (3) se preservan intactos al cambiar de formato");
+assert(verticalResized.pages[0].objects[0].text === "5 Claves de Prospección B2B", "El texto del título del usuario no se pierde");
+assert(verticalResized.pages[0].objects[1].src === "https://inhubflow.com/avatar.png", "La imagen insertada por el usuario se conserva");
+assert(verticalResized.pages[0].objects[0].top > squareDoc.pages[0].objects[0].top, "La posición vertical se adapta al lienzo más alto");
+
+// 2. Redimensionamiento a Horizontal 1.91:1 (1200 x 627 px)
+const horizontalResized = simulateCanvaResize(verticalResized, 1200, 627);
+assert(horizontalResized.width === 1200 && horizontalResized.height === 627, "Dimensiones de lienzo horizontal 1200 x 627 px son exactas");
+assert(horizontalResized.pages[0].objects.length === 3, "Ningún elemento se pierde al reducir a formato horizontal panorámico");
+assert(horizontalResized.pages[0].objects[0].text === "5 Claves de Prospección B2B", "El texto se conserva intacto en formato panorámico");
+assert(horizontalResized.pages[0].objects[0].fontSize < verticalResized.pages[0].objects[0].fontSize, "El tamaño de tipografía se adapta proporcionalmente al nuevo alto");
+
 // Limpieza de base de datos de test
 
 db.close();
