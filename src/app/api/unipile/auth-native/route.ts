@@ -186,12 +186,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (lowerBody.includes("free_trial_used")) {
+      return NextResponse.json(
+        {
+          error: "Unipile restringe la vinculación de este perfil específico de LinkedIn porque ya consumió un período de prueba gratuito anteriormente (Reason: free_trial_used). Unipile no permite reusar el mismo perfil de LinkedIn en nuevas cuentas de prueba sin un plan de pago activo.",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (errBody) {
+      try {
+        const parsed = JSON.parse(errBody);
+        if (parsed.detail) {
+          return NextResponse.json(
+            { error: parsed.detail, title: parsed.title },
+            { status: errStatus || 400 }
+          );
+        }
+      } catch {}
+    }
+
     return NextResponse.json(
       {
         error: "Error al autenticar la cuenta de LinkedIn con InHubFlow Cloud.",
         message: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: errStatus || 500 }
     );
   }
 }

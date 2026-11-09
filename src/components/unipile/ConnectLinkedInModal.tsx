@@ -263,7 +263,7 @@ export default function ConnectLinkedInModal({
       setAuthLoading(false);
 
       if (!res.ok) {
-        const errorMsg = data.error || "No se pudo autenticar con LinkedIn.";
+        const errorMsg = data.error || data.detail || "No se pudo autenticar con LinkedIn.";
         setAuthError(errorMsg);
         if (typeof window !== "undefined") {
           window.postMessage(
