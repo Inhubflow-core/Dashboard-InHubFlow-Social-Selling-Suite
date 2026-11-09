@@ -62,19 +62,7 @@ export const initialSaaSUsers: SaaSUser[] = [
   },
 ];
 
-export const initialTeamMembers: TeamMember[] = [
-  {
-    id: "usr-team-lynn-01",
-    name: "ADS CASHGROW",
-    email: "ads.cashgrow.app@gmail.com",
-    role: "member",
-    ownerId: "usr-client-roberto-agencia",
-    assignedAccountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
-    accountName: "ADS CASHGROW",
-    accountAuthenticated: true,
-    createdAt: "2026-10-12T16:39:42.000Z",
-  },
-];
+export const initialTeamMembers: TeamMember[] = [];
 
 export const initialTeamInvitations: TeamInvitation[] = [];
 
@@ -512,7 +500,7 @@ export function getStoredTeamMembers(ownerId?: string): TeamMember[] {
       members = Array.isArray(parsed) ? parsed : initialTeamMembers;
     }
 
-    const fakeKeywords = ["sofia", "javier", "lucas", "tm-01", "tm-02", "agenciagrowth", "enterprisesales"];
+    const fakeKeywords = ["sofia", "javier", "lucas", "tm-01", "tm-02", "agenciagrowth", "enterprisesales", "cashgrow", "lynn", "linn", "usr-team-lynn-01"];
     let cleanMembers = members.filter((m: TeamMember) => {
       if (!m || !m.id) return false;
       const lower = `${m.id} ${m.name || ""} ${m.email || ""}`.toLowerCase();

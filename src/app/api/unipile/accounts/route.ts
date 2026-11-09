@@ -57,22 +57,8 @@ export async function GET() {
           // Si el perfil no se puede consultar de inmediato, mantener los datos base de la cuenta
         }
 
-        const isCashgrow =
-          acc.id === "acc_01m6787803eh78ykrhe61bc8hz" ||
-          acc.id === "7VSGKBGlTNGRbzZKuh6VpQ" ||
-          (email && email.toLowerCase().includes("cashgrow")) ||
-          name.toLowerCase().includes("cashgrow") ||
-          name.toLowerCase().includes("lynn") ||
-          name.toLowerCase().includes("linn");
-
-        if (isCashgrow) {
-          name = "ADM.CASHGROW";
-          email = "adm.cashgrow.app@gmail.com";
-          headline = "Gerente de vendas da empresa ADM CASHGROW";
-        }
-
         return {
-          id: isCashgrow ? `acc-li-cashgrow` : `acc-li-${acc.id}`,
+          id: `acc-li-${acc.id}`,
           unipileAccountId: acc.id,
           name,
           email,
@@ -96,8 +82,6 @@ export async function GET() {
           timezone: 'America/Sao_Paulo',
           working_days: '1,2,3,4,5',
           ownerId: "usr-client-roberto-agencia",
-          assignedUserId: isCashgrow ? "usr-team-cashgrow-01" : undefined,
-          assignedUserName: isCashgrow ? "ADM.CASHGROW (Team)" : undefined,
         };
       })
     );

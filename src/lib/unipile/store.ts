@@ -11,15 +11,15 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
   {
     id: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
     unipileAccountId: "HfrdagEmSrONX8jqE9IYjQ",
-    name: "RobertoOrSe Agencia",
+    name: "Roberto OrSe Agencia",
     email: "robertoorse.agencia@gmail.com",
-    headline: "Roberto OrSe | InHubFlow Social Selling Suite",
+    headline: "CEO na RobertoOrSe",
     publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-    profilePictureUrl: "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY",
-    status: "CREDENTIALS",
-    authMode: "cookie",
-    connectedAt: "2026-10-13T11:38:09.032Z",
-    lastSyncAt: "Prueba de Unipile de 7 días finalizada (Requiere reconexión)",
+    profilePictureUrl: "/images/user/owner.png",
+    status: "OK",
+    authMode: "hosted",
+    connectedAt: "2026-10-19T18:30:00.000Z",
+    lastSyncAt: "Sincronizado con InHubFlow Cloud (Unipile v2)",
     dailyActionsCount: {
       invitationsSent: 0,
       messagesSent: 0,
@@ -35,34 +35,6 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-client-roberto-agencia",
     assignedUserName: "Roberto OrSe Agencia (Admin)",
-  },
-  {
-    id: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
-    unipileAccountId: "7VSGKBGlTNGRbzZKuh6VpQ",
-    name: "ADS CASHGROW",
-    email: "ads.cashgrow.app@gmail.com",
-    headline: "Gerente de vendas da empresa ADS CASHGROW",
-    publicProfileUrl: "https://www.linkedin.com/in/cashgrow-app-532374445",
-    profilePictureUrl: "",
-    status: "CREDENTIALS",
-    authMode: "cookie",
-    connectedAt: "2026-10-19T20:18:25.412Z",
-    lastSyncAt: "Prueba de Unipile de 7 días finalizada (Requiere reconexión)",
-    dailyActionsCount: {
-      invitationsSent: 0,
-      messagesSent: 0,
-      profilesVisited: 0,
-    },
-    daily_connection_limit: 20,
-    daily_message_limit: 20,
-    daily_visit_limit: 20,
-    active_hours_start: 9,
-    active_hours_end: 18,
-    timezone: "Europe/Madrid",
-    working_days: "1,2,3,4,5",
-    ownerId: "usr-client-roberto-agencia",
-    assignedUserId: "usr-team-lynn-01",
-    assignedUserName: "ADS CASHGROW (Team)",
   },
 ];
 
@@ -93,6 +65,10 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       "javier fernandez",
       "lucas gomez",
       "(demo)",
+      "cashgrow",
+      "ads cashgrow",
+      "7vsgkbgltngrbzzkuh6vpq",
+      "usr-team-lynn-01",
     ];
 
     const cleanAccounts = parsed.filter((a: ConnectedLinkedInAccount) => {
@@ -172,10 +148,7 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
           d.unipileAccountId === initAcc.unipileAccountId ||
           (d.name && initAcc.name && norm(d.name) === norm(initAcc.name)) ||
           ((d.name || "").toLowerCase().includes("roberto") && (initAcc.name || "").toLowerCase().includes("roberto")) ||
-          ((d.name || "").toLowerCase().includes("cashgrow") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
-          ((d.name || "").toLowerCase().includes("lynn") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
-          ((d.name || "").toLowerCase().includes("linn") && (initAcc.name || "").toLowerCase().includes("cashgrow")) ||
-          (d.email && initAcc.email && d.email.toLowerCase().includes("cashgrow") && initAcc.email.toLowerCase().includes("cashgrow"))
+          false
       );
       if (existsIdx === -1) {
         deduplicated.push(initAcc);
