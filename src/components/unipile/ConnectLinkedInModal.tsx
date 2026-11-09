@@ -186,8 +186,6 @@ export default function ConnectLinkedInModal({
     }
   }, [isOpen, initialAccount, initialStep]);
 
-  if (!isOpen) return null;
-
   // Manejo de avance de Paso 1 al Paso 2
   const handleProceedToStep2 = (e: React.FormEvent) => {
     e.preventDefault();
@@ -477,6 +475,8 @@ export default function ConnectLinkedInModal({
     setShowSuccessAdviceModal(false);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <>
