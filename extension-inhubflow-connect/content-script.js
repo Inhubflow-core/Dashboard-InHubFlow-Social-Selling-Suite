@@ -6,7 +6,7 @@
   // Marca la presencia de la extensión en el DOM para que el Dashboard sepa que está instalada
   try {
     document.documentElement.setAttribute("data-inhubflow-extension-installed", "true");
-    document.documentElement.setAttribute("data-inhubflow-extension-version", "1.1.0");
+    document.documentElement.setAttribute("data-inhubflow-extension-version", "1.2.0");
   } catch (e) {
     // ignorar
   }

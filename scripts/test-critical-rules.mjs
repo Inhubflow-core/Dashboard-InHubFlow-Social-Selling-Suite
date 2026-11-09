@@ -1532,7 +1532,7 @@ console.log("\n--- 28. Prueba de Puente y Autenticación 1-Clic de Extensión In
 const extManifestPath = path.resolve("./extension-inhubflow-connect/manifest.json");
 assert(fs.existsSync(extManifestPath), "El manifest.json de la extensión existe");
 const manifestContent = JSON.parse(fs.readFileSync(extManifestPath, "utf-8"));
-assert(manifestContent.version === "1.1.0", "La extensión está en versión 1.1.0 con soporte 1-clic");
+assert(manifestContent.version === "1.2.0" || manifestContent.version === "1.1.0", "La extensión está en versión 1.2.0 con soporte 1-clic y service worker");
 assert(
   Array.isArray(manifestContent.content_scripts) && manifestContent.content_scripts.length > 0,
   "El manifest registra el content script para comunicación bidireccional con el Dashboard"

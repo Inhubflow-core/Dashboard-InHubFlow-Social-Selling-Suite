@@ -17,7 +17,7 @@
           <p class="brand-subtitle">Vinculación LinkedIn 1-Clic</p>
         </div>
       </div>
-      <span class="badge-tag">v1.1.0</span>
+      <span class="badge-tag">v1.2.0</span>
     </header>
 
     <!-- Main Content -->
@@ -90,14 +90,24 @@
         <p class="empty-desc">
           Para vincular tu cuenta, primero debes iniciar sesión en <strong>LinkedIn.com</strong> en este navegador.
         </p>
-        <button id="btn-open-linkedin" class="btn btn-secondary" type="button">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-          <span>Abrir LinkedIn.com</span>
-        </button>
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <button id="btn-retry" class="btn btn-autoconnect" type="button" style="margin-top: 4px;">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6"></path>
+              <path d="M1 20v-6h6"></path>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            <span>🔄 Reintentar Detección</span>
+          </button>
+          <button id="btn-open-linkedin" class="btn btn-secondary" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span>Abrir LinkedIn.com</span>
+          </button>
+        </div>
       </div>
     </main>
 

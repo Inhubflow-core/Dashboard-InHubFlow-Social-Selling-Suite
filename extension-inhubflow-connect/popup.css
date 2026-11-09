@@ -4,11 +4,12 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
+  width: 330px;
+  min-height: 290px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: #F8FAFC;
   color: #101828;
-  width: 320px;
   overflow: hidden;
   user-select: none;
 }
