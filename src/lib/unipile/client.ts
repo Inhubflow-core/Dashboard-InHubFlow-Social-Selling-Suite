@@ -782,76 +782,83 @@ export class UnipileClient {
 
     const cleanAccountId = params.account_id.replace(/^acc-li-/, '');
 
-    // Construir lista de adjuntos según OpenAPI Unipile v2 (/v2/{account_id}/posts)
-    const jsonAttachments: Array<{ filename: string; content_type: string; content: string }> = [];
+    const hasAttachments = Array.isArray(params.attachments) && params.attachments.length > 0;
 
-    for (const attachment of params.attachments || []) {
-      if (!attachment) continue;
-      let base64Content = '';
-      const mimeType = attachment.mime_type || attachment.content_type || 'image/png';
-      const filename = attachment.filename || 'image.png';
+    // Si hay archivos adjuntos (imágenes, carruseles, documentos), usar multipart/form-data
+    // para evitar el error 413 (Payload Too Large) y enviar binarios reales a LinkedIn CDN
+    if (hasAttachments) {
+      const form = new FormData();
+      form.append('text', params.text);
+      form.append('account_id', cleanAccountId);
 
-      if (typeof attachment.content === 'string') {
-        base64Content = attachment.content.replace(/^data:[^;]+;base64,/, '');
-      } else if (typeof attachment.file === 'string') {
-        base64Content = attachment.file.replace(/^data:[^;]+;base64,/, '');
-      } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer(attachment.file)) {
-        base64Content = attachment.file.toString('base64');
-      }
+      let index = 0;
+      for (const attachment of params.attachments || []) {
+        if (!attachment) continue;
+        let buf: Buffer | null = null;
+        let mimeType = attachment.mime_type || attachment.content_type || 'image/png';
+        const filename = attachment.filename || `attachment_${index}.png`;
 
-      if (base64Content) {
-        jsonAttachments.push({
-          filename,
-          content_type: mimeType,
-          content: base64Content,
-        });
-      }
-    }
-
-    const jsonPayload: Record<string, unknown> = {
-      text: params.text,
-      can_read: 'anyone',
-      can_comment: 'anyone',
-    };
-
-    if (jsonAttachments.length > 0) {
-      jsonPayload.attachments = jsonAttachments;
-    }
-
-    // 1. Intentar el endpoint v2 oficial de Unipile
-    try {
-      return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>(
-        `/v2/${encodeURIComponent(cleanAccountId)}/posts`,
-        {
-          method: 'POST',
-          body: JSON.stringify(jsonPayload),
-        }
-      );
-    } catch (v2Error: any) {
-      // 2. Fallback a endpoint v1 legado si el servidor no dispone de v2
-      if (v2Error?.status === 404) {
-        const body = new FormData();
-        body.append('account_id', cleanAccountId);
-        body.append('text', params.text);
-        for (const attachment of params.attachments || []) {
-          if (typeof attachment.file === 'string') {
-            body.append('attachments', attachment.file);
-          } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer(attachment.file)) {
-            const blob = new Blob([new Uint8Array(attachment.file)], {
-              type: attachment.mime_type || 'application/octet-stream',
-            });
-            body.append('attachments', blob, attachment.filename || 'attachment');
-          } else if (attachment.content) {
-            body.append('attachments', attachment.content);
+        if (typeof attachment.content === 'string') {
+          const match = attachment.content.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            mimeType = match[1] || mimeType;
+            buf = Buffer.from(match[2], 'base64');
+          } else {
+            buf = Buffer.from(attachment.content, 'base64');
           }
+        } else if (typeof attachment.file === 'string') {
+          const match = attachment.file.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            mimeType = match[1] || mimeType;
+            buf = Buffer.from(match[2], 'base64');
+          } else {
+            buf = Buffer.from(attachment.file, 'base64');
+          }
+        } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer(attachment.file)) {
+          buf = attachment.file;
         }
-        return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>('/api/v1/posts', {
-          method: 'POST',
-          body,
-        });
+
+        if (buf) {
+          const blob = new Blob([new Uint8Array(buf)], { type: mimeType });
+          // Notación indexada requerida por Unipile v2 multipart: attachments[0], attachments[1]...
+          form.append(`attachments[${index}]`, blob, filename);
+          index++;
+        }
       }
-      throw v2Error;
+
+      if (index > 0) {
+        try {
+          return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>(
+            `/v2/${encodeURIComponent(cleanAccountId)}/posts`,
+            {
+              method: 'POST',
+              body: form,
+            }
+          );
+        } catch (v2Error: any) {
+          if (v2Error?.status === 404) {
+            return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>('/api/v1/posts', {
+              method: 'POST',
+              body: form,
+            });
+          }
+          throw v2Error;
+        }
+      }
     }
+
+    // Publicación sin adjuntos: JSON estándar limpio
+    return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>(
+      `/v2/${encodeURIComponent(cleanAccountId)}/posts`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          text: params.text,
+          can_read: 'anyone',
+          can_comment: 'anyone',
+        }),
+      }
+    );
   }
 
   /**
