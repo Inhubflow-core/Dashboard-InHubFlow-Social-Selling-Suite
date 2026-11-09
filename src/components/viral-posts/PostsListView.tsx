@@ -316,6 +316,15 @@ export default function PostsListView({
         body: JSON.stringify({
           account_id: post.targetAccountId,
           text: post.content,
+          attachments: post.mediaUrl
+            ? [
+                {
+                  content: post.mediaUrl,
+                  filename: "post-cover.png",
+                  content_type: "image/png",
+                },
+              ]
+            : undefined,
         }),
       });
 

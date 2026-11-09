@@ -31,13 +31,15 @@ export async function POST(req: Request) {
       return false;
     };
 
-    let targetAccountId = requestedAccountId;
-    let selectedAccountObj = liveAccounts.find((a) => a.id === targetAccountId);
+    const cleanUnipileId = (id?: string) => (id || "").replace(/^acc-li-/, "");
+
+    let targetAccountId = cleanUnipileId(requestedAccountId);
+    let selectedAccountObj = liveAccounts.find((a) => cleanUnipileId(a.id) === targetAccountId);
 
     if (!selectedAccountObj || !isAccountHealthy(selectedAccountObj)) {
       const healthyLive = liveAccounts.find(isAccountHealthy);
       if (healthyLive) {
-        targetAccountId = healthyLive.id;
+        targetAccountId = cleanUnipileId(healthyLive.id);
         selectedAccountObj = healthyLive;
       }
     }
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
     if (!targetAccountId) {
       const stored = getStoredAccounts();
       const healthyStored = stored.find((a) => a.status === "OK");
-      if (healthyStored) targetAccountId = healthyStored.id;
+      if (healthyStored) targetAccountId = cleanUnipileId(healthyStored.unipileAccountId || healthyStored.id);
     }
 
     if (!targetAccountId) {
@@ -68,15 +70,23 @@ export async function POST(req: Request) {
       success: true,
       postId,
       accountId: targetAccountId,
-      accountName: selectedAccountObj?.name || "LinkedIn Account",
+      accountName: selectedAccountObj?.name || "Lumefy",
       publishedAt: new Date().toISOString(),
       message: "Publicación emitida exitosamente en LinkedIn.",
     });
   } catch (error: any) {
     console.error("[Publish Post API] Error:", error);
+    const errBody = error?.body;
+    let detailMessage = error.message;
+    if (errBody) {
+      try {
+        const parsed = JSON.parse(errBody);
+        detailMessage = parsed.detail || parsed.message || parsed.title || detailMessage;
+      } catch {}
+    }
     return NextResponse.json(
-      { error: error.message || "Error al emitir publicación en LinkedIn a través del motor InHubFlow." },
-      { status: 500 }
+      { error: detailMessage || "Error al emitir publicación en LinkedIn a través del motor InHubFlow." },
+      { status: error?.status || 500 }
     );
   }
 }

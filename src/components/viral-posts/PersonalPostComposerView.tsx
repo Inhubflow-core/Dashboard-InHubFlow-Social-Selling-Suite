@@ -266,6 +266,15 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
           body: JSON.stringify({
             account_id: selectedAccountId,
             text: bodyText,
+            attachments: attachedImage
+              ? [
+                  {
+                    content: attachedImage,
+                    filename: "post-cover.png",
+                    content_type: "image/png",
+                  },
+                ]
+              : undefined,
           }),
         });
 

@@ -342,6 +342,15 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           body: JSON.stringify({
             account_id: selectedAccountId,
             text: content,
+            attachments: previewImage
+              ? [
+                  {
+                    content: previewImage,
+                    filename: "post-cover.png",
+                    content_type: "image/png",
+                  },
+                ]
+              : undefined,
           }),
         });
 

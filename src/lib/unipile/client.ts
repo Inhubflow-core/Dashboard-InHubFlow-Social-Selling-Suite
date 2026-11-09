@@ -767,31 +767,91 @@ export class UnipileClient {
   async createPost(params: {
     account_id: string;
     text: string;
-    attachments?: Array<{ file: Buffer | Blob | string; filename: string; mime_type?: string }>;
+    attachments?: Array<{
+      file?: Buffer | Blob | string;
+      filename?: string;
+      mime_type?: string;
+      content?: string;
+      content_type?: string;
+    }>;
   }): Promise<{ id?: string; post_id?: string; [key: string]: unknown }> {
     if (this.isSandboxMode()) {
       const id = `post_sim_${Date.now()}`;
       return { id, post_id: id, simulated: true };
     }
 
-    const body = new FormData();
-    body.append('account_id', params.account_id);
-    body.append('text', params.text);
+    const cleanAccountId = params.account_id.replace(/^acc-li-/, '');
+
+    // Construir lista de adjuntos según OpenAPI Unipile v2 (/v2/{account_id}/posts)
+    const jsonAttachments: Array<{ filename: string; content_type: string; content: string }> = [];
+
     for (const attachment of params.attachments || []) {
-      if (typeof attachment.file === 'string') {
-        body.append('attachments', attachment.file);
+      if (!attachment) continue;
+      let base64Content = '';
+      const mimeType = attachment.mime_type || attachment.content_type || 'image/png';
+      const filename = attachment.filename || 'image.png';
+
+      if (typeof attachment.content === 'string') {
+        base64Content = attachment.content.replace(/^data:[^;]+;base64,/, '');
+      } else if (typeof attachment.file === 'string') {
+        base64Content = attachment.file.replace(/^data:[^;]+;base64,/, '');
       } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer(attachment.file)) {
-        const blob = new Blob([new Uint8Array(attachment.file)], { type: attachment.mime_type || 'application/octet-stream' });
-        body.append('attachments', blob, attachment.filename);
-      } else {
-        body.append('attachments', attachment.file as Blob, attachment.filename);
+        base64Content = attachment.file.toString('base64');
+      }
+
+      if (base64Content) {
+        jsonAttachments.push({
+          filename,
+          content_type: mimeType,
+          content: base64Content,
+        });
       }
     }
 
-    return this.request<{ id?: string; post_id?: string; [key: string]: unknown }>('/api/v1/posts', {
-      method: 'POST',
-      body,
-    });
+    const jsonPayload: Record<string, unknown> = {
+      text: params.text,
+      can_read: 'anyone',
+      can_comment: 'anyone',
+    };
+
+    if (jsonAttachments.length > 0) {
+      jsonPayload.attachments = jsonAttachments;
+    }
+
+    // 1. Intentar el endpoint v2 oficial de Unipile
+    try {
+      return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>(
+        `/v2/${encodeURIComponent(cleanAccountId)}/posts`,
+        {
+          method: 'POST',
+          body: JSON.stringify(jsonPayload),
+        }
+      );
+    } catch (v2Error: any) {
+      // 2. Fallback a endpoint v1 legado si el servidor no dispone de v2
+      if (v2Error?.status === 404) {
+        const body = new FormData();
+        body.append('account_id', cleanAccountId);
+        body.append('text', params.text);
+        for (const attachment of params.attachments || []) {
+          if (typeof attachment.file === 'string') {
+            body.append('attachments', attachment.file);
+          } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer(attachment.file)) {
+            const blob = new Blob([new Uint8Array(attachment.file)], {
+              type: attachment.mime_type || 'application/octet-stream',
+            });
+            body.append('attachments', blob, attachment.filename || 'attachment');
+          } else if (attachment.content) {
+            body.append('attachments', attachment.content);
+          }
+        }
+        return await this.request<{ id?: string; post_id?: string; [key: string]: unknown }>('/api/v1/posts', {
+          method: 'POST',
+          body,
+        });
+      }
+      throw v2Error;
+    }
   }
 
   /**
