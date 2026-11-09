@@ -295,7 +295,7 @@ export default function DooryStudioModal({
         <button
           type="button"
           onClick={() => handleChangeRatio("1.91:1")}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-all ${
             aspectRatio === "1.91:1"
               ? "bg-[#0099ff] text-white shadow-sm"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
@@ -304,14 +304,14 @@ export default function DooryStudioModal({
         >
           <RectangleHorizontal size={13} />
           <span>Horizontal</span>
-          <span className="text-[10px] opacity-80 hidden md:inline font-mono">1.91:1</span>
+          <span className="text-[10px] opacity-75 hidden xl:inline font-mono">1.91:1</span>
         </button>
 
         {/* Cuadrada: 1200 x 1200 px (1:1) */}
         <button
           type="button"
           onClick={() => handleChangeRatio("1:1")}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-all ${
             aspectRatio === "1:1"
               ? "bg-[#0099ff] text-white shadow-sm"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
@@ -320,14 +320,14 @@ export default function DooryStudioModal({
         >
           <SquareIcon size={12} />
           <span>Cuadrada</span>
-          <span className="text-[10px] opacity-80 hidden md:inline font-mono">1:1</span>
+          <span className="text-[10px] opacity-75 hidden xl:inline font-mono">1:1</span>
         </button>
 
         {/* Vertical: 1200 x 1500 px (4:5) */}
         <button
           type="button"
           onClick={() => handleChangeRatio("4:5")}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-all ${
             aspectRatio === "4:5"
               ? "bg-[#0099ff] text-white shadow-sm"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
@@ -336,16 +336,8 @@ export default function DooryStudioModal({
         >
           <Smartphone size={12} />
           <span>Vertical</span>
-          <span className="text-[10px] opacity-80 hidden md:inline font-mono">4:5</span>
+          <span className="text-[10px] opacity-75 hidden xl:inline font-mono">4:5</span>
         </button>
-      </div>
-
-      {/* Badge con las dimensiones exactas en px */}
-      <div 
-        className="hidden lg:flex items-center text-[11px] font-semibold text-slate-500 bg-white/70 px-2 py-0.5 rounded border border-slate-200/70 font-mono shadow-2xs"
-        title={LINKEDIN_SIZES[aspectRatio].description}
-      >
-        {dimensions.width} &times; {dimensions.height} px
       </div>
     </div>
   );
