@@ -9,6 +9,10 @@ export interface PageBox {
 
 export interface PageSlot {
   id: string
+  /** Left of the slot in scroll-content px. */
+  left: number
+  /** Left of the artboard itself. */
+  artboardLeft: number
   /** Top of the page's chrome header, in scroll-content px. */
   top: number
   /** Top of the artboard itself (below the header). */
@@ -16,6 +20,8 @@ export interface PageSlot {
   /** Artboard size in CSS px (page size x zoom). */
   width: number
   height: number
+  /** Right of the artboard. */
+  right: number
   /** Bottom of the artboard. */
   bottom: number
 }
@@ -29,7 +35,7 @@ export interface StackLayout {
 export interface StackMetrics {
   /** Space above the first header and below the last page. */
   padding: number
-  /** Gap between the bottom of a page and the next header. */
+  /** Gap between pages (horizontal in carousel / side-by-side mode). */
   gap: number
   /** Height of the per-page chrome header. */
   header: number
@@ -37,52 +43,66 @@ export interface StackMetrics {
   sidePadding: number
 }
 
-export const DEFAULT_METRICS: StackMetrics = { padding: 40, gap: 28, header: 40, sidePadding: 64 }
+export const DEFAULT_METRICS: StackMetrics = { padding: 40, gap: 32, header: 40, sidePadding: 64 }
 
 export function computeStack(pages: readonly PageBox[], zoom: number, metrics: StackMetrics = DEFAULT_METRICS): StackLayout {
-  let y = metrics.padding
-  let maxW = 0
+  let x = metrics.sidePadding
+  let maxH = 0
   const slots: PageSlot[] = []
   for (const page of pages) {
     const width = page.width * zoom
     const height = page.height * zoom
-    const top = y
+    const left = x
+    const artboardLeft = left
+    const top = metrics.padding
     const artboardTop = top + metrics.header
-    slots.push({ id: page.id, top, artboardTop, width, height, bottom: artboardTop + height })
-    maxW = Math.max(maxW, width)
-    y = artboardTop + height + metrics.gap
+    slots.push({
+      id: page.id,
+      left,
+      artboardLeft,
+      top,
+      artboardTop,
+      width,
+      height,
+      right: artboardLeft + width,
+      bottom: artboardTop + height,
+    })
+    maxH = Math.max(maxH, height)
+    x = artboardLeft + width + metrics.gap
   }
   return {
     slots,
-    contentHeight: y - metrics.gap + metrics.padding + 56 /* room for the "add page" row */,
-    contentWidth: maxW + metrics.sidePadding * 2,
+    contentWidth: Math.max(0, x - metrics.gap + metrics.sidePadding + 56),
+    contentHeight: maxH + metrics.header + metrics.padding * 2,
   }
 }
 
 /**
- * Left edge of a page's artboard in scroll-content px, for a viewport `viewportWidth` px wide. Pages of any size
- * share one centre line: the content is as wide as the widest page plus padding (or the viewport, when that is
- * wider) and every artboard is centred in it.
+ * Left edge of a page's artboard in scroll-content px.
  */
 export function slotLeft(layout: StackLayout, slot: PageSlot, viewportWidth: number): number {
-  return Math.max(0, (Math.max(layout.contentWidth, viewportWidth) - slot.width) / 2)
+  return slot.artboardLeft ?? slot.left ?? 0
 }
 
-/** Ids of pages whose artboard intersects `[scrollTop - overscan, scrollTop + viewportH + overscan]`. */
-export function visiblePageIds(layout: StackLayout, scrollTop: number, viewportH: number, overscan = 0): string[] {
-  const lo = scrollTop - overscan
-  const hi = scrollTop + viewportH + overscan
-  return layout.slots.filter((s) => s.bottom >= lo && s.top <= hi).map((s) => s.id)
+/** Ids of pages whose artboard intersects visible range horizontally. */
+export function visiblePageIds(layout: StackLayout, scrollLeft: number, viewportW: number, overscan = 0): string[] {
+  const lo = scrollLeft - overscan
+  const hi = scrollLeft + viewportW + overscan
+  return layout.slots
+    .filter((s) => (s.right !== undefined ? s.right >= lo && s.left <= hi : s.bottom >= lo && s.top <= hi))
+    .map((s) => s.id)
 }
 
-/** The page that owns the viewport centre, or the closest one. */
-export function pageAtViewportCenter(layout: StackLayout, scrollTop: number, viewportH: number): string | null {
+/** The page that owns the viewport centre horizontally, or the closest one. */
+export function pageAtViewportCenter(layout: StackLayout, scrollLeft: number, viewportW: number): string | null {
   if (layout.slots.length === 0) return null
-  const probe = scrollTop + viewportH / 2
+  const probe = scrollLeft + viewportW / 2
   let best = layout.slots[0]
   let bestDist = Infinity
   for (const s of layout.slots) {
-    const dist = probe < s.top ? s.top - probe : probe > s.bottom ? probe - s.bottom : 0
+    const left = s.left ?? 0
+    const right = s.right ?? s.width
+    const dist = probe < left ? left - probe : probe > right ? probe - right : 0
     if (dist < bestDist) {
       best = s
       bestDist = dist

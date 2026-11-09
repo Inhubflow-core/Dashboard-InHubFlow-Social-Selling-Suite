@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Copy, Plus, Trash2 } from 'lucide-react'
 import { type CSSProperties, memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { DocPage } from '@doory/types/document'
 import { useEditor, useEditorState } from '../context'
@@ -29,13 +29,9 @@ interface PageSlotProps {
   registerArtboard: (id: string, el: HTMLDivElement | null) => void
 }
 
-/** A header never gets narrower than its name, size and actions need, however small the page is. */
-const HEADER_MIN_WIDTH = 372
-
-/** The header spans the artboard; on a page narrower than the minimum it overhangs both sides equally, so the slot stays as wide as the page. */
+/** The header spans the artboard width. */
 const headerStyle = (width: number, height: number): CSSProperties => {
-  const headerWidth = Math.max(width, HEADER_MIN_WIDTH)
-  return { height, width: headerWidth, marginInline: (width - headerWidth) / 2 }
+  return { height, width: '100%', maxWidth: width }
 }
 
 function backgroundCss(page: DocPage): string | undefined {
@@ -76,7 +72,19 @@ export const PageSlot = memo(function PageSlot({ page, index, total, width, heig
   const label = page.name?.trim() || t.workspace.page(index + 1)
 
   return (
-    <section className={styles.slot} data-page-id={page.id} data-active={active || undefined} data-multi={total > 1 || undefined} style={{ height: headerHeight + height, marginBottom: gap }} aria-label={label}>
+    <section
+      className={styles.slot}
+      data-page-id={page.id}
+      data-active={active || undefined}
+      data-multi={total > 1 || undefined}
+      style={{
+        width,
+        height: headerHeight + height,
+        marginRight: index < total - 1 ? gap : 0,
+        marginBottom: 0,
+      }}
+      aria-label={label}
+    >
       <header className={styles.header} style={headerStyle(width, headerHeight)} hidden={headerHeight === 0}>
         <div className={styles.lead}>
           {renaming ? (
@@ -107,11 +115,11 @@ export const PageSlot = memo(function PageSlot({ page, index, total, width, heig
         </div>
         {readOnly ? null : (
           <div className={styles.actions}>
-            <IconButton label={t.workspace.moveUp} size="sm" disabled={index === 0} onClick={() => editor.pages.moveBy(page.id, -1)}>
-              <ArrowUp size={16} />
+            <IconButton label="Mover a la izquierda" size="sm" disabled={index === 0} onClick={() => editor.pages.moveBy(page.id, -1)}>
+              <ArrowLeft size={16} />
             </IconButton>
-            <IconButton label={t.workspace.moveDown} size="sm" disabled={index === total - 1} onClick={() => editor.pages.moveBy(page.id, 1)}>
-              <ArrowDown size={16} />
+            <IconButton label="Mover a la derecha" size="sm" disabled={index === total - 1} onClick={() => editor.pages.moveBy(page.id, 1)}>
+              <ArrowRight size={16} />
             </IconButton>
             <IconButton label={t.workspace.duplicatePage} size="sm" onClick={() => editor.pages.duplicate(page.id)}>
               <Copy size={16} />

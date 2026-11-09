@@ -47,7 +47,7 @@ function useVisiblePages(scrollRef: RefObject<HTMLDivElement | null>, elements: 
         }
         setSeen(new Set(inside))
       },
-      { root, rootMargin: '60% 0px 60% 0px' },
+      { root, rootMargin: '60% 60% 60% 60%' },
     )
     for (const el of elements.values()) observer.observe(el)
     return () => observer.disconnect()

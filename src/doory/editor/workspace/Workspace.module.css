@@ -27,12 +27,13 @@
 .content {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   box-sizing: border-box;
   padding-inline: 64px;
   width: max-content;
   min-width: 100%;
+  min-height: 100%;
 }
 
 .hand,

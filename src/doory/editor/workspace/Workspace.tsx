@@ -91,7 +91,8 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     const slot = pending ? layoutRef.current.slots.find((s) => s.id === pending.id) : undefined
     if (!pending || !el || !slot) return
     pendingScroll.current = null
-    el.scrollTo({ top: Math.max(0, slot.top - 24), behavior: pending.behavior })
+    const targetLeft = Math.max(0, slot.left - Math.max(0, (el.clientWidth - slot.width) / 2))
+    el.scrollTo({ left: targetLeft, behavior: pending.behavior })
   }, [layoutRef])
 
   const registerArtboard = useCallback((id: string, el: HTMLDivElement | null) => {
@@ -132,34 +133,34 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
   const updateLive = useCallback(() => {
     const scroller = scrollRef.current
     if (!scroller) return
-    const ids = new Set(visiblePageIds(layoutRef.current, scroller.scrollTop, scroller.clientHeight, scroller.clientHeight * 0.75))
+    const ids = new Set(visiblePageIds(layoutRef.current, scroller.scrollLeft, scroller.clientWidth, scroller.clientWidth * 0.75))
     if (ids.size === 0 && layoutRef.current.slots[0]) ids.add(layoutRef.current.slots[0].id)
     setLive((cur) => (sameSet(cur, ids) ? cur : ids))
-    const close = new Set(visiblePageIds(layoutRef.current, scroller.scrollTop, scroller.clientHeight, scroller.clientHeight * NEAR_SCREENS))
+    const close = new Set(visiblePageIds(layoutRef.current, scroller.scrollLeft, scroller.clientWidth, scroller.clientWidth * NEAR_SCREENS))
     if (close.size === 0 && layoutRef.current.slots[0]) close.add(layoutRef.current.slots[0].id)
     setNear((cur) => (sameSet(cur, close) ? cur : close))
-    const centre = pageAtViewportCenter(layoutRef.current, scroller.scrollTop, scroller.clientHeight)
+    const centre = pageAtViewportCenter(layoutRef.current, scroller.scrollLeft, scroller.clientWidth)
     if (centre && !editor.state.selection.ids.length && performance.now() > quietUntil.current) {
       if (editor.state.activePageId !== centre) editor.setActivePage(centre)
     }
     relayout()
   }, [editor, relayout, layoutRef])
 
-  // Viewport size + scroll → live set and windows. During a fling (a fast drag of the scrollbar, a flick on a touch pad) the
+  // Viewport size + scroll â†’ live set and windows. During a fling (a fast drag of the scrollbar, a flick on a touch pad) the
   // pages that fly past are not mounted: the live set follows once the scrolling has slowed down, so a long design stays smooth.
   useEffect(() => {
     const scroller = scrollRef.current
     if (!scroller) return
     let raf = 0
     let settle = 0
-    let last = { top: scroller.scrollTop, at: performance.now() }
+    let last = { left: scroller.scrollLeft, at: performance.now() }
     const schedule = (): void => {
       if (raf) return
       raf = requestAnimationFrame((now) => {
         raf = 0
-        const top = scroller.scrollTop
-        const speed = Math.abs(top - last.top) / Math.max(1, now - last.at)
-        last = { top, at: now }
+        const left = scroller.scrollLeft
+        const speed = Math.abs(left - last.left) / Math.max(1, now - last.at)
+        last = { left, at: now }
         window.clearTimeout(settle)
         if (speed > FLING_PX_PER_MS) {
           settle = window.setTimeout(updateLive, SETTLE_MS)
@@ -222,24 +223,15 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     const rect = scroller.getBoundingClientRect()
     const cx = anchor ? anchor.clientX - rect.left : rect.width / 2
     const cy = anchor ? anchor.clientY - rect.top : rect.height / 2
-    const yOld = scrolled.top + cy
-    const slot = before.layout.slots.find((s) => yOld >= s.artboardTop && yOld <= s.bottom) ?? before.layout.slots.find((s) => s.bottom >= yOld) ?? before.layout.slots[before.layout.slots.length - 1]
+    const xOld = scrolled.left + cx
+    const slot = before.layout.slots.find((s) => xOld >= s.left && xOld <= (s.right ?? s.left + s.width)) ?? before.layout.slots.find((s) => (s.right ?? s.left + s.width) >= xOld) ?? before.layout.slots[before.layout.slots.length - 1]
     const ratio = zoom / before.zoom
     if (slot) {
       const next = layout.slots.find((s) => s.id === slot.id)
       if (next) {
-        const within = Math.min(slot.height, Math.max(0, yOld - slot.artboardTop))
-        scroller.scrollTop = Math.max(0, next.artboardTop + within * ratio - cy)
+        const within = Math.min(slot.width, Math.max(0, xOld - slot.left))
+        scroller.scrollLeft = Math.max(0, next.left + within * ratio - cx)
       }
-    }
-    // Horizontal: keep the artboard-relative x of the anchor.
-    const art = slot ? artboards.current.get(slot.id) : undefined
-    if (art) {
-      const a = art.getBoundingClientRect()
-      const artLeftNow = a.left - rect.left + scroller.scrollLeft
-      const oldArtLeft = slot ? slotLeft(before.layout, slot, rect.width) : 0
-      const xWithin = Math.min(slot?.width ?? 0, Math.max(0, scrolled.left + cx - oldArtLeft))
-      scroller.scrollLeft = Math.max(0, artLeftNow + xWithin * ratio - cx)
     }
     lastScroll.current = { top: scroller.scrollTop, left: scroller.scrollLeft }
     windows.current.clear()
@@ -286,14 +278,20 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     return () => editor.setViewportController(null)
   }, [editor, updateLive, flushScroll])
 
-  // Wheel zoom (ctrl/cmd + wheel, trackpad pinch) and plain wheel scrolling.
+  // Wheel zoom (ctrl/cmd + wheel, trackpad pinch) and carousel horizontal wheel scrolling.
   useEffect(() => {
     const scroller = scrollRef.current
     if (!scroller) return
     const onWheel = (e: WheelEvent): void => {
-      if (!(e.ctrlKey || e.metaKey)) return
-      e.preventDefault()
-      editor.view.setZoom(wheelZoom(editor.state.zoom, e.deltaY), { clientX: e.clientX, clientY: e.clientY })
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        editor.view.setZoom(wheelZoom(editor.state.zoom, e.deltaY), { clientX: e.clientX, clientY: e.clientY })
+        return
+      }
+      // If user scrolls vertical wheel without shift, convert to horizontal scroll for carousel
+      if (!e.shiftKey && Math.abs(e.deltaY) > 0 && Math.abs(e.deltaX) === 0) {
+        scroller.scrollLeft += e.deltaY
+      }
     }
     scroller.addEventListener('wheel', onWheel, { passive: false })
     return () => scroller.removeEventListener('wheel', onWheel)
@@ -453,7 +451,22 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
           if (e.target === e.currentTarget) e.preventDefault()
         }}
       >
-        <div className={styles.content} data-workspace-bg style={{ minWidth: `max(100%, ${layout.contentWidth}px)`, paddingTop: metrics.padding, paddingBottom: metrics.padding }}>
+        <div
+          className={styles.content}
+          data-workspace-bg
+          style={{
+            minWidth: `max(100%, ${layout.contentWidth}px)`,
+            minHeight: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: doc.pages.length === 1 || layout.contentWidth <= (viewport.width || 0) ? 'center' : 'flex-start',
+            paddingTop: metrics.padding,
+            paddingBottom: metrics.padding,
+            paddingLeft: metrics.sidePadding,
+            paddingRight: metrics.sidePadding,
+          }}
+        >
           {doc.pages.map((page, index) => {
             const slot = layout.slots[index]
             return (
