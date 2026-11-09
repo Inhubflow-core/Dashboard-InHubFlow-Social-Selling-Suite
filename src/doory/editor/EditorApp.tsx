@@ -98,6 +98,10 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
   }, [engine, adapter])
 
   useEffect(() => {
+    engine.setMeta(meta)
+  }, [engine, meta])
+
+  useEffect(() => {
     engine.setMode(meta.mode)
   }, [engine, meta.mode])
 

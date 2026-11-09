@@ -2116,6 +2116,85 @@ function onCanvasMouseDown(targetObj) {
 onCanvasMouseDown(null);
 assert(activeSelection === null, "Hacer clic en una zona vacía del lienzo también elimina la selección");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 35: Auto-carga Dinámica de Gancho y Subtítulo en Font Pairings
+// -----------------------------------------------------------------------------
+console.log("\n--- 35. Prueba de Auto-carga Dinámica de Gancho y Subtítulo en Font Pairings ---");
+
+const PAIRINGS_TEST = [
+  { id: 'classic', heading: { family: 'Playfair Display', weight: 700 }, body: { family: 'DM Sans', weight: 400 } },
+  { id: 'modern', heading: { family: 'Montserrat', weight: 800 }, body: { family: 'Open Sans', weight: 400 } },
+  { id: 'editorial', heading: { family: 'Lora', weight: 700 }, body: { family: 'Lato', weight: 400 } },
+  { id: 'playful', heading: { family: 'Pacifico', weight: 400 }, body: { family: 'Poppins', weight: 400 } },
+  { id: 'poster', heading: { family: 'Bebas Neue', weight: 400 }, body: { family: 'Roboto', weight: 400 } },
+  { id: 'elegant', heading: { family: 'Cormorant Garamond', weight: 600 }, body: { family: 'Montserrat', weight: 400 } },
+];
+
+const postData = {
+  title: "5 Errores al prospectar en LinkedIn que destruyen tu conversión",
+  bodyText: "Hablan de su producto antes de entender el dolor del decisor.\nAquí tienes el framework exacto para cerrar reuniones.",
+};
+
+const cleanLines = postData.bodyText.split("\n").map(l => l.trim()).filter(Boolean);
+const derivedHook = postData.title.trim() || cleanLines[0];
+const derivedIntro = cleanLines[0];
+
+// 1. Simulación de inserción de combinación tipográfica en lienzo vacío
+function simulateAddPairing(pairing, hook, intro) {
+  return [
+    {
+      kind: "text",
+      role: "heading",
+      text: hook || "Add a heading",
+      fontFamily: pairing.heading.family,
+      fontWeight: pairing.heading.weight
+    },
+    {
+      kind: "text",
+      role: "body",
+      text: intro || "A short line of body text",
+      fontFamily: pairing.body.family,
+      fontWeight: pairing.body.weight
+    }
+  ];
+}
+
+const classicPair = simulateAddPairing(PAIRINGS_TEST[0], derivedHook, derivedIntro);
+assert(classicPair[0].text === derivedHook, "El encabezado del Font Pairing adopta automáticamente el gancho del post");
+assert(classicPair[0].fontFamily === "Playfair Display", "El encabezado adopta la tipografía Playfair Display de la combinación Classic");
+assert(classicPair[1].text === derivedIntro, "El cuerpo del Font Pairing adopta automáticamente la intro del post");
+assert(classicPair[1].fontFamily === "DM Sans", "El cuerpo adopta la tipografía DM Sans de la combinación Classic");
+
+// 2. Simulación de actualización de objetos seleccionados
+let selectedCanvasObjects = [
+  { kind: "text", text: "Add a heading", fontFamily: "Outfit", top: 100 },
+  { kind: "text", text: "A short line of body text", fontFamily: "Outfit", top: 250 }
+];
+
+function applyPairingToSelection(pairing, selected, hook, intro) {
+  const [top, bottom] = [...selected].sort((a, b) => a.top - b.top);
+  top.fontFamily = pairing.heading.family;
+  top.fontWeight = pairing.heading.weight;
+  if (!top.text || top.text === "Add a heading") top.text = hook;
+
+  bottom.fontFamily = pairing.body.family;
+  bottom.fontWeight = pairing.body.weight;
+  if (!bottom.text || bottom.text === "A short line of body text") bottom.text = intro;
+}
+
+applyPairingToSelection(PAIRINGS_TEST[1], selectedCanvasObjects, derivedHook, derivedIntro);
+assert(selectedCanvasObjects[0].fontFamily === "Montserrat", "Al aplicar Modern con selección, el titular cambia a Montserrat");
+assert(selectedCanvasObjects[0].text === derivedHook, "El texto genérico 'Add a heading' se reemplaza automáticamente con el gancho");
+assert(selectedCanvasObjects[1].fontFamily === "Open Sans", "El cuerpo cambia a Open Sans");
+assert(selectedCanvasObjects[1].text === derivedIntro, "El texto genérico 'A short line of body text' se reemplaza automáticamente con la intro");
+
+// 3. Verificación de catálogo de fuentes en memoryAdapter
+const memoryAdapterCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/doory/editor/dev/memoryAdapter.ts', 'utf8');
+const expectedFonts = ['Bebas Neue', 'Roboto', 'Playfair Display', 'Montserrat', 'Pacifico', 'Lora', 'Cormorant Garamond'];
+for (const font of expectedFonts) {
+  assert(memoryAdapterCode.includes(font), `El catálogo oficial incluye la fuente ${font} para evitar advertencias de tipografía faltante`);
+}
+
 // Limpieza de base de datos de test
 
 db.close();

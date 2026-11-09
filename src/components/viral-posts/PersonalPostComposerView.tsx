@@ -800,8 +800,14 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       <DooryStudioModal
         isOpen={isVisualStudioOpen}
         onClose={handleCloseVisualStudio}
-        initialTitle={title || bodyText.split("\n")[0] || "Tu Titular de Alto Impacto"}
-        initialSubtitle={bodyText.split("\n").filter((l) => l.trim().length > 10)[1] || "Framework B2B"}
+        initialTitle={(() => {
+          const clean = bodyText.split("\n").map((l) => l.trim()).filter(Boolean);
+          return title.trim() || clean[0] || "Tu Titular de Alto Impacto";
+        })()}
+        initialSubtitle={(() => {
+          const clean = bodyText.split("\n").map((l) => l.trim()).filter(Boolean);
+          return clean.length > 1 ? clean[1] : "Framework B2B";
+        })()}
         authorName={activeAccount?.name || currentUser.name}
         authorHandle={`@${(activeAccount?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {

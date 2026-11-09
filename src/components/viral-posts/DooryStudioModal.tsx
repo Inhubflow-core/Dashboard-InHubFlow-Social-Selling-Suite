@@ -122,6 +122,25 @@ export default function DooryStudioModal({
     initContrast();
   }, []);
 
+  // Sincronización en memoria de gancho y subtítulo, e inyección de Google Fonts para Font Pairings
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (initialTitle) sessionStorage.setItem("inhubflow_active_post_hook", initialTitle);
+      if (initialSubtitle) sessionStorage.setItem("inhubflow_active_post_intro", initialSubtitle);
+    }
+    if (typeof document !== "undefined") {
+      const fontLinkId = "inhubflow-doory-fonts";
+      if (!document.getElementById(fontLinkId)) {
+        const link = document.createElement("link");
+        link.id = fontLinkId;
+        link.rel = "stylesheet";
+        link.href =
+          "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@400;600;700&family=Lato:wght@400;700&family=Lora:wght@400;700&family=Montserrat:wght@400;600;800&family=Open+Sans:wght@400;600&family=Outfit:wght@400;600;700;800&family=Pacifico&family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&display=swap";
+        document.head.appendChild(link);
+      }
+    }
+  }, [initialTitle, initialSubtitle]);
+
   // Compute dimensions based on active LinkedIn ratio:
   // - Horizontal: 1200 x 627 px (1.91:1)
   // - Cuadrada: 1200 x 1200 px (1:1)

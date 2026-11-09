@@ -1071,8 +1071,14 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       <DooryStudioModal
         isOpen={isVisualStudioOpen}
         onClose={handleCloseVisualStudio}
-        initialTitle={referenceHook || topic || content.split("\n")[0] || "Tu Titular de Alto Impacto"}
-        initialSubtitle={topic || "Estrategia B2B"}
+        initialTitle={(() => {
+          const clean = content.split("\n").map((l) => l.trim()).filter(Boolean);
+          return referenceHook.trim() || topic.trim() || clean[0] || "Tu Titular de Alto Impacto";
+        })()}
+        initialSubtitle={(() => {
+          const clean = content.split("\n").map((l) => l.trim()).filter(Boolean);
+          return clean.length > 1 ? clean[1] : (topic.trim() || "Estrategia B2B");
+        })()}
         authorName={activeAccObj?.name || currentUser.name}
         authorHandle={`@${(activeAccObj?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {

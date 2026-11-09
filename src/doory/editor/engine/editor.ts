@@ -147,7 +147,11 @@ export class EditorEngine implements PageCanvasHost {
   editBlockedHandler: ((pageId: string, id: string) => void) | null = null
 
   /** Metadata of the active document and social post (hook, subtitle, author). */
-  readonly meta: EditorMeta
+  meta: EditorMeta
+
+  setMeta(meta: EditorMeta): void {
+    this.meta = meta
+  }
 
   constructor(options: EditorEngineOptions) {
     this.adapter = options.adapter

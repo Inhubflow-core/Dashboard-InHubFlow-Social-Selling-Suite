@@ -24,6 +24,20 @@ function page<T>(results: T[], q?: { page?: number; page_size?: number }): Page<
 }
 
 const FONT_NAMES: { family: string; category: FontFamily['category'] }[] = [
+  { family: 'Playfair Display', category: 'serif' },
+  { family: 'DM Sans', category: 'sans-serif' },
+  { family: 'Montserrat', category: 'sans-serif' },
+  { family: 'Open Sans', category: 'sans-serif' },
+  { family: 'Lora', category: 'serif' },
+  { family: 'Lato', category: 'sans-serif' },
+  { family: 'Pacifico', category: 'handwriting' },
+  { family: 'Poppins', category: 'sans-serif' },
+  { family: 'Bebas Neue', category: 'sans-serif' },
+  { family: 'Roboto', category: 'sans-serif' },
+  { family: 'Cormorant Garamond', category: 'serif' },
+  { family: 'Outfit', category: 'sans-serif' },
+  { family: 'Inter', category: 'sans-serif' },
+  { family: 'Plus Jakarta Sans', category: 'sans-serif' },
   { family: 'DejaVu Sans', category: 'sans-serif' },
   { family: 'Liberation Sans', category: 'sans-serif' },
   { family: 'FreeSans', category: 'sans-serif' },

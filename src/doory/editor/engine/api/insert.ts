@@ -109,11 +109,11 @@ export class InsertApi {
 
   /* -------------------------------------------------------------------- text */
 
-  async text(preset: TextPreset): Promise<void> {
+  async text(preset: TextPreset, customText?: string): Promise<void> {
     const spec = TEXT_PRESETS[preset]
     await this.engine.fonts.load(primaryFamily(spec.font), spec.weight)
     const page = this.engine.pageSizeOf(this.engine.state.activePageId)
-    await this.add([createTextbox(page, this.center(), { preset })], t.history.addText, { edit: true })
+    await this.add([createTextbox(page, this.center(), { preset, ...(customText ? { text: customText } : {}) })], t.history.addText, { edit: true })
   }
 
   /**
