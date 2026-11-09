@@ -154,7 +154,7 @@ function ShareMenu({ onPresent }: { onPresent: () => void }) {
           {
             id: 'suggested',
             label: t.topbar.suggestedFor(preset.label),
-            hint: `${describeChoice(suggested)} Â· ${preset.width} Ã— ${preset.height}`,
+            hint: `${describeChoice(suggested)} · ${preset.width} × ${preset.height}`,
             feature: exportFormats.get(suggested.formatId)?.label ?? suggested.formatId,
             icon: <Download size={16} aria-hidden="true" />,
             onSelect: () => void quick(suggested),

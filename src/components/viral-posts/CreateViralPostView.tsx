@@ -45,20 +45,37 @@ export default function CreateViralPostView({
   const [autoDmEnabled, setAutoDmEnabled] = useState(true);
   const [autoLikeComment, setAutoLikeComment] = useState(true);
   const [autoDmMessage, setAutoDmMessage] = useState(
-    `Â¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicaciÃ³n. AquÃ­ tienes el documento completo con el framework accionable. Â¿En quÃ© reto comercial estÃ¡s enfocado este trimestre?`
+    `¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicación. Aquí tienes el documento completo con el framework accionable. ¿En qué reto comercial estás enfocado este trimestre?`
   );
-  const [tone, setTone] = useState("Autoridad B2B con llamada a la acciÃ³n");
+  const [tone, setTone] = useState("Autoridad B2B con llamada a la acción");
   const [content, setContent] = useState("");
   const [imagePrompt, setImagePrompt] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(() => {
-    if (typeof window !== "undefined") {
+  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
+
+  useEffect(() => {
+    try {
       const params = new URLSearchParams(window.location.search);
-      return params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
-    }
-    return false;
-  });
+      const shouldBeOpen = params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
+      if (shouldBeOpen) {
+        setIsVisualStudioOpen(true);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const shouldBeOpen = params.get("editor") === "open";
+      setIsVisualStudioOpen(shouldBeOpen);
+      if (!shouldBeOpen) {
+        sessionStorage.removeItem("inhubflow_visual_studio_open");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const handleOpenVisualStudio = () => {
     setIsVisualStudioOpen(true);
@@ -85,7 +102,7 @@ export default function CreateViralPostView({
   const [referenceContent, setReferenceContent] = useState("");
   const [referenceAuthor, setReferenceAuthor] = useState("");
 
-  // Estados de IA y PublicaciÃ³n
+  // Estados de IA y Publicación
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -109,20 +126,20 @@ export default function CreateViralPostView({
     {
       slideNumber: 1,
       isCover: true,
-      title: "CÃ³mo Convertir Comentarios en Clientes B2B",
+      title: "Cómo Convertir Comentarios en Clientes B2B",
       subtitle: "Framework Inbound de 4 Pasos para LinkedIn",
       content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
       footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
     },
     {
       slideNumber: 2,
-      title: "El Problema del Mensaje en FrÃ­o",
+      title: "El Problema del Mensaje en Frío",
       content: [
         "El decisor percibe spam antes de entender tu propuesta.",
-        "Tasa de respuesta inferior al 3% en frÃ­o tradicional.",
+        "Tasa de respuesta inferior al 3% en frío tradicional.",
         "Bloqueo comercial de tu perfil personal.",
       ],
-      footerText: "Paso 1: DiagnÃ³stico",
+      footerText: "Paso 1: Diagnóstico",
     },
     {
       slideNumber: 3,
@@ -130,28 +147,28 @@ export default function CreateViralPostView({
       content: [
         "Crea un activo de valor concreto (Plantilla o Playbook).",
         "Publica mostrando los resultados tangibles.",
-        "Pide una palabra clave de activaciÃ³n en los comentarios.",
+        "Pide una palabra clave de activación en los comentarios.",
       ],
-      footerText: "Paso 2: ActivaciÃ³n",
+      footerText: "Paso 2: Activación",
     },
     {
       slideNumber: 4,
-      title: "Entrega InstantÃ¡nea en DM",
+      title: "Entrega Instantánea en DM",
       content: [
         "El monitor detecta el comentario con la palabra clave.",
-        "Valida el estado de conexiÃ³n en LinkedIn.",
+        "Valida el estado de conexión en LinkedIn.",
         "Despacha el PDF directamente al chat privado.",
       ],
-      footerText: "Paso 3: AutomatizaciÃ³n",
+      footerText: "Paso 3: Automatización",
     },
     {
       slideNumber: 5,
       isCta: true,
-      title: "Â¿Quieres Implementar Este Sistema?",
+      title: "¿Quieres Implementar Este Sistema?",
       subtitle: "Recibe el documento de trabajo completo en PDF",
       content: [
-        "Comenta SISTEMA en esta publicaciÃ³n",
-        "Te envÃ­o la guÃ­a por mensaje privado hoy mismo.",
+        "Comenta SISTEMA en esta publicación",
+        "Te envío la guía por mensaje privado hoy mismo.",
       ],
       footerText: "InHubFlow Social Selling",
     },
@@ -200,22 +217,22 @@ export default function CreateViralPostView({
 ${selected.hook}
 
 1. Entiende el dolor antes de proponer tu oferta.
-2. Comparte frameworks accionables en cada publicaciÃ³n.
-3. Genera conversaciÃ³n genuina con preguntas directas.
+2. Comparte frameworks accionables en cada publicación.
+3. Genera conversación genuina con preguntas directas.
 
 Comenta "${leadMagnetKeyword}" abajo si deseas recibir nuestro playbook completo.`);
       } else if (selected.format === "image") {
-        setContent(`La claridad en tu propuesta comercial es la mejor inversiÃ³n que puedes hacer este mes:
+        setContent(`La claridad en tu propuesta comercial es la mejor inversión que puedes hacer este mes:
 
 ${selected.hook}
 
-Revisa los puntos clave en la imagen adjunta y aplÃ­calos hoy.`);
+Revisa los puntos clave en la imagen adjunta y aplícalos hoy.`);
         setImagePrompt(
           selected.imagePrompt ||
             "Minimalist executive desk setup with laptop showing pipeline growth chart, warm ambient corporate blue tones, hyper-realistic 8k."
         );
       } else if (selected.format === "carousel") {
-        setContent(`Desliza el carrusel completo para ver la guÃ­a detallada:
+        setContent(`Desliza el carrusel completo para ver la guía detallada:
 
 ${selected.hook}
 
@@ -309,13 +326,13 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
     });
   };
 
-  // Guardar post (Borrador, Programado o PublicaciÃ³n Real)
+  // Guardar post (Borrador, Programado o Publicación Real)
   const handleSavePost = async (status: "draft" | "scheduled" | "published", customScheduledAt?: string) => {
     setPublishFeedback(null);
 
     let linkedinPostId: string | undefined = undefined;
 
-    // Si es publicaciÃ³n inmediata, llamar a la API de Unipile
+    // Si es publicación inmediata, llamar a la API de Unipile
     if (status === "published") {
       setIsPublishing(true);
       try {
@@ -331,7 +348,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error || "Error al publicar en LinkedIn a travÃ©s del motor InHubFlow.");
+          throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InHubFlow.");
         }
 
         linkedinPostId = data.postId;
@@ -533,7 +550,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     onChange={(e) => setTone(e.target.value)}
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   >
-                    <option value="Autoridad B2B con llamada a la acciÃ³n">{t("toneB2BAuthority")}</option>
+                    <option value="Autoridad B2B con llamada a la acción">{t("toneB2BAuthority")}</option>
                     <option value="Storytelling personal y de aprendizaje">{t("toneStorytelling")}</option>
                     <option value="Educativo directo paso a paso">{t("toneStepByStep")}</option>
                     <option value="Provocador y debate constructivo">{t("toneProvocative")}</option>
@@ -541,7 +558,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 </div>
               </div>
 
-              {/* SECCIÃ“N CENTINELA INBOUND LEAD MAGNET & AUTO-DM */}
+              {/* SECCIÓN CENTINELA INBOUND LEAD MAGNET & AUTO-DM */}
               <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-3.5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -556,7 +573,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                         </span>
                       </p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        EnvÃ­a automÃ¡ticamente el recurso por mensaje privado a quien comente &quot;{leadMagnetKeyword}&quot;.
+                        Envía automáticamente el recurso por mensaje privado a quien comente &quot;{leadMagnetKeyword}&quot;.
                       </p>
                     </div>
                   </div>
@@ -575,7 +592,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 {autoDmEnabled && (
                   <div className="pt-2 border-t border-brand-500/20 space-y-2">
                     <label className="block text-[11px] font-semibold text-gray-400 uppercase">
-                      Mensaje AutomÃ¡tico en DM de LinkedIn:
+                      Mensaje Automático en DM de LinkedIn:
                     </label>
                     <textarea
                       rows={2}
@@ -587,7 +604,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 )}
               </div>
 
-              {/* BotÃ³n de GeneraciÃ³n / Mejora con IA + Base de Conocimiento (RAG) */}
+              {/* Botón de Generación / Mejora con IA + Base de Conocimiento (RAG) */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
                 <div>
                   <div className="flex items-center gap-2">
@@ -616,7 +633,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 </button>
               </div>
 
-              {/* Formato 2: Generador de Prompt Visual y Estudio GrÃ¡fico */}
+              {/* Formato 2: Generador de Prompt Visual y Estudio Gráfico */}
               {format === "image" && (
                 <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
                   {/* Banner Destacado del Estudio Visual */}
@@ -630,7 +647,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                           Editor Visual (Suite Creativa)
                         </p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                          DiseÃ±a tu imagen con plantillas virales, fotos de stock y degradÃ© de alto impacto.
+                          Diseña tu imagen con plantillas virales, fotos de stock y degradé de alto impacto.
                         </p>
                       </div>
                     </div>
@@ -640,7 +657,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                       className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
                     >
                       <Sparkles className="size-3.5" />
-                      <span>{previewImage ? "Editar en Estudio" : "DiseÃ±ar con Estudio"}</span>
+                      <span>{previewImage ? "Editar en Estudio" : "Diseñar con Estudio"}</span>
                     </button>
                   </div>
 
@@ -839,7 +856,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           </ComponentCard>
         </div>
 
-        {/* Panel Derecho: PrevisualizaciÃ³n Fiel a LinkedIn */}
+        {/* Panel Derecho: Previsualización Fiel a LinkedIn */}
         <div className="col-span-12 xl:col-span-5 space-y-6">
           <ComponentCard
             title={t("exactPreviewTitle")}
@@ -875,7 +892,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 {content}
               </div>
 
-              {/* Adjunto Visual segÃºn Formato */}
+              {/* Adjunto Visual según Formato */}
               {format === "image" && (
                 <div className="mb-4 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
                   {previewImage ? (
@@ -1002,7 +1019,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     </div>
                   </div>
 
-                  {/* Barra de navegaciÃ³n de carrusel */}
+                  {/* Barra de navegación de carrusel */}
                   <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-700">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {t("linkedinPdfDocument")}
@@ -1029,7 +1046,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                 </div>
               )}
 
-              {/* Barra de interacciÃ³n de LinkedIn */}
+              {/* Barra de interacción de LinkedIn */}
               <div className="pt-3 border-t border-gray-300 flex items-center justify-between text-xs text-gray-500 dark:border-gray-800">
                 <span className="hover:text-gray-900 cursor-pointer">{t("linkedinLike")}</span>
                 <span className="hover:text-gray-900 cursor-pointer">{t("linkedinComment")}</span>
@@ -1054,7 +1071,7 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           handleCloseVisualStudio();
           setPublishFeedback({
             type: "success",
-            message: "Â¡DiseÃ±o visual aplicado con Ã©xito a la publicaciÃ³n!",
+            message: "¡Diseño visual aplicado con éxito a la publicación!",
           });
           setTimeout(() => setPublishFeedback(null), 3000);
         }}

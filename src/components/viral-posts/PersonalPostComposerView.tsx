@@ -52,20 +52,10 @@ export default function PersonalPostComposerView({
   const [compositionMode, setCompositionMode] = useState<"scratch" | "external">("scratch");
   const [externalPastedText, setExternalPastedText] = useState("");
   const [isAiPolishing, setIsAiPolishing] = useState(false);
-
-  // Campos del post (con persistencia de borrador para sobrevivir recargas F5)
-  const [title, setTitle] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("inhubflow_personal_post_title") || "";
-    }
-    return "";
-  });
-  const [bodyText, setBodyText] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("inhubflow_personal_post_body");
-      if (saved) return saved;
-    }
-    return `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
+  // Campos del post (renderizado inicial determinista para SSR)
+  const [title, setTitle] = useState("");
+  const [bodyText, setBodyText] = useState(
+    `La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
 
 Hablan de su producto antes de entender el dolor del decisor.
 
@@ -75,46 +65,60 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 2. Abre con un diagnóstico personalizado en lugar de un pitch en frío.
 3. Entrega un activo de valor concreto (plantilla, guía o cálculo).
 
-¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`;
-  });
-  const [attachedImage, setAttachedImage] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("inhubflow_personal_post_image");
-    }
-    return null;
-  });
+¿Cuál ha sido tu mayor reto de prospección este trimestre? Te leo en los comentarios.`
+  );
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
 
-  // Modal de Estudio Visual (Canva / Fabric.js): recuerda si estaba abierto al recargar (F5)
-  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(() => {
-    if (typeof window !== "undefined") {
+  // Modal de Estudio Visual (Canva / Fabric.js): recuerda si estaba abierto al recargar (F5) tras montaje en cliente
+  const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Restaurar borrador y estado de apertura tras montaje en cliente (evita desajuste de hidratación SSR)
+  useEffect(() => {
+    setIsHydrated(true);
+    try {
+      const savedTitle = sessionStorage.getItem("inhubflow_personal_post_title");
+      if (savedTitle !== null) setTitle(savedTitle);
+
+      const savedBody = sessionStorage.getItem("inhubflow_personal_post_body");
+      if (savedBody !== null) setBodyText(savedBody);
+
+      const savedImage = sessionStorage.getItem("inhubflow_personal_post_image");
+      if (savedImage !== null) setAttachedImage(savedImage);
+
       const params = new URLSearchParams(window.location.search);
-      return params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
-    }
-    return false;
-  });
+      const shouldBeOpen = params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
+      if (shouldBeOpen) {
+        setIsVisualStudioOpen(true);
+      }
+    } catch {}
+  }, []);
 
-  // Sincronización de borrador de texto en sessionStorage
+  // Sincronización de borrador de texto en sessionStorage sólo tras hidratar
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!isHydrated) return;
+    try {
       sessionStorage.setItem("inhubflow_personal_post_title", title);
-    }
-  }, [title]);
+    } catch {}
+  }, [title, isHydrated]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!isHydrated) return;
+    try {
       sessionStorage.setItem("inhubflow_personal_post_body", bodyText);
-    }
-  }, [bodyText]);
+    } catch {}
+  }, [bodyText, isHydrated]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!isHydrated) return;
+    try {
       if (attachedImage) {
         sessionStorage.setItem("inhubflow_personal_post_image", attachedImage);
       } else {
         sessionStorage.removeItem("inhubflow_personal_post_image");
       }
-    }
-  }, [attachedImage]);
+    } catch {}
+  }, [attachedImage, isHydrated]);
 
   // Manejadores de apertura/cierre sincronizados con URL y sessionStorage
   const handleOpenVisualStudio = () => {
