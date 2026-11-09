@@ -189,6 +189,20 @@
       return;
     }
 
+    // 1. Copiar token de inmediato al portapapeles del sistema
+    try {
+      await navigator.clipboard.writeText(cachedLiAt);
+    } catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = cachedLiAt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch {}
+    }
+
     btn.classList.add("connecting");
     btn.disabled = true;
     if (btnSpinner) btnSpinner.classList.remove("hidden");
@@ -202,6 +216,41 @@
       if (tabs.length > 0) {
         const targetTab = tabs[0];
 
+        // 2. Inyectar script directo para garantizar paso de token por sessionStorage, CustomEvent y postMessage
+        if (typeof chrome !== "undefined" && chrome.scripting && chrome.scripting.executeScript) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: targetTab.id },
+              func: (token, premToken, ua) => {
+                try {
+                  sessionStorage.setItem("inhubflow_autoconnect_token", token);
+                  if (premToken) sessionStorage.setItem("inhubflow_autoconnect_prema", premToken);
+                  const p = { accessToken: token, premiumToken: premToken, userAgent: ua, source: "INHUBFLOW_EXTENSION" };
+                  try { document.dispatchEvent(new CustomEvent("INHUBFLOW_AUTOCONNECT_EVENT", { detail: p })); } catch {}
+                  try { window.dispatchEvent(new CustomEvent("INHUBFLOW_AUTOCONNECT_EVENT", { detail: p })); } catch {}
+                  window.postMessage({ source: "INHUBFLOW_EXTENSION", type: "AUTOCONNECT", ...p }, "*");
+                } catch (e) {
+                  console.warn("[InHubFlow Connect] script injection error:", e);
+                }
+              },
+              args: [cachedLiAt, cachedLiA || null, navigator.userAgent],
+            });
+          } catch (e) {
+            console.warn("[popup] Error en scripting.executeScript:", e);
+          }
+        }
+
+        // 3. También notificar por chrome.tabs.sendMessage
+        try {
+          chrome.tabs.sendMessage(targetTab.id, {
+            type: "INHUBFLOW_AUTOCONNECT",
+            accessToken: cachedLiAt,
+            premiumToken: cachedLiA || null,
+            userAgent: navigator.userAgent,
+          });
+        } catch {}
+
+        // 4. Conmutar a la pestaña de InHubFlow
         try {
           await chrome.tabs.update(targetTab.id, { active: true });
           if (targetTab.windowId) {
@@ -209,41 +258,13 @@
           }
         } catch {}
 
-        chrome.tabs.sendMessage(
-          targetTab.id,
-          {
-            type: "INHUBFLOW_AUTOCONNECT",
-            accessToken: cachedLiAt,
-            premiumToken: cachedLiA,
-            userAgent: navigator.userAgent,
-          },
-          (response) => {
-            btn.classList.remove("connecting");
-            if (btnSpinner) btnSpinner.classList.add("hidden");
-
-            if (chrome.runtime.lastError || !response) {
-              executeDirectApiFallback(targetTab.url || "http://localhost:3001");
-              return;
-            }
-
-            if (response.success) {
-              btn.classList.add("connected-success");
-              if (btnText) btnText.textContent = "✓ ¡Conectado con Éxito!";
-              showFeedback("¡Tu cuenta de LinkedIn quedó conectada a InHubFlow!", "success");
-            } else if (response.checkpoint) {
-              if (btnText) btnText.textContent = "Verifica tu cuenta en InHubFlow";
-              showFeedback("LinkedIn solicitó verificación 2FA. Revisa la pantalla de tu Dashboard.", "info");
-              btn.disabled = false;
-            } else {
-              if (btnBolt) btnBolt.classList.remove("hidden");
-              if (btnText) btnText.textContent = "⚡ Reintentar Conexión";
-              showFeedback(response.error || "No se pudo completar la conexión.", "error");
-              btn.disabled = false;
-            }
-          }
-        );
+        // 5. En paralelo, ejecutar fallback API para asegurar persistencia
+        executeDirectApiFallback(targetTab.url || "http://localhost:3001");
       } else {
         await executeDirectApiFallback("http://localhost:3001");
+        if (typeof chrome !== "undefined" && chrome.tabs) {
+          chrome.tabs.create({ url: "http://localhost:3001/linkedin-accounts" });
+        }
       }
     } catch (err) {
       btn.classList.remove("connecting");

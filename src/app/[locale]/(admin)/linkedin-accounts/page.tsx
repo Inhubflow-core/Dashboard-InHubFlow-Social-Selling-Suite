@@ -153,27 +153,44 @@ export default function LinkedInAccountsPage() {
       const token = payload.accessToken || payload.liAt;
       if (!token) return;
 
-      // Si el modal está cerrado, lo abrimos directamente en Paso 2 de conexión
-      if (!isModalOpen) {
+      // Abrir o actualizar modal directamente en Paso 2 de conexión
+      setAutoConnectPayload({
+        accessToken: token.trim(),
+        premiumToken: payload.premiumToken || payload.liA,
+        userAgent: payload.userAgent,
+      });
+      setModalInitialAccount(null);
+      setModalInitialStep(2);
+      setIsModalOpen(true);
+    };
+
+    window.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
+    document.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
+    window.addEventListener("message", handleAutoConnectTrigger);
+
+    // Revisar si vino en sessionStorage guardado por la extensión
+    try {
+      const storedToken = sessionStorage.getItem("inhubflow_autoconnect_token");
+      const storedPrem = sessionStorage.getItem("inhubflow_autoconnect_prema");
+      if (storedToken) {
+        sessionStorage.removeItem("inhubflow_autoconnect_token");
+        sessionStorage.removeItem("inhubflow_autoconnect_prema");
         setAutoConnectPayload({
-          accessToken: token.trim(),
-          premiumToken: payload.premiumToken || payload.liA,
-          userAgent: payload.userAgent,
+          accessToken: storedToken.trim(),
+          premiumToken: storedPrem || undefined,
         });
         setModalInitialAccount(null);
         setModalInitialStep(2);
         setIsModalOpen(true);
       }
-    };
-
-    window.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
-    window.addEventListener("message", handleAutoConnectTrigger);
+    } catch {}
 
     return () => {
       window.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
+      document.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectTrigger as EventListener);
       window.removeEventListener("message", handleAutoConnectTrigger);
     };
-  }, [isModalOpen]);
+  }, []);
 
   const handleSelectActive = (id: string) => {
     setActiveId(id);

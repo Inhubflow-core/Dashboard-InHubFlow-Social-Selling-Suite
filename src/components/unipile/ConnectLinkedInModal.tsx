@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -143,6 +143,9 @@ export default function ConnectLinkedInModal({
   const [showSuccessAdviceModal, setShowSuccessAdviceModal] = useState(false);
   const [connectedAccountResult, setConnectedAccountResult] = useState<ConnectedLinkedInAccount | null>(null);
 
+  // Evitar ejecuciones duplicadas de autoconexión para el mismo token
+  const processedAutoConnectTokenRef = useRef<string | null>(null);
+
   // Inicializar o resetear datos cuando cambia isOpen o initialAccount
   useEffect(() => {
     if (isOpen) {
@@ -167,24 +170,41 @@ export default function ConnectLinkedInModal({
           setIsCheckpoint(false);
         }
       } else {
-        setForm(BLANK_FORM);
-        setAuthEmail("");
-        setModalStep(1);
+        setForm({
+          ...BLANK_FORM,
+          name: currentUser?.name || "",
+          email: currentUser?.email || "",
+        });
+        setAuthEmail(currentUser?.email || "");
+        setModalStep(initialStep || (autoConnectData?.accessToken ? 2 : 1));
         setIsCheckpoint(false);
       }
-      setAuthMode("credentials");
-      setAuthPassword("");
-      setShowAuthPassword(false);
-      setAuthCookieLiAt("");
-      setAuthCookieLiA("");
+
+      if (autoConnectData?.accessToken) {
+        setAuthMode("cookie");
+        setAuthCookieLiAt(autoConnectData.accessToken);
+        if (autoConnectData.premiumToken) {
+          setAuthCookieLiA(autoConnectData.premiumToken);
+        }
+        setModalStep(2);
+      } else {
+        setAuthMode("credentials");
+        setAuthPassword("");
+        setShowAuthPassword(false);
+        setAuthCookieLiAt("");
+        setAuthCookieLiA("");
+      }
+
       setAuthCountry(""); // Por defecto siempre Automático (Según tu IP)
       setAuthCustomProxy("");
       setAuthError(null);
       setCheckpointCode("");
       setShowSuccessAdviceModal(false);
       setConnectedAccountResult(null);
+    } else {
+      processedAutoConnectTokenRef.current = null;
     }
-  }, [isOpen, initialAccount, initialStep]);
+  }, [isOpen, initialAccount, initialStep, autoConnectData, currentUser]);
 
   // Manejo de avance de Paso 1 al Paso 2
   const handleProceedToStep2 = (e: React.FormEvent) => {
@@ -228,7 +248,7 @@ export default function ConnectLinkedInModal({
           mode: params.mode,
           accountId: initialAccount?.id || undefined,
           reconnectAccountId: initialAccount?.unipileAccountId || undefined,
-          name: form.name.trim() || undefined,
+          name: form.name.trim() || currentUser?.name || "Mi Perfil LinkedIn",
           username: params.username || authEmail.trim(),
           password: params.password || authPassword,
           accessToken: params.accessToken || authCookieLiAt.trim(),
@@ -352,6 +372,10 @@ export default function ConnectLinkedInModal({
       const token = (payload.accessToken || payload.liAt || "").trim();
       if (!token) return;
 
+      // Si ya se procesó este token para evitar bucles o llamadas duplicadas
+      if (processedAutoConnectTokenRef.current === token) return;
+      processedAutoConnectTokenRef.current = token;
+
       const premToken = (payload.premiumToken || payload.liA || "").trim();
       const userAgent = payload.userAgent;
 
@@ -359,6 +383,14 @@ export default function ConnectLinkedInModal({
       setAuthCookieLiAt(token);
       if (premToken) setAuthCookieLiA(premToken);
       setModalStep(2);
+      setAuthError(null);
+
+      // Garantizar nombre visible
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name.trim() || currentUser?.name || "Mi Perfil LinkedIn",
+        email: prev.email.trim() || currentUser?.email || "usuario@linkedin.com",
+      }));
 
       await performNativeLogin({
         mode: "cookie",
@@ -385,17 +417,33 @@ export default function ConnectLinkedInModal({
     };
 
     window.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
+    document.addEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
     window.addEventListener("message", handleAutoConnectEvent);
 
     if (autoConnectData && autoConnectData.accessToken) {
       processAutoConnect(autoConnectData);
     }
 
+    // Revisar si vino en sessionStorage guardado por la extensión
+    try {
+      const storedToken = sessionStorage.getItem("inhubflow_autoconnect_token");
+      const storedPrem = sessionStorage.getItem("inhubflow_autoconnect_prema");
+      if (storedToken) {
+        sessionStorage.removeItem("inhubflow_autoconnect_token");
+        sessionStorage.removeItem("inhubflow_autoconnect_prema");
+        processAutoConnect({
+          accessToken: storedToken,
+          premiumToken: storedPrem || undefined,
+        });
+      }
+    } catch {}
+
     return () => {
       window.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
+      document.removeEventListener("INHUBFLOW_AUTOCONNECT_EVENT", handleAutoConnectEvent as EventListener);
       window.removeEventListener("message", handleAutoConnectEvent);
     };
-  }, [isOpen, autoConnectData, form, initialAccount, authCountry, authCustomProxy]);
+  }, [isOpen, autoConnectData, currentUser]);
 
   // Manejo de resolución de 2FA
   const handleSolveCheckpoint = async (e: React.FormEvent) => {

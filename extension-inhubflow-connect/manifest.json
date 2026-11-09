@@ -2,13 +2,15 @@
   "manifest_version": 3,
   "name": "InHubFlow Connect — Vinculación LinkedIn 1-Clic",
   "short_name": "InHubFlow Connect",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Extensión oficial de InHubFlow para vincular tu cuenta de LinkedIn con tu Dashboard en 1 solo clic de forma 100% segura y privada.",
   "permissions": [
     "cookies",
     "activeTab",
     "tabs",
-    "clipboardWrite"
+    "clipboardWrite",
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>",

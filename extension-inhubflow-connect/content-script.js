@@ -6,7 +6,7 @@
   // Marca la presencia de la extensión en el DOM para que el Dashboard sepa que está instalada
   try {
     document.documentElement.setAttribute("data-inhubflow-extension-installed", "true");
-    document.documentElement.setAttribute("data-inhubflow-extension-version", "1.2.0");
+    document.documentElement.setAttribute("data-inhubflow-extension-version", "1.2.2");
   } catch (e) {
     // ignorar
   }
@@ -32,22 +32,40 @@
         source: "INHUBFLOW_EXTENSION",
       };
 
-      // 1. Despachar CustomEvent en window para React
-      window.dispatchEvent(
-        new CustomEvent("INHUBFLOW_AUTOCONNECT_EVENT", {
-          detail: payload,
-        })
-      );
+      try {
+        sessionStorage.setItem("inhubflow_autoconnect_token", message.accessToken);
+        if (message.premiumToken) {
+          sessionStorage.setItem("inhubflow_autoconnect_prema", message.premiumToken);
+        }
+      } catch (e) {}
+
+      // 1. Despachar CustomEvent en document y window para React
+      try {
+        document.dispatchEvent(
+          new CustomEvent("INHUBFLOW_AUTOCONNECT_EVENT", {
+            detail: payload,
+          })
+        );
+      } catch (e) {}
+      try {
+        window.dispatchEvent(
+          new CustomEvent("INHUBFLOW_AUTOCONNECT_EVENT", {
+            detail: payload,
+          })
+        );
+      } catch (e) {}
 
       // 2. Despachar window.postMessage para compatibilidad adicional
-      window.postMessage(
-        {
-          source: "INHUBFLOW_EXTENSION",
-          type: "AUTOCONNECT",
-          ...payload,
-        },
-        "*"
-      );
+      try {
+        window.postMessage(
+          {
+            source: "INHUBFLOW_EXTENSION",
+            type: "AUTOCONNECT",
+            ...payload,
+          },
+          "*"
+        );
+      } catch (e) {}
 
       // 3. Escuchar la respuesta del Dashboard para responderle al popup de la extensión
       const handleWebappResponse = (event) => {
