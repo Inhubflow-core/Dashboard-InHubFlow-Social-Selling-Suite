@@ -1,5 +1,6 @@
-import { parsePostHeader } from '@/lib/viral-posts/hookHighlighter';
 "use client";
+
+import { parsePostHeader } from '@/lib/viral-posts/hookHighlighter';
 
 import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
