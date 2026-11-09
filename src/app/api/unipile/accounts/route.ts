@@ -30,6 +30,9 @@ export async function GET() {
           rawStatus === 'CREDENTIALS' ? 'CREDENTIALS' : 'ERROR';
 
         let name = acc.name || im?.username || 'Cuenta LinkedIn';
+        if (name.toLowerCase() === 'lume app' || name.toLowerCase().includes('lume') || acc.id === 'acc_01m70m3h31fvn98wdf4s1dxwdp') {
+          name = 'Lumefy';
+        }
         let email = im?.username && im.username.includes('@') ? im.username : undefined;
         let headline = 'Perfil LinkedIn Conectado';
         let publicProfileUrl = im?.publicIdentifier ? `https://www.linkedin.com/in/${im.publicIdentifier}` : undefined;
@@ -39,7 +42,9 @@ export async function GET() {
           const profile = await unipile.getOwnProfile(acc.id);
           if (profile) {
             const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-            if (fullName) name = fullName;
+            if (fullName) {
+              name = (fullName.toLowerCase() === 'lume app' || fullName.toLowerCase().includes('lume') || acc.id === 'acc_01m70m3h31fvn98wdf4s1dxwdp') ? 'Lumefy' : fullName;
+            }
             if ((profile as any).occupation || profile.headline) {
               headline = ((profile as any).occupation || profile.headline || headline).trim();
             }

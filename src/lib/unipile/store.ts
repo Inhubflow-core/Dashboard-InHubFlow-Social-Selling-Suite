@@ -11,7 +11,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
   {
     id: "acc-li-acc_01m70m3h31fvn98wdf4s1dxwdp",
     unipileAccountId: "acc_01m70m3h31fvn98wdf4s1dxwdp",
-    name: "Lume app",
+    name: "Lumefy",
     email: "robertoorse.agencia@gmail.com",
     headline: "Assistente executivo de CEO da empresa LUMEFY",
     publicProfileUrl: "https://www.linkedin.com/in/lume-app-2b547144a",
@@ -34,7 +34,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     working_days: "1,2,3,4,5",
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-client-roberto-agencia",
-    assignedUserName: "Roberto OrSe Agencia (Admin Principal)",
+    assignedUserName: "Lumefy (Admin Principal)",
   },
 ];
 
@@ -73,16 +73,23 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       "robertoorse-agencia",
     ];
 
-    const cleanAccounts = parsed.filter((a: ConnectedLinkedInAccount) => {
-      if (!a || !a.id) return false;
-      const lowerId = a.id.toLowerCase();
-      const lowerName = (a.name || "").toLowerCase();
-      const lowerEmail = (a.email || "").toLowerCase();
-      const isFake = fakeKeywords.some(
-        (kw) => lowerId.includes(kw) || lowerName.includes(kw) || lowerEmail.includes(kw)
-      );
-      return !isFake;
-    });
+    const cleanAccounts = parsed
+      .filter((a: ConnectedLinkedInAccount) => {
+        if (!a || !a.id) return false;
+        const lowerId = a.id.toLowerCase();
+        const lowerName = (a.name || "").toLowerCase();
+        const lowerEmail = (a.email || "").toLowerCase();
+        const isFake = fakeKeywords.some(
+          (kw) => lowerId.includes(kw) || lowerName.includes(kw) || lowerEmail.includes(kw)
+        );
+        return !isFake;
+      })
+      .map((a: ConnectedLinkedInAccount) => {
+        if ((a.name || "").toLowerCase() === "lume app" || a.unipileAccountId === "acc_01m70m3h31fvn98wdf4s1dxwdp") {
+          return { ...a, name: "Lumefy" };
+        }
+        return a;
+      });
 
     if (cleanAccounts.length === 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLinkedInAccounts));
@@ -338,9 +345,23 @@ export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccoun
   const visible = getVisibleAccountsForUser(user);
   if (visible.length === 0) return null;
 
-  // 1. REGLA OBLIGATORIA DE IDENTIDAD:
-  // Si el usuario navegando tiene una cuenta propia o asignada en visible, esa cuenta
-  // es SIEMPRE la cuenta activa de forma infalible.
+  // 1. Si activeId guardado en localStorage está dentro de las visibles y está conectado (status OK), respetarlo
+  const activeId = getActiveAccountId();
+  const activeConnected = visible.find((a) => (a.id === activeId || a.unipileAccountId === activeId) && a.status === "OK");
+  if (activeConnected) return activeConnected;
+
+  // 2. Si hay una cuenta conectada en estado OK (ej. Lumefy), priorizarla para que todas las herramientas operen en vivo
+  const okAccount = visible.find((a) => a.status === "OK");
+  if (okAccount) {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(ACTIVE_ACCOUNT_KEY, okAccount.id);
+      } catch {}
+    }
+    return okAccount;
+  }
+
+  // 3. REGLA OBLIGATORIA DE IDENTIDAD: Si el usuario navegando tiene una cuenta propia o asignada en visible
   const directAccount = visible.find((a) => accountMatchesUser(a, user));
   if (directAccount) {
     if (typeof window !== "undefined") {
@@ -351,12 +372,11 @@ export function getActiveAccountForUser(user: SaaSUser): ConnectedLinkedInAccoun
     return directAccount;
   }
 
-  // 2. Si no hay cuenta directa propia pero activeId está dentro de las visibles, respetarlo
-  const activeId = getActiveAccountId();
+  // 4. Si activeId está dentro de las visibles, respetarlo
   const found = visible.find((a) => a.id === activeId || a.unipileAccountId === activeId);
   if (found) return found;
 
-  // 3. Fallback a la primera visible
+  // 5. Fallback a la primera visible
   const first = visible[0];
   if (first && typeof window !== "undefined") {
     try {

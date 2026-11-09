@@ -185,9 +185,7 @@ export default function UserDropdown() {
 
         <div className="hidden text-left xl:block me-2">
           <span suppressHydrationWarning className="block text-theme-xs font-bold text-gray-900 dark:text-white">
-            {currentUser.role === "super_admin"
-              ? currentUser.name
-              : activeLinkedInAccount?.name || currentUser.name}
+            {activeLinkedInAccount?.name || currentUser.name}
           </span>
           <span suppressHydrationWarning className={`block text-xs ${subtitleColorClass}`}>
             {subtitleText}
@@ -219,14 +217,10 @@ export default function UserDropdown() {
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">
-                {currentUser.role === "super_admin"
-                  ? currentUser.name
-                  : activeLinkedInAccount?.name || currentUser.name}
+                {activeLinkedInAccount?.name || currentUser.name}
               </span>
               <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
-                {currentUser.role === "super_admin"
-                  ? currentUser.email
-                  : activeLinkedInAccount?.headline || currentUser.email}
+                {activeLinkedInAccount?.headline || currentUser.email}
               </span>
             </div>
           </div>
