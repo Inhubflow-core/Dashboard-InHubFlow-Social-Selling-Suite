@@ -25,6 +25,7 @@ interface TopBarProps {
   start?: ReactNode
   action?: ReactNode
   end?: ReactNode
+  showTitle?: boolean
   onTitle: (title: string) => void
   onPresent: () => void
 }
@@ -153,7 +154,7 @@ function ShareMenu({ onPresent }: { onPresent: () => void }) {
           {
             id: 'suggested',
             label: t.topbar.suggestedFor(preset.label),
-            hint: `${describeChoice(suggested)} · ${preset.width} × ${preset.height}`,
+            hint: `${describeChoice(suggested)} Â· ${preset.width} Ã— ${preset.height}`,
             feature: exportFormats.get(suggested.formatId)?.label ?? suggested.formatId,
             icon: <Download size={16} aria-hidden="true" />,
             onSelect: () => void quick(suggested),
@@ -216,7 +217,7 @@ function useWidth(ref: React.RefObject<HTMLElement | null>): number {
 /**
  * The bar: the design's menus, history and save state on the left, its title in the middle, and the actions on the right.
  */
-export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) {
+export function TopBar({ start, action, end, showTitle = true, onTitle, onPresent }: TopBarProps) {
   const editor = useEditor()
   const history = useEditorState((s) => s.history)
   const readOnly = useEditorState((s) => s.readOnly)
@@ -233,7 +234,13 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
   }, [readOnly, editor])
 
   return (
-    <header ref={barRef} className={styles.bar} data-testid="ed-topbar" data-narrow={narrow || undefined}>
+    <header
+      ref={barRef}
+      className={styles.bar}
+      data-testid="ed-topbar"
+      data-narrow={narrow || undefined}
+      style={!showTitle ? { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } : undefined}
+    >
       <div className={styles.left}>
         {start}
         {readOnly ? null : (
@@ -250,11 +257,11 @@ export function TopBar({ start, action, end, onTitle, onPresent }: TopBarProps) 
             </Tooltip>
           </span>
         )}
-        {narrow ? <TitleField onTitle={onTitle} /> : null}
+        {narrow && showTitle ? <TitleField onTitle={onTitle} /> : null}
         <SaveStatus />
       </div>
 
-      {narrow ? null : (
+      {narrow || !showTitle ? null : (
         <div className={styles.center}>
           <TitleField onTitle={onTitle} />
         </div>

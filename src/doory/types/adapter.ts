@@ -1,6 +1,6 @@
 /**
  * The only seam between the app shell and the editor.
- * The editor never touches routing, auth or HTTP directly — everything goes through an EditorAdapter.
+ * The editor never touches routing, auth or HTTP directly â€” everything goes through an EditorAdapter.
  */
 import type { ReactNode } from 'react'
 import type {
@@ -141,7 +141,7 @@ export interface AiService {
   /**
    * Runs `task` with the server option `model` on an image and resolves with the new asset. `assetId` is the
    * image's asset when it has one; otherwise (or when it is not this user's) `image` is uploaded first.
-   * Rejects with the server's `ApiError` (`ai_timeout`, `ai_quota`, …).
+   * Rejects with the server's `ApiError` (`ai_timeout`, `ai_quota`, â€¦).
    */
   run(task: string, input: { model: string; image: Blob | (() => Promise<Blob>); assetId?: string; signal?: AbortSignal }): Promise<AssetRef>
   /** The option this user last picked for `task`, if any. */
@@ -283,7 +283,7 @@ export interface EditorAdapter {
    */
   requireAccount(reason: AccountReason, getSnapshot: () => Promise<SaveInput>): Promise<boolean>
   uploadAsset(file: File | Blob, opts?: { name?: string }): Promise<AssetRef>
-  /** Turn a stored `src` (`idb://…`, `/media/…`, `https://…`) into a URL Fabric can load. */
+  /** Turn a stored `src` (`idb://â€¦`, `/media/â€¦`, `https://â€¦`) into a URL Fabric can load. */
   resolveSrc(src: string): Promise<string>
   /** Guest-only portable backup of the editable project and its browser-owned files. */
   exportProject?: () => Promise<{ blob: Blob; filename: string }>
@@ -292,7 +292,7 @@ export interface EditorAdapter {
   realtime?: RealtimeConnection | null
   /** The instance's default export file names (the download dialog starts there until the user picks). Simple without it. */
   exportFilenames?: { style: 'simple' | 'structured'; timestamp: boolean }
-  /** Server-side vector PDF (account only). Absent → editor falls back to client-side PDF. */
+  /** Server-side vector PDF (account only). Absent â†’ editor falls back to client-side PDF. */
   exportPdf?: (input: {
     /** One SVG document per page. Raster images are embedded as `data:` URIs (the server strips every other `href`). */
     svgPages: string[]
@@ -306,7 +306,7 @@ export interface EditorAdapter {
     title?: string
     /** Language of the document (BCP 47), written into the PDF; the server assumes English without it. */
     lang?: string
-    /** The same-origin `/media/…` font files the pages use (family, weight, style); the server embeds them itself. */
+    /** The same-origin `/media/â€¦` font files the pages use (family, weight, style); the server embeds them itself. */
     fonts?: PdfFontFile[]
     /** Aborting it cancels the request. */
     signal?: AbortSignal
@@ -392,6 +392,8 @@ export interface EditorAppProps {
   topBarStart?: ReactNode
   topBarAction?: ReactNode
   topBarEnd?: ReactNode
+  /** If false, completely hides the title field in the top bar. */
+  showTitle?: boolean
 }
 
 export interface VideoUploadOptions {

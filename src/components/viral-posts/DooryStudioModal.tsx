@@ -408,6 +408,7 @@ export default function DooryStudioModal({
           topBarStart={topBarStart}
           topBarAction={topBarAction}
           topBarEnd={topBarEnd}
+          showTitle={false}
         />
       </main>
 

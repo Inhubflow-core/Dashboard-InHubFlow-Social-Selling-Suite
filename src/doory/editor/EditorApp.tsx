@@ -42,7 +42,7 @@ if (typeof window !== 'undefined') {
 }
 import styles from './EditorApp.module.css'
 
-/** How many times the code of the live session is fetched again (after 1, 2, 4, 8 s …) before the person is told to reload. */
+/** How many times the code of the live session is fetched again (after 1, 2, 4, 8 s â€¦) before the person is told to reload. */
 const COLLAB_LOAD_ATTEMPTS = 4
 
 function LiveRegion() {
@@ -59,7 +59,7 @@ function LiveRegion() {
  * panels, history, export, autosave triggering) lives inside.
  */
 export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function EditorApp(props, ref) {
-  const { document: doc, meta, adapter, onTitleChange, onSaveStateChange, onConflictResolve, topBarStart, topBarAction, topBarEnd } = props
+  const { document: doc, meta, adapter, onTitleChange, onSaveStateChange, onConflictResolve, topBarStart, topBarAction, topBarEnd, showTitle = true } = props
   const [engine] = useState(() => new EditorEngine({ adapter, document: doc, meta }))
   const [root, setRoot] = useState<HTMLDivElement | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -80,7 +80,7 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
     [engine],
   )
 
-  // Lifecycle: start/stop are re-entrant so StrictMode's mount → unmount → mount is harmless; the final
+  // Lifecycle: start/stop are re-entrant so StrictMode's mount â†’ unmount â†’ mount is harmless; the final
   // teardown only runs if nobody restarted the engine on the next tick.
   useEffect(() => {
     engine.start()
@@ -175,7 +175,7 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
     <div ref={setRootEl} className={styles.root} data-editor-root aria-label={t.appLabel} role="application">
       <EditorProvider engine={engine} portalRoot={root} collab={session}>
         <ChromeProvider>
-          <TopBar start={topBarStart} action={topBarAction} end={topBarEnd} onTitle={onTitle} onPresent={() => engine.openDialog('presenter')} />
+          <TopBar start={topBarStart} action={topBarAction} end={topBarEnd} showTitle={showTitle} onTitle={onTitle} onPresent={() => engine.openDialog('presenter')} />
           <ConflictBanner onResolve={onConflictResolve} />
           <CollabBanner />
           <MissingFontsNotice />
