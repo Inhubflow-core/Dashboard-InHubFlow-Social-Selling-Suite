@@ -280,7 +280,13 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
           }),
         });
 
-        const data = await res.json();
+        const rawText = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          data = { error: rawText.includes("<!DOCTYPE") ? `Error del servidor (${res.status}): El endpoint no devolvió una respuesta válida.` : rawText };
+        }
         if (!res.ok) {
           throw new Error(data.error || "Error al publicar directamente en LinkedIn.");
         }
