@@ -447,6 +447,10 @@ export default function DooryStudioModal({
             id: `inhubflow-design-${docKey}`,
             title: initialTitle || "Diseño Social InHubFlow",
             mode: "guest",
+            postTitle: initialTitle,
+            postSubtitle: initialSubtitle,
+            authorName: authorName,
+            authorHandle: authorHandle,
           }}
           adapter={adapterPackage.adapter}
           topBarStart={topBarStart}

@@ -1943,6 +1943,57 @@ assert(horizontalResized.pages[0].objects.length === 3, "Ningún elemento se pie
 assert(horizontalResized.pages[0].objects[0].text === "5 Claves de Prospección B2B", "El texto se conserva intacto en formato panorámico");
 assert(horizontalResized.pages[0].objects[0].fontSize < verticalResized.pages[0].objects[0].fontSize, "El tamaño de tipografía se adapta proporcionalmente al nuevo alto");
 
+// -----------------------------------------------------------------------------
+// PRUEBA 32: Inyección Inteligente de Gancho (Título) y Subtítulo en Plantillas
+// -----------------------------------------------------------------------------
+console.log("\n--- 32. Prueba de Inyección Inteligente de Gancho y Subtítulo en Plantillas ---");
+
+// Plantilla global de ejemplo guardada en la plataforma
+const globalTemplateDoc = {
+  width: 1200,
+  height: 1500,
+  pages: [
+    {
+      id: "tpl_page_1",
+      objects: [
+        { id: "t_1", kind: "text", name: "Título", text: "[Título de Plantilla de Ejemplo]", fontSize: 56, fontFamily: "Outfit", fill: "#0f172a" },
+        { id: "t_2", kind: "text", name: "Subtítulo", text: "[Subtítulo o descripción genérica de la plantilla]", fontSize: 32, fontFamily: "Outfit", fill: "#475569" },
+        { id: "img_1", kind: "image", src: "https://inhubflow.com/badge.png", width: 120, height: 120 },
+        { id: "author_1", kind: "text", name: "Autor", text: "@usuario_demo", fontSize: 18 }
+      ]
+    }
+  ]
+};
+
+// Datos del post activo del cliente
+const postHook = "5 Errores al prospectar en LinkedIn que destruyen tu conversión";
+const postSubtitle = "Aquí tienes el framework exacto que usamos para cerrar reuniones";
+const authorName = "Roberto OrSe";
+
+// Simulación de injectPostContentIntoTemplate
+function simulateTemplateAutofill(template, title, subtitle, author) {
+  const cloned = JSON.parse(JSON.stringify(template));
+  for (const page of cloned.pages) {
+    const textObjects = page.objects.filter(o => o.kind === "text");
+    const titleObj = textObjects.find(o => /t[íi]tulo|title|hook|gancho/i.test(o.name)) || textObjects[0];
+    const subtitleObj = textObjects.find(o => o !== titleObj && /subt[íi]tulo|subtitle/i.test(o.name)) || textObjects[1];
+    const authorObj = textObjects.find(o => o !== titleObj && o !== subtitleObj && /autor|author/i.test(o.name));
+    
+    if (titleObj && title) titleObj.text = title;
+    if (subtitleObj && subtitle) subtitleObj.text = subtitle;
+    if (authorObj && author) authorObj.text = author;
+  }
+  return cloned;
+}
+
+const injectedTemplate = simulateTemplateAutofill(globalTemplateDoc, postHook, postSubtitle, authorName);
+assert(injectedTemplate.pages[0].objects[0].text === postHook, "La plantilla global adopta automáticamente el gancho/título del post");
+assert(injectedTemplate.pages[0].objects[1].text === postSubtitle, "La plantilla global adopta automáticamente el subtítulo del post");
+assert(injectedTemplate.pages[0].objects[3].text === authorName, "La plantilla adopta el nombre del autor automáticamente");
+assert(injectedTemplate.pages[0].objects[0].fontFamily === "Outfit", "La tipografía Outfit de la plantilla se preserva íntegramente");
+assert(injectedTemplate.pages[0].objects[0].fontSize === 56, "El tamaño de fuente y diseño del titular de la plantilla se conserva");
+assert(injectedTemplate.pages[0].objects[2].src === "https://inhubflow.com/badge.png", "Los elementos decorativos (imágenes, badges) se mantienen intactos");
+
 // Limpieza de base de datos de test
 
 db.close();

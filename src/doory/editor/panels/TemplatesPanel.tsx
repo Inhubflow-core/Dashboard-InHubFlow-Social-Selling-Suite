@@ -14,7 +14,7 @@ import { Skeleton } from '../ui/Skeleton'
 import ed from '../chrome/ed.module.css'
 import { type CategoryEntry, CategoryMenu, LibrarySearch } from './library'
 import { splitColumns } from './masonry'
-import { type TemplateMode, applyTemplate } from './templateOps'
+import { type TemplateMode, applyTemplate, injectPostContentIntoTemplate } from './templateOps'
 import stickers from './Sticker.module.css'
 import styles from './Templates.module.css'
 
@@ -97,7 +97,14 @@ export function TemplatesPanel({ close }: { close: () => void }) {
     setBusy(tpl.id)
     try {
       const detail = await templates.get(tpl.slug)
-      const applied = applyTemplate(editor.getDocument(), editor.state.activePageId, migrateDocument(detail.document), mode)
+      const migrated = migrateDocument(detail.document)
+      const preparedTemplate = injectPostContentIntoTemplate(
+        migrated,
+        editor.meta?.postTitle,
+        editor.meta?.postSubtitle,
+        editor.meta?.authorName,
+      )
+      const applied = applyTemplate(editor.getDocument(), editor.state.activePageId, preparedTemplate, mode)
       if (!applied) {
         editor.toast(t.templates.noRoom, 'error')
         return

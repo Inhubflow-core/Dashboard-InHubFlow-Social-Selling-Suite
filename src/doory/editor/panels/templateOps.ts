@@ -77,3 +77,77 @@ export function applyTemplate(doc: DoryDocument, activePageId: string, template:
   next.splice(index + 1, 0, ...incoming)
   return { doc: normalizeSizes({ ...doc, pages: next }), activePageId: incoming[0].id, added: incoming.length }
 }
+
+/**
+ * Injects the post's dynamic hook (title) and secondary hook (subtitle) into
+ * the template's designated or hierarchical text objects, preserving all typography,
+ * styles, positioning, and colors intact.
+ */
+export function injectPostContentIntoTemplate(
+  template: DoryDocument,
+  postTitle?: string,
+  postSubtitle?: string,
+  authorName?: string,
+): DoryDocument {
+  if (!postTitle && !postSubtitle && !authorName) return template
+
+  const cloned = structuredClone(template)
+
+  for (const page of cloned.pages) {
+    // Collect all text objects on this page
+    const textObjects = page.objects.filter(
+      (o: any) => o.kind === 'text' || o.type === 'text' || o.type === 'textbox' || o.type === 'i-text' || typeof o.text === 'string',
+    )
+
+    if (textObjects.length === 0) continue
+
+    // 1. Identify Title Object (Hook):
+    // Priority a: Explicit layer name (/t[íi]tulo|title|titular|heading|hook|gancho/i) or field tag === 'title'|'hook'
+    // Priority b: Object with largest fontSize on the page
+    let titleObj = textObjects.find(
+      (o: any) => /t[íi]tulo|title|titular|heading|hook|gancho/i.test(o.name || '') || o.field === 'title' || o.field === 'hook',
+    )
+
+    if (!titleObj) {
+      const sortedByFont = [...textObjects].sort((a: any, b: any) => (b.fontSize || 0) - (a.fontSize || 0))
+      titleObj = sortedByFont[0]
+    }
+
+    // 2. Identify Subtitle Object (Second Hook / Subheading):
+    // Priority a: Explicit layer name (/subt[íi]tulo|subtitle|subheading|segundo|second|bajada/i) or field tag === 'subtitle'
+    // Priority b: Second most prominent text object that is not titleObj
+    let subtitleObj = textObjects.find(
+      (o: any) => o !== titleObj && (/subt[íi]tulo|subtitle|subheading|segundo|second|bajada/i.test(o.name || '') || o.field === 'subtitle'),
+    )
+
+    if (!subtitleObj) {
+      const remaining = textObjects.filter((o: any) => o !== titleObj)
+      if (remaining.length > 0) {
+        const sortedRemaining = remaining.sort((a: any, b: any) => (b.fontSize || 0) - (a.fontSize || 0))
+        subtitleObj = sortedRemaining[0]
+      }
+    }
+
+    // 3. Inject Title/Hook if provided
+    if (titleObj && postTitle?.trim()) {
+      titleObj.text = postTitle.trim()
+    }
+
+    // 4. Inject Subtitle if provided
+    if (subtitleObj && postSubtitle?.trim()) {
+      subtitleObj.text = postSubtitle.trim()
+    }
+
+    // 5. Inject Author name if an author/handle object is present
+    if (authorName?.trim()) {
+      const authorObj = textObjects.find(
+        (o: any) => o !== titleObj && o !== subtitleObj && (/autor|author|nombre|name|handle|usuario/i.test(o.name || '') || o.field === 'author'),
+      )
+      if (authorObj) {
+        authorObj.text = authorName.trim()
+      }
+    }
+  }
+
+  return cloned
+}

@@ -146,8 +146,12 @@ export class EditorEngine implements PageCanvasHost {
   /** Told when the user tries to edit text somebody else is editing (set by the live session). */
   editBlockedHandler: ((pageId: string, id: string) => void) | null = null
 
+  /** Metadata of the active document and social post (hook, subtitle, author). */
+  readonly meta: EditorMeta
+
   constructor(options: EditorEngineOptions) {
     this.adapter = options.adapter
+    this.meta = options.meta
     this.designIdValue = options.meta.id
     const doc = migrateDocument(options.document)
     this.openedDoc = doc

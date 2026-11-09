@@ -64,6 +64,10 @@ export interface EditorMeta {
   mode: EditorMode
   /** Server revision the document was loaded at (account / shared-edit). */
   revision?: number
+  postTitle?: string
+  postSubtitle?: string
+  authorName?: string
+  authorHandle?: string
 }
 
 /** Durable reference to an uploaded image or audio file. `url` may be `idb://<uuid>` in guest mode (audio has no thumbnail and a size of 0 x 0). */
