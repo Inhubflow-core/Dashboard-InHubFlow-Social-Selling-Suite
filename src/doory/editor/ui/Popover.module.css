@@ -22,6 +22,7 @@
   border-radius: 14px;
   box-shadow: 0 16px 40px rgb(43 28 23 / 0.12);
   animation: pop-in 140ms var(--ease-out);
+  overflow-x: hidden;
 }
 
 .cover {

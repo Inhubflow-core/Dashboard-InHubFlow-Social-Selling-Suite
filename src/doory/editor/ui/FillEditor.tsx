@@ -16,6 +16,7 @@ interface FillEditorProps {
   /** Hide the gradient tab (strokes, text effects). */
   solidOnly?: boolean
   extraSwatches?: { label: string; colors: readonly string[] }
+  hideSwatches?: boolean
 }
 
 type Mode = 'solid' | 'linear' | 'radial'
@@ -25,7 +26,7 @@ function modeOf(v: FillSpec): Mode {
 }
 
 /** Solid colour or linear/radial gradient with a draggable stop editor. */
-export function FillEditor({ value, onChange, solidOnly, extraSwatches }: FillEditorProps) {
+export function FillEditor({ value, onChange, solidOnly, extraSwatches, hideSwatches }: FillEditorProps) {
   const [selected, setSelected] = useState(0)
   const mode = modeOf(value)
 
@@ -58,9 +59,9 @@ export function FillEditor({ value, onChange, solidOnly, extraSwatches }: FillEd
         />
       )}
       {value.type === 'solid' ? (
-        <ColorPicker value={value.color} onChange={(color) => onChange({ type: 'solid', color })} extraSwatches={extraSwatches} />
+        <ColorPicker value={value.color} onChange={(color) => onChange({ type: 'solid', color })} extraSwatches={extraSwatches} hideSwatches={hideSwatches} />
       ) : (
-        <GradientEditor value={value} selected={selected} onSelect={setSelected} onChange={onChange} extraSwatches={extraSwatches} />
+        <GradientEditor value={value} selected={selected} onSelect={setSelected} onChange={onChange} extraSwatches={extraSwatches} hideSwatches={hideSwatches} />
       )}
     </div>
   )
@@ -72,12 +73,14 @@ function GradientEditor({
   onSelect,
   onChange,
   extraSwatches,
+  hideSwatches,
 }: {
   value: Extract<FillSpec, { type: 'gradient' }>
   selected: number
   onSelect: (i: number) => void
   onChange: (fill: FillSpec) => void
   extraSwatches?: { label: string; colors: readonly string[] }
+  hideSwatches?: boolean
 }) {
   const barRef = useRef<HTMLDivElement>(null)
   const stops = value.stops
@@ -162,7 +165,7 @@ function GradientEditor({
           {t.fill.removeStop}
         </Button>
       </div>
-      <ColorPicker value={stops[index]?.color ?? '#000000'} onChange={(color) => update(stops.map((s, j) => (j === index ? { ...s, color } : s)))} extraSwatches={extraSwatches} />
+      <ColorPicker value={stops[index]?.color ?? '#000000'} onChange={(color) => update(stops.map((s, j) => (j === index ? { ...s, color } : s)))} extraSwatches={extraSwatches} hideSwatches={hideSwatches} />
     </div>
   )
 }

@@ -1,13 +1,14 @@
 .picker {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  width: 264px;
+  gap: 10px;
+  width: 100%;
+  min-width: 300px;
 }
 
 .sv {
   position: relative;
-  height: 160px;
+  height: 150px;
   border-radius: var(--radius-md);
   cursor: crosshair;
   touch-action: none;
@@ -105,6 +106,7 @@
 .inputs {
   display: flex;
   gap: 6px;
+  width: 100%;
 }
 
 .input {
@@ -115,7 +117,8 @@
   flex: 1;
 }
 .hex {
-  flex: 2.2;
+  flex: 2;
+  min-width: 68px;
 }
 .input span {
   color: var(--color-text-subtle);
@@ -125,7 +128,7 @@
 }
 .input input {
   width: 100%;
-  height: 30px;
+  height: 28px;
   padding: 0 4px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
@@ -135,6 +138,7 @@
   text-align: center;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
 }
 .input input[aria-invalid='true'] {
   border-color: var(--color-danger);

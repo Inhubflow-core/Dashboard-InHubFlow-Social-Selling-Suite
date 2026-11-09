@@ -689,11 +689,13 @@
 
 /* ── Colour popover (swatch grid) ── */
 .colorPicker {
-  width: 280px;
-  max-height: 480px;
-  padding: 12px 14px 14px;
+  width: 330px;
+  max-height: calc(100vh - 80px);
+  padding: 14px;
+  overflow-x: hidden;
   overflow-y: auto;
   user-select: none;
+  box-sizing: border-box;
 }
 .cpTitle {
   margin: 14px 0 8px;
@@ -707,6 +709,7 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+  justify-items: center;
 }
 .cpSwatch {
   position: relative;

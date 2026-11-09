@@ -85,12 +85,12 @@ function SwatchGrid({ value, onChange, allowNone, allowGradient, testId }: Pick<
 
   if (view === 'custom') {
     return (
-      <div className={ed.colorPicker} style={{ width: 280 }}>
+      <div className={ed.colorPicker} style={{ width: 330 }}>
         <button type="button" className={ed.cpBack} onClick={() => setView('swatches')}>
           <span style={{ display: 'inline-flex', transform: 'rotate(90deg)' }}>{I.chevronDown}</span>
           {t.swatches.back}
         </button>
-        {allowGradient ? <FillEditor value={value} onChange={(f) => onChange(f, 'fill-custom')} /> : <ColorPicker value={value.type === 'solid' ? value.color : '#000000'} onChange={(c) => solid(c, 'fill-custom')} />}
+        {allowGradient ? <FillEditor value={value} onChange={(f) => onChange(f, 'fill-custom')} hideSwatches /> : <ColorPicker value={value.type === 'solid' ? value.color : '#000000'} onChange={(c) => solid(c, 'fill-custom')} hideSwatches />}
       </div>
     )
   }

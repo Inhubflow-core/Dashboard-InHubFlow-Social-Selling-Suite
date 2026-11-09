@@ -13,6 +13,7 @@ interface ColorPickerProps {
   allowAlpha?: boolean
   /** Extra swatches shown first (e.g. the colours of an element or brand kit). */
   extraSwatches?: { label: string; colors: readonly string[] }
+  hideSwatches?: boolean
 }
 
 interface EyeDropperLike {
@@ -27,7 +28,7 @@ function toHsva(value: string): Hsva {
   return rgbToHsv(rgba)
 }
 
-export function ColorPicker({ value, onChange, allowAlpha = true, extraSwatches }: ColorPickerProps) {
+export function ColorPicker({ value, onChange, allowAlpha = true, extraSwatches, hideSwatches }: ColorPickerProps) {
   const [hsva, setHsva] = useState<Hsva>(() => toHsva(value))
   const emitted = useRef(value)
   const docColors = useDocumentColors()
@@ -147,14 +148,16 @@ export function ColorPicker({ value, onChange, allowAlpha = true, extraSwatches 
           </label>
         ) : null}
       </div>
-      <div className={styles.swatchArea}>
-        {extraSwatches && extraSwatches.colors.length > 0 ? <SwatchRow label={extraSwatches.label} colors={extraSwatches.colors} onPick={pick} current={hex} /> : null}
-        {docColors.length > 0 ? <SwatchRow label={t.picker.documentColors} colors={docColors} onPick={pick} current={hex} /> : null}
-        {recent.length > 0 ? <SwatchRow label={t.picker.recent} colors={recent} onPick={pick} current={hex} /> : null}
-        {allPalettes.map((p) => (
-          <SwatchRow key={p.id} label={p.label} colors={p.colors} onPick={pick} current={hex} />
-        ))}
-      </div>
+      {!hideSwatches ? (
+        <div className={styles.swatchArea}>
+          {extraSwatches && extraSwatches.colors.length > 0 ? <SwatchRow label={extraSwatches.label} colors={extraSwatches.colors} onPick={pick} current={hex} /> : null}
+          {docColors.length > 0 ? <SwatchRow label={t.picker.documentColors} colors={docColors} onPick={pick} current={hex} /> : null}
+          {recent.length > 0 ? <SwatchRow label={t.picker.recent} colors={recent} onPick={pick} current={hex} /> : null}
+          {allPalettes.map((p) => (
+            <SwatchRow key={p.id} label={p.label} colors={p.colors} onPick={pick} current={hex} />
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
