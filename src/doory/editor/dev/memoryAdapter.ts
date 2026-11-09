@@ -117,6 +117,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
   let revision = 1
   const comments = createMemoryComments({ role: options.commentRole ?? 'owner', getDocument: () => (currentDocument ? currentDocument() : createBlankDemo()), seed: options.commentSeed })
   /** Uploads are addressed as `idb://<id>` the way a guest-mode adapter stores them; this maps ids to object URLs. */
+  const persistentObjectUrls = new Map<string, string>()
   const objectUrls = new Map<string, string>()
   /** Audio files uploaded in this session, for the Uploads tab of the Audio tool. */
   const audioUploads: { ref: AssetRef; size: number; type: string }[] = []
@@ -195,8 +196,15 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
     async resolveSrc(src: string): Promise<string> {
       const match = /^idb:\/\/([0-9a-f-]{36})$/i.exec(src)
       if (!match) return src
-      const url = objectUrls.get(match[1].toLowerCase())
-      if (!url) throw new Error('Unknown local asset')
+      const key = match[1].toLowerCase()
+      const url =
+        objectUrls.get(key) ||
+        persistentObjectUrls.get(key) ||
+        (typeof window !== 'undefined' ? (window as any).__inhubflow_asset_cache?.get(key) : undefined)
+      if (!url) {
+        console.warn('[VisualStudio] Recurso local expirado o no encontrado:', src)
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f1f5f9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="13">Recurso no disponible</text></svg>'
+      }
       return url
     },
     services: {

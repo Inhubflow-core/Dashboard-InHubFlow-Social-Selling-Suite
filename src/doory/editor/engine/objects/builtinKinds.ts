@@ -26,7 +26,12 @@ const SHAPE_TYPES = new Set(['rect', 'ellipse', 'circle', 'triangle', 'polygon',
 async function prepareImage(json: DocObject, ctx: { resolveSrc(src: string): Promise<string> }): Promise<void> {
   const src = typeof json.src === 'string' ? json.src : ''
   json.docSrc = src
-  json.src = src ? await ctx.resolveSrc(src) : ''
+  try {
+    json.src = src ? await ctx.resolveSrc(src) : ''
+  } catch (err) {
+    console.warn('[VisualStudio] Error al resolver imagen:', err)
+    json.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100%" height="100%" fill="%23f1f5f9"/></svg>'
+  }
   json.crossOrigin = 'anonymous'
   if (json.slot !== undefined) {
     const slot = validSlot(json.slot)
