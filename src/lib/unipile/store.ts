@@ -9,16 +9,16 @@ const ACTIVE_ACCOUNT_KEY = "inhubflow_active_linkedin_account_id";
 // an empty sandbox cannot look like a live Unipile connection.
 export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
   {
-    id: "acc-li-HfrdagEmSrONX8jqE9IYjQ",
-    unipileAccountId: "HfrdagEmSrONX8jqE9IYjQ",
-    name: "Roberto OrSe Agencia",
+    id: "acc-li-acc_01m70m3h31fvn98wdf4s1dxwdp",
+    unipileAccountId: "acc_01m70m3h31fvn98wdf4s1dxwdp",
+    name: "Lume app",
     email: "robertoorse.agencia@gmail.com",
-    headline: "CEO na RobertoOrSe",
-    publicProfileUrl: "https://www.linkedin.com/in/robertoorse-agencia",
-    profilePictureUrl: "/images/user/owner.png",
+    headline: "Assistente executivo de CEO da empresa LUMEFY",
+    publicProfileUrl: "https://www.linkedin.com/in/lume-app-2b547144a",
+    profilePictureUrl: "https://media.licdn.com/dms/image/v2/D4E03AQESqIGowbJQJw/profile-displayphoto-shrink_200_200/B4EaHBQYkiIgAU-/0/1794243660742?e=1795651200&v=beta&t=SxpBTNXVhv9foxVrvalOE4Bf_urPC6ml7MPiEOwXIfE",
     status: "OK",
     authMode: "hosted",
-    connectedAt: "2026-10-19T18:30:00.000Z",
+    connectedAt: "2026-11-09T17:01:26.322Z",
     lastSyncAt: "Sincronizado con InHubFlow Cloud (Unipile v2)",
     dailyActionsCount: {
       invitationsSent: 0,
@@ -30,11 +30,11 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     daily_visit_limit: 20,
     active_hours_start: 9,
     active_hours_end: 18,
-    timezone: "Europe/Madrid",
+    timezone: "America/Sao_Paulo",
     working_days: "1,2,3,4,5",
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-client-roberto-agencia",
-    assignedUserName: "Roberto OrSe Agencia (Admin)",
+    assignedUserName: "Roberto OrSe Agencia (Admin Principal)",
   },
 ];
 
@@ -69,6 +69,8 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       "ads cashgrow",
       "7vsgkbgltngrbzzkuh6vpq",
       "usr-team-lynn-01",
+      "hfrdag",
+      "robertoorse-agencia",
     ];
 
     const cleanAccounts = parsed.filter((a: ConnectedLinkedInAccount) => {

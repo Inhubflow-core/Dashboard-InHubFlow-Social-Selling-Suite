@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Link } from "@/i18n/navigation";
 import { ChevronDownIcon } from "@/icons";
@@ -172,7 +172,7 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         suppressHydrationWarning
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
-        title={`${currentUser.name} (${subtitleText})`}
+        title={`${currentUser.role === "super_admin" ? currentUser.name : (activeLinkedInAccount?.name || currentUser.name)} (${subtitleText})`}
       >
         <div className="relative me-2.5 shrink-0">
           <span className="h-10 w-10 overflow-hidden rounded-full border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-200">
@@ -185,7 +185,9 @@ export default function UserDropdown() {
 
         <div className="hidden text-left xl:block me-2">
           <span suppressHydrationWarning className="block text-theme-xs font-bold text-gray-900 dark:text-white">
-            {currentUser.name}
+            {currentUser.role === "super_admin"
+              ? currentUser.name
+              : activeLinkedInAccount?.name || currentUser.name}
           </span>
           <span suppressHydrationWarning className={`block text-xs ${subtitleColorClass}`}>
             {subtitleText}
@@ -217,10 +219,14 @@ export default function UserDropdown() {
             </div>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-theme-sm font-bold text-gray-900 dark:text-white">
-                {currentUser.name}
+                {currentUser.role === "super_admin"
+                  ? currentUser.name
+                  : activeLinkedInAccount?.name || currentUser.name}
               </span>
               <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
-                {currentUser.email}
+                {currentUser.role === "super_admin"
+                  ? currentUser.email
+                  : activeLinkedInAccount?.headline || currentUser.email}
               </span>
             </div>
           </div>
