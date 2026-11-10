@@ -2282,6 +2282,22 @@ const pairingsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBF
 assert(pairingsCode.includes('accentColor'), "Las combinaciones tipográficas poseen accentColor para resaltar la frase clave");
 assert(pairingsCode.includes('#6366f1'), "La combinación Modern incluye el color de acento violeta eléctrico (#6366f1)");
 
+// ==================================================================
+// 37. Prueba de Gestor de Combinaciones Tipográficas Personalizadas
+// ==================================================================
+console.log("\n--- 37. Prueba de Gestor de Combinaciones Tipográficas Personalizadas ---");
+
+assert(pairingsCode.includes('CUSTOM_PAIRINGS_STORAGE_KEY'), "Existe clave de almacenamiento para combinaciones personalizadas");
+assert(pairingsCode.includes('AVAILABLE_FONTS'), "Existe catálogo de fuentes seleccionables para títulos y párrafos");
+assert(pairingsCode.includes('ACCENT_COLOR_PRESETS'), "Existe paleta de colores de acento para frases resaltadas");
+assert(pairingsCode.includes('saveCustomPairing'), "Función para guardar nueva combinación personalizada implementada");
+assert(pairingsCode.includes('deleteCustomPairing'), "Función para eliminar combinación personalizada implementada");
+
+const textDrawerCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/TextDrawer.tsx', 'utf8');
+assert(textDrawerCode.includes('handleCaptureFromCanvas'), "Captura de fuentes directamente desde la selección del lienzo implementada");
+assert(textDrawerCode.includes('Mis Combinaciones Personalizadas'), "Sección visual dedicada para combinaciones personalizadas en el drawer");
+assert(textDrawerCode.includes('handleDeleteCustom'), "Capacidad de eliminar combinaciones con botón de papelera presente");
+
 // Limpieza de base de datos de test
 
 db.close();

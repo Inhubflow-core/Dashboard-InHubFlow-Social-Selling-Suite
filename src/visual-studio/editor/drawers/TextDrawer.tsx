@@ -7,24 +7,54 @@ import type { PanelProps } from '../panels/registry'
 import { t } from '../strings'
 import ed from '../chrome/ed.module.css'
 import { pageCentre } from './insertAt'
-import { PAIRINGS, type Pairing, faceOptions } from './pairings'
+import {
+  PAIRINGS,
+  AVAILABLE_FONTS,
+  ACCENT_COLOR_PRESETS,
+  getCustomPairings,
+  saveCustomPairing,
+  deleteCustomPairing,
+  type Pairing,
+  faceOptions,
+} from './pairings'
 import styles from './Drawers.module.css'
 
 const ARC_UP = <path d="M2 18 Q20 0 38 18" stroke="currentColor" strokeWidth="2" fill="none" />
 const ARC_DOWN = <path d="M2 2 Q20 20 38 2" stroke="currentColor" strokeWidth="2" fill="none" />
 
-/** Text drawer: starter styles, arcs, and font pairings with dynamic hook, intro & highlight. */
+/** Text drawer: starter styles, arcs, and font pairings with custom management & canvas capture. */
 export function TextDrawer({ close }: PanelProps) {
   const editor = useEditor()
 
-  // The cards preview the fonts they insert.
+  // Combinaciones personalizadas del usuario
+  const [customPairings, setCustomPairings] = useState<Pairing[]>([])
+  const [isCreating, setIsCreating] = useState(false)
+
+  // Campos del formulario de creación
+  const [newName, setNewName] = useState('')
+  const [newHeadingFamily, setNewHeadingFamily] = useState('Montserrat')
+  const [newHeadingWeight, setNewHeadingWeight] = useState(800)
+  const [newHeadingColor, setNewHeadingColor] = useState('#1c1517')
+  const [newBodyFamily, setNewBodyFamily] = useState('Open Sans')
+  const [newBodyWeight, setNewBodyWeight] = useState(400)
+  const [newBodyColor, setNewBodyColor] = useState('#6b6165')
+  const [newAccentColor, setNewAccentColor] = useState('#6366f1')
+
+  useEffect(() => {
+    setCustomPairings(getCustomPairings())
+    const handleUpdate = () => setCustomPairings(getCustomPairings())
+    window.addEventListener('inhubflow:pairings_updated', handleUpdate)
+    return () => window.removeEventListener('inhubflow:pairings_updated', handleUpdate)
+  }, [])
+
+  // Precargar fuentes de presets y combinaciones
   useEffect(() => {
     for (const spec of Object.values(TEXT_PRESETS)) void editor.fonts.load(primaryFamily(spec.font), spec.weight)
-    for (const p of PAIRINGS) {
+    for (const p of [...PAIRINGS, ...customPairings]) {
       void editor.fonts.load(p.heading.family, p.heading.weight)
       void editor.fonts.load(p.body.family, p.body.weight)
     }
-  }, [editor])
+  }, [editor, customPairings])
 
   // Hook (título), intro (subtítulo) y frase resaltada del post activo
   const rawHook =
@@ -144,6 +174,74 @@ export function TextDrawer({ close }: PanelProps) {
     await editor.insert.add([heading, body], t.history.addTextPairing)
   }
 
+  // Capturar estilos de textos directamente seleccionados en el lienzo
+  const handleCaptureFromCanvas = () => {
+    const selected = editor.selectedObjects().filter((o): o is IText => o instanceof IText)
+    if (selected.length === 0) {
+      setIsCreating(true)
+      setNewName(`Mi Combinación ${customPairings.length + 1}`)
+      return
+    }
+
+    const [topObj, bottomObj] = [...selected].sort((a, b) => (a.top ?? 0) - (b.top ?? 0))
+    const topFam = primaryFamily(String(topObj.fontFamily || 'Montserrat'))
+    const topWeight = Number(topObj.fontWeight) || 700
+    const topColor = String(topObj.fill || '#1c1517')
+
+    let botFam = 'DM Sans'
+    let botWeight = 400
+    let botColor = '#6b6165'
+
+    if (bottomObj) {
+      botFam = primaryFamily(String(bottomObj.fontFamily || 'DM Sans'))
+      botWeight = Number(bottomObj.fontWeight) || 400
+      botColor = String(bottomObj.fill || '#6b6165')
+    }
+
+    setNewName(`Diseño Lienzo #${customPairings.length + 1}`)
+    setNewHeadingFamily(topFam)
+    setNewHeadingWeight(topWeight)
+    setNewHeadingColor(topColor)
+    setNewBodyFamily(botFam)
+    setNewBodyWeight(botWeight)
+    setNewBodyColor(botColor)
+    setIsCreating(true)
+  }
+
+  const handleSaveNewPairing = (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = newName.trim() || `Combinación #${customPairings.length + 1}`
+    const headingMeta = AVAILABLE_FONTS.find((f) => f.family === newHeadingFamily)
+    const bodyMeta = AVAILABLE_FONTS.find((f) => f.family === newBodyFamily)
+
+    const newPairing: Omit<Pairing, 'id' | 'isCustom'> = {
+      name,
+      heading: {
+        family: newHeadingFamily,
+        category: headingMeta?.category || 'sans-serif',
+        weight: newHeadingWeight,
+        color: newHeadingColor,
+      },
+      body: {
+        family: newBodyFamily,
+        category: bodyMeta?.category || 'sans-serif',
+        weight: newBodyWeight,
+        color: newBodyColor,
+      },
+      accentColor: newAccentColor,
+    }
+
+    saveCustomPairing(newPairing)
+    setIsCreating(false)
+  }
+
+  const handleDeleteCustom = (e: React.MouseEvent, id: string, name?: string) => {
+    e.stopPropagation()
+    if (window.confirm(`¿Deseas eliminar la combinación "${name || id}"?`)) {
+      deleteCustomPairing(id)
+    }
+  }
+
   const list = (style: 'bullet' | 'number'): void => {
     void editor.insert.list(style)
     close()
@@ -151,6 +249,117 @@ export function TextDrawer({ close }: PanelProps) {
   const arc = (direction: 'up' | 'down'): void => {
     void editor.insert.curvedText(direction)
     close()
+  }
+
+  // Renderizador de tarjeta de combinación
+  const renderPairingCard = (p: Pairing) => {
+    const isCustom = p.isCustom
+    const displayName = isCustom ? p.name || 'Mi Combinación' : ((t.drawers.pairingNames as any)[p.id] || p.id)
+
+    return (
+      <div
+        key={p.id}
+        className={ed.presetBtn}
+        style={{
+          position: 'relative',
+          padding: '10px 12px',
+          borderRadius: '10px',
+          border: isCustom ? '1px solid #c7d2fe' : '1px solid var(--ed-border)',
+          background: isCustom ? '#fcfdff' : undefined,
+          cursor: 'pointer',
+          textAlign: 'left',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}
+        onClick={() => void addPairing(p)}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: isCustom ? '#4f46e5' : '#334155' }}>
+            {displayName}
+            {isCustom && (
+              <span style={{ marginLeft: '6px', fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: '#e0e7ff', color: '#4338ca' }}>
+                Personalizada
+              </span>
+            )}
+          </span>
+
+          {isCustom && (
+            <button
+              type="button"
+              onClick={(e) => handleDeleteCustom(e, p.id, p.name)}
+              title="Eliminar esta combinación"
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '13px',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: '2px',
+                lineHeight: 1,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+            >
+              🗑️
+            </button>
+          )}
+        </div>
+
+        {/* Vista previa del Titular / Gancho */}
+        <span
+          className={styles.pairHead}
+          style={{
+            fontFamily: fontStack(p.heading.family, p.heading.category),
+            fontWeight: p.heading.weight,
+            color: p.heading.color,
+            fontSize: '18px',
+            lineHeight: 1.2,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {(() => {
+            const targetHighlight = highlightWord.trim()
+            if (!targetHighlight || !hookText.toLowerCase().includes(targetHighlight.toLowerCase())) {
+              return hookText
+            }
+            const start = hookText.toLowerCase().indexOf(targetHighlight.toLowerCase())
+            const before = hookText.slice(0, start)
+            const match = hookText.slice(start, start + targetHighlight.length)
+            const after = hookText.slice(start + targetHighlight.length)
+            return (
+              <>
+                {before}
+                <span style={{ color: p.accentColor || '#6366f1', fontWeight: 800 }}>{match}</span>
+                {after}
+              </>
+            )
+          })()}
+        </span>
+
+        {/* Vista previa del Subtítulo */}
+        <span
+          className={styles.pairBody}
+          style={{
+            fontFamily: fontStack(p.body.family, p.body.category),
+            fontWeight: p.body.weight,
+            fontSize: '11px',
+            color: p.body.color || '#64748b',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {introText}
+        </span>
+      </div>
+    )
   }
 
   return (
@@ -189,8 +398,235 @@ export function TextDrawer({ close }: PanelProps) {
         </button>
       </div>
 
-      <p className={ed.sectionTitle}>{t.drawers.pairings}</p>
-      
+      {/* Sección Combinaciones de Fuentes */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '8px' }}>
+        <p className={ed.sectionTitle} style={{ margin: 0 }}>
+          {t.drawers.pairings}
+        </p>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button
+            type="button"
+            onClick={handleCaptureFromCanvas}
+            title="Capturar estilos de fuentes de los textos seleccionados en el lienzo"
+            style={{
+              fontSize: '10px',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              background: '#eff6ff',
+              color: '#2563eb',
+              border: '1px solid #bfdbfe',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            ✨ Capturar Lienzo
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCreating(!isCreating)}
+            style={{
+              fontSize: '10px',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              background: isCreating ? '#f1f5f9' : '#0099ff',
+              color: isCreating ? '#475569' : '#ffffff',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {isCreating ? 'Cerrar' : '+ Nueva'}
+          </button>
+        </div>
+      </div>
+
+      {/* Creador Interactivo de Combinación de Fuentes */}
+      {isCreating && (
+        <form
+          onSubmit={handleSaveNewPairing}
+          style={{
+            padding: '12px',
+            borderRadius: '10px',
+            background: '#ffffff',
+            border: '1.5px solid #6366f1',
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)',
+            marginBottom: '14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#1e293b' }}>
+            🎨 Diseñar Nueva Combinación
+          </div>
+
+          <div>
+            <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '2px' }}>
+              Nombre de la Combinación
+            </label>
+            <input
+              type="text"
+              required
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Ej: Mi Marca Bold, Tech Minimal..."
+              style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <div>
+              <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '2px' }}>
+                Fuente Título
+              </label>
+              <select
+                value={newHeadingFamily}
+                onChange={(e) => setNewHeadingFamily(e.target.value)}
+                style={{ width: '100%', fontSize: '11px', padding: '4px', borderRadius: '5px', border: '1px solid #cbd5e1' }}
+              >
+                {AVAILABLE_FONTS.map((f) => (
+                  <option key={f.family} value={f.family}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '2px' }}>
+                Peso Título
+              </label>
+              <select
+                value={newHeadingWeight}
+                onChange={(e) => setNewHeadingWeight(Number(e.target.value))}
+                style={{ width: '100%', fontSize: '11px', padding: '4px', borderRadius: '5px', border: '1px solid #cbd5e1' }}
+              >
+                <option value={400}>Normal (400)</option>
+                <option value={600}>Semi-Bold (600)</option>
+                <option value={700}>Bold (700)</option>
+                <option value={800}>Extra Bold (800)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <div>
+              <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '2px' }}>
+                Fuente Subtítulo
+              </label>
+              <select
+                value={newBodyFamily}
+                onChange={(e) => setNewBodyFamily(e.target.value)}
+                style={{ width: '100%', fontSize: '11px', padding: '4px', borderRadius: '5px', border: '1px solid #cbd5e1' }}
+              >
+                {AVAILABLE_FONTS.map((f) => (
+                  <option key={f.family} value={f.family}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '2px' }}>
+                Color Título
+              </label>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={newHeadingColor}
+                  onChange={(e) => setNewHeadingColor(e.target.value)}
+                  style={{ width: '28px', height: '24px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#64748b' }}>{newHeadingColor}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Color de Acento (Frase Resaltada) */}
+          <div>
+            <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>
+              Color de Frase Resaltada (Impacto)
+            </label>
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {ACCENT_COLOR_PRESETS.map((ac) => (
+                <button
+                  key={ac.color}
+                  type="button"
+                  onClick={() => setNewAccentColor(ac.color)}
+                  title={ac.label}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: ac.color,
+                    border: newAccentColor === ac.color ? '2px solid #000' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    boxShadow: newAccentColor === ac.color ? '0 0 0 1px #fff' : undefined,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Mini Preview de la nueva combinación */}
+          <div
+            style={{
+              padding: '8px',
+              borderRadius: '6px',
+              background: '#f8fafc',
+              border: '1px dashed #cbd5e1',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Vista Previa
+            </span>
+            <div style={{ fontFamily: newHeadingFamily, fontWeight: newHeadingWeight, color: newHeadingColor, fontSize: '15px', lineHeight: 1.2, marginTop: '2px' }}>
+              El secreto para prospectar con <span style={{ color: newAccentColor }}>alto impacto</span>
+            </div>
+            <div style={{ fontFamily: newBodyFamily, fontWeight: newBodyWeight, color: newBodyColor, fontSize: '10px', marginTop: '2px' }}>
+              Framework exacto para cerrar decisores en LinkedIn.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+            <button
+              type="submit"
+              style={{
+                flex: 1,
+                padding: '6px',
+                borderRadius: '6px',
+                background: '#4f46e5',
+                color: '#fff',
+                fontSize: '11px',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Guardar Combinación
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCreating(false)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '6px',
+                background: '#f1f5f9',
+                color: '#475569',
+                fontSize: '11px',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Selector de Resaltado del Gancho */}
       <div style={{ padding: '8px 10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
@@ -217,69 +653,29 @@ export function TextDrawer({ close }: PanelProps) {
         </div>
       </div>
 
-      <div className={styles.pairings}>
-        {PAIRINGS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={ed.presetBtn}
-            aria-label={t.drawers.addPairing(t.drawers.pairingNames[p.id])}
-            data-testid={`text-pairing-${p.id}`}
-            onClick={() => void addPairing(p)}
-          >
-            <span className={ed.presetLabel}>{t.drawers.pairingNames[p.id]}</span>
-            <span
-              className={styles.pairHead}
-              style={{
-                fontFamily: fontStack(p.heading.family, p.heading.category),
-                fontWeight: p.heading.weight,
-                color: p.heading.color,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {(() => {
-                const targetHighlight = highlightWord.trim()
-                if (!targetHighlight || !hookText.toLowerCase().includes(targetHighlight.toLowerCase())) {
-                  return hookText
-                }
-                const start = hookText.toLowerCase().indexOf(targetHighlight.toLowerCase())
-                const before = hookText.slice(0, start)
-                const match = hookText.slice(start, start + targetHighlight.length)
-                const after = hookText.slice(start + targetHighlight.length)
-                return (
-                  <>
-                    {before}
-                    <span style={{ color: p.accentColor || '#6366f1', fontWeight: 800 }}>
-                      {match}
-                    </span>
-                    {after}
-                  </>
-                )
-              })()}
-            </span>
-            <span
-              className={styles.pairBody}
-              style={{
-                fontFamily: fontStack(p.body.family, p.body.category),
-                fontWeight: p.body.weight,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {introText}
-            </span>
-          </button>
-        ))}
+      {/* Mis Combinaciones Guardadas */}
+      {customPairings.length > 0 && (
+        <div style={{ marginBottom: '14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#4f46e5', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span>⭐ Mis Combinaciones Personalizadas ({customPairings.length})</span>
+          </div>
+          <div className={styles.pairings}>
+            {customPairings.map((p) => renderPairingCard(p))}
+          </div>
+        </div>
+      )}
+
+      {/* Combinaciones Predeterminadas del Sistema */}
+      <div>
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>
+          Combinaciones Predeterminadas
+        </div>
+        <div className={styles.pairings}>
+          {PAIRINGS.map((p) => renderPairingCard(p))}
+        </div>
       </div>
 
-      <p className={ed.sectionTitle}>{t.drawers.lists}</p>
+      <p className={ed.sectionTitle} style={{ marginTop: '16px' }}>{t.drawers.lists}</p>
       <div className={ed.presetRow}>
         <button type="button" className={ed.presetBtn} data-testid="text-list-bullet" onClick={() => list('bullet')}>
           <span className={ed.presetLabel}>{t.drawers.bulleted}</span>
