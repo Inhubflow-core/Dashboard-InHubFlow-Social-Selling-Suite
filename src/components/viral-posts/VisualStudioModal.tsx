@@ -21,7 +21,7 @@ import { newId } from "@visual-studio/lib/document";
 import { useAuth } from "@/context/AuthContext";
 import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
 
-export type LinkedInAspectRatio = "4:5" | "1:1" | "1.91:1";
+export type LinkedInAspectRatio = "4:5" | "1:1" | "4:3" | "1.91:1";
 
 export const DRAFT_STORAGE_KEY = "inhubflow_visual_editor_draft";
 
@@ -57,10 +57,20 @@ export const LINKEDIN_SIZES: Record<LinkedInAspectRatio, LinkedInSizeConfig> = {
     format: "PNG/JPEG",
     description: "1200 × 1200 px · 1:1 · Formato cuadrado estándar universal",
   },
+  "4:3": {
+    ratio: "4:3",
+    label: "Horizontal",
+    name: "Imagen de Publicación (Horizontal 4:3)",
+    width: 1200,
+    height: 900,
+    ratioText: "4:3",
+    format: "PNG/JPEG",
+    description: "1200 × 900 px · 4:3 · Formato editorial con mayor impacto visual en LinkedIn",
+  },
   "1.91:1": {
     ratio: "1.91:1",
-    label: "Horizontal",
-    name: "Imagen de Publicación (Horizontal)",
+    label: "Panorámica",
+    name: "Imagen de Publicación (Panorámica)",
     width: 1200,
     height: 627,
     ratioText: "1.91:1",
@@ -177,7 +187,7 @@ export default function VisualStudioModal({
     if (initialTitle && blank.pages[0]) {
       const page = blank.pages[0];
       const headingId = newId();
-      const isHorizontal = aspectRatio === "1.91:1";
+      const isHorizontal = aspectRatio === "4:3" || aspectRatio === "1.91:1";
       const isSquare = aspectRatio === "1:1";
 
       page.objects.push({
@@ -324,8 +334,8 @@ export default function VisualStudioModal({
         const h = page?.height ?? state.doc?.height;
         if (w && h) {
           const ratio = w / h;
-          if (Math.abs(ratio - 1200 / 627) < 0.1) {
-            setAspectRatio("1.91:1");
+          if (Math.abs(ratio - 1200 / 900) < 0.1 || Math.abs(ratio - 1200 / 627) < 0.1) {
+            setAspectRatio("4:3");
           } else if (Math.abs(ratio - 1) < 0.1) {
             setAspectRatio("1:1");
           } else if (Math.abs(ratio - 1200 / 1500) < 0.1) {
@@ -427,20 +437,20 @@ export default function VisualStudioModal({
 
       {/* Switcher de los 3 Tamaños Principales de LinkedIn: Horizontal, Cuadrada, Vertical */}
       <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
-        {/* Horizontal: 1200 x 627 px (1.91:1) */}
+        {/* Horizontal: 1200 x 900 px (4:3) */}
         <button
           type="button"
-          onClick={() => handleChangeRatio("1.91:1")}
+          onClick={() => handleChangeRatio("4:3")}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-all ${
-            aspectRatio === "1.91:1"
+            aspectRatio === "4:3" || aspectRatio === "1.91:1"
               ? "bg-[#0099ff] text-white shadow-sm"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
           }`}
-          title="Imagen de Publicación (Horizontal) — 1200 × 627 px · 1.91:1 · PNG/JPEG"
+          title="Imagen de Publicación (Horizontal) — 1200 × 900 px · 4:3 · PNG/JPEG"
         >
           <RectangleHorizontal size={13} />
           <span>Horizontal</span>
-          <span className="text-[10px] opacity-75 hidden xl:inline font-mono">1.91:1</span>
+          <span className="text-[10px] opacity-75 hidden xl:inline font-mono">4:3</span>
         </button>
 
         {/* Cuadrada: 1200 x 1200 px (1:1) */}

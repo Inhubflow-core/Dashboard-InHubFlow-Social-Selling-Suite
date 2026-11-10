@@ -1851,13 +1851,14 @@ assert(parsedDoc.pages[0].objects[0].text === "Estrategia B2B de Crecimiento", "
 
 // Validación de los 3 formatos estándar de LinkedIn en el editor
 const LINKEDIN_FORMATS = {
-  horizontal: { width: 1200, height: 627, ratio: "1.91:1", orientation: "landscape" },
+  horizontal: { width: 1200, height: 900, ratio: "4:3", orientation: "landscape" },
+  panoramica: { width: 1200, height: 627, ratio: "1.91:1", orientation: "landscape" },
   cuadrada: { width: 1200, height: 1200, ratio: "1:1", orientation: "square" },
   vertical: { width: 1200, height: 1500, ratio: "4:5", orientation: "portrait" },
 };
 
-assert(LINKEDIN_FORMATS.horizontal.width === 1200 && LINKEDIN_FORMATS.horizontal.height === 627, "Formato Horizontal LinkedIn es 1200 x 627 px");
-assert(LINKEDIN_FORMATS.horizontal.ratio === "1.91:1", "Ratio Horizontal es 1.91:1");
+assert(LINKEDIN_FORMATS.horizontal.width === 1200 && LINKEDIN_FORMATS.horizontal.height === 900, "Formato Horizontal LinkedIn es 1200 x 900 px");
+assert(LINKEDIN_FORMATS.horizontal.ratio === "4:3", "Ratio Horizontal es 4:3");
 assert(LINKEDIN_FORMATS.cuadrada.width === 1200 && LINKEDIN_FORMATS.cuadrada.height === 1200, "Formato Cuadrada LinkedIn es 1200 x 1200 px");
 assert(LINKEDIN_FORMATS.cuadrada.ratio === "1:1", "Ratio Cuadrada es 1:1");
 assert(LINKEDIN_FORMATS.vertical.width === 1200 && LINKEDIN_FORMATS.vertical.height === 1500, "Formato Vertical LinkedIn es 1200 x 1500 px");

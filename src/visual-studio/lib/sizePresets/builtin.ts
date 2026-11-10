@@ -433,12 +433,12 @@ export const BUILTIN_PRESET_TREE: PresetTree = {
           presets: [
             {
               slug: 'linkedin-post-horizontal',
-              label: 'Imagen de Publicación (Horizontal)',
+              label: 'Imagen de Publicación (Horizontal 4:3)',
               width: 1200,
-              height: 627,
+              height: 900,
               unit: 'px',
               icon: 'rectangle-horizontal',
-              tags: ['1.91:1', 'horizontal', 'landscape'],
+              tags: ['4:3', 'horizontal', 'landscape', 'editorial'],
             },
             {
               slug: 'linkedin-post-square',

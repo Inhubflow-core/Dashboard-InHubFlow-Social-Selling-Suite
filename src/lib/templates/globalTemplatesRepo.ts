@@ -328,11 +328,11 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     ],
   };
 
-  // Template 3: Post de Análisis / Reporte B2B (Horizontal 1.91:1 - 1200 x 627 px)
+  // Template 3: Post de Análisis / Reporte B2B (Horizontal 4:3 - 1200 x 900 px)
   const doc3: DoryDocument = {
     schemaVersion: 1,
     width: 1200,
-    height: 627,
+    height: 900,
     unit: "px",
     pages: [
       {
@@ -493,12 +493,12 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
   insert.run({
     id: "tpl_seed_3",
     slug: "reporte-benchmark-horizontal",
-    title: "Reporte / Análisis de Tendencias B2B (Horizontal 1.91:1)",
+    title: "Reporte / Análisis de Tendencias B2B (Horizontal 4:3)",
     category_id: "autoridad",
     category_name: "Autoridad & Thought Leadership",
-    tags_json: JSON.stringify(["reporte", "benchmark", "estadisticas", "horizontal", "b2b"]),
+    tags_json: JSON.stringify(["reporte", "benchmark", "estadisticas", "horizontal", "4:3", "b2b"]),
     width: 1200,
-    height: 627,
+    height: 900,
     orientation: "landscape",
     thumbnail_url: svgThumb3,
     document_json: JSON.stringify(doc3),
