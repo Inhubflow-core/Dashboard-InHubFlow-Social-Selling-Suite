@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, document, width, height, category, categoryName, tags, orientation, thumbnailUrl, createdBy } = body;
+    const { title, document, width, height, category, categoryName, tags, orientation, thumbnailUrl, createdBy, isFeatured } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json(
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       thumbnailUrl: thumbnailUrl || null,
       document,
       createdBy: createdBy || "Super Admin",
+      isFeatured: typeof isFeatured === "boolean" ? isFeatured : true,
     });
 
     return NextResponse.json({

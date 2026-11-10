@@ -40,13 +40,18 @@ export function createPersistentTemplatesService(): EditorServices['templates'] 
         const res = await fetch(`/api/templates?${params.toString()}`, { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
-          if (data && Array.isArray(data.items)) {
+          const results: TemplateSummary[] | null = Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data?.items)
+              ? data.items
+              : null
+
+          if (results) {
             return {
-              page: Number(data.page) || 1,
-              page_size: Number(data.page_size) || 24,
-              total_pages: Number(data.total_pages) || 1,
-              count: Number(data.count) || data.items.length,
-              items: data.items,
+              count: typeof data.count === 'number' ? data.count : results.length,
+              next: typeof data.next === 'string' ? data.next : null,
+              previous: typeof data.previous === 'string' ? data.previous : null,
+              results,
             }
           }
         }

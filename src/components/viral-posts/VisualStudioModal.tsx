@@ -414,13 +414,58 @@ export default function VisualStudioModal({
   }, [getRenderedImageDataUrl, aspectRatio, dimensions]);
 
   // Handle Open Save Global Template Modal (Strictly Super Admin)
-  const handleOpenSaveGlobalModal = useCallback(() => {
+  const handleOpenSaveGlobalModal = useCallback(async () => {
     const thumb = getRenderedImageDataUrl();
-    const doc = editorRef.current?.getDocument?.() || null;
+    const rawDoc = editorRef.current?.getDocument?.() || null;
+
+    let portableDoc = rawDoc;
+    if (rawDoc) {
+      try {
+        const cloned = structuredClone(rawDoc);
+        const toDataUrl = async (url: string): Promise<string> => {
+          const resolved = url.startsWith("idb://")
+            ? await adapterPackage.adapter.resolveSrc(url)
+            : url;
+          if (!resolved.startsWith("blob:")) return resolved;
+          const res = await fetch(resolved);
+          const blob = await res.blob();
+          return await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : resolved);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+          });
+        };
+
+        const resolveObjectUrls = async (obj: any): Promise<void> => {
+          if (obj && typeof obj.src === "string" && (obj.src.startsWith("idb://") || obj.src.startsWith("blob:"))) {
+            obj.src = await toDataUrl(obj.src);
+          }
+          if (Array.isArray(obj?.objects)) {
+            for (const child of obj.objects) await resolveObjectUrls(child);
+          }
+        };
+
+        for (const page of cloned.pages || []) {
+          if (page.background?.type === "image" && typeof page.background.src === "string") {
+            if (page.background.src.startsWith("idb://") || page.background.src.startsWith("blob:")) {
+              page.background.src = await toDataUrl(page.background.src);
+            }
+          }
+          for (const obj of page.objects || []) {
+            await resolveObjectUrls(obj);
+          }
+        }
+        portableDoc = cloned;
+      } catch (err) {
+        console.warn("[VisualStudio] No se pudieron incrustar recursos locales en la plantilla:", err);
+      }
+    }
+
     setPreviewThumbnail(thumb);
-    setDocSnapshot(doc);
+    setDocSnapshot(portableDoc);
     setIsSaveGlobalModalOpen(true);
-  }, [getRenderedImageDataUrl]);
+  }, [getRenderedImageDataUrl, adapterPackage]);
 
   if (!isOpen) return null;
 

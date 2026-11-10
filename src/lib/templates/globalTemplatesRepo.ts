@@ -39,6 +39,7 @@ export interface SaveGlobalTemplateInput {
   thumbnailUrl?: string | null;
   document: DoryDocument;
   createdBy?: string | null;
+  isFeatured?: boolean;
 }
 
 const DEFAULT_CATEGORIES: { id: string; slug: string; name: string }[] = [
@@ -586,10 +587,18 @@ export function listGlobalTemplates(q: TemplateQuery = {}): Page<TemplateSummary
     LIMIT @limit OFFSET @offset
   `).all({ ...params, limit: pageSize, offset }) as GlobalTemplateRow[];
 
-  const results: TemplateSummary[] = rows.map((r, index) => {
+  const results: TemplateSummary[] = rows.map((r) => {
     let tags: string[] = [];
     try {
       tags = JSON.parse(r.tags_json);
+    } catch {}
+
+    let pageCount = 1;
+    try {
+      const parsedDoc = JSON.parse(r.document_json);
+      if (Array.isArray(parsedDoc?.pages) && parsedDoc.pages.length > 0) {
+        pageCount = parsedDoc.pages.length;
+      }
     } catch {}
 
     return {
@@ -606,7 +615,7 @@ export function listGlobalTemplates(q: TemplateQuery = {}): Page<TemplateSummary
       height: r.height,
       orientation: r.orientation,
       preset: "",
-      page_count: 1,
+      page_count: pageCount,
       thumbnail_url: r.thumbnail_url,
       is_featured: Boolean(r.is_featured),
       use_count: r.use_count,
@@ -698,7 +707,7 @@ export function saveGlobalTemplate(input: SaveGlobalTemplateInput): TemplateDeta
     document_json: JSON.stringify(input.document),
     created_by: input.createdBy || "Super Admin",
     use_count: 0,
-    is_featured: 1,
+    is_featured: input.isFeatured === false ? 0 : 1,
   };
 
   db.prepare(`
@@ -726,7 +735,7 @@ export function saveGlobalTemplate(input: SaveGlobalTemplateInput): TemplateDeta
     preset: "",
     page_count: input.document.pages.length || 1,
     thumbnail_url: rowData.thumbnail_url,
-    is_featured: true,
+    is_featured: Boolean(rowData.is_featured),
     use_count: 0,
     created_at: new Date().toISOString(),
     document: input.document,
