@@ -112,23 +112,20 @@ export function ImageSection() {
         </ToolButton>
       )}
       {isUpscaleSupported() && editor.style.canUpscale() ? (
-        <ToolButton label={t.toolbar.upscale} featured testId="ed-upscale" onClick={() => editor.openDialog('upscale')}>
+        <ToolButton label={t.toolbar.upscale} testId="ed-upscale" onClick={() => editor.openDialog('upscale')}>
           {I.upscale}
-          <span className={ed.toolText}>{t.toolbar.upscale}</span>
         </ToolButton>
       ) : null}
       <ToolButton label={t.toolbar.replaceImage} testId="ed-replace-image" onClick={() => void editor.insert.pickAndReplaceImage()}>
         <Replace size={18} aria-hidden="true" />
       </ToolButton>
       {canRemoveBackground ? (
-        <ToolButton label={t.toolbar.removeBackground} featured testId="ed-remove-bg" onClick={() => editor.openDialog('background-removal')}>
+        <ToolButton label={t.toolbar.removeBackground} testId="ed-remove-bg" onClick={() => editor.openDialog('background-removal')}>
           {I.removeBg}
-          <span className={ed.toolText}>{t.ctx.removeBackground}</span>
         </ToolButton>
       ) : null}
-      <ToolButton label="Borrador mágico" featured testId="ed-magic-eraser" onClick={() => editor.openDialog('magic-eraser')}>
+      <ToolButton label="Borrador mágico" testId="ed-magic-eraser" onClick={() => editor.openDialog('magic-eraser')}>
         <Eraser size={18} aria-hidden="true" />
-        <span className={ed.toolText}>Borrador mágico</span>
       </ToolButton>
       {editor.style.canEditSvgColors() ? (
         <ToolButton label={t.toolbar.editColors} testId="ed-edit-svg-colors" onClick={() => void editor.style.editSvgColors()}>

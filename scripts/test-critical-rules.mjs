@@ -2613,6 +2613,21 @@ assert(editorSrc50.includes("if (pid === sourcePageId) {\n        return false\n
 assert(!editorSrc50.includes("center.x > sourceSize.width * 0.7") && !editorSrc50.includes("target.left > sourceSize.width * 0.6"), "Umbrales arbitrarios del 60%/70% eliminados para permitir ubicar objetos al borde del lienzo");
 assert(editorSrc50.includes("stackCenterX >= s.artboardLeft && stackCenterX <= s.right"), "Transferencia sin puntero exige que el centro del objeto haya entrado fisicamente al slot de la pagina destino");
 
+// ==================================================================
+// 51. Prueba de Diseno Unificado de Herramientas de Imagen en Toolbar (Upscale, Quitar fondo, Borrador magico)
+// ==================================================================
+console.log("\n--- 51. Prueba de Diseno Unificado de Herramientas de Imagen en Toolbar ---");
+
+const imageToolbarSrc51 = fs.readFileSync('src/visual-studio/editor/toolbar/sections/image.tsx', 'utf8');
+
+assert(!imageToolbarSrc51.includes("ToolButton label={t.toolbar.upscale} featured"), "Herramienta Upscale ya no tiene clase 'featured', adoptando el diseno estandar");
+assert(!imageToolbarSrc51.includes("ToolButton label={t.toolbar.removeBackground} featured"), "Herramienta Quitar fondo ya no tiene clase 'featured', adoptando el diseno estandar");
+assert(!imageToolbarSrc51.includes("ToolButton label=\"Borrador mágico\" featured"), "Herramienta Borrador magico ya no tiene clase 'featured', adoptando el diseno estandar");
+assert(!imageToolbarSrc51.includes("<span className={ed.toolText}>"), "Etiquetas de texto eliminadas del interior de los botones de imagen para diseno de icono puro uniforme");
+assert(imageToolbarSrc51.includes("ToolButton label={t.toolbar.upscale} testId=\"ed-upscale\""), "Upscale conserva su Tooltip y accesibilidad por etiqueta");
+assert(imageToolbarSrc51.includes("ToolButton label={t.toolbar.removeBackground} testId=\"ed-remove-bg\""), "Quitar fondo conserva su Tooltip y accesibilidad por etiqueta");
+assert(imageToolbarSrc51.includes("ToolButton label=\"Borrador mágico\" testId=\"ed-magic-eraser\""), "Borrador magico conserva su Tooltip y accesibilidad por etiqueta");
+
 // Limpieza de base de datos de test
 
 db.close();
