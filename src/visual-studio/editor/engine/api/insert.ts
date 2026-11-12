@@ -181,7 +181,7 @@ export class InsertApi {
         break
       }
       case 'rounded':
-        obj = softShape(createRect(at, Math.round(120 * k), Math.round(20 * k), unit), page)
+        obj = softShape(createRect(at, Math.round(120 * k), 0, unit), page)
         label = t.history.addRoundedRectangle
         break
       case 'ellipse':
@@ -220,9 +220,9 @@ export class InsertApi {
         break
       }
       case 'frame': {
-        // An empty outlined portrait frame (200 x 280 on an A5 page) for text or photos to sit in.
-        obj = createRect(at, Math.round(200 * k), Math.round(8 * k), Math.round(280 * k))
-        obj.set({ fill: 'transparent', stroke: TEXT_COLOR, strokeWidth: Math.max(1, Math.round(2 * k)) })
+        // A portrait frame (200 x 280 on an A5 page)
+        obj = createRect(at, Math.round(200 * k), 0, Math.round(280 * k))
+        obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })
         label = t.history.addFrame
         break
       }

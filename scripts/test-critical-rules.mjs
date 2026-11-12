@@ -2554,6 +2554,30 @@ assert(factoriesSrc.includes("objectCaching: false"), "factories.ts configura ob
 assert(pageCanvasSrc.includes("obj.set('objectCaching', false)"), "pageCanvas.ts garantiza objectCaching: false al configurar cualquier objeto de texto");
 assert(builtinKindsSrc.includes("obj.set('objectCaching', false)"), "builtinKinds.ts asegura objectCaching: false al hidratar textos desde JSON");
 
+// ==================================================================
+// 48. Prueba de Formas Basicas y Decorativas (Blanco por Defecto, Sin Bordes, Sin Redondez)
+// ==================================================================
+console.log("\n--- 48. Prueba de Formas Basicas y Decorativas (Blanco por Defecto, Sin Bordes, Sin Redondez) ---");
+
+const shapesDrawerSrc48 = fs.readFileSync('src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
+const factoriesSrc48 = fs.readFileSync('src/visual-studio/editor/engine/objects/factories.ts', 'utf8');
+const insertSrc48 = fs.readFileSync('src/visual-studio/editor/engine/api/insert.ts', 'utf8');
+
+// 1. softShape y baseShape en factories.ts
+assert(factoriesSrc48.includes("fill: '#ffffff'") && factoriesSrc48.includes("stroke: null") && factoriesSrc48.includes("strokeWidth: 0"), "baseShape en factories.ts establece fill: '#ffffff', stroke: null y strokeWidth: 0");
+assert(factoriesSrc48.includes("obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, strokeUniform: true })"), "softShape aplica fill blanco puro (#ffffff) y sin bordes por defecto");
+assert(factoriesSrc48.includes("(obj as any).set('rx', 0)") && factoriesSrc48.includes("(obj as any).set('ry', 0)"), "softShape elimina cualquier redondez (rx: 0, ry: 0) por defecto");
+
+// 2. Formas en insert.ts
+assert(insertSrc48.includes("rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })"), "Rectangulo en insert.ts inicia blanco, sin borde y sin redondez");
+assert(insertSrc48.includes("case 'frame':") && insertSrc48.includes("createRect(at, Math.round(200 * k), 0, Math.round(280 * k))"), "Marco (frame) inicia con radio 0 y estilo plano");
+
+// 3. Reorganizacion de catalogo en ShapesDrawer.tsx
+assert(shapesDrawerSrc48.includes("id: 'polygon', label: t.basicShapes.polygon") && shapesDrawerSrc48.indexOf("id: 'polygon'") < shapesDrawerSrc48.indexOf("id: 'divider'"), "Poligono (polygon) reubicado dentro del grupo 'decorative'");
+assert(!shapesDrawerSrc48.includes("id: 'rounded'"), "Rectangulo redondeado ('rounded') eliminado del catalogo de formas");
+assert(!shapesDrawerSrc48.includes("moreBasics"), "Grupo 'moreBasics' eliminado por completo de la interfaz del drawer");
+assert(shapesDrawerSrc48.includes('id: \'frame\', label: t.drawers.frame, icon: sv(<rect x="4" y="2" width="20" height="24" rx="0"'), "Icono de Marco (frame) tiene esquinas rectas con rx=0");
+
 // Limpieza de base de datos de test
 
 db.close();

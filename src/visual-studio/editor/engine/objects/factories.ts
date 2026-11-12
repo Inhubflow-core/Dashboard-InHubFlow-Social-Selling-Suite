@@ -117,7 +117,7 @@ const baseShape = (at: Placement, w: number, h: number): Record<string, unknown>
   originY: 'center',
   width: w,
   height: h,
-  fill: SHAPE_FILL,
+  fill: '#ffffff',
   stroke: null,
   strokeWidth: 0,
   strokeUniform: true,
@@ -143,11 +143,12 @@ export function photoBox(page: { width: number; height: number }): number {
 }
 
 /**
- * The look of the basic shapes: a light brand tint with a solid brand border that keeps its width when the shape
- * is resized. Width follows the page scale so a border stays visible on large designs.
+ * The look of the basic shapes: defaults to pure white, no border and zero corner radius.
  */
-export function softShape<T extends FabricObject>(obj: T, page: { width: number; height: number }): T {
-  obj.set({ fill: SHAPE_TINT, stroke: SHAPE_FILL, strokeWidth: Math.max(1, Math.round(2 * textScale(page.width, page.height))), strokeUniform: true })
+export function softShape<T extends FabricObject>(obj: T, _page?: { width: number; height: number }): T {
+  obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, strokeUniform: true })
+  if ('rx' in obj) (obj as any).set('rx', 0)
+  if ('ry' in obj) (obj as any).set('ry', 0)
   return obj
 }
 

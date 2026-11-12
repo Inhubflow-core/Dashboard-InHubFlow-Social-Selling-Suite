@@ -55,8 +55,9 @@ export function ShapesDrawer({ close }: PanelProps) {
   const decorative: ShapeCard[] = [
     { id: 'star', label: t.basicShapes.star, icon: sv(<path d="M14 2l3.5 7.5L25 11l-5.5 5 1.5 8L14 20.5 7 24l1.5-8L3 11l7.5-1.5L14 2z" stroke="currentColor" strokeWidth="1.5" />), run: shape('star') },
     { id: 'diamond', label: t.shapes.diamond, icon: sv(<path d="M14 2L26 14 14 26 2 14z" stroke="currentColor" strokeWidth="1.5" />), run: shape('diamond') },
+    { id: 'polygon', label: t.basicShapes.polygon, icon: sv(<path d="M14 3l9 5v12l-9 5-9-5V8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />), run: shape('polygon') },
     { id: 'divider', label: t.drawers.divider, icon: sv(<line x1="2" y1="14" x2="26" y2="14" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" />), run: shape('divider') },
-    { id: 'frame', label: t.drawers.frame, icon: sv(<rect x="4" y="2" width="20" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" />), run: shape('frame') },
+    { id: 'frame', label: t.drawers.frame, icon: sv(<rect x="4" y="2" width="20" height="24" rx="0" stroke="currentColor" strokeWidth="1.5" />), run: shape('frame') },
   ]
 
   const arrowBoth = (): void => {
@@ -75,10 +76,6 @@ export function ShapesDrawer({ close }: PanelProps) {
     { id: 'arrow', label: t.drawers.arrow, icon: sv(<path d="M4 14h18M16 7l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />), run: shape('arrow') },
     { id: 'arrow-both', label: t.drawers.doubleArrow, icon: sv(<path d="M5 14h18M10 8l-6 6 6 6M18 8l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />), run: arrowBoth },
     { id: 'dotted', label: t.drawers.dottedLine, icon: sv(<path d="M4 14h.01M9 14h.01M14 14h.01M19 14h.01M24 14h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />), run: dotted },
-  ]
-  const moreBasics: ShapeCard[] = [
-    { id: 'rounded', label: t.basicShapes.roundedRectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="7" stroke="currentColor" strokeWidth="1.5" />), run: shape('rounded') },
-    { id: 'polygon', label: t.basicShapes.polygon, icon: sv(<path d="M14 3l9 5v12l-9 5-9-5V8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />), run: shape('polygon') },
   ]
   const tools: ShapeCard[] = [
     { id: 'qr', label: t.drawers.qrCode, icon: sv(<path d="M4 4h8v8H4zM16 4h8v8h-8zM4 16h8v8H4zM16 16h3v3h-3zM21 21h3v3h-3zM21 16h3M16 21h3" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />), run: () => void editor.insert.qr() },
@@ -204,7 +201,6 @@ export function ShapesDrawer({ close }: PanelProps) {
 
       {group(t.drawers.basicShapes, basic)}
       {group(t.drawers.decorative, decorative)}
-      {group(t.drawers.moreBasics, moreBasics)}
       {group(t.drawers.linesAndArrows, lines)}
       <p className={ed.sectionTitle}>{t.drawers.moreShapes}</p>
       <div className={styles.miniGrid}>
