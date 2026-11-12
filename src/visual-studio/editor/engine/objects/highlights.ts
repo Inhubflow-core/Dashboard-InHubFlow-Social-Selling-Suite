@@ -2,7 +2,7 @@
  * Visual Text Highlights: Hand-drawn SVG doodle vectors (circles, fluorescent markers,
  * sketch underlines, squigglies, boxes, pills) that make keywords and hooks pop in social posts.
  */
-import { Point, util, type IText, type FabricObject } from 'fabric'
+import { Point, util, IText, type FabricObject } from 'fabric'
 import type { EditorEngine } from '../editor'
 import { parseSvgElement } from './elements'
 import { asDory } from './dory'
@@ -297,7 +297,13 @@ export async function applyTextHighlight(
 
   // Find active IText / Textbox object
   const selected = view.selectedObjects()
-  const textObj = selected.find((o): o is IText => o instanceof (IText as any) || (o as any).type === 'textbox' || (o as any).type === 'text')
+  const textObj = selected.find(
+    (o): o is IText =>
+      (o as any).type === 'textbox' ||
+      (o as any).type === 'i-text' ||
+      (o as any).type === 'text' ||
+      (typeof IText !== 'undefined' && o instanceof IText),
+  )
 
   // Case 1: Simple text color highlight
   if (style.kind === 'text') {
