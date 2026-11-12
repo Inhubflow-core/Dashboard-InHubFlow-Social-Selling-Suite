@@ -50,44 +50,105 @@ export async function exportCarouselToPdf(
 
     // 1. Fondo de la diapositiva
     if (slide.isCover) {
-      // Portada con fondo azul corporativo (#0099ff)
-      doc.setFillColor(brandRgb.r, brandRgb.g, brandRgb.b);
+      // Limpiar etiquetas de resalto (** o {}) para PDF vectorial
+      const cleanTitle = (slide.title || "")
+        .replace(/\*\*/g, "")
+        .replace(/__/g, "")
+        .replace(/[{}]/g, "");
+      const cleanSubtitle = (slide.subtitle || "")
+        .replace(/\*\*/g, "")
+        .replace(/__/g, "")
+        .replace(/[{}]/g, "");
+
+      const layout = slide.coverLayout || "bottom";
+      const highlightRgb = slide.highlightColor ? hexToRgb(slide.highlightColor) : { r: 249, g: 115, b: 22 };
+
+      // Fondo base oscuro moderno (#0a122a)
+      doc.setFillColor(10, 18, 42);
       doc.rect(0, 0, size, size, "F");
 
-      // Detalle superior decorativo
-      doc.setFillColor(255, 255, 255);
-      doc.rect(20, 20, 30, 3, "F");
+      if (layout === "split_left") {
+        // Bloque izquierdo con titular y subtítulo
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 125, size, "F");
 
-      // Titular de la portada
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(26);
-      const splitTitle = doc.splitTextToSize(slide.title, 160);
-      doc.text(splitTitle, 20, 50);
+        // Acento decorativo
+        doc.setFillColor(highlightRgb.r, highlightRgb.g, highlightRgb.b);
+        doc.rect(20, 25, 25, 3, "F");
 
-      // Subtítulo
-      if (slide.subtitle) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(14);
-        const splitSubtitle = doc.splitTextToSize(slide.subtitle, 160);
-        doc.text(splitSubtitle, 20, 95);
+        // Titular
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        const splitTitle = doc.splitTextToSize(cleanTitle, 95);
+        doc.text(splitTitle, 20, 50);
+
+        // Subtítulo
+        if (cleanSubtitle) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(13);
+          doc.setTextColor(203, 213, 225);
+          const splitSub = doc.splitTextToSize(cleanSubtitle, 95);
+          doc.text(splitSub, 20, 110);
+        }
+      } else if (layout === "split_right") {
+        // Bloque derecho con titular y subtítulo
+        doc.setFillColor(15, 23, 42);
+        doc.rect(75, 0, 125, size, "F");
+
+        // Acento decorativo
+        doc.setFillColor(highlightRgb.r, highlightRgb.g, highlightRgb.b);
+        doc.rect(90, 25, 25, 3, "F");
+
+        // Titular
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        const splitTitle = doc.splitTextToSize(cleanTitle, 95);
+        doc.text(splitTitle, 90, 50);
+
+        // Subtítulo
+        if (cleanSubtitle) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(13);
+          doc.setTextColor(203, 213, 225);
+          const splitSub = doc.splitTextToSize(cleanSubtitle, 95);
+          doc.text(splitSub, 90, 110);
+        }
+      } else {
+        // "bottom" o default: Bloque inferior con titular centrado
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 85, size, 115, "F");
+
+        // Acento decorativo centrado
+        doc.setFillColor(highlightRgb.r, highlightRgb.g, highlightRgb.b);
+        doc.rect(85, 95, 30, 3, "F");
+
+        // Titular
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        const splitTitle = doc.splitTextToSize(cleanTitle, 160);
+        doc.text(splitTitle, 100, 115, { align: "center" });
+
+        // Subtítulo
+        if (cleanSubtitle) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(13);
+          doc.setTextColor(203, 213, 225);
+          const splitSub = doc.splitTextToSize(cleanSubtitle, 150);
+          doc.text(splitSub, 100, 145, { align: "center" });
+        }
       }
-
-      // Contenido / Puntos clave de portada
-      doc.setFontSize(12);
-      let contentY = 125;
-      slide.content.forEach((line) => {
-        doc.text(line, 20, contentY);
-        contentY += 8;
-      });
 
       // Pie de portada con autor y handle
       doc.setFillColor(255, 255, 255);
-      doc.rect(20, 170, 160, 0.5, "F");
+      doc.rect(20, 175, 160, 0.5, "F");
 
       doc.setFontSize(11);
-      doc.text(authorName, 20, 180);
-      doc.text(authorHandle, 180, 180, { align: "right" });
+      doc.setTextColor(255, 255, 255);
+      doc.text(authorName, 20, 185);
+      doc.text(authorHandle, 180, 185, { align: "right" });
     } else if (slide.isCta) {
       // Diapositiva final de llamada a la acción (CTA)
       doc.setFillColor(245, 250, 255);

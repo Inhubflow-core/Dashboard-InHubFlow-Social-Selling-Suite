@@ -1,5 +1,6 @@
 export type PostFormat = "text" | "image" | "carousel" | "video";
 export type PostStatus = "draft" | "scheduled" | "published" | "failed";
+export type CoverLayout = "bottom" | "split_left" | "split_right";
 
 export interface CarouselSlide {
   slideNumber: number;
@@ -9,6 +10,10 @@ export interface CarouselSlide {
   footerText?: string;
   isCover?: boolean;
   isCta?: boolean;
+  coverLayout?: CoverLayout;
+  backgroundImageUrl?: string;
+  highlightColor?: string;
+  aspectRatio?: "1:1" | "4:5" | "16:9";
 }
 
 export interface ViralPostTemplate {
@@ -47,6 +52,8 @@ export interface CreatedPost {
   content: string;
   imagePrompt?: string;
   mediaUrl?: string;
+  coverLayout?: CoverLayout;
+  coverImage?: string;
   carouselSlides?: CarouselSlide[];
   carouselTheme?: {
     primaryColor: string;

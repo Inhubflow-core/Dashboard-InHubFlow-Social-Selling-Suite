@@ -24,6 +24,63 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
 import { Sparkles, Image as ImageIcon, Bot } from "lucide-react";
 import VisualStudioModal from "./VisualStudioModal";
+import { Upload, Layout, AlignLeft, AlignCenter, AlignRight, Palette, Check } from "lucide-react";
+
+export const SAMPLE_B2B_BACKGROUNDS = [
+  {
+    id: "exec-team",
+    name: "Reunión Ejecutiva B2B",
+    url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "tech-meeting",
+    name: "Líderes de Negocio",
+    url: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "strategy-office",
+    name: "Estrategia Corporativa",
+    url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=85",
+  },
+  {
+    id: "boardroom",
+    name: "Sala de Juntas",
+    url: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=85",
+  },
+];
+
+export function parseHighlightedTitle(title: string, highlightColor: string = "#f97316") {
+  if (!title) return null;
+  const parts = title.split(/(\\*\\*.*?\\*\\*|__.*?__|{.*?})/g);
+  return parts.map((part, index) => {
+    if (
+      (part.startsWith("**") && part.endsWith("**")) ||
+      (part.startsWith("__") && part.endsWith("__"))
+    ) {
+      return (
+        <span
+          key={index}
+          style={{ color: highlightColor }}
+          className="font-extrabold"
+        >
+          {part.slice(2, -2)}
+        </span>
+      );
+    }
+    if (part.startsWith("{") && part.endsWith("}")) {
+      return (
+        <span
+          key={index}
+          style={{ color: highlightColor }}
+          className="font-extrabold"
+        >
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    return part;
+  });
+}
 
 export default function CreateViralPostView({
   onTabChange,
@@ -128,10 +185,13 @@ export default function CreateViralPostView({
     {
       slideNumber: 1,
       isCover: true,
-      title: "Cómo Convertir Comentarios en Clientes B2B",
-      subtitle: "Framework Inbound de 4 Pasos para LinkedIn",
+      title: "La mayoría de líderes B2B cometen **el mismo error** al prospectar en LinkedIn",
+      subtitle: "Hablan de su producto antes de entender el dolor del decisor.",
       content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
       footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+      coverLayout: "bottom",
+      backgroundImageUrl: SAMPLE_B2B_BACKGROUNDS[0].url,
+      highlightColor: "#f97316",
     },
     {
       slideNumber: 2,
@@ -383,6 +443,8 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       content,
       imagePrompt: format === "image" ? imagePrompt : undefined,
       mediaUrl: previewImage || undefined,
+      coverLayout: format === "carousel" ? slides[0]?.coverLayout : undefined,
+      coverImage: format === "carousel" ? slides[0]?.backgroundImageUrl : undefined,
       carouselSlides: format === "carousel" ? slides : undefined,
       carouselTheme: format === "carousel" ? carouselTheme : undefined,
       leadMagnetKeyword: autoDmEnabled ? leadMagnetKeyword : undefined,
@@ -757,11 +819,214 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
                     </div>
                   </div>
 
-                  <div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
+                                    {/* Selector especial cuando estamos en la diapositiva de portada (Slide 1) */}
+                  {currentSlide.isCover && (
+                    <div className="space-y-4 rounded-xl border border-brand-200 bg-brand-50/40 p-4 dark:border-brand-900/50 dark:bg-brand-950/20">
+                      {/* 1. Selector de Composición (3 Presets 1-Clic) */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
+                            <Layout className="size-3.5" />
+                            Composición de Portada (1 Clic)
+                          </label>
+                          <span className="text-[11px] text-brand-600 dark:text-brand-400 font-medium">
+                            Presets Virales LinkedIn
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...slides];
+                              updated[currentSlideIndex].coverLayout = "bottom";
+                              setSlides(updated);
+                            }}
+                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
+                              (currentSlide.coverLayout || "bottom") === "bottom"
+                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
+                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                            }`}
+                          >
+                            <AlignCenter className="size-4 shrink-0" />
+                            <span>Inferior / Pie</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...slides];
+                              updated[currentSlideIndex].coverLayout = "split_left";
+                              setSlides(updated);
+                            }}
+                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
+                              currentSlide.coverLayout === "split_left"
+                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
+                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                            }`}
+                          >
+                            <AlignLeft className="size-4 shrink-0" />
+                            <span>Split Izquierdo</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...slides];
+                              updated[currentSlideIndex].coverLayout = "split_right";
+                              setSlides(updated);
+                            }}
+                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
+                              currentSlide.coverLayout === "split_right"
+                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
+                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                            }`}
+                          >
+                            <AlignRight className="size-4 shrink-0" />
+                            <span>Split Derecho</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. Selector de Fotografía de Fondo B2B */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 mb-2">
+                          Foto Ejecutiva B2B de Fondo
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                          {SAMPLE_B2B_BACKGROUNDS.map((bg) => {
+                            const isSelected = currentSlide.backgroundImageUrl === bg.url;
+                            return (
+                              <button
+                                key={bg.id}
+                                type="button"
+                                onClick={() => {
+                                  const updated = [...slides];
+                                  updated[currentSlideIndex].backgroundImageUrl = bg.url;
+                                  setSlides(updated);
+                                }}
+                                className={`relative group h-16 rounded-lg overflow-hidden border-2 transition ${
+                                  isSelected
+                                    ? "border-brand-500 ring-2 ring-brand-500/30 scale-[0.98]"
+                                    : "border-transparent hover:border-gray-300 dark:hover:border-gray-700 opacity-80 hover:opacity-100"
+                                }`}
+                              >
+                                <img
+                                  src={bg.url}
+                                  alt={bg.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-1">
+                                  <span className="text-[10px] text-white font-medium text-center leading-tight line-clamp-2">
+                                    {bg.name}
+                                  </span>
+                                </div>
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 bg-brand-500 text-white rounded-full p-0.5">
+                                    <Check className="size-3" />
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Subir foto propia o URL */}
+                        <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                          <label className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 cursor-pointer shrink-0">
+                            <Upload className="size-3.5" />
+                            <span>Subir Foto Propia</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = () => {
+                                    const updated = [...slides];
+                                    updated[currentSlideIndex].backgroundImageUrl = reader.result as string;
+                                    setSlides(updated);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="O pega URL de imagen (https://...)"
+                            value={currentSlide.backgroundImageUrl || ""}
+                            onChange={(e) => {
+                              const updated = [...slides];
+                              updated[currentSlideIndex].backgroundImageUrl = e.target.value;
+                              setSlides(updated);
+                            }}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 3. Color de Resalto de Palabras Clave */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
+                            <Palette className="size-3.5" />
+                            Color de Resalto para **palabra**
+                          </label>
+                          <span className="text-[11px] font-mono text-gray-500">
+                            {currentSlide.highlightColor || "#f97316"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {[
+                            { name: "Naranja Viral", hex: "#f97316" },
+                            { name: "Amarillo Foco", hex: "#facc15" },
+                            { name: "Azul Eléctrico", hex: "#38bdf8" },
+                            { name: "Verde Éxito", hex: "#34d399" },
+                            { name: "Blanco Puro", hex: "#ffffff" },
+                          ].map((col) => {
+                            const isSelected = (currentSlide.highlightColor || "#f97316") === col.hex;
+                            return (
+                              <button
+                                key={col.hex}
+                                type="button"
+                                title={col.name}
+                                onClick={() => {
+                                  const updated = [...slides];
+                                  updated[currentSlideIndex].highlightColor = col.hex;
+                                  setSlides(updated);
+                                }}
+                                className={`size-6 rounded-full border-2 transition ${
+                                  isSelected
+                                    ? "ring-2 ring-brand-500 scale-110 border-white shadow-xs"
+                                    : "border-gray-300 hover:scale-105"
+                                }`}
+                                style={{ backgroundColor: col.hex }}
+                              />
+                            );
+                          })}
+                          <span className="text-[11px] text-gray-500 ml-2">
+                            Usa <code className="text-brand-600 dark:text-brand-400 font-bold">**palabra**</code> en el título para iluminarla.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+<div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
                     <div>
-                      <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                        {t("slideTitleLabel")}
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
+                          {t("slideTitleLabel")}
+                        </label>
+                        {currentSlide.isCover && (
+                          <span className="text-[11px] text-brand-600 dark:text-brand-400 font-medium">
+                            Tip: Rodear con **asteriscos** para resaltar
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="text"
                         value={currentSlide.title}
@@ -929,106 +1194,179 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
               {format === "carousel" && (
                 <div className="mb-4 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-800 shadow-theme-xs">
                   {/* Vista fiel del Slide actual */}
-                  <div
-                    className="aspect-square w-full p-6 flex flex-col justify-between"
-                    style={{
-                      backgroundColor: currentSlide.isCover
-                        ? carouselTheme.primaryColor
-                        : currentSlide.isCta
-                        ? "#f5faff"
-                        : "#ffffff",
-                      color: currentSlide.isCover ? "#ffffff" : "#101828",
-                    }}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span
-                          className="text-xs font-bold uppercase tracking-wider"
-                          style={{
-                            color: currentSlide.isCover
-                              ? "rgba(255,255,255,0.8)"
-                              : carouselTheme.primaryColor,
-                          }}
-                        >
-                          {currentSlide.isCover
-                            ? t("badgeCover")
-                            : currentSlide.isCta
-                            ? t("badgeCta")
-                            : t("badgeSlide", { number: currentSlide.slideNumber })}
+                  {currentSlide.isCover && currentSlide.backgroundImageUrl ? (
+                    // Portada de Alto Impacto B2B con Foto + Degradé Dinámico
+                    <div
+                      className="aspect-square w-full relative overflow-hidden bg-gray-950 text-white flex flex-col justify-between"
+                      style={{
+                        backgroundImage: `url(${currentSlide.backgroundImageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    >
+                      {/* Capa de degradé según coverLayout */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background:
+                            currentSlide.coverLayout === "split_left"
+                              ? "linear-gradient(to right, rgba(10, 18, 42, 0.96) 0%, rgba(10, 18, 42, 0.88) 45%, rgba(10, 18, 42, 0.25) 75%, transparent 100%)"
+                              : currentSlide.coverLayout === "split_right"
+                              ? "linear-gradient(to left, rgba(10, 18, 42, 0.96) 0%, rgba(10, 18, 42, 0.88) 45%, rgba(10, 18, 42, 0.25) 75%, transparent 100%)"
+                              : "linear-gradient(to top, rgba(10, 18, 42, 0.97) 0%, rgba(10, 18, 42, 0.82) 48%, rgba(10, 18, 42, 0.15) 78%, transparent 100%)",
+                        }}
+                      />
+
+                      {/* Header de la diapositiva */}
+                      <div className="relative z-10 flex items-center justify-between p-5 pb-0">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-white">
+                          {t("badgeCover")}
                         </span>
-                        <span
-                          className="text-xs"
-                          style={{
-                            color: currentSlide.isCover ? "rgba(255,255,255,0.7)" : "#94a3b8",
-                          }}
-                        >
+                        <span className="text-xs text-white/80 font-medium">
                           {currentSlideIndex + 1} / {slides.length}
                         </span>
                       </div>
 
-                      <h3
-                        className="text-base font-bold mb-2 leading-snug"
-                        style={{
-                          color: currentSlide.isCover
-                            ? "#ffffff"
-                            : currentSlide.isCta
-                            ? carouselTheme.primaryColor
-                            : "#101828",
-                        }}
+                      {/* Contenido según coverLayout */}
+                      <div
+                        className={`relative z-10 p-5 ${
+                          currentSlide.coverLayout === "split_left"
+                            ? "max-w-[70%] my-auto text-left"
+                            : currentSlide.coverLayout === "split_right"
+                            ? "max-w-[70%] ml-auto my-auto text-left"
+                            : "mt-auto text-center max-w-sm mx-auto"
+                        }`}
                       >
-                        {currentSlide.title}
-                      </h3>
+                        <h3 className="text-base sm:text-lg font-extrabold text-white leading-snug drop-shadow-xs">
+                          {parseHighlightedTitle(
+                            currentSlide.title,
+                            currentSlide.highlightColor || "#f97316"
+                          )}
+                        </h3>
 
-                      {currentSlide.subtitle && (
-                        <p
-                          className="text-xs mb-4"
-                          style={{
-                            color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#475467",
-                          }}
-                        >
-                          {currentSlide.subtitle}
-                        </p>
-                      )}
+                        {currentSlide.subtitle && (
+                          <p className="text-xs text-gray-200 mt-2 leading-relaxed drop-shadow-xs">
+                            {currentSlide.subtitle}
+                          </p>
+                        )}
+                      </div>
 
-                      <div className="space-y-2 mt-4">
-                        {currentSlide.content.map((c, i) => (
-                          <div key={i} className="flex items-start gap-2">
-                            {!currentSlide.isCover && (
-                              <span
-                                className="mt-1 h-1.5 w-1.5 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor: currentSlide.isCta
-                                    ? carouselTheme.primaryColor
-                                    : "#0099ff",
-                                }}
-                              ></span>
-                            )}
-                            <p
-                              className="text-xs leading-relaxed"
-                              style={{
-                                color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#334155",
-                              }}
-                            >
-                              {c}
-                            </p>
-                          </div>
-                        ))}
+                      {/* Footer con branding */}
+                      <div className="relative z-10 p-5 pt-0">
+                        <div className="pt-2.5 border-t border-white/20 flex justify-between text-[11px] text-white/80">
+                          <span>{carouselTheme.authorName}</span>
+                          <span>{carouselTheme.authorHandle}</span>
+                        </div>
                       </div>
                     </div>
-
+                  ) : (
+                    // Diapositiva interior, CTA o portada estándar plana
                     <div
-                      className="pt-3 border-t flex justify-between text-xs"
+                      className="aspect-square w-full p-6 flex flex-col justify-between"
                       style={{
-                        borderColor: currentSlide.isCover
-                          ? "rgba(255,255,255,0.2)"
-                          : "rgba(0,0,0,0.06)",
-                        color: currentSlide.isCover ? "rgba(255,255,255,0.8)" : "#94a3b8",
+                        backgroundColor: currentSlide.isCover
+                          ? carouselTheme.primaryColor
+                          : currentSlide.isCta
+                          ? "#f5faff"
+                          : "#ffffff",
+                        color: currentSlide.isCover ? "#ffffff" : "#101828",
                       }}
                     >
-                      <span>{carouselTheme.authorName}</span>
-                      <span>{carouselTheme.authorHandle}</span>
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span
+                            className="text-xs font-bold uppercase tracking-wider"
+                            style={{
+                              color: currentSlide.isCover
+                                ? "rgba(255,255,255,0.8)"
+                                : carouselTheme.primaryColor,
+                            }}
+                          >
+                            {currentSlide.isCover
+                              ? t("badgeCover")
+                              : currentSlide.isCta
+                              ? t("badgeCta")
+                              : t("badgeSlide", { number: currentSlide.slideNumber })}
+                          </span>
+                          <span
+                            className="text-xs"
+                            style={{
+                              color: currentSlide.isCover ? "rgba(255,255,255,0.7)" : "#94a3b8",
+                            }}
+                          >
+                            {currentSlideIndex + 1} / {slides.length}
+                          </span>
+                        </div>
+
+                        <h3
+                          className="text-base font-bold mb-2 leading-snug"
+                          style={{
+                            color: currentSlide.isCover
+                              ? "#ffffff"
+                              : currentSlide.isCta
+                              ? carouselTheme.primaryColor
+                              : "#101828",
+                          }}
+                        >
+                          {currentSlide.isCover
+                            ? parseHighlightedTitle(
+                                currentSlide.title,
+                                currentSlide.highlightColor || "#f97316"
+                              )
+                            : currentSlide.title}
+                        </h3>
+
+                        {currentSlide.subtitle && (
+                          <p
+                            className="text-xs mb-4"
+                            style={{
+                              color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#475467",
+                            }}
+                          >
+                            {currentSlide.subtitle}
+                          </p>
+                        )}
+
+                        <div className="space-y-2 mt-4">
+                          {currentSlide.content.map((c, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              {!currentSlide.isCover && (
+                                <span
+                                  className="mt-1 h-1.5 w-1.5 rounded-full shrink-0"
+                                  style={{
+                                    backgroundColor: currentSlide.isCta
+                                      ? carouselTheme.primaryColor
+                                      : "#0099ff",
+                                  }}
+                                ></span>
+                              )}
+                              <p
+                                className="text-xs leading-relaxed"
+                                style={{
+                                  color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#334155",
+                                }}
+                              >
+                                {c}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div
+                        className="pt-3 border-t flex justify-between text-xs"
+                        style={{
+                          borderColor: currentSlide.isCover
+                            ? "rgba(255,255,255,0.2)"
+                            : "rgba(0,0,0,0.06)",
+                          color: currentSlide.isCover ? "rgba(255,255,255,0.8)" : "#94a3b8",
+                        }}
+                      >
+                        <span>{carouselTheme.authorName}</span>
+                        <span>{carouselTheme.authorHandle}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Barra de navegación de carrusel */}
                   <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-700">

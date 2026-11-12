@@ -2318,6 +2318,34 @@ assert(shapesDrawerCode.includes('gradientSection'), "Sección estelar de degrad
 assert(shapesDrawerCode.includes('handleInsertOverlay'), "Disparador de inserción directa de degradados presente en Elementos");
 assert(shapesDrawerCode.includes('coverageBtn'), "Control de cobertura de degradado (Zona Texto 65% vs Lienzo 100%) disponible");
 
+// ==================================================================
+// 39. Prueba de Composiciones de Portada 1-Clic para Carruseles B2B
+// ==================================================================
+console.log("\n--- 39. Prueba de Composiciones de Portada 1-Clic para Carruseles B2B ---");
+
+const viralTypesCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/lib/viral-posts/types.ts', 'utf8');
+assert(viralTypesCode.includes('CoverLayout'), "Tipo CoverLayout exportado en tipos de publicaciones virales");
+assert(viralTypesCode.includes('"bottom" | "split_left" | "split_right"'), "CoverLayout soporta presets bottom, split_left y split_right");
+assert(viralTypesCode.includes('coverLayout?: CoverLayout'), "CarouselSlide incluye propiedad opcional coverLayout");
+assert(viralTypesCode.includes('backgroundImageUrl?: string'), "CarouselSlide incluye propiedad opcional backgroundImageUrl");
+assert(viralTypesCode.includes('highlightColor?: string'), "CarouselSlide incluye propiedad opcional highlightColor");
+
+const createPostViewCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/components/viral-posts/CreateViralPostView.tsx', 'utf8');
+assert(createPostViewCode.includes('SAMPLE_B2B_BACKGROUNDS'), "Catálogo de fondos ejecutivos B2B presente");
+assert(createPostViewCode.includes('parseHighlightedTitle'), "Función de resaltado de palabras clave con asteriscos implementada");
+assert(createPostViewCode.includes('coverLayout = "bottom"'), "Selector de composición Inferior / Pie presente");
+assert(createPostViewCode.includes('coverLayout = "split_left"'), "Selector de composición Split Izquierdo presente");
+assert(createPostViewCode.includes('coverLayout = "split_right"'), "Selector de composición Split Derecho presente");
+assert(createPostViewCode.includes('linear-gradient(to right'), "Degradé dinámico para split_left configurado");
+assert(createPostViewCode.includes('linear-gradient(to left'), "Degradé dinámico para split_right configurado");
+assert(createPostViewCode.includes('linear-gradient(to top'), "Degradé dinámico para bottom configurado");
+
+const carouselExporterCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/lib/viral-posts/carousel-exporter.ts', 'utf8');
+assert(carouselExporterCode.includes('replace(/\\*\\*/g, "")'), "Limpieza de sintaxis de resalto en PDF");
+assert(carouselExporterCode.includes('layout === "split_left"'), "Soporte de composición split_left en exportación PDF");
+assert(carouselExporterCode.includes('layout === "split_right"'), "Soporte de composición split_right en exportación PDF");
+assert(carouselExporterCode.includes('size, size'), "Generación de carrusel cuadrado de alta resolución");
+
 // Limpieza de base de datos de test
 
 db.close();
