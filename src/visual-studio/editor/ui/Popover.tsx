@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { GripHorizontal, RotateCcw } from 'lucide-react'
 import { usePortalRoot } from '../context'
 import styles from './Popover.module.css'
 
@@ -53,6 +54,8 @@ interface PopoverProps {
   gap?: number
   /** Moves focus into the panel when it opens (keyboard users), without stealing it from the canvas for pointer users. */
   focusOnOpen?: boolean
+  /** Whether the floating popover can be freely dragged across the screen (defaults to true). */
+  draggable?: boolean
 }
 
 const MARGIN = 8
@@ -94,27 +97,136 @@ function place(anchor: DOMRect, panel: DOMRect, placement: Placement, gap: numbe
   return { left, top }
 }
 
-/** Anchored floating panel: closes on outside click / Escape, restores focus to the anchor. */
-export function Popover({ open, onClose, anchorRef, placement = 'bottom-start', label, children, width, className, keepOpenRefs, variant = 'default', cover = false, gap = 6, focusOnOpen = false }: PopoverProps) {
+/** Anchored floating panel: movable/draggable, closes on outside click / Escape, restores focus to the anchor. */
+export function Popover({
+  open,
+  onClose,
+  anchorRef,
+  placement = 'bottom-start',
+  label,
+  children,
+  width,
+  className,
+  keepOpenRefs,
+  variant = 'default',
+  cover = false,
+  gap = 6,
+  focusOnOpen = false,
+  draggable = true,
+}: PopoverProps) {
   const root = usePortalRoot()
   const panelRef = useRef<HTMLDivElement>(null)
   const id = useId()
   const parentId = useContext(ParentPopover)
 
-  /** Positions the panel next to its anchor. Done on the DOM node so measuring never triggers a render. */
+  const [hasUserMoved, setHasUserMoved] = useState(false)
+  const isDraggingRef = useRef(false)
+  const hasUserMovedRef = useRef(false)
+  const userPositionRef = useRef<{ left: number; top: number } | null>(null)
+  const dragStartRef = useRef<{ pointerX: number; pointerY: number; panelLeft: number; panelTop: number } | null>(null)
+
+  /** Positions the panel next to its anchor or preserves the user-dragged position. */
   const reposition = useCallback(() => {
     const a = anchorRef.current
     const p = panelRef.current
     if (!a || !p) return
+    if (hasUserMovedRef.current && userPositionRef.current) {
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const w = p.offsetWidth || 320
+      const h = p.offsetHeight || 300
+      const left = Math.max(MARGIN, Math.min(userPositionRef.current.left, vw - w - MARGIN))
+      const top = Math.max(MARGIN, Math.min(userPositionRef.current.top, vh - h - MARGIN))
+      p.style.left = `${left}px`
+      p.style.top = `${top}px`
+      p.dataset.placed = 'true'
+      p.dataset.userMoved = 'true'
+      return
+    }
     const pos = place(a.getBoundingClientRect(), p.getBoundingClientRect(), placement, gap)
     p.style.left = `${pos.left}px`
     p.style.top = `${pos.top}px`
     p.dataset.placed = 'true'
+    delete p.dataset.userMoved
   }, [anchorRef, placement, gap])
 
   useLayoutEffect(() => {
     if (open) reposition()
   }, [open, reposition, children])
+
+  const handleResetPosition = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    hasUserMovedRef.current = false
+    userPositionRef.current = null
+    setHasUserMoved(false)
+    const a = anchorRef.current
+    const p = panelRef.current
+    if (!a || !p) return
+    delete p.dataset.userMoved
+    const pos = place(a.getBoundingClientRect(), p.getBoundingClientRect(), placement, gap)
+    p.style.left = `${pos.left}px`
+    p.style.top = `${pos.top}px`
+  }, [anchorRef, placement, gap])
+
+  const handleDragPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    const target = e.target as HTMLElement
+    // Ignore clicks on buttons, inputs or actions
+    if (target.closest('button, input, select, textarea, [role="button"], a')) return
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    const p = panelRef.current
+    if (!p) return
+
+    const rect = p.getBoundingClientRect()
+    dragStartRef.current = {
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      panelLeft: rect.left,
+      panelTop: rect.top,
+    }
+    isDraggingRef.current = true
+    hasUserMovedRef.current = true
+    setHasUserMoved(true)
+    p.dataset.dragging = 'true'
+    p.dataset.userMoved = 'true'
+    document.body.style.userSelect = 'none'
+
+    const onPointerMove = (ev: PointerEvent) => {
+      if (!isDraggingRef.current || !dragStartRef.current || !panelRef.current) return
+      const deltaX = ev.clientX - dragStartRef.current.pointerX
+      const deltaY = ev.clientY - dragStartRef.current.pointerY
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const pRect = panelRef.current.getBoundingClientRect()
+      const newLeft = dragStartRef.current.panelLeft + deltaX
+      const newTop = dragStartRef.current.panelTop + deltaY
+      const clampedLeft = Math.max(MARGIN, Math.min(newLeft, vw - pRect.width - MARGIN))
+      const clampedTop = Math.max(MARGIN, Math.min(newTop, vh - pRect.height - MARGIN))
+
+      panelRef.current.style.left = `${clampedLeft}px`
+      panelRef.current.style.top = `${clampedTop}px`
+      userPositionRef.current = { left: clampedLeft, top: clampedTop }
+    }
+
+    const onPointerUp = () => {
+      isDraggingRef.current = false
+      dragStartRef.current = null
+      document.body.style.userSelect = ''
+      if (panelRef.current) {
+        delete panelRef.current.dataset.dragging
+      }
+      window.removeEventListener('pointermove', onPointerMove, true)
+      window.removeEventListener('pointerup', onPointerUp, true)
+      window.removeEventListener('pointercancel', onPointerUp, true)
+    }
+
+    window.addEventListener('pointermove', onPointerMove, true)
+    window.addEventListener('pointerup', onPointerUp, true)
+    window.addEventListener('pointercancel', onPointerUp, true)
+  }, [])
 
   useEffect(() => {
     if (!open || !focusOnOpen) return
@@ -127,6 +239,9 @@ export function Popover({ open, onClose, anchorRef, placement = 'bottom-start', 
   useEffect(() => {
     if (!open) return
     const onDown = (e: PointerEvent): void => {
+      // If currently dragging, ignore outside clicks
+      if (isDraggingRef.current) return
+
       const target = e.target as Node
       if (panelRef.current?.contains(target) || anchorRef.current?.contains(target)) return
       if (keepOpenRefs?.some((r) => r.current?.contains(target))) return
@@ -188,7 +303,36 @@ export function Popover({ open, onClose, anchorRef, placement = 'bottom-start', 
         style={{ width }}
         tabIndex={-1}
       >
-        <ParentPopover.Provider value={id}>{children}</ParentPopover.Provider>
+        {draggable && (
+          <div
+            className={styles.dragBar}
+            title="Arrastrar para mover por la pantalla (Doble clic para centrar)"
+            onPointerDown={handleDragPointerDown}
+            onDoubleClick={handleResetPosition}
+          >
+            <div className={styles.dragLeft}>
+              <GripHorizontal className={styles.dragGripIcon} size={13} />
+              <span className={styles.dragTitle}>{label || 'Herramienta'}</span>
+            </div>
+            <div className={styles.dragPill} />
+            <div className={styles.dragActions}>
+              {hasUserMoved && (
+                <button
+                  type="button"
+                  className={styles.dragResetBtn}
+                  title="Restablecer posición inicial bajo el botón"
+                  onClick={handleResetPosition}
+                >
+                  <RotateCcw size={10} />
+                  <span>Centrar</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        <div className={`${styles.content} ${variant === 'default' ? styles.defaultContent : ''}`}>
+          <ParentPopover.Provider value={id}>{children}</ParentPopover.Provider>
+        </div>
       </div>
     </>,
     root,
@@ -203,17 +347,18 @@ interface PopoverButtonProps {
   placement?: Placement
   width?: number | string
   className?: string
+  draggable?: boolean
 }
 
 /** Trigger + popover pair with its own open state. */
-export function PopoverButton({ label, trigger, children, placement, width, className }: PopoverButtonProps) {
+export function PopoverButton({ label, trigger, children, placement, width, className, draggable }: PopoverButtonProps) {
   const ref = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
   return (
     <>
       {trigger({ ref, onClick: () => setOpen((o) => !o), 'aria-haspopup': 'dialog', 'aria-expanded': open })}
-      <Popover open={open} onClose={close} anchorRef={ref} label={label} placement={placement} width={width} className={className}>
+      <Popover open={open} onClose={close} anchorRef={ref} label={label} placement={placement} width={width} className={className} draggable={draggable}>
         {typeof children === 'function' ? children(close) : children}
       </Popover>
     </>

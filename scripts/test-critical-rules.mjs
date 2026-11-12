@@ -2346,6 +2346,25 @@ assert(carouselExporterCode.includes('layout === "split_left"'), "Soporte de com
 assert(carouselExporterCode.includes('layout === "split_right"'), "Soporte de composición split_right en exportación PDF");
 assert(carouselExporterCode.includes('size, size'), "Generación de carrusel cuadrado de alta resolución");
 
+// ==================================================================
+// 40. Prueba de Herramientas Flotantes Libremente Arrastrables (Draggable Popovers)
+// ==================================================================
+console.log("\n--- 40. Prueba de Herramientas Flotantes Libremente Arrastrables ---");
+
+const popoverCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/ui/Popover.tsx', 'utf8');
+assert(popoverCode.includes('handleDragPointerDown'), "Función de arrastre libre handleDragPointerDown implementada");
+assert(popoverCode.includes('userPositionRef'), "Almacenamiento de posición personalizada arrastrada por el usuario");
+assert(popoverCode.includes('handleResetPosition'), "Función de reseteo para centrar la ventana bajo el botón original");
+assert(popoverCode.includes('styles.dragBar'), "Barra de arrastre visual dragBar integrada en el encabezado del popover");
+assert(popoverCode.includes('styles.dragPill'), "Pill de agarre visual (grip pill) para interactividad táctil y ratón");
+assert(popoverCode.includes('onDoubleClick={handleResetPosition}'), "Soporte de doble clic para restablecer posición al ancla");
+
+const popoverStyles = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/ui/Popover.module.css', 'utf8');
+assert(popoverStyles.includes('.dragBar'), "Clase CSS dragBar definida para el encabezado arrastrable");
+assert(popoverStyles.includes('cursor: grab'), "Cursor grab configurado para indicar que la herramienta se puede mover");
+assert(popoverStyles.includes('.dragResetBtn'), "Botón de acción para centrar la herramienta presente");
+assert(popoverStyles.includes("data-dragging='true'"), "Estado visual activo durante el arrastre configurado");
+
 // Limpieza de base de datos de test
 
 db.close();
