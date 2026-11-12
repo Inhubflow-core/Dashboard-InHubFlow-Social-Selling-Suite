@@ -22,9 +22,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
-import { Sparkles, Image as ImageIcon, Bot } from "lucide-react";
+import {
+  Sparkles,
+  Image as ImageIcon,
+  Bot,
+  Upload,
+  Layout,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Palette,
+  Check,
+} from "lucide-react";
 import VisualStudioModal from "./VisualStudioModal";
-import { Upload, Layout, AlignLeft, AlignCenter, AlignRight, Palette, Check } from "lucide-react";
 
 export const SAMPLE_B2B_BACKGROUNDS = [
   {
@@ -49,9 +59,11 @@ export const SAMPLE_B2B_BACKGROUNDS = [
   },
 ];
 
+const HIGHLIGHT_SPLIT_REGEX = new RegExp('(\\*\\*.*?\\*\\*|__.*?__|\\{.*?\\})', 'g');
+
 export function parseHighlightedTitle(title: string, highlightColor: string = "#f97316") {
   if (!title) return null;
-  const parts = title.split(/(\\*\\*.*?\\*\\*|__.*?__|{.*?})/g);
+  const parts = title.split(HIGHLIGHT_SPLIT_REGEX);
   return parts.map((part, index) => {
     if (
       (part.startsWith("**") && part.endsWith("**")) ||
