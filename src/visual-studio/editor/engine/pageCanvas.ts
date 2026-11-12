@@ -101,8 +101,8 @@ export interface OverlayState {
 const EMPTY_OVERLAY: OverlayState = { guides: [], spacing: [], hover: null, rulerGuides: [] }
 
 const NUDGE_CLICK_SLOP = 6
-/** Breathing room between a text and its selection border, so the last glyph never pokes out of it. */
-const TEXT_PADDING = 6
+/** Breathing room between a text and its selection border (Canva style: 0 px, flush with border). */
+const TEXT_PADDING = 0
 
 function canDropIntoImageGrid(obj: FabricObject): obj is FabricImage {
   if (!(obj instanceof FabricImage) || kindOfLive(obj) !== 'image') return false

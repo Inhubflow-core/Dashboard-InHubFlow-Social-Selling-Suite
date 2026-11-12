@@ -2443,6 +2443,19 @@ assert(memoryAdapterUpdatedCode.includes("await localRepository.putAsset({ id, b
 assert(memoryAdapterUpdatedCode.includes("const repoUrl = await localRepository.getAssetObjectUrl(key)"), "resolveSrc recupera la URL de IndexedDB cuando la memoria se refresca tras un cambio");
 assert(memoryAdapterUpdatedCode.includes("const stored = await localRepository.listAssets()"), "El catálogo 'Tus fotos' se recupera desde IndexedDB evitando que las imágenes subidas desaparezcan");
 
+// ==================================================================
+// 45. Prueba de Borde de Selección Fino y al Ras (Estilo Canva: borderScaleFactor 1, padding 0)
+// ==================================================================
+console.log("\n--- 45. Prueba de Borde de Selección Fino y al Ras (Estilo Canva: borderScaleFactor 1, padding 0) ---");
+
+const themeCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/objects/theme.ts', 'utf8');
+
+assert(themeCode.includes("borderScaleFactor: 1,"), "borderScaleFactor configurado en 1 para una línea de selección azul fina y nítida");
+assert(themeCode.includes("padding: 0,"), "padding configurado en 0 para que la línea de selección quede exactamente en el borde del objeto o imagen");
+
+const pageCanvasCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/pageCanvas.ts', 'utf8');
+assert(pageCanvasCode.includes("const TEXT_PADDING = 0"), "TEXT_PADDING configurado en 0 para que los cuadros de texto también queden al ras estilo Canva");
+
 // Limpieza de base de datos de test
 
 db.close();

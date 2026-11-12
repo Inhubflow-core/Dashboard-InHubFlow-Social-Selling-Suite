@@ -46,10 +46,10 @@ export function selectionStyle(theme: CanvasTheme): Partial<FabricObject> {
     transparentCorners: false,
     cornerSize: 11,
     touchCornerSize: 30,
-    borderScaleFactor: 1.5,
+    borderScaleFactor: 1,
     borderOpacityWhenMoving: 0.5,
-    // The selection border sits 2 px outside the object (text gets more, see PageCanvas).
-    padding: 2,
+    // Exactamente en el borde del objeto (estilo Canva, padding 0 sin desfase exterior).
+    padding: 0,
     lockSkewingX: true,
     lockSkewingY: true,
     snapAngle: 15,
