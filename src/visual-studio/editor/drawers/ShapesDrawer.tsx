@@ -47,7 +47,7 @@ export function ShapesDrawer({ close }: PanelProps) {
   }
 
   const basic: ShapeCard[] = [
-    { id: 'rect', label: t.basicShapes.rectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />), run: shape('rect') },
+    { id: 'rect', label: t.basicShapes.rectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="0" stroke="currentColor" strokeWidth="1.5" />), run: shape('rect') },
     { id: 'ellipse', label: t.basicShapes.circle, icon: sv(<circle cx="14" cy="14" r="10" stroke="currentColor" strokeWidth="1.5" />), run: shape('ellipse') },
     { id: 'triangle', label: t.basicShapes.triangle, icon: sv(<path d="M14 4L24 24H4L14 4z" stroke="currentColor" strokeWidth="1.5" />), run: shape('triangle') },
     { id: 'line', label: t.basicShapes.line, icon: sv(<line x1="4" y1="14" x2="24" y2="14" stroke="currentColor" strokeWidth="2" />), run: shape('line') },

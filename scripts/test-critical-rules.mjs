@@ -2365,6 +2365,20 @@ assert(popoverStyles.includes('cursor: grab'), "Cursor grab configurado para ind
 assert(popoverStyles.includes('.dragResetBtn'), "Botón de acción para centrar la herramienta presente");
 assert(popoverStyles.includes("data-dragging='true'"), "Estado visual activo durante el arrastre configurado");
 
+// ==================================================================
+// 41. Prueba de Configuración por Defecto de Rectángulos (Blanco, Sin Borde, Sin Redondez)
+// ==================================================================
+console.log("\n--- 41. Prueba de Configuración por Defecto de Rectángulos ---");
+
+const insertCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/api/insert.ts', 'utf8');
+assert(insertCode.includes("fill: '#ffffff'"), "Rectángulo inicia por defecto con color blanco puro (#ffffff)");
+assert(insertCode.includes("stroke: null"), "Rectángulo inicia por defecto sin color de borde (stroke: null)");
+assert(insertCode.includes("strokeWidth: 0"), "Rectángulo inicia por defecto con ancho de borde 0");
+assert(insertCode.includes("rx: 0, ry: 0"), "Rectángulo inicia por defecto con esquinas rectas sin redondez (rx: 0, ry: 0)");
+
+const shapesDrawerUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
+assert(shapesDrawerUpdatedCode.includes('id: \'rect\', label: t.basicShapes.rectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="0"'), "Icono del rectángulo en drawer refleja esquinas rectas sin redondez (rx=0)");
+
 // Limpieza de base de datos de test
 
 db.close();

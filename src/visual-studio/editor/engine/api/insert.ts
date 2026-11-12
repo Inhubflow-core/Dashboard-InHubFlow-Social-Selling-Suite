@@ -173,10 +173,13 @@ export class InsertApi {
     let obj: FabricObject
     let label: string
     switch (kind) {
-      case 'rect':
-        obj = softShape(createRect(at, Math.round(120 * k), Math.round(6 * k), unit), page)
+      case 'rect': {
+        const rect = createRect(at, Math.round(120 * k), 0, unit)
+        rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })
+        obj = rect
         label = t.history.addRectangle
         break
+      }
       case 'rounded':
         obj = softShape(createRect(at, Math.round(120 * k), Math.round(20 * k), unit), page)
         label = t.history.addRoundedRectangle
