@@ -8,10 +8,12 @@ export interface ClipboardPayload {
   objects: DocObject[]
   /** Source page size, so pasted content can be re-centred on a differently sized page. */
   page: { width: number; height: number }
+  /** Source page ID so pasting onto another page can preserve exact coordinates */
+  sourcePageId?: string
 }
 
-export function encodeClipboard(objects: DocObject[], page: { width: number; height: number }): string {
-  const payload: ClipboardPayload = { kind: TEXT_MARKER, objects, page }
+export function encodeClipboard(objects: DocObject[], page: { width: number; height: number }, sourcePageId?: string): string {
+  const payload: ClipboardPayload = { kind: TEXT_MARKER, objects, page, ...(sourcePageId ? { sourcePageId } : {}) }
   return JSON.stringify(payload)
 }
 
@@ -27,7 +29,8 @@ export function decodeClipboard(text: string): ClipboardPayload | null {
     if (objects.length === 0) return null
     const { width, height } = p.page
     if (typeof width !== 'number' || typeof height !== 'number') return null
-    return { kind: TEXT_MARKER, objects, page: { width, height } }
+    const sourcePageId = typeof p.sourcePageId === 'string' ? p.sourcePageId : undefined
+    return { kind: TEXT_MARKER, objects, page: { width, height }, ...(sourcePageId ? { sourcePageId } : {}) }
   } catch {
     return null
   }

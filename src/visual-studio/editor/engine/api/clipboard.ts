@@ -16,6 +16,7 @@ import { DUPLICATE_OFFSET } from './arrange'
 export class ClipboardApi {
   private internal: ClipboardPayload | null = null
   private pasteCount = 0
+  private lastPastedPageId: string | null = null
 
   constructor(private readonly engine: EditorEngine) {}
 
@@ -28,7 +29,8 @@ export class ClipboardApi {
     // (duplicating skips locked objects too).
     const objs = selected.filter((o) => !isLocked(o))
     if (objs.length === 0) return null
-    const page = this.engine.pageSizeOf(this.engine.state.activePageId)
+    const activePageId = this.engine.state.activePageId
+    const page = this.engine.pageSizeOf(activePageId)
     // Realise group-selection transforms so coordinates are page-absolute.
     const docs = view.quietly(() => {
       view.canvas.discardActiveObject()
@@ -36,18 +38,19 @@ export class ClipboardApi {
       view.selectObjects(selected)
       return out
     })
-    return { kind: 'doory-clipboard/v1', objects: docs, page }
+    return { kind: 'doory-clipboard/v1', objects: docs, page, sourcePageId: activePageId }
   }
 
   /** Handler for the DOM `copy` / `cut` event: writes both flavours. Returns true when it handled the event. */
   writeTo(data: DataTransfer): boolean {
     const p = this.payload()
     if (!p) return false
-    const json = encodeClipboard(p.objects, p.page)
+    const json = encodeClipboard(p.objects, p.page, p.sourcePageId)
     data.setData(CLIPBOARD_MIME, json)
     data.setData('text/plain', json)
     this.internal = p
     this.pasteCount = 0
+    this.lastPastedPageId = null
     return true
   }
 
@@ -56,7 +59,8 @@ export class ClipboardApi {
     if (!p) return
     this.internal = p
     this.pasteCount = 0
-    const json = encodeClipboard(p.objects, p.page)
+    this.lastPastedPageId = null
+    const json = encodeClipboard(p.objects, p.page, p.sourcePageId)
     try {
       await navigator.clipboard.writeText(json)
     } catch {
@@ -125,11 +129,28 @@ export class ClipboardApi {
   }
 
   private async placeObjects(payload: ClipboardPayload): Promise<void> {
-    const page = this.engine.pageSizeOf(this.engine.state.activePageId)
-    const samePage = Math.abs(payload.page.width - page.width) < 1 && Math.abs(payload.page.height - page.height) < 1
-    this.pasteCount += 1
-    if (samePage) await this.engine.insert.objects(payload.objects, t.history.paste, { offset: DUPLICATE_OFFSET * this.pasteCount })
-    else await this.engine.insert.objects(payload.objects, t.history.paste, { recenterOn: page })
+    const activePageId = this.engine.state.activePageId
+    const page = this.engine.pageSizeOf(activePageId)
+    const isDifferentPage = Boolean(payload.sourcePageId && payload.sourcePageId !== activePageId)
+
+    if (this.lastPastedPageId !== activePageId) {
+      this.lastPastedPageId = activePageId
+      this.pasteCount = 0
+    }
+
+    if (isDifferentPage && this.pasteCount === 0) {
+      // Pasting onto another page keeps the exact coordinate position from the source page
+      this.pasteCount = 1
+      await this.engine.insert.objects(payload.objects, t.history.paste, { offset: 0 })
+    } else {
+      const sameDimensions = Math.abs(payload.page.width - page.width) < 1 && Math.abs(payload.page.height - page.height) < 1
+      this.pasteCount += 1
+      if (sameDimensions) {
+        await this.engine.insert.objects(payload.objects, t.history.paste, { offset: DUPLICATE_OFFSET * this.pasteCount })
+      } else {
+        await this.engine.insert.objects(payload.objects, t.history.paste, { recenterOn: page })
+      }
+    }
   }
 
   private async pasteText(text: string): Promise<void> {

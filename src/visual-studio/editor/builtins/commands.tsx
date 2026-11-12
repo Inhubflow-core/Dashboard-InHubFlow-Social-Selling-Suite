@@ -104,9 +104,9 @@ export function registerBuiltinCommands(): void {
 
   registerCommand({ id: 'edit.undo', label: t.cmd.editUndo, shortcut: 'Mod+Z', group: t.cmdGroup.edit, icon: <Undo2 size={18} />, whileEditing: true, run: (e) => e.undo(), enabled: ({ state }) => state.history.canUndo })
   registerCommand({ id: 'edit.redo', label: t.cmd.editRedo, shortcut: 'Mod+Shift+Z|Mod+Y', group: t.cmdGroup.edit, icon: <Redo2 size={18} />, whileEditing: true, run: (e) => e.redo(), enabled: ({ state }) => state.history.canRedo })
-  registerCommand({ id: 'edit.cut', label: t.cmd.editCut, shortcut: 'Mod+X', group: t.cmdGroup.edit, icon: <Scissors size={18} />, displayOnly: true, run: (e) => e.clipboard.cut(), enabled: ({ editor }) => hasSelection(editor) })
-  registerCommand({ id: 'edit.copy', label: t.cmd.editCopy, shortcut: 'Mod+C', group: t.cmdGroup.edit, icon: <Copy size={18} />, displayOnly: true, run: (e) => e.clipboard.copy(), enabled: ({ editor }) => hasSelection(editor) })
-  registerCommand({ id: 'edit.paste', label: t.cmd.editPaste, shortcut: 'Mod+V', group: t.cmdGroup.edit, icon: <ClipboardPaste size={18} />, displayOnly: true, run: (e) => e.clipboard.paste() })
+  registerCommand({ id: 'edit.cut', label: t.cmd.editCut, shortcut: 'Mod+X', group: t.cmdGroup.edit, icon: <Scissors size={18} />, run: (e) => e.clipboard.cut(), enabled: ({ editor }) => hasSelection(editor) })
+  registerCommand({ id: 'edit.copy', label: t.cmd.editCopy, shortcut: 'Mod+C', group: t.cmdGroup.edit, icon: <Copy size={18} />, run: (e) => e.clipboard.copy(), enabled: ({ editor }) => hasSelection(editor) })
+  registerCommand({ id: 'edit.paste', label: t.cmd.editPaste, shortcut: 'Mod+V', group: t.cmdGroup.edit, icon: <ClipboardPaste size={18} />, run: (e) => e.clipboard.paste(), enabled: ({ state }) => !state.readOnly })
   registerCommand({ id: 'edit.duplicate', label: t.cmd.editDuplicate, shortcut: 'Mod+D', group: t.cmdGroup.edit, icon: <CopyPlus size={18} />, run: (e) => e.arrange.duplicate(), enabled: ({ editor }) => hasSelection(editor) })
   registerCommand({ id: 'edit.delete', label: t.cmd.editDelete, shortcut: 'Delete|Backspace', group: t.cmdGroup.edit, icon: <Trash2 size={18} />, run: (e) => e.arrange.delete(), enabled: ({ state }) => state.selection.ids.length > 0 && !state.selection.editing })
   registerCommand({ id: 'edit.selectAll', label: t.cmd.editSelectAll, shortcut: 'Mod+A', group: t.cmdGroup.edit, run: (e) => e.selectAll(), enabled: ({ state }) => !state.selection.editing })
