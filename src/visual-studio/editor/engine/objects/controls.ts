@@ -49,20 +49,35 @@ function isImage(obj: FabricObject): obj is FabricImage {
   return obj instanceof FabricImage || obj.type === 'image' || (obj as any).isType?.('image')
 }
 
-/** Draws Canva-style horizontal or vertical white capsule/pill handle */
+/** Draws Canva-style horizontal or vertical white capsule/pill handle, rotated to match object angle */
 function paintPillHandle(
   ctx: CanvasRenderingContext2D,
   left: number,
   top: number,
   orientation: 'horizontal' | 'vertical',
   accent: string,
+  targetObj?: FabricObject,
 ): void {
   ctx.save()
+  ctx.translate(left, top)
+  let angleDeg = 0
+  try {
+    angleDeg =
+      typeof (targetObj as any)?.getTotalAngle === 'function'
+        ? (targetObj as any).getTotalAngle()
+        : (targetObj?.angle ?? 0)
+  } catch {
+    angleDeg = targetObj?.angle ?? 0
+  }
+  if (angleDeg) {
+    ctx.rotate((angleDeg * Math.PI) / 180)
+  }
+
   const w = orientation === 'horizontal' ? 16 : 6
   const h = orientation === 'horizontal' ? 6 : 16
   const r = 3
-  const x = left - w / 2
-  const y = top - h / 2
+  const x = -w / 2
+  const y = -h / 2
 
   ctx.beginPath()
   if (typeof (ctx as any).roundRect === 'function') {
@@ -88,11 +103,18 @@ function paintPillHandle(
 }
 
 /** Draws Canva-style circular corner handle */
-function paintCircleHandle(ctx: CanvasRenderingContext2D, left: number, top: number, accent: string): void {
+function paintCircleHandle(
+  ctx: CanvasRenderingContext2D,
+  left: number,
+  top: number,
+  accent: string,
+  _targetObj?: FabricObject,
+): void {
   ctx.save()
+  ctx.translate(left, top)
   const radius = 5.5
   ctx.beginPath()
-  ctx.arc(left, top, radius, 0, Math.PI * 2)
+  ctx.arc(0, 0, radius, 0, Math.PI * 2)
   ctx.fillStyle = '#ffffff'
   ctx.fill()
   ctx.strokeStyle = accent
@@ -373,6 +395,7 @@ export function customizeControls(obj: FabricObject): void {
         actionName?: string
         getActionName?: unknown
         cursorStyle?: string
+        cursorStyleHandler?: unknown
         withConnection?: boolean
       }
     | undefined
@@ -384,8 +407,8 @@ export function customizeControls(obj: FabricObject): void {
     const c = controls[cName]
     if (!c) continue
     c.visible = true
-    c.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-      paintCircleHandle(ctx, left, top, accent)
+    c.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+      paintCircleHandle(ctx, left, top, accent, fabricObject ?? obj)
     }
     if (isImg) {
       c.actionHandler = controlsUtils.scalingEqually
@@ -404,67 +427,78 @@ export function customizeControls(obj: FabricObject): void {
 
     if (isImg) {
       control.visible = true
+      control.cursorStyleHandler = controlsUtils.scaleSkewCursorStyleHandler
       if (name === 'mt') {
         control.actionHandler = cropTopAction
         control.actionName = 'cropY'
-        control.cursorStyle = 'ns-resize'
         control.sizeX = 16
         control.sizeY = 8
         control.touchSizeX = 24
         control.touchSizeY = 20
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'horizontal', accent)
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'horizontal', accent, fabricObject ?? obj)
         }
       } else if (name === 'mb') {
         control.actionHandler = cropBottomAction
         control.actionName = 'cropY'
-        control.cursorStyle = 'ns-resize'
         control.sizeX = 16
         control.sizeY = 8
         control.touchSizeX = 24
         control.touchSizeY = 20
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'horizontal', accent)
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'horizontal', accent, fabricObject ?? obj)
         }
       } else if (name === 'ml') {
         control.actionHandler = cropLeftAction
         control.actionName = 'cropX'
-        control.cursorStyle = 'ew-resize'
         control.sizeX = 8
         control.sizeY = 16
         control.touchSizeX = 20
         control.touchSizeY = 24
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'vertical', accent)
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'vertical', accent, fabricObject ?? obj)
         }
       } else if (name === 'mr') {
         control.actionHandler = cropRightAction
         control.actionName = 'cropX'
-        control.cursorStyle = 'ew-resize'
         control.sizeX = 8
         control.sizeY = 16
         control.touchSizeX = 20
         control.touchSizeY = 24
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'vertical', accent)
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'vertical', accent, fabricObject ?? obj)
         }
       }
     } else if (sidesOnly) {
       control.visible = wrapWidth && (name === 'ml' || name === 'mr')
       if (name === 'ml' || name === 'mr') {
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'vertical', accent)
+        control.cursorStyleHandler = controlsUtils.scaleSkewCursorStyleHandler
+        control.sizeX = 8
+        control.sizeY = 16
+        control.touchSizeX = 20
+        control.touchSizeY = 24
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'vertical', accent, fabricObject ?? obj)
         }
       }
     } else {
       control.visible = isShape(obj) || imageGrid
+      control.cursorStyleHandler = controlsUtils.scaleSkewCursorStyleHandler
       if (name === 'ml' || name === 'mr') {
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'vertical', accent)
+        control.sizeX = 8
+        control.sizeY = 16
+        control.touchSizeX = 20
+        control.touchSizeY = 24
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'vertical', accent, fabricObject ?? obj)
         }
       } else {
-        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-          paintPillHandle(ctx, left, top, 'horizontal', accent)
+        control.sizeX = 16
+        control.sizeY = 8
+        control.touchSizeX = 24
+        control.touchSizeY = 20
+        control.render = (ctx: CanvasRenderingContext2D, left: number, top: number, _styleOverride?: unknown, fabricObject?: FabricObject) => {
+          paintPillHandle(ctx, left, top, 'horizontal', accent, fabricObject ?? obj)
         }
       }
       if (imageGrid && (name === 'ml' || name === 'mr')) {

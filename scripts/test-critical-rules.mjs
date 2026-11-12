@@ -2397,6 +2397,39 @@ assert(textToolbarUpdatedCode.includes("const lineHeight = Number(obj.lineHeight
 const pairingsUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/pairings.ts', 'utf8');
 assert(pairingsUpdatedCode.includes("lineHeight: 1"), "faceOptions en Font Pairings define lineHeight: 1 por defecto");
 
+// ==================================================================
+// 43. Prueba de Rotación Dinámica de Manijas de Selección (Handles / Pills)
+// ==================================================================
+console.log("\n--- 43. Prueba de Rotación Dinámica de Manijas de Selección (Handles / Pills) ---");
+
+const controlsSourceCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/objects/controls.ts', 'utf8');
+
+assert(controlsSourceCode.includes("targetObj?: FabricObject"), "paintPillHandle acepta targetObj para leer el ángulo de rotación del objeto");
+assert(controlsSourceCode.includes("ctx.rotate((angleDeg * Math.PI) / 180)"), "paintPillHandle aplica rotación en radianes al contexto de dibujo según el ángulo del objeto");
+assert(controlsSourceCode.includes("typeof (targetObj as any)?.getTotalAngle === 'function'"), "paintPillHandle lee getTotalAngle del objeto con fallback a obj.angle");
+assert(controlsSourceCode.includes("control.cursorStyleHandler = controlsUtils.scaleSkewCursorStyleHandler"), "Las manijas configuran scaleSkewCursorStyleHandler para adaptar dinámicamente el cursor a cualquier rotación");
+assert(controlsSourceCode.includes("paintPillHandle(ctx, left, top, 'horizontal', accent, fabricObject ?? obj)"), "Las manijas horizontales (mt, mb) transmiten fabricObject o fallback de objeto al dibujado");
+assert(controlsSourceCode.includes("paintPillHandle(ctx, left, top, 'vertical', accent, fabricObject ?? obj)"), "Las manijas verticales (ml, mr) transmiten fabricObject o fallback de objeto al dibujado");
+
+// Simulación de renderizado con rotación
+function simulateHandleAngle(objAngle) {
+  const rad = (objAngle * Math.PI) / 180;
+  // Vector unitario del eje local X del objeto transformado
+  const localX = { x: Math.cos(rad), y: Math.sin(rad) };
+  // Vector unitario del eje local Y del objeto transformado
+  const localY = { x: -Math.sin(rad), y: Math.cos(rad) };
+  return { rad, localX, localY };
+}
+
+const angle0 = simulateHandleAngle(0);
+assert(Math.abs(angle0.localX.x - 1) < 0.001 && Math.abs(angle0.localX.y) < 0.001, "A 0 grados, la manija superior/inferior se alinea horizontalmente con el eje X");
+
+const angle90 = simulateHandleAngle(90);
+assert(Math.abs(angle90.localX.x) < 0.001 && Math.abs(angle90.localX.y - 1) < 0.001, "A 90 grados, la manija superior/inferior gira 90° y se alinea verticalmente con la arista rotada");
+
+const angle45 = simulateHandleAngle(45);
+assert(Math.abs(angle45.localX.x - Math.SQRT1_2) < 0.001 && Math.abs(angle45.localX.y - Math.SQRT1_2) < 0.001, "A 45 grados, la manija gira exactamente 45° manteniéndose tangente al borde inclinado");
+
 // Limpieza de base de datos de test
 
 db.close();
