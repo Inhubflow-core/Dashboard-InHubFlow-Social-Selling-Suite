@@ -147,12 +147,38 @@ export default function VisualStudioModal({
     if (typeof document !== "undefined") {
       const fontLinkId = "inhubflow-visual-studio-fonts";
       if (!document.getElementById(fontLinkId)) {
+        if (!document.getElementById("inhubflow-font-preconnect-1")) {
+          const pre1 = document.createElement("link");
+          pre1.id = "inhubflow-font-preconnect-1";
+          pre1.rel = "preconnect";
+          pre1.href = "https://fonts.googleapis.com";
+          document.head.appendChild(pre1);
+        }
+        if (!document.getElementById("inhubflow-font-preconnect-2")) {
+          const pre2 = document.createElement("link");
+          pre2.id = "inhubflow-font-preconnect-2";
+          pre2.rel = "preconnect";
+          pre2.href = "https://fonts.gstatic.com";
+          pre2.crossOrigin = "anonymous";
+          document.head.appendChild(pre2);
+        }
+
         const link = document.createElement("link");
         link.id = fontLinkId;
         link.rel = "stylesheet";
         link.href =
           "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@400;600;700&family=Lato:wght@400;700&family=Lora:wght@400;700&family=Montserrat:wght@400;600;800&family=Open+Sans:wght@400;600&family=Outfit:wght@400;600;700;800&family=Pacifico&family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&display=swap";
         document.head.appendChild(link);
+      }
+
+      // Sincronización automática de métricas de Fabric en cuanto las fuentes web terminan de cargarse
+      if ("fonts" in document) {
+        (document.fonts as any).ready?.then(() => {
+          const engine = editorRef.current?.getEngine?.();
+          if (engine && typeof (engine as any).remeasureAllText === "function") {
+            (engine as any).remeasureAllText();
+          }
+        });
       }
     }
   }, [initialTitle, initialSubtitle]);
@@ -195,10 +221,13 @@ export default function VisualStudioModal({
 
       page.objects.push({
         id: headingId,
+        type: "Textbox",
         kind: "text",
         name: "Título del Post",
-        x: Math.round(dimensions.width * 0.1),
-        y: Math.round(dimensions.height * (isHorizontal ? 0.22 : isSquare ? 0.24 : 0.26)),
+        left: Math.round(dimensions.width / 2),
+        top: Math.round(dimensions.height * (isHorizontal ? 0.22 : isSquare ? 0.24 : 0.26)),
+        originX: "center",
+        originY: "center",
         width: Math.round(dimensions.width * 0.8),
         height: isHorizontal ? 120 : 160,
         rotation: 0,
@@ -212,7 +241,7 @@ export default function VisualStudioModal({
         fontWeight: "bold",
         fontStyle: "normal",
         fill: "#0f172a",
-        align: "center",
+        textAlign: "center",
         lineHeight: 1.2,
         letterSpacing: 0,
         textTransform: "none",
@@ -226,10 +255,13 @@ export default function VisualStudioModal({
         const subId = newId();
         page.objects.push({
           id: subId,
+          type: "Textbox",
           kind: "text",
           name: "Subtítulo",
-          x: Math.round(dimensions.width * 0.12),
-          y: Math.round(dimensions.height * (isHorizontal ? 0.50 : isSquare ? 0.44 : 0.42)),
+          left: Math.round(dimensions.width / 2),
+          top: Math.round(dimensions.height * (isHorizontal ? 0.50 : isSquare ? 0.44 : 0.42)),
+          originX: "center",
+          originY: "center",
           width: Math.round(dimensions.width * 0.76),
           height: 100,
           rotation: 0,
@@ -243,7 +275,7 @@ export default function VisualStudioModal({
           fontWeight: "normal",
           fontStyle: "normal",
           fill: "#475569",
-          align: "center",
+          textAlign: "center",
           lineHeight: 1.35,
           letterSpacing: 0,
           textTransform: "none",

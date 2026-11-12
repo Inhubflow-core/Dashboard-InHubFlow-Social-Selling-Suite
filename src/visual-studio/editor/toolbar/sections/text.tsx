@@ -147,6 +147,14 @@ export function TextSection() {
         }
       </PopoverTool>
 
+      <ToolButton
+        label={t.ctx.centerH}
+        testId="ed-text-center-h"
+        onClick={() => editor.arrange.align('center', 'page')}
+      >
+        {I.canvasCenterH}
+      </ToolButton>
+
       <PopoverTool label={t.toolbar.directionTitle} trigger={rtl ? <PilcrowLeft size={18} aria-hidden="true" /> : <PilcrowRight size={18} aria-hidden="true" />} flush testId="ed-text-direction">
         {(close) => (
           <div className={ed.menuList} role="menu">

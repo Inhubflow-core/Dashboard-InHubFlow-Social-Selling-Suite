@@ -22,6 +22,8 @@ interface TextInternals {
   _fontSizeFraction: number
   getCompleteStyleDeclaration(lineIndex: number, charIndex: number): Record<string, unknown> & { fontSize: number }
   _renderChar(method: string, ctx: CanvasRenderingContext2D, lineIndex: number, charIndex: number, chars: string, left: number, top: number): void
+  isEmptyStyles?(lineIndex: number): boolean
+  _measureLine?(lineIndex: number): { width: number; numOfSpaces: number }
 }
 
 const PATCHED = Symbol.for('doory.complexText')
@@ -53,6 +55,21 @@ if (!proto[PATCHED]) {
 
     top -= this.getHeightOfLineImpl(lineIndex) * this._fontSizeFraction
     const lineStart = left
+
+    // Garantizar que __charBounds exista y esté medido con la fuente actual para esta línea
+    if (!this.__charBounds) (this as any).__charBounds = []
+    if (!this.__charBounds[lineIndex] && typeof this._measureLine === 'function') {
+      this._measureLine(lineIndex)
+    }
+
+    // Vía de alta fidelidad: si la línea no tiene estilos internos complejos y no usa tracking artificial,
+    // renderizarla de un solo trazo para mantener kerning y espaciado nativo del navegador
+    const isLineEmptyStyles = typeof this.isEmptyStyles === 'function' ? this.isEmptyStyles(lineIndex) : false
+    if (isLineEmptyStyles && this.charSpacing === 0) {
+      this._renderChar(method, ctx, lineIndex, 0, line.join(''), lineStart, top)
+      ctx.restore()
+      return
+    }
 
     let run = ''
     let runStart = 0

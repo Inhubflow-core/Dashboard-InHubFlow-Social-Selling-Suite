@@ -2792,6 +2792,31 @@ assert(splitTemplates.every(t => t.document.pages.length === 1), 'Cada plantilla
 assert(splitTemplates[0].document.pages[0].id === 'page-uuid-1', 'La primera plantilla conserva intacto su ID de página y sus objetos');
 assert(splitTemplates[11].document.pages[0].id === 'page-uuid-12', 'La doceava plantilla conserva intacto su ID de página y sus objetos');
 
+// ==================================================================
+// SECCIÓN 56: PREVENCIÓN DE DESCONFIGURACIÓN TIPOGRÁFICA Y ALINEACIÓN DE SUBTÍTULOS
+// ==================================================================
+console.log("\n--- SECCIÓN 56: SINCRONIZACIÓN DE FUENTES Y ALINEACIÓN DE SUBTÍTULOS ---");
+
+const editorCode56 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/engine/editor.ts'), 'utf8');
+const complexTextCode56 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/engine/objects/complexText.ts'), 'utf8');
+const textToolbarCode56 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/toolbar/sections/text.tsx'), 'utf8');
+const vsModalCode56 = fs.readFileSync(path.join(process.cwd(), 'src/components/viral-posts/VisualStudioModal.tsx'), 'utf8');
+
+assert(editorCode56.includes('watchBrowserFonts'), 'editor.ts implementa watchBrowserFonts para escuchar la carga nativa de fuentes web');
+assert(editorCode56.includes('document.fonts.addEventListener'), 'editor.ts escucha el evento loadingdone de document.fonts');
+assert(editorCode56.includes('remeasureAllText'), 'editor.ts expone remeasureAllText para purgar y recalcular métricas reales tras carga de fuentes');
+assert(editorCode56.includes('this.disposers.push(this.watchBrowserFonts())'), 'editor.ts activa watchBrowserFonts en el ciclo de vida del motor');
+
+assert(complexTextCode56.includes('this._measureLine(lineIndex)'), 'complexText.ts garantiza el cálculo de __charBounds si la línea aún no fue medida');
+assert(complexTextCode56.includes('isLineEmptyStyles && this.charSpacing === 0'), 'complexText.ts implementa renderizado nativo de alto rendimiento para líneas sin estilos complejos');
+
+assert(textToolbarCode56.includes('I.canvasCenterH'), 'La barra de herramientas de texto incluye el botón de centrado rápido horizontal en el lienzo');
+assert(textToolbarCode56.includes("editor.arrange.align('center', 'page')"), 'El botón de centrado de texto invoca la alineación matemática al centro del lienzo');
+
+assert(vsModalCode56.includes('inhubflow-font-preconnect-1'), 'VisualStudioModal pre-conecta a Google Fonts para entrega ultra-rápida de tipografías');
+assert(vsModalCode56.includes('(document.fonts as any).ready?.then'), 'VisualStudioModal re-mide el lienzo en cuanto document.fonts.ready finaliza');
+assert(vsModalCode56.includes('type: "Textbox"') && vsModalCode56.includes('originX: "center"'), 'VisualStudioModal inicializa títulos y subtítulos como Textbox centrados y normalizados');
+
 // Limpieza de base de datos de test
 
 db.close();

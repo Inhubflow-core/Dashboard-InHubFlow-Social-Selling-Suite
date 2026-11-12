@@ -1004,13 +1004,17 @@ export class EditorEngine implements PageCanvasHost {
 
   /* ------------------------------------------------------------------ helpers */
 
+  remeasureAllText(): void {
+    this.remeasureText('')
+  }
+
   private remeasureText(family: string): void {
     cache.clearFontCache()
     for (const view of this.allViews()) {
       let touched = false
       const visit = (o: FabricObject): void => {
         const maybe = o as any
-        if (typeof maybe.text === 'string' || (typeof maybe.fontFamily === 'string' && maybe.fontFamily.toLowerCase().includes(family.toLowerCase()))) {
+        if (typeof maybe.text === 'string' || maybe.type === 'textbox' || maybe.type === 'text' || maybe.type === 'i-text' || (typeof maybe.fontFamily === 'string' && maybe.fontFamily.toLowerCase().includes(family.toLowerCase()))) {
           delete maybe.__lineWidths
           delete maybe.__lineHeights
           delete maybe.__charBounds
@@ -1026,6 +1030,26 @@ export class EditorEngine implements PageCanvasHost {
       }
       view.canvas.getObjects().forEach(visit)
       if (touched) view.canvas.requestRenderAll()
+    }
+  }
+
+  /** Watches native browser FontFaceSet (Google Fonts, @font-face stylesheets, local fonts) so text never drifts */
+  private watchBrowserFonts(): () => void {
+    if (typeof document === 'undefined' || !('fonts' in document)) return () => {}
+
+    const onFontReady = (): void => {
+      this.remeasureText('')
+    }
+
+    // 1. Cuando las fuentes iniciales de la página terminan de cargar
+    void (document.fonts as any).ready?.then(onFontReady)
+
+    // 2. Cada vez que una nueva fuente web termina de descargarse
+    const handleLoadingDone = () => onFontReady()
+    document.fonts.addEventListener('loadingdone', handleLoadingDone)
+
+    return () => {
+      document.fonts.removeEventListener('loadingdone', handleLoadingDone)
     }
   }
 
@@ -1076,6 +1100,7 @@ export class EditorEngine implements PageCanvasHost {
     this.disposers.push(this.watchTheme())
     this.disposers.push(this.fonts.onLoaded((family) => this.remeasureText(family)))
     this.disposers.push(this.watchUserFonts())
+    this.disposers.push(this.watchBrowserFonts())
     this.disposers.push(
       this.store.subscribe((state, prev) => {
         if (state.ui !== prev.ui) this.syncUi(state, prev)
