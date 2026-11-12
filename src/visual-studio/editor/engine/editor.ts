@@ -897,54 +897,30 @@ export class EditorEngine implements PageCanvasHost {
 
     let targetPageId: string | null = null
 
-    // 1. Check exact artboard under pointer if pointer event is present
+    // 1. If pointer event is present:
     if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
       const pid = this.view.pageAt(event.clientX, event.clientY)
+      // If mouse is explicitly over the source page artboard, do NOT transfer!
+      if (pid === sourcePageId) {
+        return false
+      }
+      // If mouse is released over another page's artboard, transfer to that page
       if (pid && pid !== sourcePageId && pages.some((p) => p.id === pid)) {
         targetPageId = pid
       }
     }
 
-    // 2. Check DOM elements under pointer (including page header or slot area)
-    if (!targetPageId && typeof document !== 'undefined' && event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
-      const elements = typeof document.elementsFromPoint === 'function'
-        ? document.elementsFromPoint(event.clientX, event.clientY)
-        : [document.elementFromPoint(event.clientX, event.clientY)].filter(Boolean)
-      for (const el of elements) {
-        const slotEl = el?.closest('[data-page-id]')
-        const pid = slotEl?.getAttribute('data-page-id')
-        if (pid && pid !== sourcePageId && pages.some((p) => p.id === pid)) {
-          targetPageId = pid
-          break
-        }
-      }
-    }
-
-    // 3. Check layout slots by center and bounding box in workspace scroll space
+    // 2. If no event or released in the void, transfer ONLY if the center of the object
+    // has physically entered another page's artboard slot
     if (!targetPageId) {
-      const objLeftStack = sourceSlot.artboardLeft + (target.left ?? 0) * zoom
-      const objRightStack = objLeftStack + (typeof target.getScaledWidth === 'function' ? target.getScaledWidth() : (target.width || 50)) * zoom
-
       const candidateSlot = layout.slots.find((s) => {
         if (s.id === sourcePageId) return false
-        const inX =
-          (stackCenterX >= s.artboardLeft - 60 && stackCenterX <= s.right + 60) ||
-          (objLeftStack >= s.artboardLeft - 40 && objLeftStack <= s.right + 40) ||
-          (objRightStack >= s.artboardLeft - 40 && objRightStack <= s.right + 40)
-        const inY = stackCenterY >= s.artboardTop - 200 && stackCenterY <= s.bottom + 200
+        const inX = stackCenterX >= s.artboardLeft && stackCenterX <= s.right
+        const inY = stackCenterY >= s.artboardTop && stackCenterY <= s.bottom
         return inX && inY
       })
       if (candidateSlot) {
         targetPageId = candidateSlot.id
-      }
-    }
-
-    // 4. Fallback: if object was dragged clearly across the boundary between pages
-    if (!targetPageId) {
-      if ((center.x > sourceSize.width * 0.7 || (target.left ?? 0) > sourceSize.width * 0.6) && sourceIndex + 1 < pages.length) {
-        targetPageId = pages[sourceIndex + 1].id
-      } else if ((center.x < sourceSize.width * 0.3 || (target.left ?? 0) < 0) && sourceIndex > 0) {
-        targetPageId = pages[sourceIndex - 1].id
       }
     }
 

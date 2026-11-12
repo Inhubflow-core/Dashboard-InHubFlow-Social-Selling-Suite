@@ -2602,6 +2602,17 @@ assert(editorSrc49.includes("clientToPage(pageId: string, clientX: number, clien
 assert(pageCanvasSrc49.includes("const clickedPageId = host.pageAt(ev.clientX, ev.clientY)"), "pageCanvas detecta si el puntero aterrizo sobre otra pagina");
 assert(pageCanvasSrc49.includes("targetView.selectObjects([hit])"), "pageCanvas selecciona directamente el objeto cliqueado en la otra pagina");
 
+// ==================================================================
+// 50. Prueba de Proteccion de Elementos en Bordes de Pagina (Sin Transferencias Involuntarias)
+// ==================================================================
+console.log("\n--- 50. Prueba de Proteccion de Elementos en Bordes de Pagina ---");
+
+const editorSrc50 = fs.readFileSync('src/visual-studio/editor/engine/editor.ts', 'utf8');
+
+assert(editorSrc50.includes("if (pid === sourcePageId) {\n        return false\n      }"), "onObjectCrossPage no transfiere elementos si el puntero se suelta dentro de la misma pagina origen");
+assert(!editorSrc50.includes("center.x > sourceSize.width * 0.7") && !editorSrc50.includes("target.left > sourceSize.width * 0.6"), "Umbrales arbitrarios del 60%/70% eliminados para permitir ubicar objetos al borde del lienzo");
+assert(editorSrc50.includes("stackCenterX >= s.artboardLeft && stackCenterX <= s.right"), "Transferencia sin puntero exige que el centro del objeto haya entrado fisicamente al slot de la pagina destino");
+
 // Limpieza de base de datos de test
 
 db.close();
