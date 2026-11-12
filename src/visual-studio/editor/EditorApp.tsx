@@ -176,7 +176,14 @@ export const EditorApp = forwardRef<EditorHandle, EditorAppProps>(function Edito
   const onTitle = (title: string): void => latest.current.onTitleChange?.(title)
 
   return (
-    <div ref={setRootEl} className={styles.root} data-editor-root aria-label={t.appLabel} role="application">
+    <div ref={setRootEl} className={styles.root} data-editor-root aria-label={t.appLabel} role="application"
+      onContextMenu={(e) => {
+        const target = e.target as HTMLElement | null
+        if (target && target.closest('input:not([data-fabric]), textarea:not([data-fabric]), [contenteditable="true"]')) {
+          return
+        }
+        e.preventDefault()
+      }}>
       <EditorProvider engine={engine} portalRoot={root} collab={session}>
         <ChromeProvider>
           <TopBar start={topBarStart} action={topBarAction} end={topBarEnd} showTitle={showTitle} onTitle={onTitle} onPresent={() => engine.openDialog('presenter')} />

@@ -2672,6 +2672,29 @@ const run2Left = lineStart + mockCharBounds[9].left;
 assert(run2Left > run1Left + (9 * 24 - 1e-4), "El segundo run con estilo diferente (Yervoy) inicia estrictamente después del primer run (importar ) sin solaparse");
 assert(Math.abs(run2Left - (lineStart + 216)) < 1e-4, "Posición X de Yervoy coincide exactamente con la métrica acumulada (23.4 px)");
 
+// --- 53. Prueba de Supresión del Menú Contextual Nativo del Navegador en Workspace y Canvas ---
+console.log("\n--- 53. Prueba de Supresión del Menú Contextual Nativo del Navegador en Workspace y Canvas ---");
+
+const editorAppSrc = fs.readFileSync('src/visual-studio/editor/EditorApp.tsx', 'utf8');
+assert(editorAppSrc.includes('onContextMenu') && editorAppSrc.includes('e.preventDefault()'), 'EditorApp implementa escudo global onContextMenu con e.preventDefault()');
+assert(editorAppSrc.includes('target.closest') && editorAppSrc.includes('data-fabric'), 'EditorApp respeta inputs de texto pero bloquea contextmenu sobre elementos del editor y textareas de Fabric');
+
+const workspaceSrc = fs.readFileSync('src/visual-studio/editor/workspace/Workspace.tsx', 'utf8');
+assert(workspaceSrc.includes('onContextMenu={(e) => {\r\n        e.preventDefault()') || workspaceSrc.includes('onContextMenu={(e) => {\n        e.preventDefault()'), 'Workspace contenedor principal suprime el menú nativo del navegador');
+assert(workspaceSrc.includes('editor.onContextMenu(doc.pages[activePage]'), 'Workspace abre el menú contextual de lienzo al hacer clic derecho en fondo vacío');
+
+const pageSlotSrc = fs.readFileSync('src/visual-studio/editor/workspace/PageSlot.tsx', 'utf8');
+assert(pageSlotSrc.includes('onContextMenu={(e) => {\r\n        e.preventDefault()') || pageSlotSrc.includes('onContextMenu={(e) => {\n        e.preventDefault()'), 'PageSlot previene contextmenu nativo en el slot del lienzo');
+
+const menuSrc = fs.readFileSync('src/visual-studio/editor/ui/Menu.tsx', 'utf8');
+assert(menuSrc.includes('onContextMenu') && menuSrc.includes('e.stopPropagation()'), 'Menu contextual intercepta y suprime contextmenu con e.stopPropagation()');
+
+const pageCanvasCtxSrc = fs.readFileSync('src/visual-studio/editor/engine/pageCanvas.ts', 'utf8');
+assert(pageCanvasCtxSrc.includes("wrapper.addEventListener('contextmenu', onCanvasContextMenu)"), 'pageCanvas vincula listener nativo contextmenu con e.preventDefault() en wrapper');
+assert(pageCanvasCtxSrc.includes("container.addEventListener('contextmenu', onCanvasContextMenu)"), 'pageCanvas vincula listener nativo contextmenu con e.preventDefault() en container');
+assert(pageCanvasCtxSrc.includes('if (ev.button === 2) {\r\n      ev.preventDefault()') || pageCanvasCtxSrc.includes('if (ev.button === 2) {\n      ev.preventDefault()'), 'onMouseDown para botón derecho ejecuta ev.preventDefault()');
+assert(pageCanvasCtxSrc.includes('if (e.e && e.e.button === 2) {\r\n      e.e.preventDefault()') || pageCanvasCtxSrc.includes('if (e.e && e.e.button === 2) {\n      e.e.preventDefault()'), 'onDoubleClick ignora y suprime botón derecho impidiendo entrada espuria a edición');
+
 // Limpieza de base de datos de test
 
 db.close();

@@ -135,6 +135,10 @@ export function Menu({ items, label, at, anchorRef, onClose, className }: MenuPr
       className={`${styles.menu} ${className ?? ''}`}
       style={{ left: pos?.left ?? 0, top: pos?.top ?? 0, opacity: pos ? undefined : 0 }}
       onKeyDown={onKeyDown}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }}
     >
       {groupTiles(items).map((entry) =>
         Array.isArray(entry) ? (
@@ -219,6 +223,10 @@ function renderItem(item: MenuItem, onClose: () => void, isChild = false) {
       tabIndex={-1}
       className={className}
       data-item={item.id}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }}
       onClick={() => {
         if (item.disabled) return
         onClose()

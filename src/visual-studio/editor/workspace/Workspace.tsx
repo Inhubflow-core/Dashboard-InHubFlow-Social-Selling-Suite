@@ -449,6 +449,9 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
       data-dropping={dropping || undefined}
       onPointerDown={onBackgroundPointerDown}
       onClick={onBackgroundPointerDown}
+      onContextMenu={(e) => {
+        e.preventDefault()
+      }}
     >
       {rulers ? <Rulers scrollRef={scrollRef} artboards={artboards} /> : null}
       <div
@@ -465,7 +468,11 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
         }}
         onDrop={onDrop}
         onContextMenu={(e) => {
-          if (e.target === e.currentTarget) e.preventDefault()
+          e.preventDefault()
+          const target = e.target as HTMLElement | null
+          if (target && !target.closest('[data-artboard]') && !target.closest('input:not([data-fabric]), textarea:not([data-fabric]), select')) {
+            editor.onContextMenu(doc.pages[activePage]?.id ?? doc.pages[0]?.id ?? '', e.clientX, e.clientY)
+          }
         }}
       >
         <div

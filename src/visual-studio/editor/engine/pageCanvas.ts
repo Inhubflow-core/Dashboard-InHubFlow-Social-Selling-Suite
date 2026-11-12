@@ -215,6 +215,15 @@ export class PageCanvas {
     Object.assign(this.overlayEl.style, { position: 'absolute', left: '0', top: '0', pointerEvents: 'none' })
     wrapper.appendChild(this.overlayEl)
     applyThemeToCanvas(this.canvas, host.theme)
+    const onCanvasContextMenu = (ev: MouseEvent) => {
+      ev.preventDefault()
+    }
+    wrapper.addEventListener('contextmenu', onCanvasContextMenu)
+    container.addEventListener('contextmenu', onCanvasContextMenu)
+    this.cleanups.push(() => {
+      wrapper.removeEventListener('contextmenu', onCanvasContextMenu)
+      container.removeEventListener('contextmenu', onCanvasContextMenu)
+    })
     this.bind()
   }
 
@@ -933,6 +942,7 @@ export class PageCanvas {
     }
 
     if (ev.button === 2) {
+      ev.preventDefault()
       if (e.target && !this.selectedObjects().includes(e.target) && !(e.target.group instanceof ActiveSelection)) this.selectObjects([e.target])
       host.onContextMenu(this.pageId, ev.clientX, ev.clientY)
       return
@@ -1029,6 +1039,10 @@ export class PageCanvas {
 
   private onDoubleClick(e: TPointerEventInfo<MouseEvent>): void {
     if (this.host.readOnly) return
+    if (e.e && e.e.button === 2) {
+      e.e.preventDefault()
+      return
+    }
     const target = e.target
     if (!target) return
     if (target instanceof Group && isImageGrid(target)) {

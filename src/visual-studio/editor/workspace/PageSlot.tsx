@@ -77,6 +77,9 @@ export const PageSlot = memo(function PageSlot({ page, index, total, width, heig
       data-page-id={page.id}
       data-active={active || undefined}
       data-multi={total > 1 || undefined}
+      onContextMenu={(e) => {
+        e.preventDefault()
+      }}
       style={{
         width,
         height: headerHeight + height,
