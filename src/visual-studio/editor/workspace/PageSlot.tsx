@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Copy, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookmarkPlus, Copy, Plus, Trash2 } from 'lucide-react'
 import { type CSSProperties, memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { DocPage } from '@visual-studio/types/document'
 import { useEditor, useEditorState } from '../context'
@@ -11,6 +11,7 @@ import { Skeleton } from '../ui/Skeleton'
 import { PageSizeChip } from './PageSizeChip'
 import { PresenceLayer } from './PresenceLayer'
 import { usePageSnapshot } from './useSnapshot'
+import { getSessionUser } from '@/lib/saas/store'
 import styles from './PageSlot.module.css'
 
 interface PageSlotProps {
@@ -49,8 +50,16 @@ export const PageSlot = memo(function PageSlot({ page, index, total, width, heig
   const hostRef = useRef<HTMLDivElement>(null)
   const artRef = useRef<HTMLDivElement>(null)
   const [renaming, setRenaming] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const pageSize = editor.pageSizeOf(page.id)
   const snapshot = usePageSnapshot(page, pageSize, near && (!live || loading))
+
+  useEffect(() => {
+    try {
+      const user = getSessionUser()
+      setIsSuperAdmin(user?.role === 'super_admin' || user?.email?.trim().toLowerCase() === 'inhubflow@gmail.com')
+    } catch {}
+  }, [])
 
   useLayoutEffect(() => {
     registerArtboard(page.id, artRef.current)
@@ -118,6 +127,21 @@ export const PageSlot = memo(function PageSlot({ page, index, total, width, heig
         </div>
         {readOnly ? null : (
           <div className={styles.actions}>
+            {isSuperAdmin && (
+              <IconButton
+                label="Guardar esta página como plantilla global"
+                size="sm"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent('inhubflow:open-save-page-template', {
+                      detail: { pageId: page.id, mode: 'single' },
+                    })
+                  )
+                }}
+              >
+                <BookmarkPlus size={16} />
+              </IconButton>
+            )}
             <IconButton label="Mover a la izquierda" size="sm" disabled={index === 0} onClick={() => editor.pages.moveBy(page.id, -1)}>
               <ArrowLeft size={16} />
             </IconButton>

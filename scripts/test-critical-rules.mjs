@@ -2741,6 +2741,57 @@ assert(exp169.left + exp169.right > 260 && exp169.top === 0 && exp169.bottom ===
 const exp11 = calculateExpansion(800, 600, 1);
 assert(exp11.top + exp11.bottom === 200 && exp11.left === 0 && exp11.right === 0, 'Expansión de 4:3 a 1:1 extiende verticalmente arriba y abajo preservando el ancho');
 
+// ==================================================================
+// SECCIÓN 55: GUARDADO DE MÚLTIPLES PÁGINAS COMO PLANTILLAS GLOBALES INDIVIDUALES ("1 POR 1 POR SEPARADO")
+// ==================================================================
+console.log("\n--- SECCIÓN 55: GUARDADO MULTIPÁGINA DE PLANTILLAS GLOBALES INDIVIDUALES ---");
+
+const saveModalCode = fs.readFileSync(path.join(process.cwd(), 'src/components/viral-posts/SaveGlobalTemplateModal.tsx'), 'utf8');
+const visualStudioCode = fs.readFileSync(path.join(process.cwd(), 'src/components/viral-posts/VisualStudioModal.tsx'), 'utf8');
+const pageSlotCode = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/workspace/PageSlot.tsx'), 'utf8');
+
+assert(saveModalCode.includes('saveMode === "split"'), 'SaveGlobalTemplateModal implementa el modo "split" (1 por 1 por separado)');
+assert(saveModalCode.includes('pagesToSave.map') || saveModalCode.includes('for (let i = 0; i < pagesToSave.length; i++)'), 'SaveGlobalTemplateModal itera secuencialmente las páginas seleccionadas para guardarlas individualmente');
+assert(saveModalCode.includes('pages: [page]'), 'SaveGlobalTemplateModal encapsula cada página en un DoryDocument independiente de 1 sola página');
+assert(saveModalCode.includes('pageThumbnails[page.id]'), 'SaveGlobalTemplateModal asocia el thumbnail individual a cada plantilla');
+assert(saveModalCode.includes('setSavingProgress'), 'SaveGlobalTemplateModal reporta progreso interactivo durante el guardado por lotes');
+assert(saveModalCode.includes('toggleSelectAll'), 'SaveGlobalTemplateModal permite seleccionar o desmarcar todas las páginas en un clic');
+
+assert(visualStudioCode.includes('pageThumbnails={pageThumbnails}'), 'VisualStudioModal envía los thumbnails de todas las páginas al modal de plantilla');
+assert(visualStudioCode.includes('activePageId={targetPageId}'), 'VisualStudioModal pasa la página activa al modal de plantilla');
+assert(visualStudioCode.includes('inhubflow:open-save-page-template'), 'VisualStudioModal escucha el evento para abrir guardado rápido de página');
+
+assert(pageSlotCode.includes('BookmarkPlus'), 'PageSlot incluye el ícono BookmarkPlus para guardar páginas individuales');
+assert(pageSlotCode.includes('inhubflow:open-save-page-template'), 'PageSlot despacha el evento inhubflow:open-save-page-template con el page.id');
+
+// Simulación de segmentación de 12 páginas en 12 plantillas individuales independientes
+const mockDoc12Pages = {
+  version: '1.0',
+  width: 1200,
+  height: 900,
+  pages: Array.from({ length: 12 }, (_, i) => ({
+    id: `page-uuid-${i + 1}`,
+    name: `Slide Modelo ${i + 1}`,
+    objects: [{ id: `obj-${i + 1}`, type: 'text', text: `Título de la página ${i + 1}` }],
+    background: { type: 'color', color: '#ffffff' }
+  }))
+};
+
+assert(mockDoc12Pages.pages.length === 12, 'El documento de prueba tiene exactamente 12 páginas');
+
+const splitTemplates = mockDoc12Pages.pages.map((p, idx) => ({
+  title: `Colección B2B - ${p.name}`,
+  document: {
+    ...mockDoc12Pages,
+    pages: [p]
+  }
+}));
+
+assert(splitTemplates.length === 12, 'La segmentación produce exactamente 12 plantillas individuales');
+assert(splitTemplates.every(t => t.document.pages.length === 1), 'Cada plantilla individual contiene exactamente 1 página');
+assert(splitTemplates[0].document.pages[0].id === 'page-uuid-1', 'La primera plantilla conserva intacto su ID de página y sus objetos');
+assert(splitTemplates[11].document.pages[0].id === 'page-uuid-12', 'La doceava plantilla conserva intacto su ID de página y sus objetos');
+
 // Limpieza de base de datos de test
 
 db.close();

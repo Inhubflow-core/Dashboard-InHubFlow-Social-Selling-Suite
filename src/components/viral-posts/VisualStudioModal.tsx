@@ -128,6 +128,9 @@ export default function VisualStudioModal({
   const [isSaveGlobalModalOpen, setIsSaveGlobalModalOpen] = useState(false);
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>(null);
   const [docSnapshot, setDocSnapshot] = useState<DoryDocument | null>(null);
+  const [pageThumbnails, setPageThumbnails] = useState<Record<string, string>>({});
+  const [targetPageId, setTargetPageId] = useState<string | undefined>(undefined);
+  const [initialSaveMode, setInitialSaveMode] = useState<"split" | "single" | "all">("split");
 
   // Initialize Visual Studio contrast tokens once on mount
   useEffect(() => {
@@ -414,9 +417,29 @@ export default function VisualStudioModal({
   }, [getRenderedImageDataUrl, aspectRatio, dimensions]);
 
   // Handle Open Save Global Template Modal (Strictly Super Admin)
-  const handleOpenSaveGlobalModal = useCallback(async () => {
+  const handleOpenSaveGlobalModal = useCallback(async (specificPageId?: string, forcedMode?: "split" | "single" | "all") => {
     const thumb = getRenderedImageDataUrl();
     const rawDoc = editorRef.current?.getDocument?.() || null;
+    const engine = editorRef.current?.getEngine?.();
+
+    // Capturar thumbnails de todas las páginas del documento para la vista previa por página
+    const perPageThumbs: Record<string, string> = {};
+    if (engine && rawDoc?.pages) {
+      for (const page of rawDoc.pages) {
+        try {
+          const view = engine.viewOf(page.id);
+          if (view?.canvas) {
+            perPageThumbs[page.id] = view.canvas.toDataURL({
+              format: "png",
+              multiplier: 0.5,
+              quality: 0.85,
+            });
+          }
+        } catch (err) {
+          console.warn("[VisualStudio] Fallo al generar thumbnail de página:", page.id, err);
+        }
+      }
+    }
 
     let portableDoc = rawDoc;
     if (rawDoc) {
@@ -462,10 +485,26 @@ export default function VisualStudioModal({
       }
     }
 
-    setPreviewThumbnail(thumb);
+    const activeId = specificPageId || engine?.state?.activePageId || rawDoc?.pages?.[0]?.id;
+    setTargetPageId(activeId);
+    setPageThumbnails(perPageThumbs);
+    setInitialSaveMode(forcedMode || ((rawDoc?.pages?.length || 0) > 1 ? "split" : "single"));
+    setPreviewThumbnail(thumb || (activeId && perPageThumbs[activeId]) || null);
     setDocSnapshot(portableDoc);
     setIsSaveGlobalModalOpen(true);
   }, [getRenderedImageDataUrl, adapterPackage]);
+
+  // Listener para eventos de guardado rápido de página individual desde el header del artboard
+  useEffect(() => {
+    const handlePageTemplateEvent = (e: Event) => {
+      const customEvt = e as CustomEvent<{ pageId?: string; mode?: "split" | "single" | "all" }>;
+      handleOpenSaveGlobalModal(customEvt.detail?.pageId, customEvt.detail?.mode || "single");
+    };
+    window.addEventListener("inhubflow:open-save-page-template", handlePageTemplateEvent);
+    return () => {
+      window.removeEventListener("inhubflow:open-save-page-template", handlePageTemplateEvent);
+    };
+  }, [handleOpenSaveGlobalModal]);
 
   if (!isOpen) return null;
 
@@ -618,6 +657,9 @@ export default function VisualStudioModal({
           dimensions={dimensions}
           aspectRatio={aspectRatio}
           authorName={currentUser?.name || "Super Admin"}
+          pageThumbnails={pageThumbnails}
+          activePageId={targetPageId}
+          initialMode={initialSaveMode}
           onSuccess={(templateTitle) => {
             console.log(`[VisualStudio] ¡Plantilla global guardada con éxito!: ${templateTitle}`);
           }}
