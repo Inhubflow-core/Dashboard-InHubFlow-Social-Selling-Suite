@@ -4,7 +4,7 @@
  * shortcuts, commands and third-party extensions drive. It is framework-free; React only reads the
  * store and calls these methods.
  */
-import { ActiveSelection, type FabricObject } from 'fabric'
+import { ActiveSelection, cache, type FabricObject } from 'fabric'
 import type { EditorAdapter, EditorMeta } from '@visual-studio/types/adapter'
 import type { DocObject, DocPage, DoryDocument } from '@visual-studio/types/document'
 import { getSizePresets, loadSizePresets, subscribeSizePresets, type SafeZone } from '@visual-studio/lib/sizePresets'
@@ -1005,12 +1005,19 @@ export class EditorEngine implements PageCanvasHost {
   /* ------------------------------------------------------------------ helpers */
 
   private remeasureText(family: string): void {
+    cache.clearFontCache()
     for (const view of this.allViews()) {
       let touched = false
       const visit = (o: FabricObject): void => {
-        const maybe = o as FabricObject & { fontFamily?: unknown; initDimensions?: () => void; getObjects?: () => FabricObject[] }
-        if (typeof maybe.fontFamily === 'string' && maybe.fontFamily.toLowerCase().includes(family.toLowerCase())) {
-          maybe.initDimensions?.()
+        const maybe = o as any
+        if (typeof maybe.text === 'string' || (typeof maybe.fontFamily === 'string' && maybe.fontFamily.toLowerCase().includes(family.toLowerCase()))) {
+          delete maybe.__lineWidths
+          delete maybe.__lineHeights
+          delete maybe.__charBounds
+          delete maybe._charBounds
+          delete maybe._styleMap
+          if (typeof maybe._clearCache === 'function') maybe._clearCache()
+          if (typeof maybe.initDimensions === 'function') maybe.initDimensions()
           o.setCoords()
           o.set('dirty', true)
           touched = true

@@ -183,8 +183,9 @@ export function applyTextPatch(t: IText, patch: TextPatch): boolean {
   const d = asDory(t)
   const range = hasRange(t)
 
-  // Clear global font width cache when typography, weight, style or spacing changes
+  // Clear entire global font width cache when typography, weight, style or spacing changes
   if (patch.fontFamily || patch.fontWeight !== undefined || patch.fontStyle !== undefined || patch.fontSize !== undefined || patch.charSpacing !== undefined) {
+    cache.clearFontCache()
     if (t.fontFamily) cache.clearFontCache(t.fontFamily)
     if (patch.fontFamily) cache.clearFontCache(patch.fontFamily)
   }
@@ -246,6 +247,8 @@ export function applyTextPatch(t: IText, patch: TextPatch): boolean {
 
   // Invalidate cached character metrics, line splits, and object rendering cache
   const anyT = t as any
+  delete anyT.__lineWidths
+  delete anyT.__lineHeights
   delete anyT.__charBounds
   delete anyT._charBounds
   delete anyT._styleMap

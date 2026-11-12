@@ -182,7 +182,7 @@ export class FontManager {
       this.registered.delete(registeredKey)
     }
     for (const prefix of [...this.loading.keys()]) if (prefix.startsWith(`${key}|`)) this.loading.delete(prefix)
-    cache.clearFontCache(key)
+    cache.clearFontCache()
     for (const l of [...this.listeners]) l(key)
   }
 
@@ -289,6 +289,7 @@ export class FontManager {
         try {
           await withTimeout(document.fonts.load(`${style} ${weight} 16px "${name}"`, text || undefined), 3000)
           await document.fonts.ready
+          cache.clearFontCache()
           cache.clearFontCache(name)
           return true
         } catch {
@@ -318,6 +319,7 @@ export class FontManager {
       }
       await withTimeout(document.fonts.load(`${style} ${weight} 16px "${name}"`, text || undefined), LOAD_TIMEOUT_MS)
       await document.fonts.ready
+      cache.clearFontCache()
       cache.clearFontCache(name)
       if (added) {
         for (const l of [...this.listeners]) l(name)

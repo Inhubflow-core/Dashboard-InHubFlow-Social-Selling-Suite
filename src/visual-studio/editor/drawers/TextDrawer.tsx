@@ -161,6 +161,16 @@ export function TextDrawer({ close }: PanelProps) {
       const end = start + targetHighlight.length
       const accent = pairing.accentColor || '#6366f1'
       heading.setSelectionStyles({ fill: accent, fontWeight: 'bold' }, start, end)
+      const anyH = heading as any
+      delete anyH.__lineWidths
+      delete anyH.__lineHeights
+      delete anyH.__charBounds
+      delete anyH._charBounds
+      delete anyH._styleMap
+      if (typeof anyH._clearCache === 'function') anyH._clearCache()
+      heading.initDimensions()
+      heading.setCoords()
+      heading.set('dirty', true)
     }
 
     const body = createTextbox(

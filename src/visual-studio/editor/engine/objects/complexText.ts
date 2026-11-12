@@ -1,8 +1,9 @@
 /**
- * Letter spacing for scripts whose letters join or reorder (Arabic, Hebrew, Indic, Thai…). Fabric applies letter spacing
- * by drawing every letter on its own, which pulls joined Arabic letters apart and draws a Latin word inside a
- * right-to-left line backwards. For a line in such a script this draws each run of same-styled text in one go and lets
- * the browser space the letters (`ctx.letterSpacing`), so the shaping and the bidi order stay right.
+ * Letter spacing, complex scripts, and robust multi-style text run layout.
+ * Fabric's default _renderChars accumulates position iteratively in local coordinates, which
+ * drifts and causes character overlap when lines contain multiple styled spans (such as highlighted words).
+ * This patch anchors each run strictly to its exact pre-measured `__charBounds[lineIndex][runStart].left`
+ * and forces `ctx.textAlign = isLtr ? 'left' : 'right'` so text alignment never collapses spans.
  *
  * Imported for its side effect by serialization.ts, which every page canvas, export and preview goes through.
  */
@@ -16,7 +17,7 @@ interface TextInternals {
   charSpacing: number
   textAlign: string
   direction: CanvasDirection
-  __charBounds: { width: number; kernedWidth: number }[][]
+  __charBounds: { width: number; kernedWidth: number; left?: number }[][]
   getHeightOfLineImpl(lineIndex: number): number
   _fontSizeFraction: number
   getCompleteStyleDeclaration(lineIndex: number, charIndex: number): Record<string, unknown> & { fontSize: number }
@@ -36,37 +37,47 @@ if (!proto[PATCHED]) {
   proto[PATCHED] = true
   const original = proto._renderChars
   proto._renderChars = function (this: TextInternals, method, ctx, line, left, top, lineIndex) {
-    if (!usesRunSpacing(this, line)) {
+    if (this.path) {
       original.call(this, method, ctx, line, left, top, lineIndex)
       return
     }
+
     const isLtr = this.direction !== 'rtl'
     const sign = isLtr ? 1 : -1
     ctx.save()
-    if (ctx.direction !== this.direction) {
+    if (ctx.canvas && typeof ctx.canvas.setAttribute === 'function') {
       ctx.canvas.setAttribute('dir', isLtr ? 'ltr' : 'rtl')
-      ctx.direction = isLtr ? 'ltr' : 'rtl'
-      ctx.textAlign = isLtr ? 'left' : 'right'
     }
+    ctx.direction = isLtr ? 'ltr' : 'rtl'
+    ctx.textAlign = isLtr ? 'left' : 'right'
+
     top -= this.getHeightOfLineImpl(lineIndex) * this._fontSizeFraction
+    const lineStart = left
+
     let run = ''
     let runStart = 0
-    let runWidth = 0
     let style = this.getCompleteStyleDeclaration(lineIndex, 0)
+
     for (let i = 0; i < line.length; i++) {
-      const box = this.__charBounds[lineIndex][i]
       run += line[i]
-      runWidth += box.kernedWidth
-      const next = i < line.length - 1 ? this.getCompleteStyleDeclaration(lineIndex, i + 1) : null
+      const isLast = i === line.length - 1
+      const next = isLast ? null : this.getCompleteStyleDeclaration(lineIndex, i + 1)
       if (next && !util.hasStyleChanged(style as never, next as never, false)) continue
-      const target = ctx as CanvasRenderingContext2D & { letterSpacing: string }
-      const before = target.letterSpacing
-      target.letterSpacing = `${(this.charSpacing / 1000) * style.fontSize}px`
-      this._renderChar(method, ctx, lineIndex, runStart, run, left, top)
-      target.letterSpacing = before
-      left += sign * runWidth
+
+      const box = this.__charBounds?.[lineIndex]?.[runStart]
+      const runLeft = lineStart + sign * (box && typeof box.left === 'number' ? box.left : 0)
+
+      if (this.charSpacing !== 0 && LETTER_SPACING) {
+        const target = ctx as CanvasRenderingContext2D & { letterSpacing: string }
+        const before = target.letterSpacing
+        target.letterSpacing = `${(this.charSpacing / 1000) * style.fontSize}px`
+        this._renderChar(method, ctx, lineIndex, runStart, run, runLeft, top)
+        target.letterSpacing = before
+      } else {
+        this._renderChar(method, ctx, lineIndex, runStart, run, runLeft, top)
+      }
+
       run = ''
-      runWidth = 0
       runStart = i + 1
       if (next) style = next
     }

@@ -2628,6 +2628,50 @@ assert(imageToolbarSrc51.includes("ToolButton label={t.toolbar.upscale} testId=\
 assert(imageToolbarSrc51.includes("ToolButton label={t.toolbar.removeBackground} testId=\"ed-remove-bg\""), "Quitar fondo conserva su Tooltip y accesibilidad por etiqueta");
 assert(imageToolbarSrc51.includes("ToolButton label=\"Borrador mágico\" testId=\"ed-magic-eraser\""), "Borrador magico conserva su Tooltip y accesibilidad por etiqueta");
 
+// ==================================================================
+// 52. Prueba de Renderizado de Textos con Múltiples Estilos y Anclaje No Solapante
+// ==================================================================
+console.log("\n--- 52. Prueba de Renderizado de Textos con Múltiples Estilos y Anclaje No Solapante ---");
+
+const complexTextSrc52 = fs.readFileSync('src/visual-studio/editor/engine/objects/complexText.ts', 'utf8');
+const editorSrc52 = fs.readFileSync('src/visual-studio/editor/engine/editor.ts', 'utf8');
+const textStyleSrc52 = fs.readFileSync('src/visual-studio/editor/engine/objects/textStyle.ts', 'utf8');
+const textDrawerSrc52 = fs.readFileSync('src/visual-studio/editor/drawers/TextDrawer.tsx', 'utf8');
+
+assert(complexTextSrc52.includes("ctx.textAlign = isLtr ? 'left' : 'right'"), "complexText.ts fija explícitamente ctx.textAlign evitando que alineaciones globales distorsionen spans");
+assert(complexTextSrc52.includes("const runLeft = lineStart + sign * (box && typeof box.left === 'number' ? box.left : 0)"), "complexText.ts ancla cada run de estilo estrictamente a box.left impidiendo solapamiento horizontal");
+assert(complexTextSrc52.includes("this._renderChar(method, ctx, lineIndex, runStart, run, runLeft, top)"), "_renderChar recibe runLeft con la posición absoluta calculada para el run");
+
+assert(editorSrc52.includes("delete maybe.__lineWidths") && editorSrc52.includes("delete maybe.__charBounds"), "editor.ts remeasureText purga __lineWidths y __charBounds para recalcular métricas reales tras carga de fuentes");
+assert(editorSrc52.includes("cache.clearFontCache()"), "editor.ts remeasureText limpia la caché global de anchos de fuente sin argumentos");
+
+assert(textStyleSrc52.includes("delete anyT.__lineWidths") && textStyleSrc52.includes("delete anyT.__lineHeights"), "applyTextPatch invalida __lineWidths y __lineHeights junto con __charBounds y _styleMap");
+assert(textDrawerSrc52.includes("heading.initDimensions()") && textDrawerSrc52.includes("delete anyH.__lineWidths"), "TextDrawer recalcula dimensiones completas de Textbox tras aplicar setSelectionStyles");
+
+// Test funcional de cálculo de métricas para spans con estilos mixtos
+const mockCharBounds = [
+  { left: 0, width: 24, kernedWidth: 24 },     // 'i'
+  { left: 24, width: 24, kernedWidth: 24 },    // 'm'
+  { left: 48, width: 24, kernedWidth: 24 },    // 'p'
+  { left: 72, width: 24, kernedWidth: 24 },    // 'o'
+  { left: 96, width: 24, kernedWidth: 24 },    // 'r'
+  { left: 120, width: 24, kernedWidth: 24 },   // 't'
+  { left: 144, width: 24, kernedWidth: 24 },   // 'a'
+  { left: 168, width: 24, kernedWidth: 24 },   // 'r'
+  { left: 192, width: 24, kernedWidth: 24 },   // ' '
+  { left: 216, width: 33.6, kernedWidth: 33.6 }, // 'Y'
+  { left: 249.6, width: 33.6, kernedWidth: 33.6 }, // 'e'
+  { left: 283.2, width: 33.6, kernedWidth: 33.6 }, // 'r'
+  { left: 316.8, width: 33.6, kernedWidth: 33.6 }, // 'v'
+  { left: 350.4, width: 33.6, kernedWidth: 33.6 }, // 'o'
+  { left: 384.0, width: 33.6, kernedWidth: 33.6 }, // 'y'
+];
+const lineStart = -192.6;
+const run1Left = lineStart + mockCharBounds[0].left;
+const run2Left = lineStart + mockCharBounds[9].left;
+assert(run2Left > run1Left + (9 * 24 - 1e-4), "El segundo run con estilo diferente (Yervoy) inicia estrictamente después del primer run (importar ) sin solaparse");
+assert(Math.abs(run2Left - (lineStart + 216)) < 1e-4, "Posición X de Yervoy coincide exactamente con la métrica acumulada (23.4 px)");
+
 // Limpieza de base de datos de test
 
 db.close();
