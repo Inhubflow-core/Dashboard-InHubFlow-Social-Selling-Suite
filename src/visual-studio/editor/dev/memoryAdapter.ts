@@ -15,6 +15,11 @@ import { createBlankDemo } from './demoDocument'
 import { createAccountFakes, createTemplatesService } from './fakeCatalog'
 import { type CommentRole, type MemoryCommentsHandle, createMemoryComments } from './memoryComments'
 import { createMemoryUserFonts } from './memoryFonts'
+import { localRepository } from '@visual-studio/lib/local'
+
+/** Cache global en memoria que sobrevive a re-montajes y Hot Module Reload de Next.js */
+const globalAssetUrls = new Map<string, string>()
+const globalAssetMetadata = new Map<string, Asset>()
 
 function page<T>(results: T[], q?: { page?: number; page_size?: number }): Page<T> {
   const size = q?.page_size ?? 50
@@ -163,21 +168,39 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
     async uploadAsset(file: File | Blob, opts?: { name?: string }): Promise<AssetRef> {
       const id = newId()
       const probe = URL.createObjectURL(file)
+      objectUrls.set(id, probe)
+      globalAssetUrls.set(id, probe)
+      persistentObjectUrls.set(id, probe)
+      if (typeof window !== 'undefined') {
+        try {
+          ;(window as any).__inhubflow_asset_cache ??= new Map<string, string>()
+          ;(window as any).__inhubflow_asset_cache.set(id, probe)
+        } catch {}
+      }
+
       if (file.type.startsWith('audio/') || (file instanceof File && /\.(mp3|ogg|wav|m4a|weba|webm)$/i.test(file.name))) {
-        objectUrls.set(id, probe)
         const name = opts?.name ?? (file instanceof File ? file.name : 'Audio')
         uploads.push({ name, size: file.size })
         const ref: AssetRef = { id, url: `idb://${id}`, thumbUrl: '', width: 0, height: 0, name, kind: 'audio' }
         audioUploads.push({ ref, size: file.size, type: file.type })
+        if (typeof window !== 'undefined') {
+          try {
+            await localRepository.putAsset({ id, blob: file, name, mime: file.type || 'audio/webm', width: 0, height: 0 })
+          } catch (err) {
+            console.warn('[VisualStudio] Fallo al guardar audio en IndexedDB:', err)
+          }
+        }
         return ref
       }
+
       const size = await readImageSize(probe)
-      objectUrls.set(id, probe)
       const url = `idb://${id}`
       const name = opts?.name ?? (file instanceof File ? file.name : 'image')
+      const mime = file.type || 'image/png'
       uploads.push({ name, size: file.size })
       const ref: AssetRef = { id, url, thumbUrl: url, width: size.width, height: size.height, name, kind: file.type === 'image/svg+xml' ? 'svg' : 'image' }
-      imageAssets.unshift({
+      
+      const assetObj: Asset = {
         id,
         kind: ref.kind,
         name,
@@ -186,21 +209,55 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
         width: size.width,
         height: size.height,
         size: file.size,
-        mime: file.type || 'image/png',
+        mime,
         tags: [],
         attribution: null,
         created_at: new Date().toISOString(),
-      })
+      }
+      imageAssets.unshift(assetObj)
+      globalAssetMetadata.set(id, assetObj)
+
+      if (typeof window !== 'undefined') {
+        try {
+          await localRepository.putAsset({ id, blob: file, name, mime, width: size.width, height: size.height })
+        } catch (err) {
+          console.warn('[VisualStudio] Fallo al guardar imagen en IndexedDB:', err)
+        }
+      }
+
       return ref
     },
     async resolveSrc(src: string): Promise<string> {
       const match = /^idb:\/\/([0-9a-f-]{36})$/i.exec(src)
       if (!match) return src
       const key = match[1].toLowerCase()
-      const url =
+
+      // 1. Memoria rápida local o global del módulo
+      let url =
         objectUrls.get(key) ||
+        globalAssetUrls.get(key) ||
         persistentObjectUrls.get(key) ||
         (typeof window !== 'undefined' ? (window as any).__inhubflow_asset_cache?.get(key) : undefined)
+
+      // 2. Si no está en memoria (ej: tras F5, reinicio de Next.js o cambio de código), leer de IndexedDB
+      if (!url && typeof window !== 'undefined') {
+        try {
+          const repoUrl = await localRepository.getAssetObjectUrl(key)
+          if (repoUrl) {
+            url = repoUrl
+            objectUrls.set(key, repoUrl)
+            globalAssetUrls.set(key, repoUrl)
+            persistentObjectUrls.set(key, repoUrl)
+            try {
+              ;(window as any).__inhubflow_asset_cache ??= new Map<string, string>()
+              ;(window as any).__inhubflow_asset_cache.set(key, repoUrl)
+            } catch {}
+          }
+        } catch (err) {
+          console.warn('[VisualStudio] Error al recuperar asset de IndexedDB:', err)
+        }
+      }
+
       if (!url) {
         console.warn('[VisualStudio] Recurso local expirado o no encontrado:', src)
         return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f1f5f9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="13">Recurso no disponible</text></svg>'
@@ -229,13 +286,53 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
       templates: createPersistentTemplatesService(),
       assets: {
         async list(q) {
-          if (q?.kind !== 'audio') return page(imageAssets, q)
+          if (q?.kind !== 'audio') {
+            let repoAssets: Asset[] = []
+            try {
+              if (typeof window !== 'undefined') {
+                const stored = await localRepository.listAssets()
+                repoAssets = stored.map((s) => ({
+                  id: s.id,
+                  kind: s.mime.startsWith('audio/') ? 'audio' : s.mime === 'image/svg+xml' ? 'svg' : 'image',
+                  name: s.name,
+                  url: `idb://${s.id}`,
+                  thumb_url: `idb://${s.id}`,
+                  width: s.width,
+                  height: s.height,
+                  size: s.blob.size,
+                  mime: s.mime,
+                  tags: [],
+                  attribution: null,
+                  created_at: new Date(s.createdAt).toISOString(),
+                }))
+              }
+            } catch (err) {
+              console.warn('[VisualStudio] Error al listar assets locales:', err)
+            }
+
+            const seen = new Set<string>()
+            const combined: Asset[] = []
+            for (const a of [...imageAssets, ...Array.from(globalAssetMetadata.values()), ...repoAssets]) {
+              if (!seen.has(a.id)) {
+                seen.add(a.id)
+                combined.push(a)
+              }
+            }
+            return page(combined, q)
+          }
           return page(
             audioUploads.map(({ ref, size, type }) => ({ id: ref.id, kind: 'audio' as const, name: ref.name, url: ref.url, thumb_url: '', width: 0, height: 0, size, mime: type, tags: [], attribution: null, duration_ms: null, created_at: new Date(0).toISOString() })),
             q,
           )
         },
         async remove(id) {
+          try {
+            if (typeof window !== 'undefined') {
+              await localRepository.deleteAsset(id)
+            }
+          } catch {}
+          globalAssetUrls.delete(id)
+          globalAssetMetadata.delete(id)
           const at = audioUploads.findIndex((u) => u.ref.id === id)
           if (at >= 0) audioUploads.splice(at, 1)
           const atImg = imageAssets.findIndex((u) => u.id === id)

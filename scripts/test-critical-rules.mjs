@@ -2430,6 +2430,19 @@ assert(Math.abs(angle90.localX.x) < 0.001 && Math.abs(angle90.localX.y - 1) < 0.
 const angle45 = simulateHandleAngle(45);
 assert(Math.abs(angle45.localX.x - Math.SQRT1_2) < 0.001 && Math.abs(angle45.localX.y - Math.SQRT1_2) < 0.001, "A 45 grados, la manija gira exactamente 45° manteniéndose tangente al borde inclinado");
 
+// ==================================================================
+// 44. Prueba de Persistencia de Assets en IndexedDB (Anti-pérdida F5 / HMR)
+// ==================================================================
+console.log("\n--- 44. Prueba de Persistencia de Assets en IndexedDB (Anti-pérdida F5 / HMR) ---");
+
+const memoryAdapterUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/dev/memoryAdapter.ts', 'utf8');
+
+assert(memoryAdapterUpdatedCode.includes("import { localRepository } from '@visual-studio/lib/local'"), "memoryAdapter importa localRepository para persistencia real en navegador");
+assert(memoryAdapterUpdatedCode.includes("const globalAssetUrls = new Map<string, string>()"), "Existe caché global a nivel de módulo para sobrevivir re-montajes y Hot Module Reload");
+assert(memoryAdapterUpdatedCode.includes("await localRepository.putAsset({ id, blob: file, name, mime"), "uploadAsset almacena binarios de imágenes permanentemente en IndexedDB");
+assert(memoryAdapterUpdatedCode.includes("const repoUrl = await localRepository.getAssetObjectUrl(key)"), "resolveSrc recupera la URL de IndexedDB cuando la memoria se refresca tras un cambio");
+assert(memoryAdapterUpdatedCode.includes("const stored = await localRepository.listAssets()"), "El catálogo 'Tus fotos' se recupera desde IndexedDB evitando que las imágenes subidas desaparezcan");
+
 // Limpieza de base de datos de test
 
 db.close();
