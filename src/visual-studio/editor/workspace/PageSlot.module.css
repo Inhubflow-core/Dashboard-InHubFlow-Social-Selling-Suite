@@ -5,6 +5,10 @@
   flex-direction: column;
 }
 
+.slot[data-active] {
+  z-index: 10;
+}
+
 .header {
   position: relative;
   z-index: 3;

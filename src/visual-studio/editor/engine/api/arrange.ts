@@ -585,7 +585,7 @@ export class ArrangeApi {
     if (!view || this.engine.readOnly) return false
     const active = view.canvas.getActiveObject()
     if (!active) return false
-    return this.engine.transferDirectly(this.engine.state.activePageId, targetPageId, active)
+    return this.engine.transferDirectly(this.engine.state.activePageId, targetPageId, active, true)
   }
 
   /** Moves the current selection to the next page in sequence. */

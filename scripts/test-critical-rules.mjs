@@ -2466,10 +2466,16 @@ const arrangeCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFL
 const builtinsCommandsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/builtins/commands.tsx', 'utf8');
 const contextMenuHostCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/ContextMenuHost.tsx', 'utf8');
 
-assert(editorCode.includes("transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject): boolean"), "EditorEngine implementa transferDirectly para migración atómica entre páginas");
+assert(editorCode.includes("transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject"), "EditorEngine implementa transferDirectly para migración atómica entre páginas");
+assert(editorCode.includes("docObj.left = clampedX") && editorCode.includes("docObj.top = clampedY"), "transferDirectly sincroniza left y top con las coordenadas clamped evitando pérdida del objeto en Fabric");
 assert(editorCode.includes("onObjectCrossPage(sourcePageId: string, target: FabricObject, event?: MouseEvent): boolean"), "EditorEngine implementa onObjectCrossPage para detectar arrastre entre páginas");
 assert(editorCode.includes("replacePage(curDoc, nextSource)") && editorCode.includes("replacePage(nextDoc, nextTarget)"), "Transferencia actualiza ambas páginas en una sola transacción atómica de documento");
 assert(editorCode.includes("targetView.selectObjects(builtObjs)"), "El objeto transferido queda automáticamente seleccionado en la página destino");
+
+const pageSlotCss = fs.readFileSync('src/visual-studio/editor/workspace/PageSlot.module.css', 'utf8');
+assert(pageSlotCss.includes(".slot[data-active]") && pageSlotCss.includes("z-index: 10"), "El lienzo activo se eleva con z-index 10 para que los elementos arrastrados no se oculten bajo otras páginas");
+const workspaceUpdatedCode = fs.readFileSync('src/visual-studio/editor/workspace/Workspace.tsx', 'utf8');
+assert(workspaceUpdatedCode.includes("BLEED_MULTI = 400"), "Workspace amplia el bleed a 400px en vista multipágina para renderizado continuo entre lienzos");
 
 assert(pageCanvasCode.includes("host.onObjectCrossPage && host.onObjectCrossPage(pid, target, e.e as MouseEvent | undefined)"), "PageCanvas delega el evento object:modified al host para chequear transferencia entre páginas");
 assert(pageCanvasCode.includes("clampInsidePage(target: FabricObject): boolean"), "PageCanvas implementa clampInsidePage para protección anti-limbo");

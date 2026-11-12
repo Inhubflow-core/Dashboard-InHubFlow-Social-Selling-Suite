@@ -19,7 +19,8 @@ import { ZoomControls } from './ZoomControls'
 import { usePresenceTracking } from './usePresenceTracking'
 import styles from './Workspace.module.css'
 
-const BLEED = 56
+const BLEED_SINGLE = 56
+const BLEED_MULTI = 400
 const OVERSCAN = 360
 /** Pages this many viewport heights from the visible area (above and below) get their picture prepared in the background. */
 const NEAR_SCREENS = 2
@@ -104,6 +105,7 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
     if (!scroller) return
     const rect = scroller.getBoundingClientRect()
     const z = zoomRef.current
+    const bleed = editor.state.doc.pages.length > 1 ? BLEED_MULTI : BLEED_SINGLE
     for (const [id, el] of artboards.current) {
       const view = editor.viewOf(id)
       if (!view) continue
@@ -115,14 +117,14 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
       const inner = { x: visible.x - 40, y: visible.y - 40, width: visible.width + 80, height: visible.height + 80 }
       if (last && last.zoom === z && last.w === size.width && last.h === size.height) {
         const clipped = {
-          x: Math.max(inner.x, -BLEED),
-          y: Math.max(inner.y, -BLEED),
-          width: Math.min(inner.x + inner.width, art.width + BLEED) - Math.max(inner.x, -BLEED),
-          height: Math.min(inner.y + inner.height, art.height + BLEED) - Math.max(inner.y, -BLEED),
+          x: Math.max(inner.x, -bleed),
+          y: Math.max(inner.y, -bleed),
+          width: Math.min(inner.x + inner.width, art.width + bleed) - Math.max(inner.x, -bleed),
+          height: Math.min(inner.y + inner.height, art.height + bleed) - Math.max(inner.y, -bleed),
         }
         if (clipped.width <= 0 || clipped.height <= 0 || windowContains(last.win, clipped)) continue
       }
-      const win = computeCanvasWindow(art, visible, OVERSCAN, BLEED)
+      const win = computeCanvasWindow(art, visible, OVERSCAN, bleed)
       windows.current.set(id, { zoom: z, win, w: size.width, h: size.height })
       editor.layoutPage(id, z, win)
     }

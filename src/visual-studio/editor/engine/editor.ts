@@ -727,7 +727,7 @@ export class EditorEngine implements PageCanvasHost {
    * Directly transfers an object (or selection) from one page to another, recalculating its position
    * and updating both pages in the document and live canvases atomically.
    */
-  transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject): boolean {
+  transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject, preservePosition = false): boolean {
     if (this.disposed || this.readOnly) return false
     const pages = this.state.doc.pages
     if (pages.length <= 1) return false
@@ -773,13 +773,18 @@ export class EditorEngine implements PageCanvasHost {
 
     for (const obj of memberObjects) {
       const docObj = serializeObject(obj)
-      const newX = obj.left + deltaDocX
-      const newY = obj.top + deltaDocY
+      const newX = preservePosition ? obj.left : obj.left + deltaDocX
+      const newY = preservePosition ? obj.top : obj.top + deltaDocY
       const objW = typeof obj.getScaledWidth === 'function' ? obj.getScaledWidth() : (obj.width || 50)
       const objH = typeof obj.getScaledHeight === 'function' ? obj.getScaledHeight() : (obj.height || 50)
 
-      docObj.x = Math.max(0, Math.min(targetSize.width - Math.min(objW, 40), newX))
-      docObj.y = Math.max(0, Math.min(targetSize.height - Math.min(objH, 40), newY))
+      const clampedX = Math.max(0, Math.min(targetSize.width - Math.min(objW, 40), newX))
+      const clampedY = Math.max(0, Math.min(targetSize.height - Math.min(objH, 40), newY))
+
+      docObj.x = clampedX
+      docObj.y = clampedY
+      docObj.left = clampedX
+      docObj.top = clampedY
 
       transferredDocs.push(docObj)
       transferredIds.push(docObj.id)
@@ -812,9 +817,15 @@ export class EditorEngine implements PageCanvasHost {
         if (targetView.isDisposed()) return
         for (let i = 0; i < builtObjs.length; i++) {
           const b = builtObjs[i]
-          asDory(b).id = transferredDocs[i].id
+          const docItem = transferredDocs[i]
+          asDory(b).id = docItem.id
+          b.set({
+            left: docItem.left ?? docItem.x,
+            top: docItem.top ?? docItem.y,
+          })
           targetView.configure(b)
           targetView.canvas.add(b)
+          b.setCoords()
         }
         targetView.canvas.requestRenderAll()
         this.setActivePage(targetPageId)
@@ -873,22 +884,41 @@ export class EditorEngine implements PageCanvasHost {
 
     let targetPageId: string | null = null
 
-    // 1. Check native DOM pointer target if pointer event is present
-    if (typeof document !== 'undefined' && event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
-      const el = document.elementFromPoint(event.clientX, event.clientY)
-      const slotEl = el?.closest('[data-page-id]')
-      const pid = slotEl?.getAttribute('data-page-id')
+    // 1. Check exact artboard under pointer if pointer event is present
+    if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      const pid = this.view.pageAt(event.clientX, event.clientY)
       if (pid && pid !== sourcePageId && pages.some((p) => p.id === pid)) {
         targetPageId = pid
       }
     }
 
-    // 2. Check layout slots by center geometry in workspace scroll space
+    // 2. Check DOM elements under pointer (including page header or slot area)
+    if (!targetPageId && typeof document !== 'undefined' && event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      const elements = typeof document.elementsFromPoint === 'function'
+        ? document.elementsFromPoint(event.clientX, event.clientY)
+        : [document.elementFromPoint(event.clientX, event.clientY)].filter(Boolean)
+      for (const el of elements) {
+        const slotEl = el?.closest('[data-page-id]')
+        const pid = slotEl?.getAttribute('data-page-id')
+        if (pid && pid !== sourcePageId && pages.some((p) => p.id === pid)) {
+          targetPageId = pid
+          break
+        }
+      }
+    }
+
+    // 3. Check layout slots by center and bounding box in workspace scroll space
     if (!targetPageId) {
+      const objLeftStack = sourceSlot.artboardLeft + (target.left ?? 0) * zoom
+      const objRightStack = objLeftStack + (typeof target.getScaledWidth === 'function' ? target.getScaledWidth() : (target.width || 50)) * zoom
+
       const candidateSlot = layout.slots.find((s) => {
         if (s.id === sourcePageId) return false
-        const inX = stackCenterX >= s.artboardLeft - 40 && stackCenterX <= s.right + 40
-        const inY = stackCenterY >= s.artboardTop - 120 && stackCenterY <= s.bottom + 120
+        const inX =
+          (stackCenterX >= s.artboardLeft - 60 && stackCenterX <= s.right + 60) ||
+          (objLeftStack >= s.artboardLeft - 40 && objLeftStack <= s.right + 40) ||
+          (objRightStack >= s.artboardLeft - 40 && objRightStack <= s.right + 40)
+        const inY = stackCenterY >= s.artboardTop - 200 && stackCenterY <= s.bottom + 200
         return inX && inY
       })
       if (candidateSlot) {
@@ -896,18 +926,18 @@ export class EditorEngine implements PageCanvasHost {
       }
     }
 
-    // 3. Fallback: if object was dragged clearly across the boundary between pages
+    // 4. Fallback: if object was dragged clearly across the boundary between pages
     if (!targetPageId) {
-      if (center.x > sourceSize.width + 30 && sourceIndex + 1 < pages.length) {
+      if ((center.x > sourceSize.width * 0.7 || (target.left ?? 0) > sourceSize.width * 0.6) && sourceIndex + 1 < pages.length) {
         targetPageId = pages[sourceIndex + 1].id
-      } else if (center.x < -30 && sourceIndex > 0) {
+      } else if ((center.x < sourceSize.width * 0.3 || (target.left ?? 0) < 0) && sourceIndex > 0) {
         targetPageId = pages[sourceIndex - 1].id
       }
     }
 
     if (!targetPageId || targetPageId === sourcePageId) return false
 
-    return this.transferDirectly(sourcePageId, targetPageId, target)
+    return this.transferDirectly(sourcePageId, targetPageId, target, false)
   }
 
   /* ---------------------------------------------------------------------- ui */
