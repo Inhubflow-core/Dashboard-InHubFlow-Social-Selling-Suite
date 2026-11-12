@@ -2298,6 +2298,26 @@ assert(textDrawerCode.includes('handleCaptureFromCanvas'), "Captura de fuentes d
 assert(textDrawerCode.includes('Mis Combinaciones Personalizadas'), "Sección visual dedicada para combinaciones personalizadas en el drawer");
 assert(textDrawerCode.includes('handleDeleteCustom'), "Capacidad de eliminar combinaciones con botón de papelera presente");
 
+// ==================================================================
+// 38. Prueba de Degradados de Contraste para LinkedIn (Gradient Overlays)
+// ==================================================================
+console.log("\n--- 38. Prueba de Degradados de Contraste para LinkedIn ---");
+
+const gradientOverlaysCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/gradientOverlays.ts', 'utf8');
+assert(gradientOverlaysCode.includes('GRADIENT_OVERLAYS'), "Existe catálogo de presets de degradados para LinkedIn");
+assert(gradientOverlaysCode.includes('fade-right'), "Existe preset Lateral Derecho (Texto a la der. / Foto a la izq.)");
+assert(gradientOverlaysCode.includes('fade-left'), "Existe preset Lateral Izquierdo (Texto a la izq. / Foto a la der.)");
+assert(gradientOverlaysCode.includes('fade-bottom'), "Existe preset Inferior para portadas con texto al pie");
+assert(gradientOverlaysCode.includes('OVERLAY_COLORS'), "Existe paleta de colores de contraste (Azul Noche, Negro, etc.)");
+assert(gradientOverlaysCode.includes('#0b132b'), "Incluye el color oficial Azul Noche (#0b132b) optimizado para LinkedIn");
+assert(gradientOverlaysCode.includes('hexToRgba'), "Conversión matemática de color a RGBA transparente implementada");
+assert(gradientOverlaysCode.includes('lowestTextIndex'), "Ajuste inteligente de capas: ubica el degradado automáticamente detrás del texto");
+
+const shapesDrawerCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
+assert(shapesDrawerCode.includes('gradientSection'), "Sección estelar de degradados integrada en el drawer de Elementos");
+assert(shapesDrawerCode.includes('handleInsertOverlay'), "Disparador de inserción directa de degradados presente en Elementos");
+assert(shapesDrawerCode.includes('coverageBtn'), "Control de cobertura de degradado (Zona Texto 65% vs Lienzo 100%) disponible");
+
 // Limpieza de base de datos de test
 
 db.close();

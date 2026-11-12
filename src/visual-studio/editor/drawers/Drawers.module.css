@@ -364,3 +364,154 @@
   object-fit: contain;
   pointer-events: none;
 }
+
+/* Degradados de Contraste (LinkedIn Overlays) */
+.gradientSection {
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid var(--ed-border);
+  border-radius: 12px;
+  background: var(--ed-surface-2);
+}
+.gradientHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.gradientTitle {
+  margin: 0;
+  color: var(--ed-text);
+  font: 700 13px / 1.3 var(--font-sans);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gradientBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #6366f1;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+.gradientDesc {
+  margin: 0 0 12px;
+  color: var(--ed-text-dim);
+  font: 400 11.5px / 1.4 var(--font-sans);
+}
+.colorPickerRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.colorDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.colorDot:hover {
+  transform: scale(1.15);
+}
+.colorDotActive {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px #6366f1, 0 2px 6px rgba(0,0,0,0.3);
+}
+.optionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.coverageToggle {
+  display: flex;
+  background: var(--ed-surface);
+  border: 1px solid var(--ed-border);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+  flex: 1;
+}
+.coverageBtn {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ed-text-dim);
+  font: 600 11px / 1 var(--font-sans);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.coverageBtnActive {
+  background: var(--ed-surface-2);
+  color: var(--ed-text);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+.gradientCardsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.gradientCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--ed-border);
+  border-radius: 10px;
+  background: var(--ed-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.gradientCard:hover {
+  border-color: var(--ed-accent, #6366f1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.checkerPreview {
+  width: 100%;
+  height: 52px;
+  border-radius: 6px;
+  border: 1px solid var(--ed-border);
+  position: relative;
+  overflow: hidden;
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%), 
+    linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #e5e7eb 75%), 
+    linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+.gradientOverlayLayer {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+}
+.gradientCardName {
+  font: 700 11.5px / 1.2 var(--font-sans);
+  color: var(--ed-text);
+}
+.gradientCardSub {
+  font: 400 10px / 1.25 var(--font-sans);
+  color: var(--ed-text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+

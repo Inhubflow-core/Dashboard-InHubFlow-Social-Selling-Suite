@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useEditor } from '../context'
 import { createLine, defaultShapeSize } from '../engine/objects/factories'
 import { PATH_SHAPES } from '../engine/objects/shapeGeometry'
@@ -8,6 +8,12 @@ import { t } from '../strings'
 import ed from '../chrome/ed.module.css'
 import { CHART_KINDS, type ChartKind, chartSvg } from './charts'
 import { pageCentre } from './insertAt'
+import {
+  GRADIENT_OVERLAYS,
+  OVERLAY_COLORS,
+  insertGradientOverlay,
+  type GradientOverlayPreset,
+} from './gradientOverlays'
 import styles from './Drawers.module.css'
 
 interface ShapeCard {
@@ -25,12 +31,20 @@ const sv = (children: ReactNode): ReactNode => (
   </svg>
 )
 
-/** Shapes drawer: eight cards (basic and decorative), then the extra shapes. */
+/** Shapes drawer: degradados de contraste, formas básicas, decorativas y herramientas. */
 export function ShapesDrawer({ close }: PanelProps) {
   const editor = useEditor()
+  const [selectedColor, setSelectedColor] = useState('#0b132b')
+  const [coverage, setCoverage] = useState<'half' | 'full'>('half')
+
   const shape = (kind: ShapeKind) => (): void => void editor.insert.shape(kind)
 
   const insertChart = (kind: ChartKind): Promise<void> => editor.insert.svgElement(chartSvg(kind), `chart-${kind}`, t.drawers.chartNames[kind])
+
+  const handleInsertOverlay = async (preset: GradientOverlayPreset) => {
+    await insertGradientOverlay(editor, preset, { color: selectedColor, coverage, opacity: 1 })
+    close()
+  }
 
   const basic: ShapeCard[] = [
     { id: 'rect', label: t.basicShapes.rectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />), run: shape('rect') },
@@ -96,6 +110,99 @@ export function ShapesDrawer({ close }: PanelProps) {
 
   return (
     <>
+      {/* SECCIÓN ESTRELLA: DEGRADADOS DE CONTRASTE PARA LINKEDIN */}
+      <div className={styles.gradientSection}>
+        <div className={styles.gradientHeader}>
+          <h3 className={styles.gradientTitle}>
+            <span>✨ Degradados de Contraste</span>
+          </h3>
+          <span className={styles.gradientBadge}>LinkedIn Post</span>
+        </div>
+        <p className={styles.gradientDesc}>
+          Crea el contraste perfecto entre tu foto de fondo y el texto del titular.
+        </p>
+
+        {/* Selector de Color Base */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ed-text)' }}>Color de Sombra</span>
+            <span style={{ fontSize: 10, color: 'var(--ed-text-dim)' }}>
+              {OVERLAY_COLORS.find((c) => c.color === selectedColor)?.label.split(' ')[0] ?? selectedColor}
+            </span>
+          </div>
+          <div className={styles.colorPickerRow}>
+            {OVERLAY_COLORS.map((c) => (
+              <button
+                key={c.color}
+                type="button"
+                className={`${styles.colorDot} ${selectedColor === c.color ? styles.colorDotActive : ''}`}
+                style={{ backgroundColor: c.color }}
+                title={c.label}
+                aria-label={c.label}
+                onClick={() => setSelectedColor(c.color)}
+              />
+            ))}
+            <input
+              type="color"
+              value={selectedColor.startsWith('#') ? selectedColor : '#0b132b'}
+              onChange={(e) => setSelectedColor(e.target.value)}
+              title="Color personalizado"
+              style={{
+                width: 24,
+                height: 24,
+                padding: 0,
+                border: 'none',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                background: 'transparent',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Selector de Cobertura */}
+        <div style={{ marginBottom: 12 }}>
+          <div className={styles.coverageToggle}>
+            <button
+              type="button"
+              className={`${styles.coverageBtn} ${coverage === 'half' ? styles.coverageBtnActive : ''}`}
+              onClick={() => setCoverage('half')}
+            >
+              Zona Texto (65%)
+            </button>
+            <button
+              type="button"
+              className={`${styles.coverageBtn} ${coverage === 'full' ? styles.coverageBtnActive : ''}`}
+              onClick={() => setCoverage('full')}
+            >
+              Lienzo Completo
+            </button>
+          </div>
+        </div>
+
+        {/* Tarjetas de Presets de Degradado */}
+        <div className={styles.gradientCardsGrid}>
+          {GRADIENT_OVERLAYS.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              className={styles.gradientCard}
+              data-testid={`gradient-${preset.id}`}
+              onClick={() => void handleInsertOverlay(preset)}
+            >
+              <div className={styles.checkerPreview}>
+                <div
+                  className={styles.gradientOverlayLayer}
+                  style={{ background: preset.previewCss(selectedColor) }}
+                />
+              </div>
+              <span className={styles.gradientCardName}>{preset.label}</span>
+              <span className={styles.gradientCardSub}>{preset.sublabel}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {group(t.drawers.basicShapes, basic)}
       {group(t.drawers.decorative, decorative)}
       {group(t.drawers.moreBasics, moreBasics)}
