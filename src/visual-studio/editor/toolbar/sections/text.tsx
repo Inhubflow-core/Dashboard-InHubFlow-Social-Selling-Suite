@@ -1,4 +1,4 @@
-import { PilcrowLeft, PilcrowRight } from 'lucide-react'
+import { PilcrowLeft, PilcrowRight, Highlighter } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ColorTool } from '../../chrome/ColorTool'
 import { I } from '../../chrome/icons'
@@ -15,6 +15,7 @@ import { FontPicker } from '../FontPicker'
 import { createFontPreview } from '../fontPreview'
 import { FONT_SIZE, LETTER_SPACING, LINE_HEIGHT } from '../limits'
 import { PopoverTool, ToolButton } from '../parts'
+import { HighlightPopover } from './HighlightPopover'
 import ed from '../../chrome/ed.module.css'
 
 const ALIGN = [
@@ -127,6 +128,10 @@ export function TextSection() {
       <ToolButton label={t.toolbar.underline} shortcut="Mod+U" pressed={!!textValue(sel, 'underline')} testId="ed-underline" onClick={() => editor.style.text({ underline: !textValue(sel, 'underline') }, t.history.underline)}>
         {I.underline}
       </ToolButton>
+
+      <PopoverTool label="Resaltar texto (Círculos, Marcador, Doodles)" trigger={<Highlighter size={18} aria-hidden="true" />} flush testId="ed-text-highlight">
+        {(close) => <HighlightPopover close={close} />}
+      </PopoverTool>
 
       <PopoverTool label={t.toolbar.alignTitle} trigger={AlignIcon} inline testId="ed-text-align">
         {(close) =>

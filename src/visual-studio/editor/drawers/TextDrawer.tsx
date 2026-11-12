@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { IText } from 'fabric'
 import { useEditor } from '../context'
 import { TEXT_PRESETS, createTextbox } from '../engine/objects/factories'
+import { HIGHLIGHT_STYLES, applyTextHighlight } from '../engine/objects/highlights'
 import { fontStack, primaryFamily } from '../engine/text/fontStack'
 import type { PanelProps } from '../panels/registry'
 import { t } from '../strings'
@@ -406,6 +407,49 @@ export function TextDrawer({ close }: PanelProps) {
             {ARC_DOWN}
           </svg>
         </button>
+      </div>
+
+      {/* Sección Resaltadores Visuales SVG */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '8px' }}>
+        <p className={ed.sectionTitle} style={{ margin: 0 }}>
+          Resaltadores Visuales (Círculos & Neón)
+        </p>
+        <span style={{ fontSize: '10px', background: '#702FFC1A', color: '#702FFC', padding: '2px 6px', borderRadius: '10px', fontWeight: 600 }}>
+          Vector SVG
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', marginBottom: '16px' }}>
+        {HIGHLIGHT_STYLES.filter((s) => s.kind === 'vector').map((style) => (
+          <button
+            key={style.id}
+            type="button"
+            className={ed.presetBtn}
+            style={{
+              padding: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '8px',
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+            title={style.description}
+            onClick={async () => {
+              await applyTextHighlight(editor, style.id, '#FFE600')
+              close()
+            }}
+          >
+            <div
+              style={{ width: '100%', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2px' }}
+              dangerouslySetInnerHTML={{ __html: style.buildSvg('#FFE600') }}
+            />
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ed-text)' }}>
+              {style.label}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Sección Combinaciones de Fuentes */}

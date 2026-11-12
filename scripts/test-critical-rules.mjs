@@ -2853,6 +2853,39 @@ import('../src/visual-studio/editor/engine/clipboardFormat.js').catch(async () =
   assert(parsed.objects[0].left === 150 && parsed.objects[0].top === 220, 'Las coordenadas originales se preservan exactamente');
 });
 
+// ==============================================================================
+// 58. REGLA: RESALTADORES VISUALES VECTORIALES SVG (CÍRCULOS A MANO, MARCADOR, ONDAS)
+// ==============================================================================
+console.log("\n--- TEST: Resaltadores Visuales Vectoriales SVG para Palabras y Textos ---");
+
+const highlightsCode58 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/engine/objects/highlights.ts'), 'utf8');
+const popoverCode58 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/toolbar/sections/HighlightPopover.tsx'), 'utf8');
+const textToolbarCode58 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/toolbar/sections/text.tsx'), 'utf8');
+const textDrawerCode58 = fs.readFileSync(path.join(process.cwd(), 'src/visual-studio/editor/drawers/TextDrawer.tsx'), 'utf8');
+
+assert(highlightsCode58.includes('circle-hand'), 'highlights.ts define el modelo circle-hand (círculo dibujado a mano)');
+assert(highlightsCode58.includes('marker-fluo'), 'highlights.ts define el modelo marker-fluo (marcador fluorescente)');
+assert(highlightsCode58.includes('underline-hand'), 'highlights.ts define el modelo underline-hand (subrayado a mano)');
+assert(highlightsCode58.includes('underline-double'), 'highlights.ts define el modelo underline-double (doble trazo)');
+assert(highlightsCode58.includes('squiggly'), 'highlights.ts define el modelo squiggly (onda zigzag)');
+assert(highlightsCode58.includes('box-hand'), 'highlights.ts define el modelo box-hand (recuadro doodle)');
+assert(highlightsCode58.includes('pill-badge'), 'highlights.ts define el modelo pill-badge (cápsula suave de fondo)');
+
+assert(highlightsCode58.includes('HIGHLIGHT_PALETTE'), 'highlights.ts exporta la paleta de colores neón y vibrantes');
+assert(highlightsCode58.includes('#FFE600'), 'La paleta incluye Amarillo Neón');
+assert(highlightsCode58.includes('#702FFC'), 'La paleta incluye Púrpura InHubFlow');
+assert(highlightsCode58.includes('applyTextHighlight'), 'highlights.ts exporta la función principal de aplicación applyTextHighlight');
+assert(highlightsCode58.includes('getTargetTextBoundingBox'), 'highlights.ts calcula el encuadre matemático de la palabra o texto objetivo');
+
+assert(popoverCode58.includes('HighlightPopover'), 'HighlightPopover exporta el componente interactivo');
+assert(popoverCode58.includes('Resaltador Visual (Doodles & Neón)'), 'HighlightPopover presenta el encabezado explicativo');
+assert(popoverCode58.includes('dangerouslySetInnerHTML'), 'HighlightPopover previsualiza en vivo los SVG vectoriales');
+
+assert(textToolbarCode58.includes('ed-text-highlight'), 'La barra contextual de texto incorpora el botón de resaltador');
+assert(textToolbarCode58.includes('HighlightPopover'), 'La barra contextual de texto conecta el popover de resaltadores');
+
+assert(textDrawerCode58.includes('Resaltadores Visuales (Círculos & Neón)'), 'El Drawer lateral de Texto expone la galería de resaltadores visuales');
+
 // Limpieza de base de datos de test
 
 db.close();
