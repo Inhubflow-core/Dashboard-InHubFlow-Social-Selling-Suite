@@ -110,13 +110,12 @@ export function ShapesDrawer({ close }: PanelProps) {
 
   return (
     <>
-      {/* SECCIÓN ESTRELLA: DEGRADADOS DE CONTRASTE PARA LINKEDIN */}
+      {/* SECCIÓN: DEGRADADOS DE CONTRASTE */}
       <div className={styles.gradientSection}>
         <div className={styles.gradientHeader}>
           <h3 className={styles.gradientTitle}>
-            <span>✨ Degradados de Contraste</span>
+            <span>Degradados de Contraste</span>
           </h3>
-          <span className={styles.gradientBadge}>LinkedIn Post</span>
         </div>
         <p className={styles.gradientDesc}>
           Crea el contraste perfecto entre tu foto de fondo y el texto del titular.
