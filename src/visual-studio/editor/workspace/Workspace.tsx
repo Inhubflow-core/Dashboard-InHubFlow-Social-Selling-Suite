@@ -3,7 +3,7 @@ import { useEditor, useEditorState, useEditorStateShallow } from '../context'
 import { pageSize } from '../engine/docOps'
 import { imageFilesFrom } from '../engine/files'
 import { endImageAssetDrag, hasImageAssetDrag, readImageAssetDrag } from '../drawers/imageAssetDrag'
-import { DEFAULT_METRICS, type CanvasWindow, type StackMetrics, computeCanvasWindow, computeStack, pageAtViewportCenter, slotLeft, visiblePageIds, windowContains } from '../engine/layout'
+import { DEFAULT_METRICS, type CanvasWindow, type StackMetrics, computeCanvasWindow, computeStack, metricsFor, pageAtViewportCenter, slotLeft, visiblePageIds, windowContains } from '../engine/layout'
 import { getPageSize, pageSizes, widestPage } from '../engine/pageSizes'
 import { wheelZoom } from '../engine/zoom'
 import { useLatest } from '../hooks/useLatest'
@@ -19,8 +19,6 @@ import { ZoomControls } from './ZoomControls'
 import { usePresenceTracking } from './usePresenceTracking'
 import styles from './Workspace.module.css'
 
-/** 32 px around the page; the per-page header only exists once there are several pages. */
-const metricsFor = (pages: number): StackMetrics => ({ ...DEFAULT_METRICS, padding: 32, header: pages > 1 ? DEFAULT_METRICS.header : 0 })
 const BLEED = 56
 const OVERSCAN = 360
 /** Pages this many viewport heights from the visible area (above and below) get their picture prepared in the background. */

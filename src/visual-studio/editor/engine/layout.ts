@@ -45,6 +45,13 @@ export interface StackMetrics {
 
 export const DEFAULT_METRICS: StackMetrics = { padding: 40, gap: 32, header: 40, sidePadding: 64 }
 
+/** 32 px around the page; the per-page header only exists once there are several pages. */
+export const metricsFor = (pages: number): StackMetrics => ({
+  ...DEFAULT_METRICS,
+  padding: 32,
+  header: pages > 1 ? DEFAULT_METRICS.header : 0,
+})
+
 export function computeStack(pages: readonly PageBox[], zoom: number, metrics: StackMetrics = DEFAULT_METRICS): StackLayout {
   let x = metrics.sidePadding
   let maxH = 0

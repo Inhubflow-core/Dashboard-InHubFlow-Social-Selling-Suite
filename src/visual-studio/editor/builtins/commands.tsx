@@ -33,6 +33,8 @@ import {
   Ungroup,
   ArrowUpToLine,
   ArrowDownToLine,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 import { toggleContrast } from '@visual-studio/lib/contrast'
 import { downloadBlob } from '@visual-studio/lib/download'
@@ -129,6 +131,30 @@ export function registerBuiltinCommands(): void {
   registerCommand({ id: 'arrange.forward', label: t.cmd.arrangeForward, shortcut: 'Mod+]', group: t.cmdGroup.arrange, icon: <BringToFront size={18} />, run: (e) => e.arrange.zOrder('forward'), enabled: ({ editor }) => hasSelection(editor) })
   registerCommand({ id: 'arrange.backward', label: t.cmd.arrangeBackward, shortcut: 'Mod+[', group: t.cmdGroup.arrange, icon: <SendToBack size={18} />, run: (e) => e.arrange.zOrder('backward'), enabled: ({ editor }) => hasSelection(editor) })
   registerCommand({ id: 'arrange.back', label: t.cmd.arrangeBack, shortcut: 'Mod+Shift+[|Mod+Alt+[', group: t.cmdGroup.arrange, icon: <ArrowDownToLine size={18} />, run: (e) => e.arrange.zOrder('back'), enabled: ({ editor }) => hasSelection(editor) })
+  registerCommand({
+    id: 'arrange.moveToNextPage',
+    label: 'Mover a página siguiente',
+    group: t.cmdGroup.arrange,
+    icon: <ArrowRight size={18} />,
+    run: (e) => e.arrange.moveToNextPage(),
+    enabled: ({ editor, state }) => {
+      const pages = state.doc.pages
+      const idx = pages.findIndex((p) => p.id === state.activePageId)
+      return hasSelection(editor) && idx >= 0 && idx < pages.length - 1
+    },
+  })
+  registerCommand({
+    id: 'arrange.moveToPrevPage',
+    label: 'Mover a página anterior',
+    group: t.cmdGroup.arrange,
+    icon: <ArrowLeft size={18} />,
+    run: (e) => e.arrange.moveToPrevPage(),
+    enabled: ({ editor, state }) => {
+      const pages = state.doc.pages
+      const idx = pages.findIndex((p) => p.id === state.activePageId)
+      return hasSelection(editor) && idx > 0
+    },
+  })
 
   const textOnly = ({ state }: { state: { selection: { kinds: string[] } } }): boolean => state.selection.kinds.includes('text')
   registerCommand({ id: 'text.bold', label: t.cmd.textBold, shortcut: 'Mod+B', group: t.cmdGroup.text, icon: <Bold size={18} />, whileEditing: true, run: toggleBold, enabled: textOnly })

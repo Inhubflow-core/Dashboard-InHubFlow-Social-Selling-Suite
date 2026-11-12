@@ -578,4 +578,29 @@ export class ArrangeApi {
       this.engine.refreshSelection()
     }
   }
+
+  /** Moves the current selection directly to another page. */
+  moveToPage(targetPageId: string): boolean {
+    const view = this.view
+    if (!view || this.engine.readOnly) return false
+    const active = view.canvas.getActiveObject()
+    if (!active) return false
+    return this.engine.transferDirectly(this.engine.state.activePageId, targetPageId, active)
+  }
+
+  /** Moves the current selection to the next page in sequence. */
+  moveToNextPage(): boolean {
+    const pages = this.engine.state.doc.pages
+    const idx = pages.findIndex((p) => p.id === this.engine.state.activePageId)
+    if (idx < 0 || idx >= pages.length - 1) return false
+    return this.moveToPage(pages[idx + 1].id)
+  }
+
+  /** Moves the current selection to the previous page in sequence. */
+  moveToPrevPage(): boolean {
+    const pages = this.engine.state.doc.pages
+    const idx = pages.findIndex((p) => p.id === this.engine.state.activePageId)
+    if (idx <= 0) return false
+    return this.moveToPage(pages[idx - 1].id)
+  }
 }

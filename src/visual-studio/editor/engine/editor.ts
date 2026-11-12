@@ -34,8 +34,8 @@ import { kindOfLive } from './objects/kinds'
 import { type CanvasTheme, applyThemeDefaults, readCanvasTheme } from './objects/theme'
 import { currentTextStyle } from './objects/textStyle'
 import { IText } from 'fabric'
-import { type LoadContext, serializeObject } from './serialization'
-import type { CanvasWindow } from './layout'
+import { type LoadContext, deserializeObjects, serializeObject } from './serialization'
+import { type CanvasWindow, computeStack, metricsFor } from './layout'
 import {
   EMPTY_SELECTION,
   type EditorState,
@@ -721,6 +721,193 @@ export class EditorEngine implements PageCanvasHost {
 
   onEditBlocked(pageId: string, id: string): void {
     this.editBlockedHandler?.(pageId, id)
+  }
+
+  /**
+   * Directly transfers an object (or selection) from one page to another, recalculating its position
+   * and updating both pages in the document and live canvases atomically.
+   */
+  transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject): boolean {
+    if (this.disposed || this.readOnly) return false
+    const pages = this.state.doc.pages
+    if (pages.length <= 1) return false
+    if (sourcePageId === targetPageId) return false
+    if (!pages.some((p) => p.id === targetPageId) || !pages.some((p) => p.id === sourcePageId)) return false
+
+    const zoom = this.state.zoom || 1
+    const metrics = metricsFor(pages.length)
+    const layout = computeStack(
+      pages.map((p) => ({ id: p.id, ...this.pageSizeOf(p.id) })),
+      zoom,
+      metrics,
+    )
+    const sourceSlot = layout.slots.find((s) => s.id === sourcePageId)
+    const targetSlot = layout.slots.find((s) => s.id === targetPageId)
+    if (!sourceSlot || !targetSlot) return false
+    const targetSize = this.pageSizeOf(targetPageId)
+
+    const deltaDocX = (sourceSlot.artboardLeft - targetSlot.artboardLeft) / zoom
+    const deltaDocY = (sourceSlot.artboardTop - targetSlot.artboardTop) / zoom
+
+    const sourceView = this.viewOf(sourcePageId)
+    const targetView = this.viewOf(targetPageId)
+
+    const isMulti = target instanceof ActiveSelection
+    const memberObjects: FabricObject[] = isMulti ? target.getObjects().slice() : [target]
+
+    if (sourceView) {
+      sourceView.quietly(() => {
+        if (isMulti) {
+          sourceView.canvas.discardActiveObject()
+        }
+        for (const obj of memberObjects) {
+          sourceView.canvas.remove(obj)
+        }
+        sourceView.canvas.discardActiveObject()
+      })
+      sourceView.canvas.requestRenderAll()
+    }
+
+    const transferredDocs: DocObject[] = []
+    const transferredIds: string[] = []
+
+    for (const obj of memberObjects) {
+      const docObj = serializeObject(obj)
+      const newX = obj.left + deltaDocX
+      const newY = obj.top + deltaDocY
+      const objW = typeof obj.getScaledWidth === 'function' ? obj.getScaledWidth() : (obj.width || 50)
+      const objH = typeof obj.getScaledHeight === 'function' ? obj.getScaledHeight() : (obj.height || 50)
+
+      docObj.x = Math.max(0, Math.min(targetSize.width - Math.min(objW, 40), newX))
+      docObj.y = Math.max(0, Math.min(targetSize.height - Math.min(objH, 40), newY))
+
+      transferredDocs.push(docObj)
+      transferredIds.push(docObj.id)
+    }
+
+    const curDoc = this.state.doc
+    const curSource = curDoc.pages.find((p) => p.id === sourcePageId)
+    const curTarget = curDoc.pages.find((p) => p.id === targetPageId)
+    if (!curSource || !curTarget) return false
+
+    const nextSource: DocPage = {
+      ...curSource,
+      objects: curSource.objects.filter((o) => !transferredIds.includes(o.id)),
+    }
+    const nextTarget: DocPage = {
+      ...curTarget,
+      objects: [...curTarget.objects, ...transferredDocs],
+    }
+
+    let nextDoc = replacePage(curDoc, nextSource)
+    nextDoc = replacePage(nextDoc, nextTarget)
+
+    if (sourceView) {
+      sourceView.loadedPage = nextSource
+    }
+
+    if (targetView) {
+      targetView.loadedPage = nextTarget
+      void deserializeObjects(transferredDocs, this.loadContext).then((builtObjs) => {
+        if (targetView.isDisposed()) return
+        for (let i = 0; i < builtObjs.length; i++) {
+          const b = builtObjs[i]
+          asDory(b).id = transferredDocs[i].id
+          targetView.configure(b)
+          targetView.canvas.add(b)
+        }
+        targetView.canvas.requestRenderAll()
+        this.setActivePage(targetPageId)
+        targetView.selectObjects(builtObjs)
+        this.refreshSelection()
+      })
+    } else {
+      this.setActivePage(targetPageId)
+    }
+
+    const historyLabel = isMulti ? 'Mover selección a otra página' : 'Mover a otra página'
+    if (this.live) {
+      this.live.recordLocal(curDoc, nextDoc, {
+        label: historyLabel,
+        activePageId: targetPageId,
+        selection: transferredIds,
+      })
+    } else {
+      this.history.push(
+        { doc: nextDoc, activePageId: targetPageId, selection: transferredIds },
+        { label: historyLabel },
+      )
+    }
+    this.store.setState({ doc: nextDoc, activePageId: targetPageId })
+    this.updateHistoryStatus()
+    this.refreshSelection()
+
+    return true
+  }
+
+  /**
+   * Called when an object is modified/dragged across page boundaries. Detects target page and transfers it.
+   */
+  onObjectCrossPage(sourcePageId: string, target: FabricObject, event?: MouseEvent): boolean {
+    if (this.disposed || this.readOnly) return false
+    const pages = this.state.doc.pages
+    if (pages.length <= 1) return false
+
+    const sourceIndex = pages.findIndex((p) => p.id === sourcePageId)
+    if (sourceIndex < 0) return false
+    const sourceSize = this.pageSizeOf(sourcePageId)
+    const zoom = this.state.zoom || 1
+
+    const metrics = metricsFor(pages.length)
+    const layout = computeStack(
+      pages.map((p) => ({ id: p.id, ...this.pageSizeOf(p.id) })),
+      zoom,
+      metrics,
+    )
+    const sourceSlot = layout.slots.find((s) => s.id === sourcePageId)
+    if (!sourceSlot) return false
+
+    const center = target.getCenterPoint()
+    const stackCenterX = sourceSlot.artboardLeft + center.x * zoom
+    const stackCenterY = sourceSlot.artboardTop + center.y * zoom
+
+    let targetPageId: string | null = null
+
+    // 1. Check native DOM pointer target if pointer event is present
+    if (typeof document !== 'undefined' && event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      const el = document.elementFromPoint(event.clientX, event.clientY)
+      const slotEl = el?.closest('[data-page-id]')
+      const pid = slotEl?.getAttribute('data-page-id')
+      if (pid && pid !== sourcePageId && pages.some((p) => p.id === pid)) {
+        targetPageId = pid
+      }
+    }
+
+    // 2. Check layout slots by center geometry in workspace scroll space
+    if (!targetPageId) {
+      const candidateSlot = layout.slots.find((s) => {
+        if (s.id === sourcePageId) return false
+        const inX = stackCenterX >= s.artboardLeft - 40 && stackCenterX <= s.right + 40
+        const inY = stackCenterY >= s.artboardTop - 120 && stackCenterY <= s.bottom + 120
+        return inX && inY
+      })
+      if (candidateSlot) {
+        targetPageId = candidateSlot.id
+      }
+    }
+
+    // 3. Fallback: if object was dragged clearly across the boundary between pages
+    if (!targetPageId) {
+      if (center.x > sourceSize.width + 30 && sourceIndex + 1 < pages.length) {
+        targetPageId = pages[sourceIndex + 1].id
+      } else if (center.x < -30 && sourceIndex > 0) {
+        targetPageId = pages[sourceIndex - 1].id
+      }
+    }
+
+    if (!targetPageId || targetPageId === sourcePageId) return false
+
+    return this.transferDirectly(sourcePageId, targetPageId, target)
   }
 
   /* ---------------------------------------------------------------------- ui */

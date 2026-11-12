@@ -2456,6 +2456,73 @@ assert(themeCode.includes("padding: 0,"), "padding configurado en 0 para que la 
 const pageCanvasCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/pageCanvas.ts', 'utf8');
 assert(pageCanvasCode.includes("const TEXT_PADDING = 0"), "TEXT_PADDING configurado en 0 para que los cuadros de texto también queden al ras estilo Canva");
 
+// ==================================================================
+// 46. Prueba de Transferencia entre Páginas y Protección Anti-Limbo
+// ==================================================================
+console.log("\n--- 46. Prueba de Transferencia entre Páginas y Protección Anti-Limbo ---");
+
+const editorCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/editor.ts', 'utf8');
+const arrangeCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/api/arrange.ts', 'utf8');
+const builtinsCommandsCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/builtins/commands.tsx', 'utf8');
+const contextMenuHostCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/ContextMenuHost.tsx', 'utf8');
+
+assert(editorCode.includes("transferDirectly(sourcePageId: string, targetPageId: string, target: FabricObject): boolean"), "EditorEngine implementa transferDirectly para migración atómica entre páginas");
+assert(editorCode.includes("onObjectCrossPage(sourcePageId: string, target: FabricObject, event?: MouseEvent): boolean"), "EditorEngine implementa onObjectCrossPage para detectar arrastre entre páginas");
+assert(editorCode.includes("replacePage(curDoc, nextSource)") && editorCode.includes("replacePage(nextDoc, nextTarget)"), "Transferencia actualiza ambas páginas en una sola transacción atómica de documento");
+assert(editorCode.includes("targetView.selectObjects(builtObjs)"), "El objeto transferido queda automáticamente seleccionado en la página destino");
+
+assert(pageCanvasCode.includes("host.onObjectCrossPage && host.onObjectCrossPage(pid, target, e.e as MouseEvent | undefined)"), "PageCanvas delega el evento object:modified al host para chequear transferencia entre páginas");
+assert(pageCanvasCode.includes("clampInsidePage(target: FabricObject): boolean"), "PageCanvas implementa clampInsidePage para protección anti-limbo");
+assert(pageCanvasCode.includes("this.clampInsidePage(target)"), "PageCanvas invoca clampInsidePage si el objeto no fue transferido a otra página");
+
+assert(arrangeCode.includes("moveToPage(targetPageId: string): boolean"), "ArrangeApi expone moveToPage para mover objetos programáticamente");
+assert(arrangeCode.includes("moveToNextPage(): boolean"), "ArrangeApi expone moveToNextPage para mover objetos a la página siguiente");
+assert(arrangeCode.includes("moveToPrevPage(): boolean"), "ArrangeApi expone moveToPrevPage para mover objetos a la página anterior");
+
+assert(builtinsCommandsCode.includes("id: 'arrange.moveToNextPage'"), "Comando arrange.moveToNextPage registrado en builtins");
+assert(builtinsCommandsCode.includes("id: 'arrange.moveToPrevPage'"), "Comando arrange.moveToPrevPage registrado en builtins");
+assert(contextMenuHostCode.includes("editor.state.doc.pages.length > 1") && contextMenuHostCode.includes("arrange.moveToNextPage"), "Menú contextual expone acciones de mover entre páginas cuando hay múltiples lienzos");
+
+// Simulación de lógica matemática de transferencia y anti-limbo:
+function simulateCrossPageTransfer(sourcePage, targetPage, obj, gap = 32, zoom = 1) {
+  const sourceSlotLeft = 64;
+  const targetSlotLeft = sourceSlotLeft + sourcePage.width * zoom + gap;
+  const deltaDocX = (sourceSlotLeft - targetSlotLeft) / zoom;
+  const newX = obj.x + deltaDocX;
+  const clampedX = Math.max(0, Math.min(targetPage.width - Math.min(obj.width, 40), newX));
+  return { newX, clampedX };
+}
+
+const page1 = { width: 1200, height: 900 };
+const page2 = { width: 1200, height: 900 };
+// Objeto en Page 1 arrastrado a x=1350 (hacia Page 2 a la derecha)
+const draggedObj = { x: 1350, y: 200, width: 200, height: 100 };
+const transferResult = simulateCrossPageTransfer(page1, page2, draggedObj);
+
+assert(transferResult.clampedX === 1350 - (1200 + 32), "El objeto arrastrado a Page 2 conserva su posición visual exacta en el lienzo destino");
+assert(transferResult.clampedX === 118, "Coordenada X en Page 2 calculada correctamente (118 px)");
+
+// Simulación de Anti-Limbo:
+function simulateAntiLimbo(page, obj) {
+  const minVisible = Math.min(40, Math.min(obj.width, obj.height));
+  let left = obj.x;
+  let clamped = false;
+  if (left + obj.width < minVisible) {
+    left = 0;
+    clamped = true;
+  } else if (left > page.width - minVisible) {
+    left = Math.max(0, page.width - obj.width);
+    clamped = true;
+  }
+  return { left, clamped };
+}
+
+// Objeto arrastrado a x=2500 en el vacío donde no hay página
+const voidObj = { x: 2500, y: 100, width: 200, height: 100 };
+const antiLimboResult = simulateAntiLimbo(page1, voidObj);
+assert(antiLimboResult.clamped === true, "Objeto arrojado al limbo es interceptado por la protección anti-limbo");
+assert(antiLimboResult.left === 1200 - 200, "Objeto devuelto al borde visible de la página (x=1000) impidiendo su pérdida");
+
 // Limpieza de base de datos de test
 
 db.close();

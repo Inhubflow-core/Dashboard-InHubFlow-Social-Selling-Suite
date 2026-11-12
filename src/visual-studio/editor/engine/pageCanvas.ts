@@ -86,6 +86,8 @@ export interface PageCanvasHost {
   onImageGridCellSwap(pageId: string, gridId: string, fromCellId: string, toCellId: string): void
   onImageGridImageDrop(pageId: string, sourceId: string, gridId: string, gridCellId: string, sourceFrame: CanvasImageFrame): void
   onToolDone(): void
+  /** Handles dropping an object onto another page / canvas or returns false if staying on this page. */
+  onObjectCrossPage?(pageId: string, target: FabricObject, event?: MouseEvent): boolean
   /** The user tried to edit the text of an object somebody else is editing. */
   onEditBlocked(pageId: string, id: string): void
 }
@@ -241,6 +243,46 @@ export class PageCanvas {
 
   get pageSize(): PageSize {
     return this.size
+  }
+
+  /**
+   * Prevents objects from getting lost in the "limbo" (workspace void outside the artboard).
+   * Clamps the object position so that it remains visible and accessible on the page.
+   */
+  clampInsidePage(target: FabricObject): boolean {
+    const pageWidth = this.size.width
+    const pageHeight = this.size.height
+    const objWidth = typeof target.getScaledWidth === 'function' ? target.getScaledWidth() : (target.width || 50)
+    const objHeight = typeof target.getScaledHeight === 'function' ? target.getScaledHeight() : (target.height || 50)
+
+    let left = target.left ?? 0
+    let top = target.top ?? 0
+    let modified = false
+
+    // Allow at most keeping a sliver (minVisible), never completely lost outside
+    const minVisible = Math.min(40, Math.min(objWidth, objHeight))
+
+    if (left + objWidth < minVisible) {
+      left = 0
+      modified = true
+    } else if (left > pageWidth - minVisible) {
+      left = Math.max(0, pageWidth - objWidth)
+      modified = true
+    }
+
+    if (top + objHeight < minVisible) {
+      top = 0
+      modified = true
+    } else if (top > pageHeight - minVisible) {
+      top = Math.max(0, pageHeight - objHeight)
+      modified = true
+    }
+
+    if (modified) {
+      target.set({ left, top })
+      target.setCoords()
+    }
+    return modified
   }
 
   /** Marks the canvas for repaint of editor-only decorations (guides, grid). */
@@ -737,6 +779,15 @@ export class PageCanvas {
         return
       }
       this.gridImageDrag = null
+
+      // Check cross-page transfer first (if user dragged object onto another canvas / page)
+      if (host.onObjectCrossPage && host.onObjectCrossPage(pid, target, e.e as MouseEvent | undefined)) {
+        return
+      }
+
+      // Anti-limbo protection: ensure the object never gets lost outside the canvas artboard
+      this.clampInsidePage(target)
+
       let label: string = strings.history.edit
       if (target instanceof ActiveSelection) {
         const members = target.getObjects()
