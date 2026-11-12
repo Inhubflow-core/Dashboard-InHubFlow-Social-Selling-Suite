@@ -2695,6 +2695,10 @@ assert(pageCanvasCtxSrc.includes("container.addEventListener('contextmenu', onCa
 assert(pageCanvasCtxSrc.includes('if (ev.button === 2) {\r\n      ev.preventDefault()') || pageCanvasCtxSrc.includes('if (ev.button === 2) {\n      ev.preventDefault()'), 'onMouseDown para botón derecho ejecuta ev.preventDefault()');
 assert(pageCanvasCtxSrc.includes('if (e.e && e.e.button === 2) {\r\n      e.e.preventDefault()') || pageCanvasCtxSrc.includes('if (e.e && e.e.button === 2) {\n      e.e.preventDefault()'), 'onDoubleClick ignora y suprime botón derecho impidiendo entrada espuria a edición');
 
+const contextMenuHostSrc = fs.readFileSync('src/visual-studio/editor/ContextMenuHost.tsx', 'utf8');
+assert(!contextMenuHostSrc.includes('image.replace'), 'ContextMenuHost elimina la opción Replace image del menú contextual');
+assert(!contextMenuHostSrc.includes('image.crop'), 'ContextMenuHost elimina la opción Crop image del menú contextual');
+
 // Limpieza de base de datos de test
 
 db.close();
