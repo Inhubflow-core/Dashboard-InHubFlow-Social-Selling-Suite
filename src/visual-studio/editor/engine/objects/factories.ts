@@ -51,9 +51,9 @@ interface PresetSpec {
 }
 
 export const TEXT_PRESETS: Record<TextPreset, PresetSpec> = {
-  heading: { label: t.textPanel.headingText, size: 36, color: '#1a1a2e', weight: 700, font: HEADING_FONT, width: 0.72, lineHeight: 1.16 },
-  subheading: { label: t.textPanel.subheadingText, size: 22, color: '#334155', weight: 600, font: BODY_FONT, width: 0.62, lineHeight: 1.16 },
-  body: { label: t.textPanel.bodyText, size: 16, color: '#475569', weight: 400, font: BODY_FONT, width: 0.5, lineHeight: 1.16 },
+  heading: { label: t.textPanel.headingText, size: 36, color: '#1a1a2e', weight: 700, font: HEADING_FONT, width: 0.72, lineHeight: 1 },
+  subheading: { label: t.textPanel.subheadingText, size: 22, color: '#334155', weight: 600, font: BODY_FONT, width: 0.62, lineHeight: 1 },
+  body: { label: t.textPanel.bodyText, size: 16, color: '#475569', weight: 400, font: BODY_FONT, width: 0.5, lineHeight: 1 },
 }
 
 /** Page side the preset sizes are specified for (A5 at 96 dpi). */
@@ -78,6 +78,7 @@ export interface TextOptions {
   fontWeight?: number
   fill?: string
   textAlign?: 'left' | 'center' | 'right' | 'justify'
+  lineHeight?: number
 }
 
 export function createTextbox(page: { width: number; height: number }, at: Placement, opts: TextOptions = {}): Textbox {
@@ -95,7 +96,7 @@ export function createTextbox(page: { width: number; height: number }, at: Place
     fontWeight: opts.fontWeight ?? spec.weight,
     fill: opts.fill ?? spec.color,
     textAlign: opts.textAlign ?? 'center',
-    lineHeight: spec.lineHeight,
+    lineHeight: opts.lineHeight ?? spec.lineHeight ?? 1,
     splitByGrapheme: false,
     editable: true,
     strokeUniform: true,
@@ -105,7 +106,7 @@ export function createTextbox(page: { width: number; height: number }, at: Place
 
 /** An `IText` (used for curved text, where Fabric's Textbox wrapping does not apply). */
 export function createIText(text: string, at: Placement, props: Partial<IText> = {}): IText {
-  return finish(new IText(text, { left: at.x, top: at.y, originX: 'center', originY: 'center', ...props }))
+  return finish(new IText(text, { left: at.x, top: at.y, originX: 'center', originY: 'center', lineHeight: 1, ...props }))
 }
 
 const baseShape = (at: Placement, w: number, h: number): Record<string, unknown> => ({

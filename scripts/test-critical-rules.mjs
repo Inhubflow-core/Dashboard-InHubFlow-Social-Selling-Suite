@@ -2379,6 +2379,24 @@ assert(insertCode.includes("rx: 0, ry: 0"), "Rectángulo inicia por defecto con 
 const shapesDrawerUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
 assert(shapesDrawerUpdatedCode.includes('id: \'rect\', label: t.basicShapes.rectangle, icon: sv(<rect x="4" y="6" width="20" height="16" rx="0"'), "Icono del rectángulo en drawer refleja esquinas rectas sin redondez (rx=0)");
 
+// ==================================================================
+// 42. Prueba de Altura de Línea Predeterminada (Line Height = 1 en Textos)
+// ==================================================================
+console.log("\n--- 42. Prueba de Altura de Línea Predeterminada (Line Height = 1) ---");
+
+const factoriesUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/engine/objects/factories.ts', 'utf8');
+assert(factoriesUpdatedCode.includes("heading: { label: t.textPanel.headingText, size: 36, color: '#1a1a2e', weight: 700, font: HEADING_FONT, width: 0.72, lineHeight: 1 }"), "Preset Heading inicia con lineHeight predeterminado de 1");
+assert(factoriesUpdatedCode.includes("subheading: { label: t.textPanel.subheadingText, size: 22, color: '#334155', weight: 600, font: BODY_FONT, width: 0.62, lineHeight: 1 }"), "Preset Subheading inicia con lineHeight predeterminado de 1");
+assert(factoriesUpdatedCode.includes("body: { label: t.textPanel.bodyText, size: 16, color: '#475569', weight: 400, font: BODY_FONT, width: 0.5, lineHeight: 1 }"), "Preset Body inicia con lineHeight predeterminado de 1");
+assert(factoriesUpdatedCode.includes("lineHeight: opts.lineHeight ?? spec.lineHeight ?? 1"), "createTextbox aplica lineHeight: 1 por defecto");
+assert(factoriesUpdatedCode.includes("lineHeight: 1, ...props"), "createIText aplica lineHeight: 1 por defecto");
+
+const textToolbarUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/toolbar/sections/text.tsx', 'utf8');
+assert(textToolbarUpdatedCode.includes("const lineHeight = Number(obj.lineHeight ?? 1)"), "Toolbar de texto lee valor por defecto de altura de línea como 1");
+
+const pairingsUpdatedCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/pairings.ts', 'utf8');
+assert(pairingsUpdatedCode.includes("lineHeight: 1"), "faceOptions en Font Pairings define lineHeight: 1 por defecto");
+
 // Limpieza de base de datos de test
 
 db.close();

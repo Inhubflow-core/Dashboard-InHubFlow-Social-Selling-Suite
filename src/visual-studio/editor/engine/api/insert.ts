@@ -151,9 +151,9 @@ export class InsertApi {
     const page = this.engine.pageSizeOf(pageId)
     const k = textScale(page.width, page.height)
     const width = rect.width > 0 ? rect.width : Math.round(300 * k)
-    const t0 = createTextbox(page, { x: rect.x, y: rect.y }, { text: '', preset: 'body', width, textAlign: 'left', fontSize: Math.round(20 * k), fill: '#1a1a2e' })
+    const t0 = createTextbox(page, { x: rect.x, y: rect.y }, { text: '', preset: 'body', width, textAlign: 'left', fontSize: Math.round(20 * k), fill: '#1a1a2e', lineHeight: 1 })
     const centerX = rect.width > 0 ? rect.x : rect.x + width / 2
-    t0.set({ left: centerX, top: rect.y + t0.getScaledHeight() / 2 })
+    t0.set({ left: centerX, top: rect.y + t0.getScaledHeight() / 2, lineHeight: 1 })
     t0.setCoords()
     this.engine.setTool('select')
     await this.add([t0], t.history.addText, { edit: true, pageId, commit: false })

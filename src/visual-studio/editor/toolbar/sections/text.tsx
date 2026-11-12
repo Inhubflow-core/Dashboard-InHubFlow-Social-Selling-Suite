@@ -105,7 +105,7 @@ export function TextSection() {
   const align = (typeof obj.textAlign === 'string' ? obj.textAlign : 'left') as (typeof ALIGN)[number]['id']
   const AlignIcon = ALIGN.find((a) => a.id === align)?.icon ?? I.alignLeft
   const textCase = typeof obj.textCase === 'string' ? obj.textCase : 'none'
-  const lineHeight = Number(obj.lineHeight ?? 1.16)
+  const lineHeight = Number(obj.lineHeight ?? 1)
   const spacing = Math.round(Number(obj.charSpacing ?? 0))
   const curve = typeof obj.curveAmount === 'number' ? obj.curveAmount : 0
   const multiline = String(obj.text ?? '').includes('\n')

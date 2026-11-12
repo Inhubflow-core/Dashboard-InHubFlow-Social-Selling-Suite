@@ -109,5 +109,5 @@ export function deleteCustomPairing(id: string): Pairing[] {
 
 /** Factory options for one half of a pairing (the heading is the large half). */
 export function faceOptions(face: Face, role: 'heading' | 'body', text: string): TextOptions {
-  return { text, preset: role === 'heading' ? 'heading' : 'body', fontFamily: fontStack(face.family, face.category), fontWeight: face.weight, fill: face.color }
+  return { text, preset: role === 'heading' ? 'heading' : 'body', fontFamily: fontStack(face.family, face.category), fontWeight: face.weight, fill: face.color, lineHeight: 1 }
 }
