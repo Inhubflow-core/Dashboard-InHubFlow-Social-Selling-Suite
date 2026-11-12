@@ -2699,6 +2699,48 @@ const contextMenuHostSrc = fs.readFileSync('src/visual-studio/editor/ContextMenu
 assert(!contextMenuHostSrc.includes('image.replace'), 'ContextMenuHost elimina la opción Replace image del menú contextual');
 assert(!contextMenuHostSrc.includes('image.crop'), 'ContextMenuHost elimina la opción Crop image del menú contextual');
 
+// --- 54. Prueba de la Herramienta de Expansión Mágica (Magic Expand / Outpainting) ---
+console.log("\n--- 54. Prueba de la Herramienta de Expansión Mágica (Magic Expand / Outpainting) ---");
+
+const outpainterSrc = fs.readFileSync('src/visual-studio/editor/engine/magicExpand/lamaOutpainter.ts', 'utf8');
+assert(outpainterSrc.includes('export async function runLamaOutpainting'), 'lamaOutpainter exporta la función principal runLamaOutpainting');
+assert(outpainterSrc.includes('getLamaSession'), 'lamaOutpainter reutiliza la sesión local ONNX de LaMa sin costes de servidor ni API');
+assert(outpainterSrc.includes('origW + left + right') && outpainterSrc.includes('origH + top + bottom'), 'lamaOutpainter calcula las dimensiones de expansión geométrica de forma exacta');
+assert(outpainterSrc.includes('blur('), 'lamaOutpainter aplica extensión ambiental desenfocada para guiar los gradientes cromáticos de la IA');
+
+const expandDialogSrc = fs.readFileSync('src/visual-studio/editor/dialogs/MagicExpandDialog.tsx', 'utf8');
+assert(expandDialogSrc.includes('fill-canvas') && expandDialogSrc.includes('1:1') && expandDialogSrc.includes('16:9'), 'MagicExpandDialog ofrece presets rápidos de aspecto (Llenar lienzo, 1:1, 16:9, etc.)');
+assert(expandDialogSrc.includes('runLamaOutpainting'), 'MagicExpandDialog invoca el motor de extrapolación local');
+assert(expandDialogSrc.includes('replaceSelectedImage'), 'MagicExpandDialog reemplaza la imagen en el lienzo al confirmar la expansión');
+
+const dialogHostExpSrc = fs.readFileSync('src/visual-studio/editor/dialogs/DialogHost.tsx', 'utf8');
+assert(dialogHostExpSrc.includes('magic-expand') && dialogHostExpSrc.includes('MagicExpandDialog'), 'DialogHost registra el modal lazyDialog magic-expand');
+
+const toolbarImgSrc = fs.readFileSync('src/visual-studio/editor/toolbar/sections/image.tsx', 'utf8');
+assert(toolbarImgSrc.includes('ed-magic-expand') && toolbarImgSrc.includes('Maximize2'), 'Barra de herramientas contextual incluye el botón de Expansión mágica');
+
+// Cálculo matemático de extrapolación
+function calculateExpansion(W, H, targetRatio) {
+  const currentRatio = W / H;
+  if (currentRatio < targetRatio) {
+    const wantedWidth = Math.round(H * targetRatio);
+    const diff = Math.max(0, wantedWidth - W);
+    const half = Math.round(diff / 2);
+    return { left: half, right: diff - half, top: 0, bottom: 0 };
+  } else {
+    const wantedHeight = Math.round(W / targetRatio);
+    const diff = Math.max(0, wantedHeight - H);
+    const half = Math.round(diff / 2);
+    return { left: 0, right: 0, top: half, bottom: diff - half };
+  }
+}
+
+const exp169 = calculateExpansion(800, 600, 16 / 9);
+assert(exp169.left + exp169.right > 260 && exp169.top === 0 && exp169.bottom === 0, 'Expansión de 4:3 a 16:9 ensancha horizontalmente los laterales preservando la altura');
+
+const exp11 = calculateExpansion(800, 600, 1);
+assert(exp11.top + exp11.bottom === 200 && exp11.left === 0 && exp11.right === 0, 'Expansión de 4:3 a 1:1 extiende verticalmente arriba y abajo preservando el ancho');
+
 // Limpieza de base de datos de test
 
 db.close();

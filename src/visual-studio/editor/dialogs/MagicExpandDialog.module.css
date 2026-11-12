@@ -1,0 +1,332 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Sidebar with expansion options */
+.sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instructionCard {
+  background-color: var(--color-surface-subtle, #f8fafc);
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-subtle, #475569);
+  line-height: 1.4;
+}
+
+.instructionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Preset ratio buttons grid */
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.presetBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  background-color: #ffffff;
+  color: var(--color-text, #1e293b);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+}
+
+.presetBtn:hover {
+  border-color: #3b82f6;
+  background-color: #f0f7ff;
+}
+
+.presetBtnActive {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.presetIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+
+.presetLabel {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.presetHint {
+  font-size: 10px;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Dimension info card */
+.dimensionsCard {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.dimensionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dimensionValue {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Custom padding sliders */
+.customControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--color-surface-subtle, #f8fafc);
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.sliderLabel {
+  width: 60px;
+  color: var(--color-text-subtle, #475569);
+  font-weight: 500;
+}
+
+.sliderInput {
+  flex: 1;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.sliderValue {
+  width: 45px;
+  text-align: right;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Right preview stage */
+.previewStage {
+  flex: 1;
+  min-height: 480px;
+  background-color: #0f172a;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #334155;
+  user-select: none;
+}
+
+.viewportContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90%;
+  max-height: 85%;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  display: block;
+}
+
+/* Expansion indicator outline on original preview */
+.expansionOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.expansionBox {
+  border: 2px dashed #60a5fa;
+  background-color: rgba(59, 130, 246, 0.15);
+  position: absolute;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.expansionBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(30, 58, 138, 0.85);
+  color: #bfdbfe;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(4px);
+}
+
+/* Compare / Toggle bar */
+.previewToolbar {
+  position: absolute;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(15, 23, 42, 0.8);
+  padding: 6px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: all 0.15s;
+}
+
+.toggleBtnActive {
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Status & Progress */
+.progressOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+  color: #ffffff;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #60a5fa;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressBarContainer {
+  width: 240px;
+  height: 8px;
+  background-color: #334155;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  transition: width 0.2s ease;
+}
+
+.progressLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+/* Footer actions */
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
