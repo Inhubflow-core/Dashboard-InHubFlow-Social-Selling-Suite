@@ -86,6 +86,9 @@ export interface PageCanvasHost {
   onImageGridCellSwap(pageId: string, gridId: string, fromCellId: string, toCellId: string): void
   onImageGridImageDrop(pageId: string, sourceId: string, gridId: string, gridCellId: string, sourceFrame: CanvasImageFrame): void
   onToolDone(): void
+  pageAt?(clientX: number, clientY: number): string | null
+  clientToPage?(pageId: string, clientX: number, clientY: number): { x: number; y: number } | null
+  viewOf?(pageId: string): PageCanvas | undefined
   /** Handles dropping an object onto another page / canvas or returns false if staying on this page. */
   onObjectCrossPage?(pageId: string, target: FabricObject, event?: MouseEvent): boolean
   /** The user tried to edit the text of an object somebody else is editing. */
@@ -644,6 +647,7 @@ export class PageCanvas {
   }
 
   clearSelection(): void {
+    this.stopEditing()
     if (this.canvas.getActiveObject() || this.canvas.getActiveObjects().length > 0) {
       this.suppress += 1
       this.canvas.discardActiveObject()
@@ -902,6 +906,32 @@ export class PageCanvas {
     const host = this.host
     if (host.readOnly) return
     const ev = e.e
+
+    // Cross-page seamless activation: if pointer event lands over another page's artboard
+    if (ev && host.pageAt && host.clientToPage && host.viewOf) {
+      const clickedPageId = host.pageAt(ev.clientX, ev.clientY)
+      if (clickedPageId && clickedPageId !== this.pageId) {
+        this.stopEditing()
+        this.clearSelection()
+        host.onPointerActivate(clickedPageId)
+        const targetView = host.viewOf(clickedPageId)
+        if (targetView) {
+          const pt = host.clientToPage(clickedPageId, ev.clientX, ev.clientY)
+          if (pt) {
+            const objs = targetView.canvas.getObjects().filter((o) => o.visible !== false && !asDory(o).isUi && !o.excludeFromExport)
+            const hit = objs.slice().reverse().find((o) => o.containsPoint(pt))
+            if (hit) {
+              targetView.selectObjects([hit])
+            } else {
+              targetView.clearSelection()
+            }
+            host.onSelectionChange(clickedPageId)
+          }
+        }
+        return
+      }
+    }
+
     if (ev.button === 2) {
       if (e.target && !this.selectedObjects().includes(e.target) && !(e.target.group instanceof ActiveSelection)) this.selectObjects([e.target])
       host.onContextMenu(this.pageId, ev.clientX, ev.clientY)
@@ -1000,11 +1030,7 @@ export class PageCanvas {
   private onDoubleClick(e: TPointerEventInfo<MouseEvent>): void {
     if (this.host.readOnly) return
     const target = e.target
-    if (!target) {
-      // Double-click on empty canvas: start a new text box right there.
-      this.host.onTextCreate(this.pageId, { x: e.scenePoint.x, y: e.scenePoint.y, width: 0 })
-      return
-    }
+    if (!target) return
     if (target instanceof Group && isImageGrid(target)) {
       if (asDory(target).locked) return // like dropping onto one: a locked grid keeps its pictures
       this.enterGridEditing(target)

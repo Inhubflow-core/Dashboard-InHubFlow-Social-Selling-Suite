@@ -2578,6 +2578,30 @@ assert(!shapesDrawerSrc48.includes("id: 'rounded'"), "Rectangulo redondeado ('ro
 assert(!shapesDrawerSrc48.includes("moreBasics"), "Grupo 'moreBasics' eliminado por completo de la interfaz del drawer");
 assert(shapesDrawerSrc48.includes('id: \'frame\', label: t.drawers.frame, icon: sv(<rect x="4" y="2" width="20" height="24" rx="0"'), "Icono de Marco (frame) tiene esquinas rectas con rx=0");
 
+// ==================================================================
+// 49. Prueba de Desactivacion de Doble Clic en Vacio e Interaccion Inmediata Multipagina
+// ==================================================================
+console.log("\n--- 49. Prueba de Desactivacion de Doble Clic en Vacio e Interaccion Inmediata Multipagina ---");
+
+const pageCanvasSrc49 = fs.readFileSync('src/visual-studio/editor/engine/pageCanvas.ts', 'utf8');
+const editorSrc49 = fs.readFileSync('src/visual-studio/editor/engine/editor.ts', 'utf8');
+const pageSlotCss49 = fs.readFileSync('src/visual-studio/editor/workspace/PageSlot.module.css', 'utf8');
+
+// 1. Doble clic en vacio NO crea texto
+assert(pageCanvasSrc49.includes("if (!target) return"), "onDoubleClick no crea cuadros de texto en areas vacias del lienzo");
+assert(!pageCanvasSrc49.includes("if (!target) {\n      // Double-click on empty canvas: start a new text box right there."), "Invocacion a onTextCreate eliminada por completo de onDoubleClick");
+
+// 2. Finalizacion limpia de edicion de texto al cambiar de seleccion o de pagina
+assert(pageCanvasSrc49.includes("clearSelection(): void {\n    this.stopEditing()"), "clearSelection finaliza limpiamente cualquier edicion activa de texto con stopEditing");
+assert(editorSrc49.includes("v.stopEditing()\n        v.clearSelection()"), "setActivePage ejecuta stopEditing y clearSelection en todas las demas paginas");
+
+// 3. Aislamiento fisico de lienzos y redireccion de clics entre paginas
+assert(pageSlotCss49.includes(".host {\n  position: absolute;\n  inset: 0;\n  overflow: hidden;\n}"), ".host posee overflow: hidden para contener el canvas estrictamente dentro del artboard");
+assert(editorSrc49.includes("pageAt(clientX: number, clientY: number): string | null"), "EditorEngine expone pageAt para deteccion de lienzos por coordenadas de cliente");
+assert(editorSrc49.includes("clientToPage(pageId: string, clientX: number, clientY: number)"), "EditorEngine expone clientToPage para mapeo exacto de puntos");
+assert(pageCanvasSrc49.includes("const clickedPageId = host.pageAt(ev.clientX, ev.clientY)"), "pageCanvas detecta si el puntero aterrizo sobre otra pagina");
+assert(pageCanvasSrc49.includes("targetView.selectObjects([hit])"), "pageCanvas selecciona directamente el objeto cliqueado en la otra pagina");
+
 // Limpieza de base de datos de test
 
 db.close();

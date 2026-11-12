@@ -584,7 +584,12 @@ export class EditorEngine implements PageCanvasHost {
   setActivePage(pageId: string): void {
     if (this.state.activePageId === pageId) return
     if (!this.getPage(pageId)) return
-    for (const [id, v] of this.views) if (id !== pageId) v.clearSelection()
+    for (const [id, v] of this.views) {
+      if (id !== pageId) {
+        v.stopEditing()
+        v.clearSelection()
+      }
+    }
     this.store.setState({ activePageId: pageId, selection: EMPTY_SELECTION })
     this.sealHistory()
   }
@@ -677,6 +682,14 @@ export class EditorEngine implements PageCanvasHost {
       this.liveRaf = 0
       this.refreshSelection()
     })
+  }
+
+  pageAt(clientX: number, clientY: number): string | null {
+    return this.view.pageAt(clientX, clientY)
+  }
+
+  clientToPage(pageId: string, clientX: number, clientY: number): { x: number; y: number } | null {
+    return this.view.clientToPage(pageId, clientX, clientY)
   }
 
   onPointerActivate(pageId: string): void {
