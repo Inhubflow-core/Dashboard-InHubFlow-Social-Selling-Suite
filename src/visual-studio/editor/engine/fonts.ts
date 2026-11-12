@@ -283,7 +283,20 @@ export class FontManager {
   private async doLoad(name: string, weight: number, style: 'normal' | 'italic', text: string): Promise<boolean> {
     if (this.isInstalled(name) || typeof FontFace === 'undefined' || typeof document === 'undefined' || !document.fonts) return true
     const found = await this.lookup(name)
-    if (!found) return false
+    if (!found) {
+      // Fallback: font might be loaded via Google Fonts / CSS link in document
+      if (typeof document !== 'undefined' && document.fonts) {
+        try {
+          await withTimeout(document.fonts.load(`${style} ${weight} 16px "${name}"`, text || undefined), 3000)
+          await document.fonts.ready
+          cache.clearFontCache(name)
+          return true
+        } catch {
+          return false
+        }
+      }
+      return false
+    }
     const entry = found as FontFamilyEx
     // A catalog entry without files is a family installed on the device itself.
     if (entry.variants.length === 0) return true
@@ -304,8 +317,9 @@ export class FontManager {
         added = true
       }
       await withTimeout(document.fonts.load(`${style} ${weight} 16px "${name}"`, text || undefined), LOAD_TIMEOUT_MS)
+      await document.fonts.ready
+      cache.clearFontCache(name)
       if (added) {
-        cache.clearFontCache(name)
         for (const l of [...this.listeners]) l(name)
       }
       return true

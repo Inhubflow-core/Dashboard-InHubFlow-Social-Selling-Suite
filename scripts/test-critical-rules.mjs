@@ -2523,6 +2523,31 @@ const antiLimboResult = simulateAntiLimbo(page1, voidObj);
 assert(antiLimboResult.clamped === true, "Objeto arrojado al limbo es interceptado por la protección anti-limbo");
 assert(antiLimboResult.left === 1200 - 200, "Objeto devuelto al borde visible de la página (x=1000) impidiendo su pérdida");
 
+// --- 47. Prueba de Fuentes, Métrica de Caracteres, Desactivación de Negrita y Renderizado Vectorial Directo ---
+console.log("\n--- 47. Prueba de Fuentes, Métrica de Caracteres, Desactivación de Negrita y Renderizado Vectorial Directo ---");
+
+const textStyleSrc = fs.readFileSync('src/visual-studio/editor/engine/objects/textStyle.ts', 'utf8');
+const fontsSrc = fs.readFileSync('src/visual-studio/editor/engine/fonts.ts', 'utf8');
+const styleApiSrc = fs.readFileSync('src/visual-studio/editor/engine/api/style.ts', 'utf8');
+const factoriesSrc = fs.readFileSync('src/visual-studio/editor/engine/objects/factories.ts', 'utf8');
+const pageCanvasSrc = fs.readFileSync('src/visual-studio/editor/engine/pageCanvas.ts', 'utf8');
+const builtinKindsSrc = fs.readFileSync('src/visual-studio/editor/engine/objects/builtinKinds.ts', 'utf8');
+
+assert(textStyleSrc.includes("cache.clearFontCache(t.fontFamily)") && textStyleSrc.includes("cache.clearFontCache(patch.fontFamily)"), "applyTextPatch invalida la caché global de anchos de fuente (clearFontCache) al cambiar tipografía, peso o espaciado");
+assert(textStyleSrc.includes("t.set('objectCaching', false)"), "applyTextPatch fuerza objectCaching en false para renderizado vectorial puro sin recorte de glifos");
+assert(textStyleSrc.includes("delete anyT.__charBounds") && textStyleSrc.includes("delete anyT._charBounds") && textStyleSrc.includes("delete anyT._styleMap"), "applyTextPatch limpia __charBounds, _charBounds y _styleMap evitando solapamiento de palabras con estilos");
+assert(textStyleSrc.includes("t.set('width', anyT.dynamicMinWidth)"), "applyTextPatch previene que el ancho del Textbox colapse por debajo del ancho de la palabra más ancha");
+
+assert(fontsSrc.includes("document.fonts.load") && fontsSrc.includes("cache.clearFontCache(name)"), "FontManager integra fallback a document.fonts y limpia caché de caracteres para fuentes de Google Fonts");
+assert(fontsSrc.includes("await document.fonts.ready"), "FontManager espera a que el set de fuentes del navegador esté completamente listo (document.fonts.ready)");
+
+assert(styleApiSrc.includes("this.engine.fonts.load(fam, weight, style)"), "StyleApi precarga las fuentes requeridas antes de aplicar patches de estilo al texto");
+assert(styleApiSrc.includes("Promise.all(promises).then(run)"), "StyleApi garantiza resolución asíncrona de tipografías con métricas exactas antes de redibujar");
+
+assert(factoriesSrc.includes("objectCaching: false"), "factories.ts configura objectCaching: false por defecto en cuadros de texto nuevos");
+assert(pageCanvasSrc.includes("obj.set('objectCaching', false)"), "pageCanvas.ts garantiza objectCaching: false al configurar cualquier objeto de texto");
+assert(builtinKindsSrc.includes("obj.set('objectCaching', false)"), "builtinKinds.ts asegura objectCaching: false al hidratar textos desde JSON");
+
 // Limpieza de base de datos de test
 
 db.close();

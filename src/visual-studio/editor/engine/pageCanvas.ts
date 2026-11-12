@@ -572,6 +572,7 @@ export class PageCanvas {
     customizeControls(obj)
     if (obj instanceof IText) {
       obj.set('padding', TEXT_PADDING)
+      obj.set('objectCaching', false)
       if (asDory(obj).fit) refitTextbox(obj)
     }
     if (obj instanceof Group && !(obj instanceof ActiveSelection)) {

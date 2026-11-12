@@ -183,17 +183,22 @@ export class StyleApi {
     if (patch.fontFamily) this.engine.rememberFont(patch.fontFamily)
     const objs = this.targets().filter((o): o is IText => o instanceof IText)
     if (objs.length === 0) return
-    const needsFont = patch.fontFamily !== undefined || patch.fontWeight !== undefined || patch.fontStyle !== undefined
     const run = (): void => {
       for (const t0 of objs) applyTextPatch(t0, patch)
+      const view = this.engine.activeView()
+      view?.canvas.requestRenderAll()
       this.finish(label, key)
     }
-    if (needsFont) {
-      const first = objs[0]
-      void this.engine.fonts
-        .load(patch.fontFamily ?? first.fontFamily, patch.fontWeight ?? first.fontWeight ?? 400, patch.fontStyle ?? first.fontStyle ?? 'normal')
-        .then(run)
-    } else run()
+    const promises = objs.map((o) => {
+      const fam = patch.fontFamily ?? o.fontFamily
+      const weight = patch.fontWeight ?? o.fontWeight ?? 400
+      const style = patch.fontStyle ?? o.fontStyle ?? 'normal'
+      if (fam && (!this.engine.fonts.isReady(fam, weight, style) || patch.fontFamily || patch.fontWeight !== undefined || patch.fontStyle !== undefined)) {
+        return this.engine.fonts.load(fam, weight, style)
+      }
+      return Promise.resolve(true)
+    })
+    void Promise.all(promises).then(run)
   }
 
   private patchEffects(obj: FabricObject, patch: ObjectEffects): void {

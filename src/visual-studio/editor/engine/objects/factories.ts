@@ -100,13 +100,14 @@ export function createTextbox(page: { width: number; height: number }, at: Place
     splitByGrapheme: false,
     editable: true,
     strokeUniform: true,
+    objectCaching: false,
   })
   return finish(t)
 }
 
 /** An `IText` (used for curved text, where Fabric's Textbox wrapping does not apply). */
 export function createIText(text: string, at: Placement, props: Partial<IText> = {}): IText {
-  return finish(new IText(text, { left: at.x, top: at.y, originX: 'center', originY: 'center', lineHeight: 1, ...props }))
+  return finish(new IText(text, { left: at.x, top: at.y, originX: 'center', originY: 'center', objectCaching: false, lineHeight: 1, ...props }))
 }
 
 const baseShape = (at: Placement, w: number, h: number): Record<string, unknown> => ({

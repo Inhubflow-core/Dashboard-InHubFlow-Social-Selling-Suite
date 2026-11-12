@@ -3,7 +3,7 @@
  * character-level props apply to the range; otherwise they apply to the whole object (clearing any
  * stale per-character overrides of the same props, so the change is visible everywhere).
  */
-import type { IText, TextStyleDeclaration } from 'fabric'
+import { cache, type IText, type TextStyleDeclaration } from 'fabric'
 import type { DocTextFit, ListStyle, TextCase } from '@visual-studio/types/document'
 import { CHAR_SPACING_RANGE, FONT_SIZE_RANGE, LINE_HEIGHT_RANGE, clampOrUndefined, isFiniteNumber } from '../numbers'
 import { applyCase, toggleCase } from '../text/case'
@@ -182,6 +182,13 @@ export function applyTextPatch(t: IText, patch: TextPatch): boolean {
   let textChanged = false
   const d = asDory(t)
   const range = hasRange(t)
+
+  // Clear global font width cache when typography, weight, style or spacing changes
+  if (patch.fontFamily || patch.fontWeight !== undefined || patch.fontStyle !== undefined || patch.fontSize !== undefined || patch.charSpacing !== undefined) {
+    if (t.fontFamily) cache.clearFontCache(t.fontFamily)
+    if (patch.fontFamily) cache.clearFontCache(patch.fontFamily)
+  }
+
   if (!range && patch.fontSize !== undefined && d.fit) {
     d.userFontSize = patch.fontSize
     if (d.fit.minFontSize !== undefined && d.fit.minFontSize > patch.fontSize) {
@@ -234,6 +241,17 @@ export function applyTextPatch(t: IText, patch: TextPatch): boolean {
     d.listStyle = style === 'none' ? undefined : style
   }
 
+  // Ensure vector crispness and eliminate character clipping in cache canvas
+  t.set('objectCaching', false)
+
+  // Invalidate cached character metrics, line splits, and object rendering cache
+  const anyT = t as any
+  delete anyT.__charBounds
+  delete anyT._charBounds
+  delete anyT._styleMap
+  if (typeof anyT._clearCache === 'function') anyT._clearCache()
+  if (typeof anyT.clearContextTop === 'function') anyT.clearContextTop()
+
   if (patch.curveAmount !== undefined) applyCurve(t, patch.curveAmount)
   else if (d.curveAmount && (patch.fontSize !== undefined || patch.fontFamily !== undefined || patch.fontWeight !== undefined || patch.charSpacing !== undefined || textChanged)) {
     refitCurve(t)
@@ -243,6 +261,13 @@ export function applyTextPatch(t: IText, patch: TextPatch): boolean {
     refitTextbox(t)
   } else {
     t.initDimensions()
+    // Keep Textbox width at least as wide as its widest word so right-aligned words never overflow
+    if (typeof anyT.dynamicMinWidth === 'number' && typeof t.width === 'number') {
+      if (t.width < anyT.dynamicMinWidth) {
+        t.set('width', anyT.dynamicMinWidth)
+        t.initDimensions()
+      }
+    }
     t.setCoords()
     t.set('dirty', true)
   }

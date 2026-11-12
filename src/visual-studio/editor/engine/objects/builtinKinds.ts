@@ -135,6 +135,7 @@ export function registerBuiltinKinds(): void {
       if (obj instanceof IText && typeof amount === 'number' && amount !== 0) applyCurve(obj, amount)
       if (d.effects) applyEffects(obj, d.effects)
       if (obj instanceof IText) {
+        obj.set('objectCaching', false)
         const fit = readTextFit(json.fit)
         const userSize = validFitFontSize(json.fontSize !== undefined ? json.fontSize : obj.fontSize)
         if (fit && userSize !== null) {
