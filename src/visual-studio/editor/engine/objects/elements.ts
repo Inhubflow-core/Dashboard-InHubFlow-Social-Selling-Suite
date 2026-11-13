@@ -42,6 +42,10 @@ export function elementColors(root: FabricObject): string[] {
 /** Applies `colorMap` (original → replacement). Unmapped colours revert to their originals. */
 export function applyColorMap(root: FabricObject, map: Record<string, string> | undefined): void {
   const colorMap = map ?? {}
+  const dory = asDory(root)
+  if (dory.elementId?.startsWith('highlight-') && root.opacity !== 1) {
+    root.set('opacity', 1)
+  }
   for (const leaf of leaves(root)) {
     const d = asDory(leaf)
     if (d.origFill) leaf.set('fill', colorMap[d.origFill] ?? d.origFill)

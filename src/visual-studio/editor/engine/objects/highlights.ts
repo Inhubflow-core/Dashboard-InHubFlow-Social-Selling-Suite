@@ -7,6 +7,7 @@ import type { EditorEngine } from '../editor'
 import { parseSvgElement } from './elements'
 import { asDory } from './dory'
 import { newId } from '@visual-studio/lib/document'
+import { parseColor, rgbaToCss, withAlpha } from '../colors'
 
 export type HighlightStyleId =
   | 'circle-hand'
@@ -74,12 +75,14 @@ export const HIGHLIGHT_STYLES: HighlightStyleDef[] = [
     kind: 'vector',
     behindText: true,
     defaultColor: '#FFE600',
-    buildSvg: (color) => `
+    buildSvg: (color) => {
+      const fill = color.startsWith('#') && color.length === 9 ? rgbaToCss(parseColor(color)!) : color
+      return `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="200" height="50">
         <path d="M 6,36 C 45,34 110,38 194,33 C 197,22 196,15 193,12 C 120,16 65,11 6,17 C 4,24 4,30 6,36 Z"
-          fill="${color}" />
+          fill="${fill}" />
       </svg>
-    `,
+    `},
     computePlacement: (box) => ({
       x: box.x,
       y: box.y + box.height * 0.05,
@@ -174,11 +177,13 @@ export const HIGHLIGHT_STYLES: HighlightStyleDef[] = [
     kind: 'vector',
     behindText: true,
     defaultColor: '#FFE600',
-    buildSvg: (color) => `
+    buildSvg: (color) => {
+      const fill = color.startsWith('#') && color.length === 9 ? rgbaToCss(parseColor(color)!) : color
+      return `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
-        <rect x="6" y="8" width="188" height="44" rx="22" ry="22" fill="${color}" />
+        <rect x="6" y="8" width="188" height="44" rx="22" ry="22" fill="${fill}" />
       </svg>
-    `,
+    `},
     computePlacement: (box) => ({
       x: box.x,
       y: box.y,
@@ -326,13 +331,17 @@ export async function applyTextHighlight(
     textObj.exitEditing()
   }
 
+  // Para resaltadores de fondo (marcador y píldora), color inicial al 50% de alfa para efecto translúcido por defecto
+  const parsed = parseColor(color)
+  const isSolid = !parsed || parsed.a === 1
+  const effectiveColor = style.behindText && isSolid ? withAlpha(color, 0.5) : color
+
   // Generate SVG and parse into Fabric vector element
-  const svgText = style.buildSvg(color)
+  const svgText = style.buildSvg(effectiveColor)
   const { object, width, height } = await parseSvgElement(svgText)
 
   const scaleX = placement.width / Math.max(width, 1)
   const scaleY = placement.height / Math.max(height, 1)
-  const defaultOpacity = style.behindText ? 0.5 : 1
 
   object.set({
     left: placement.x,
@@ -341,7 +350,7 @@ export async function applyTextHighlight(
     originY: 'center',
     scaleX,
     scaleY,
-    opacity: defaultOpacity,
+    opacity: 1,
   })
 
   // Assign metadata and properties

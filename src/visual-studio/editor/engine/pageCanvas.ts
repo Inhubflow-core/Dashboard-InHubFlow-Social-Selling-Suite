@@ -574,6 +574,9 @@ export class PageCanvas {
   /** Per-object interactive configuration (selection style, lock, read-only). */
   configure(obj: FabricObject): void {
     ensureId(obj)
+    if (asDory(obj).elementId?.startsWith('highlight-') && obj.opacity !== 1) {
+      obj.set('opacity', 1)
+    }
     if (obj instanceof IText) obj.editable = !this.editLocks.has(asDory(obj).id ?? '')
     obj.set(selectionStyle(this.host.theme))
     if (this.host.readOnly) {
