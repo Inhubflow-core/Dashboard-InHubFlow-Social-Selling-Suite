@@ -683,7 +683,7 @@ export function TextDrawer({ close }: PanelProps) {
           value={highlightWord}
           onChange={(e) => setHighlightWord(e.target.value)}
           placeholder="Ej: cometen el mismo error"
-          style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#4f46e5', fontWeight: 600, boxSizing: 'border-box' }}
+          style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontWeight: 500, boxSizing: 'border-box' }}
         />
         <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
           Esta frase se destacará automáticamente con el color de impacto de cada tipografía.

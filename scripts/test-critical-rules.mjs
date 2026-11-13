@@ -2973,6 +2973,9 @@ assert(memoryAdapterCode59.includes('brand: createLocalBrandService()'), 'memory
 assert(stringsCode59.includes("palette: (name: string) => `Color Brand"), 'strings.ts nombra la paleta como Color Brand');
 assert(stringsCode59.includes("Colores de Marca (Hasta 6)"), 'strings.ts describe la sección con Colores de Marca (Hasta 6)');
 
+const textDrawerCode59 = fs.readFileSync('src/visual-studio/editor/drawers/TextDrawer.tsx', 'utf8');
+assert(textDrawerCode59.includes("color: '#0f172a'") && textDrawerCode59.includes('value={highlightWord}'), 'El input de Frase Resaltada en Gancho tiene color de texto oscuro normal (#0f172a)');
+
 // Limpieza de base de datos de test
 
 db.close();
