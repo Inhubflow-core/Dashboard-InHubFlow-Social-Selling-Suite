@@ -2613,6 +2613,10 @@ assert(allSidesEqual && sideLengths[0] === 50, 'El polígono regular (hexágono)
 const swatchesSrc48 = fs.readFileSync('src/visual-studio/editor/ui/swatches.ts', 'utf8');
 assert(!swatchesSrc48.includes("label: 'Doory'") && !swatchesSrc48.includes("id: 'doory'"), 'La paleta "Doory" ha sido eliminada por completo del selector de colores visual');
 
+// 1.d Unificación de Selector de Color (ColorTool unificado con ColorPicker/FillEditor)
+const colorToolSrc48 = fs.readFileSync('src/visual-studio/editor/chrome/ColorTool.tsx', 'utf8');
+assert(colorToolSrc48.includes('ColorPicker') && colorToolSrc48.includes('FillEditor') && !colorToolSrc48.includes('DEFAULT_COLORS'), 'ColorTool está 100% unificado usando el modelo completo ColorPicker/FillEditor con paletas y deslizadores');
+
 // 2. Formas en insert.ts
 assert(insertSrc48.includes("rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })"), "Rectangulo en insert.ts inicia blanco, sin borde y sin redondez");
 assert(insertSrc48.includes("case 'frame':") && insertSrc48.includes("createRect(at, Math.round(200 * k), 0, Math.round(280 * k))"), "Marco (frame) inicia con radio 0 y estilo plano");
