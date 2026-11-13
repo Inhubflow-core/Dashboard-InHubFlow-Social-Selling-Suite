@@ -57,7 +57,16 @@
   box-shadow: 0 0 0 1px var(--color-border-strong);
 }
 
+.btn.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
 .swatch .chip {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.04);
 }

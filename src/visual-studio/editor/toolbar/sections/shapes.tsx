@@ -6,7 +6,6 @@ import { dashStyleOf } from '../../engine/api/style'
 import { normalizeColor } from '../../engine/colors'
 import { readFill } from '../../engine/objects/fills'
 import { t } from '../../strings'
-import { ColorButton } from '../../ui/ColorButton'
 import { EffectsPanel } from '../effects'
 import { Accordion, LimitedNumber, OpacityTool } from '../controls'
 import { CORNER_RADIUS, LINE_WIDTH, POLYGON_SIDES, STAR_INNER_RATIO, STAR_POINTS, STROKE_WIDTH, capLimit } from '../limits'
@@ -203,7 +202,14 @@ export function ElementSection() {
   return (
     <div className={styles.row} role="group" aria-label={t.toolbar.recolor} data-testid="ed-recolor">
       {list.map((c) => (
-        <ColorButton key={c} label={t.tools.recolorOf(c)} value={{ type: 'solid', color: map[c] ?? c }} solidOnly extraSwatches={{ label: t.tools.originalColors, colors: list }} onChange={(f) => (f.type === 'solid' ? editor.style.recolor(c, f.color) : undefined)} />
+        <ColorTool
+          key={c}
+          label={t.tools.recolorOf(c)}
+          value={{ type: 'solid', color: map[c] ?? c }}
+          testId={`ed-recolor-${c}`}
+          extraSwatches={{ label: t.tools.originalColors, colors: list }}
+          onChange={(f) => (f.type === 'solid' ? editor.style.recolor(c, f.color) : undefined)}
+        />
       ))}
       {Object.keys(map).length > 0 ? (
         <button type="button" className={`${ed.btn} ${ed.ghost}`} onClick={() => editor.style.resetColors()}>
