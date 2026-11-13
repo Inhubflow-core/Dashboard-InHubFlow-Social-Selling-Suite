@@ -52,8 +52,8 @@ export function selectionStyle(theme: CanvasTheme): Partial<FabricObject> {
     padding: 0,
     lockSkewingX: true,
     lockSkewingY: true,
-    snapAngle: 15,
-    snapThreshold: 4,
+    snapAngle: 1,
+    snapThreshold: 1,
   }
 }
 

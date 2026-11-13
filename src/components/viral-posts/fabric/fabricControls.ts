@@ -303,8 +303,8 @@ export function getSelectionStyle(accent: string = "#0099ff"): Partial<FabricObj
     padding: 0,
     lockSkewingX: true,
     lockSkewingY: true,
-    snapAngle: 15,
-    snapThreshold: 5,
+    snapAngle: 1,
+    snapThreshold: 1,
     transparentCorners: false,
   };
 }
