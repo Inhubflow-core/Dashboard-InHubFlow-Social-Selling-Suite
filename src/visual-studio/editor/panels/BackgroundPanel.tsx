@@ -35,8 +35,7 @@ export function BackgroundPanel() {
   const page = doc.pages.find((p) => p.id === activeId) ?? doc.pages[0]
   const bg = page.background
   const docColors = useMemo(() => documentColors(doc, 12), [doc])
-  const preset = palettes.get('doory')?.colors ?? []
-  const colors = [...new Set([...docColors, ...preset, ...(palettes.get('vivid')?.colors ?? [])])].slice(0, 18)
+  const colors = [...new Set([...docColors, ...(palettes.get('vivid')?.colors ?? [])])].slice(0, 18)
 
   const set = (b: PageBackground, key?: string): void => editor.pages.setBackground(page.id, b, key)
   const [ink, setInk] = useState('#7a64e0')

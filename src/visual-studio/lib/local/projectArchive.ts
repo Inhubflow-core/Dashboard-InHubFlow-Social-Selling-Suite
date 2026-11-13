@@ -110,7 +110,7 @@ function parseAsset(value: unknown): ArchivedAsset {
 
 function parseManifest(value: unknown): ProjectManifest {
   if (!record(value) || value.format !== FORMAT || value.version !== FORMAT_VERSION) {
-    throw new ProjectArchiveError('This is not a supported Doory project backup.')
+    throw new ProjectArchiveError('This is not a supported project backup.')
   }
   if (typeof value.title !== 'string' || value.title.length > 500 || !record(value.document) || !Array.isArray(value.assets)) {
     throw new ProjectArchiveError('This project backup is not valid.')
@@ -229,6 +229,6 @@ export async function importLocalProject(file: Blob, repository: LocalRepository
   } catch (error) {
     await Promise.allSettled(createdAssets.map((id) => repository.deleteAsset(id)))
     if (error instanceof ProjectArchiveError) throw error
-    throw new ProjectArchiveError('Doory could not restore this project backup.', { cause: error })
+    throw new ProjectArchiveError('Could not restore this project backup.', { cause: error })
   }
 }

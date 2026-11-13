@@ -122,7 +122,7 @@ export function Harness() {
       onConflictResolve={(c) => window.__doory?.conflictChoices.push(c)}
       topBarStart={
         <span className="harness-logo">
-          <i /> <b>Doory</b>
+          <i /> <b>InHubFlow</b>
         </span>
       }
       topBarEnd={

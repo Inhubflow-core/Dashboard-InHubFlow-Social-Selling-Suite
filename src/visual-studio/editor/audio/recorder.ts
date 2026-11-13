@@ -81,7 +81,7 @@ export function levelFromRms(rms: number): number {
 
 const MESSAGES: Record<RecorderFailure, string> = {
   denied: 'Microphone access was blocked. Allow it for this site in your browser’s address bar, then try again.',
-  blocked: 'This page is not allowed to use the microphone. Open Doory over HTTPS, or ask the site’s administrator to allow it.',
+  blocked: 'This page is not allowed to use the microphone. Open InHubFlow over HTTPS, or ask the site’s administrator to allow it.',
   'no-device': 'No microphone was found. Plug one in or check your system sound settings, then try again.',
   busy: 'The microphone is in use by another app or tab. Close it there, then try again.',
   unsupported: 'This browser cannot record audio. Try a current version of Chrome, Edge, Firefox or Safari.',

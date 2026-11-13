@@ -97,7 +97,7 @@ export interface RequestOptions {
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 const SAFE_METHODS: ReadonlySet<Method> = new Set<Method>(['GET'])
 
-const NETWORK_MESSAGE = "We couldn't reach Doory. Check your connection and try again."
+const NETWORK_MESSAGE = "We couldn't reach the server. Check your connection and try again."
 
 let unauthorizedHandler: (() => void) | null = null
 
@@ -183,7 +183,7 @@ async function toApiError(response: Response): Promise<ApiError> {
       data: body,
     })
   }
-  const message = response.status >= 500 ? 'Doory had a problem on its side. Please try again in a moment.' : 'The request could not be completed.'
+  const message = response.status >= 500 ? 'The server had a problem on its side. Please try again in a moment.' : 'The request could not be completed.'
   return new ApiError({ status: response.status, code: response.status >= 500 ? 'server_error' : `http_${response.status}`, message, retryAfter: headerRetry, data: body })
 }
 

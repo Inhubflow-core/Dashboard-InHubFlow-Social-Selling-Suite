@@ -64,7 +64,7 @@ export const print = {
     rateLimited: 'You have started many downloads in a short time.',
     signedOut: 'Your session has ended.',
     signedOutHint: 'Sign in again, then download again.',
-    offline: 'We could not reach Doory. Check your connection and try again.',
+    offline: 'We could not reach the server. Check your connection and try again.',
     invalid: (detail: string) => `The print service did not accept this request. ${detail}`,
   },
 } as const

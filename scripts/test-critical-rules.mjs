@@ -2609,6 +2609,10 @@ const sideLengths = hexPts.map((p, i) => {
 const allSidesEqual = sideLengths.every((len) => Math.abs(len - sideLengths[0]) < 0.05);
 assert(allSidesEqual && sideLengths[0] === 50, 'El polígono regular (hexágono) tiene lados de idéntica longitud (polígono perfecto de 6 lados iguales)');
 
+// 1.c Paleta de Colores en Editor Visual (Eliminación de Doory)
+const swatchesSrc48 = fs.readFileSync('src/visual-studio/editor/ui/swatches.ts', 'utf8');
+assert(!swatchesSrc48.includes("label: 'Doory'") && !swatchesSrc48.includes("id: 'doory'"), 'La paleta "Doory" ha sido eliminada por completo del selector de colores visual');
+
 // 2. Formas en insert.ts
 assert(insertSrc48.includes("rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })"), "Rectangulo en insert.ts inicia blanco, sin borde y sin redondez");
 assert(insertSrc48.includes("case 'frame':") && insertSrc48.includes("createRect(at, Math.round(200 * k), 0, Math.round(280 * k))"), "Marco (frame) inicia con radio 0 y estilo plano");

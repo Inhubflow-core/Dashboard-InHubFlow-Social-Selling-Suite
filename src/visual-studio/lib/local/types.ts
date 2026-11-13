@@ -44,14 +44,14 @@ export interface StorageUsage {
 export type StorageMode = 'indexeddb' | 'memory'
 
 export class LocalStorageFullError extends Error {
-  constructor(message = 'Your browser has no space left for Doory designs.') {
+  constructor(message = 'Your browser has no space left for designs.') {
     super(message)
     this.name = 'LocalStorageFullError'
   }
 }
 
 export class LocalStorageError extends Error {
-  constructor(message = 'Doory could not write to this browser’s storage.', options?: { cause?: unknown }) {
+  constructor(message = 'Could not write to this browser’s storage.', options?: { cause?: unknown }) {
     super(message, options)
     this.name = 'LocalStorageError'
   }

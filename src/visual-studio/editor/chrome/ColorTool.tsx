@@ -12,7 +12,7 @@ import { Tooltip } from '../ui/Tooltip'
 import ed from './ed.module.css'
 import { I } from './icons'
 
-/** The default swatch set, with the Doory palette first. */
+/** The default swatch set. */
 const DEFAULT_COLORS = [
   '#2b1c17', '#ffffff', '#7a64e0', '#c9bcff', '#ffa9b9', '#ffc9d3',
   '#f5a623', '#fb923c', '#fef08a', '#16a34a', '#22a39f', '#3b82f6',

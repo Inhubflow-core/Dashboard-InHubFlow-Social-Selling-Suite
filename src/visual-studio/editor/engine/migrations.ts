@@ -84,7 +84,7 @@ export function migrateDocument(raw: unknown): DoryDocument {
   if (!isRecord(raw)) throw new DocumentError('The design file is not valid.')
   const version = typeof raw.schemaVersion === 'number' && Number.isInteger(raw.schemaVersion) ? raw.schemaVersion : 1
   if (version < 1) throw new DocumentError('The design file has an invalid version.')
-  if (version > SCHEMA_VERSION) throw new DocumentError('This design was created with a newer version of Doory. Please update.')
+  if (version > SCHEMA_VERSION) throw new DocumentError('This design was created with a newer version of the editor. Please update.')
   const doc = runMigrations(raw, version, SCHEMA_VERSION)
   const pagesRaw = Array.isArray(doc.pages) ? doc.pages.slice(0, MAX_PAGES) : []
   const pages = pagesRaw.length > 0 ? pagesRaw.map(normalizePage) : [createBlankPage()]
