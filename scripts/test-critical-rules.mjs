@@ -2884,7 +2884,7 @@ assert(popoverCode58.includes('dangerouslySetInnerHTML'), 'HighlightPopover prev
 assert(textToolbarCode58.includes('ed-text-highlight'), 'La barra contextual de texto incorpora el botón de resaltador');
 assert(textToolbarCode58.includes('HighlightPopover'), 'La barra contextual de texto conecta el popover de resaltadores');
 
-assert(textDrawerCode58.includes('Resaltadores Visuales (Círculos & Neón)'), 'El Drawer lateral de Texto expone la galería de resaltadores visuales');
+assert(textDrawerCode58.includes('Resaltador visual'), 'El Drawer lateral de Texto expone la galería de resaltadores visuales');
 
 // Limpieza de base de datos de test
 

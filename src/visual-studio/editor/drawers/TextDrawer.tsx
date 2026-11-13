@@ -409,15 +409,7 @@ export function TextDrawer({ close }: PanelProps) {
         </button>
       </div>
 
-      {/* Sección Resaltadores Visuales SVG */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '8px' }}>
-        <p className={ed.sectionTitle} style={{ margin: 0 }}>
-          Resaltadores Visuales (Círculos & Neón)
-        </p>
-        <span style={{ fontSize: '10px', background: '#702FFC1A', color: '#702FFC', padding: '2px 6px', borderRadius: '10px', fontWeight: 600 }}>
-          Vector SVG
-        </span>
-      </div>
+      <p className={ed.sectionTitle}>Resaltador visual</p>
 
       <div className={styles.highlightGrid}>
         {HIGHLIGHT_STYLES.filter((s) => s.kind === 'vector').map((style) => (
