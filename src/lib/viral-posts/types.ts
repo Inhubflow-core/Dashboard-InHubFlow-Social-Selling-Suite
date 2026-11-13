@@ -76,6 +76,7 @@ export interface CreatedPost {
   linkedinPostId?: string;
   postUrl?: string;
   targetAccountId?: string;
+  targetLanguage?: "es" | "pt" | "en";
   metrics?: {
     likes: number;
     comments: number;

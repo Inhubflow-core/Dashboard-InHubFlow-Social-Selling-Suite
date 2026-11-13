@@ -3062,6 +3062,39 @@ assert(calendarCode61.includes('handleSaveContentText'), 'Calendario permite edi
 assert(calendarCode61.includes('VisualStudioModal'), 'Calendario integra VisualStudioModal para diseño interactivo de recursos');
 assert(calendarCode61.includes('Quitar Recurso (Volver a Texto Puro)'), 'Calendario permite revertir un post enriquecido a texto puro');
 
+console.log("\n--- TEST: Multi-Cuenta Independiente e Idioma Objetivo (ES, PT, EN) ---");
+
+const unipileTypesCodeLang = fs.readFileSync('src/lib/unipile/types.ts', 'utf8');
+assert(unipileTypesCodeLang.includes("targetLanguage?: 'es' | 'pt' | 'en'"), 'ConnectedLinkedInAccount incluye la propiedad targetLanguage');
+
+const viralTypesCodeLang = fs.readFileSync('src/lib/viral-posts/types.ts', 'utf8');
+assert(viralTypesCodeLang.includes('targetLanguage?: "es" | "pt" | "en"'), 'CreatedPost incluye la propiedad targetLanguage');
+
+const unipileStoreCode = fs.readFileSync('src/lib/unipile/store.ts', 'utf8');
+assert(unipileStoreCode.includes('targetLanguage: "pt"'), 'initialLinkedInAccounts configura a Lumefy con idioma objetivo portugués (pt)');
+assert(unipileStoreCode.includes('export function updateAccountLanguage'), 'store.ts exporta updateAccountLanguage para persistencia de idioma');
+
+const limitsModalCode = fs.readFileSync('src/components/unipile/ConfigureAccountLimitsModal.tsx', 'utf8');
+assert(limitsModalCode.includes('targetLanguage'), 'ConfigureAccountLimitsModal gestiona el estado de idioma');
+assert(limitsModalCode.includes('Idioma de Publicación e IA'), 'ConfigureAccountLimitsModal presenta selector de idioma con banderas');
+assert(limitsModalCode.includes('LATAM / España'), 'ConfigureAccountLimitsModal incluye opción español');
+assert(limitsModalCode.includes('Brasil / Portugal'), 'ConfigureAccountLimitsModal incluye opción portugués');
+assert(limitsModalCode.includes('USA / Global B2B'), 'ConfigureAccountLimitsModal incluye opción inglés');
+
+const accountCardCode = fs.readFileSync('src/components/unipile/LinkedInAccountCard.tsx', 'utf8');
+assert(accountCardCode.includes('account.targetLanguage'), 'LinkedInAccountCard detecta y expone el idioma de prospección');
+assert(accountCardCode.includes('🇧🇷 PT'), 'LinkedInAccountCard muestra badge de idioma con bandera');
+
+assert(viralRadarCode61.includes('showConfigMonthPlanModal'), 'Modal de configuración previa antes de generar 12 posts');
+assert(viralRadarCode61.includes('monthPlanTargetLanguage'), 'Gestión de idioma objetivo antes de generar plan mensual');
+assert(viralRadarCode61.includes('monthPlanTargetAccountId'), 'Selección de cuenta de LinkedIn destino para las 12 publicaciones');
+assert(viralRadarCode61.includes('getLocalizedViralFallback'), 'Motor de adaptación localizada de respaldo de alta fidelidad');
+assert(viralRadarCode61.includes('saveLanguageToAccount'), 'Opción de guardar idioma preferido en la cuenta de LinkedIn');
+assert(viralRadarCode61.includes('generatingProgress'), 'Barra de progreso animada con estados de traducción en tiempo real');
+
+assert(calendarCode61.includes('accountFilter'), 'Calendario Editorial soporta filtro multi-cuenta');
+assert(calendarCode61.includes('post.targetLanguage'), 'Calendario Editorial muestra badge/bandera de idioma en posts');
+
 // Limpieza de base de datos de test
 
 db.close();

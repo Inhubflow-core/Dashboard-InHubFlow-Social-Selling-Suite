@@ -479,5 +479,7 @@ export interface ConnectedLinkedInAccount {
   active_hours_end?: number;
   timezone?: string;
   working_days?: string;
+  /** Idioma objetivo de publicación y prospección de la cuenta ('es' | 'pt' | 'en') */
+  targetLanguage?: 'es' | 'pt' | 'en';
 }
 

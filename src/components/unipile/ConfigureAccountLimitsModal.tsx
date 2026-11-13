@@ -66,6 +66,7 @@ export default function ConfigureAccountLimitsModal({
 }: ConfigureAccountLimitsModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState<"es" | "pt" | "en">("es");
   const [connectionLimit, setConnectionLimit] = useState(20);
   const [messageLimit, setMessageLimit] = useState(20);
   const [visitLimit, setVisitLimit] = useState(20);
@@ -79,6 +80,7 @@ export default function ConfigureAccountLimitsModal({
     if (account && isOpen) {
       setName(account.name || "");
       setEmail(account.email || "");
+      setTargetLanguage(account.targetLanguage || "es");
       setConnectionLimit(Math.min(20, account.daily_connection_limit ?? 20));
       setMessageLimit(Math.min(20, account.daily_message_limit ?? 20));
       setVisitLimit(Math.min(20, account.daily_visit_limit ?? 20));
@@ -109,6 +111,7 @@ export default function ConfigureAccountLimitsModal({
       ...account,
       name: name.trim(),
       email: email.trim(),
+      targetLanguage,
       daily_connection_limit: Math.min(20, Math.max(1, Number(connectionLimit))),
       daily_message_limit: Math.min(20, Math.max(1, Number(messageLimit))),
       daily_visit_limit: Math.min(20, Math.max(0, Number(visitLimit))),
@@ -188,6 +191,38 @@ export default function ConfigureAccountLimitsModal({
                 }}
                 required
               />
+            </div>
+
+            {/* Idioma de Publicación e IA (Multi-cuenta independiente) */}
+            <div>
+              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 pb-1.5 block">
+                Idioma de Publicación e IA para esta Cuenta
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "es", flag: "🇪🇸", label: "Español", desc: "LATAM / España" },
+                  { id: "pt", flag: "🇧🇷", label: "Português", desc: "Brasil / Portugal" },
+                  { id: "en", flag: "🇺🇸", label: "English", desc: "USA / Global B2B" },
+                ].map((lang) => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setTargetLanguage(lang.id as any)}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition cursor-pointer ${
+                      targetLanguage === lang.id
+                        ? "border-[#0099ff] bg-[#0099ff]/10 text-[#0099ff] ring-2 ring-[#0099ff]/20 font-bold"
+                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300 font-medium"
+                    }`}
+                  >
+                    <span className="text-lg leading-none mb-1">{lang.flag}</span>
+                    <span className="text-xs">{lang.label}</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{lang.desc}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                Cada cuenta es independiente. El generador de posts virales e IA adaptará el contenido automáticamente a este idioma.
+              </p>
             </div>
 
             {/* 3 Columnas de Límites Diarios (Máximo de seguridad 20) */}

@@ -32,6 +32,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     active_hours_end: 18,
     timezone: "America/Sao_Paulo",
     working_days: "1,2,3,4,5",
+    targetLanguage: "pt",
     ownerId: "usr-client-roberto-agencia",
     assignedUserId: "usr-client-roberto-agencia",
     assignedUserName: "Lumefy (Admin Principal)",
@@ -528,4 +529,8 @@ export function assignAccountToMember(accountId: string, memberId: string, membe
     : a);
   saveStoredAccounts(updated);
   return updated;
+}
+
+export function updateAccountLanguage(accountId: string, targetLanguage: "es" | "pt" | "en"): ConnectedLinkedInAccount[] {
+  return updateStoredAccount(accountId, { targetLanguage });
 }

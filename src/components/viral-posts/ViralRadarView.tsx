@@ -9,6 +9,7 @@ import {
   accountMatchesUser,
   addStoredAccount,
   updateStoredAccountStatus,
+  updateAccountLanguage,
 } from "@/lib/unipile/store";
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { useAuth } from "@/context/AuthContext";
@@ -42,6 +43,9 @@ import {
   X,
   Clock,
   ArrowRight,
+  Check,
+  Globe,
+  UserCheck,
 } from "lucide-react";
 
 export type TargetMarket =
@@ -187,6 +191,11 @@ export default function ViralRadarView({
   const [hasSearchedOnce, setHasSearchedOnce] = useState(false);
 
   // Estados para Generador de Plan de 1 Mes (12 Posts)
+  const [showConfigMonthPlanModal, setShowConfigMonthPlanModal] = useState(false);
+  const [monthPlanTargetAccountId, setMonthPlanTargetAccountId] = useState<string>("");
+  const [monthPlanTargetLanguage, setMonthPlanTargetLanguage] = useState<"es" | "pt" | "en">("es");
+  const [saveLanguageToAccount, setSaveLanguageToAccount] = useState<boolean>(true);
+  const [generatingProgress, setGeneratingProgress] = useState<{ current: number; total: number; message: string } | null>(null);
   const [isGeneratingMonthPlan, setIsGeneratingMonthPlan] = useState(false);
   const [showMonthPlanModal, setShowMonthPlanModal] = useState(false);
   const [generatedMonthPosts, setGeneratedMonthPosts] = useState<CreatedPost[]>([]);
@@ -530,55 +539,221 @@ export default function ViralRadarView({
     };
   };
 
-  // Generador 1-Clic: Programa 12 posts (Lunes, Miércoles y Viernes en 4 semanas)
-  const handleGenerateMonthPlan = () => {
+  // Función auxiliar de adaptación localizada de respaldo de alta fidelidad
+  const getLocalizedViralFallback = (rawHook: string, rawContent: string, targetLang: "es" | "pt" | "en") => {
+    if (targetLang === "en") {
+      return { hook: rawHook, content: rawContent };
+    }
+    const lower = (rawHook + " " + rawContent).toLowerCase();
+
+    if (lower.includes("ghosting")) {
+      return targetLang === "pt"
+        ? {
+            hook: "Quando foi que o ghosting virou o novo padrão no B2B?",
+            content: "Quando foi que o ghosting virou o novo padrão no B2B?\n\nVocê agenda uma reunião, dedica 45 minutos para entender a dor da empresa, envia uma proposta personalizada...\ne a pessoa simplesmente desaparece.\n\nO problema quase nunca é o seu preço. Geralmente é um destes 3 pontos:\n1. Você conversou com o avaliador, não com quem assina o cheque.\n2. Não ficou claro o custo financeiro de não fazer nada.\n3. A proposta atacou uma dor secundária, não uma prioridade da diretoria.\n\nComo você tem lidado com o ghosting no LinkedIn? Conta aqui nos comentários.",
+          }
+        : {
+            hook: "¿Cuándo se normalizó el ghosting en B2B?",
+            content: "¿Cuándo se normalizó el ghosting en B2B?\n\nAgendas una llamada, dedicas 45 minutos a analizar su negocio, envías la propuesta personalizada...\ny desaparecen por completo.\n\nEl problema casi nunca es tu precio. El problema suele ser uno de estos 3 puntos:\n1. Hablaste con el evaluador, no con quien firma el cheque.\n2. No cuantificaron juntos el costo de no hacer nada.\n3. Tu propuesta resolvió una molestia menor, no una prioridad de junta directiva.\n\n¿Cómo manejas tú cuando un prospecto deja de responder? Te leo en comentarios.",
+          };
+    }
+
+    if (lower.includes("cold email") || lower.includes("cold mail")) {
+      return targetLang === "pt"
+        ? {
+            hook: "O cold email não morreu. O que morreu foi disparar mensagens genéricas.",
+            content: "O cold email não morreu. O que morreu foi disparar 5.000 mensagens genéricas por dia.\n\nDurante anos, o jogo da prospecção foi puro volume:\n• Comprar lista de 10.000 contatos.\n• Disparar templates copiados.\n• Rezar por 0.5% de resposta.\n\nHoje a nova regra de prospecção B2B é clara:\nRelevância > Volume.\n\n10 mensagens altamente contextualizadas geram mais reuniões qualificadas do que 500 emails em massa.\n\nVocê tem priorizado qualidade ou quantidade este mês?",
+          }
+        : {
+            hook: "El email en frío no ha muerto. Lo que murió fue enviar spam masivo.",
+            content: "El email en frío no ha muerto. Lo que murió fue enviar 5.000 correos genéricos al día.\n\nDurante años, el juego de prospección fue volumen puro:\n• Comprar una lista de 10.000 contactos.\n• Disparar plantillas genéricas.\n• Rogar por un 0.5% de respuesta.\n\nHoy los decisores huelen la automatización a kilómetros.\n\nLa nueva regla de prospección B2B:\nRelevancia > Volumen.\n\n10 mensajes contextualizados generan más reuniones cualificadas que 500 emails masivos.\n\n¿Calidad o cantidad en tu estrategia comercial este mes?",
+          };
+    }
+
+    if (lower.includes("purchased") || lower.includes("bought") || lower.includes("course") || lower.includes("invest")) {
+      return targetLang === "pt"
+        ? {
+            hook: "Investi em mentorias de vendas B2B e isto foi o que realmente funcionou.",
+            content: "Investi em consultorias e cursos de vendas B2B no último ano.\n\n80% do que ensinam são hacks passageiros de algoritmo ou scripts robóticos que queimam a sua reputação.\n\nO que realmente fecha contratos de alto ticket:\n• Entender o impacto financeiro real do problema do cliente.\n• Apresentar cases de sucesso com métricas comprovadas.\n• Manter presença consistente compartilhando visão de mercado toda semana.\n\nVendas B2B não são sobre atalhos, são sobre confiança construída publicamente.",
+          }
+        : {
+            hook: "Invertí en consultorías de ventas B2B y esto fue lo que realmente funcionó.",
+            content: "Invertí en consultorías y cursos de prospección B2B el año pasado.\n\nEl 80% de lo que enseñan son trucos baratos de 'hackear el algoritmo' o scripts manipuladores que espantan a decisores serios.\n\nLo único que realmente mueve la aguja en ventas complejas:\n• Entender el problema financiero que le quita el sueño al CEO.\n• Compartir casos de estudio con números verificables.\n• Ser implacablemente consistente en compartir perspectiva propia cada semana.\n\nLas ventas B2B no son trucos, son confianza construida en público.",
+          };
+    }
+
+    if (lower.includes("3 months") || lower.includes("months ago") || lower.includes("meses")) {
+      return targetLang === "pt"
+        ? {
+            hook: "Há 3 meses mudei completamente a nossa estratégia de prospecção.",
+            content: "Há 3 meses mudei completamente a nossa estratégia de prospecção no LinkedIn.\n\nParamos de enviar pitch de vendas no primeiro contato de conexão.\nNo lugar disso, implementamos um radar de sinais:\n\n1. Interação prévia com posts do prospect (comentário de alto valor).\n2. Pedido de conexão citando um ponto específico que ele publicou.\n3. Nutrição com conteúdo relevante antes de abrir proposta.\n\nResultado:\nNossa taxa de aceitação subiu de 18% para 44%, e as respostas qualificadas triplicaram.\n\nMenos spam, mais conversas reais de negócios.",
+          }
+        : {
+            hook: "Hace 3 meses cambié por completo nuestra forma de prospectar en LinkedIn.",
+            content: "Hace 3 meses cambié por completo nuestra forma de prospectar en LinkedIn.\n\nDejamos de enviar pitches en el primer mensaje de conexión.\nEn su lugar, implementamos un radar de señales:\n\n1. Interacción previa con el contenido del prospecto (dejar un comentario de valor real).\n2. Conexión contextualizada haciendo referencia a una publicación suya reciente.\n3. Esperar a que lean nuestro contenido antes de iniciar conversación comercial.\n\nEl resultado:\nNuestra tasa de aceptación subió del 18% al 44%, y las respuestas positivas se triplicaron.\n\nMenos spam, más conversaciones humanas.",
+          };
+    }
+
+    if (targetLang === "pt") {
+      return {
+        hook: `Estratégia prática de Social Selling: ${rawHook.slice(0, 50)}`,
+        content: `A maioria dos profissionais comete o erro de forçar um pitch comercial antes de gerar valor real para o decisor.\n\nAqui estão os 3 pilares para gerar demanda qualificada no LinkedIn:\n• 1. Diagnóstico contextual: Nunca apresente soluções sem antes mapear o problema real do cliente.\n• 2. Relevância sobre volume: 10 conversas estratégicas superam 500 abordagens genéricas.\n• 3. Construção de autoridade: Compartilhe aprendizados de bastidores e cases práticos antes de pedir uma reunião.\n\nQual desses três pontos tem sido o seu maior foco este mês? Compartilhe nos comentários.`,
+      };
+    }
+
+    return {
+      hook: `Estrategia práctica de Social Selling: ${rawHook.slice(0, 50)}`,
+      content: `La mayoría de las empresas cometen el error de precipitar el pitch comercial antes de entender el contexto real del decisor.\n\nAquí los 3 puntos clave para generar demanda cualificada en LinkedIn:\n• 1. Diagnóstico previo: No presentes una propuesta sin entender el problema real.\n• 2. Relevancia sobre volumen: 10 conversaciones contextualizadas superan a 500 mensajes genéricos.\n• 3. Construcción de confianza: Aporta perspectiva y casos reales antes de pedir una reunión.\n\n¿Cuál de estos tres puntos representa tu mayor desafío actual? Te leo en comentarios.`,
+    };
+  };
+
+  // Abre el Modal de Configuración Previa del Plan de 1 Mes
+  const handleOpenMonthPlanModal = () => {
+    if (!filteredPosts || filteredPosts.length === 0) return;
+    const active = getActiveAccountForUser(currentUser);
+    const targetAcc = active || (availableAccounts.length > 0 ? availableAccounts[0] : null);
+    const initialAccId = targetAcc?.id || currentUser?.id || "";
+    setMonthPlanTargetAccountId(initialAccId);
+
+    // Prioridad del idioma:
+    // 1. Idioma configurado en la cuenta de LinkedIn
+    // 2. Idioma de la interfaz del usuario
+    const accLang = targetAcc?.targetLanguage || (locale === "pt" ? "pt" : locale === "en" ? "en" : "es");
+    setMonthPlanTargetLanguage((accLang as "es" | "pt" | "en") || "es");
+    setShowConfigMonthPlanModal(true);
+  };
+
+  // Alias para mantener retrocompatibilidad total con invocadores y tests
+  const handleGenerateMonthPlan = handleOpenMonthPlanModal;
+
+  // Ejecución definitiva de la programación y adaptación con IA
+  const handleExecuteGenerateMonthPlan = async () => {
     if (!filteredPosts || filteredPosts.length === 0) return;
     setIsGeneratingMonthPlan(true);
+    setShowConfigMonthPlanModal(false);
+
+    const targetLang = monthPlanTargetLanguage;
+    const langLabel = targetLang === "pt" ? "Português" : targetLang === "en" ? "English" : "Español";
+
+    setGeneratingProgress({
+      current: 0,
+      total: 12,
+      message: `Iniciando adaptación de 12 posts al ${langLabel}...`,
+    });
 
     try {
-      // 1. Obtener exactamente 12 fechas en días Lun, Mié y Vie de las próximas 4 semanas
+      // 1. Guardar idioma seleccionado en la cuenta si está habilitado
+      if (saveLanguageToAccount && monthPlanTargetAccountId) {
+        updateAccountLanguage(monthPlanTargetAccountId, targetLang);
+      }
+
+      // 2. Obtener exactamente 12 fechas en días Lun, Mié y Vie de las próximas 4 semanas
       const dates = generateMonthScheduleDates(new Date());
 
-      // 2. Tomar los mejores posts virales (o ciclar sobre el Top 12)
+      // 3. Tomar los mejores posts virales (o ciclar sobre el Top 12)
       const targetSourcePosts: ViralPostTemplate[] = [];
       for (let i = 0; i < 12; i++) {
         targetSourcePosts.push(filteredPosts[i % filteredPosts.length]);
       }
 
-      // Cuenta activa de LinkedIn para asignación
-      const activeAccount = getActiveAccountForUser(currentUser);
-      const targetAccountId = activeAccount?.id || currentUser?.id;
+      const activeAcc = getActiveAccountForUser(currentUser);
+      const targetAccountId = monthPlanTargetAccountId || activeAcc?.id || currentUser?.id;
 
-      // 3. Transformar cada post viral en un CreatedPost programado (100% Texto Puro de entrada)
-      const newScheduledPosts: CreatedPost[] = targetSourcePosts.map((sourcePost, index) => {
-        const scheduledDate = dates[index];
+      // 4. Adaptar y traducir cada post viral con IA
+      const newScheduledPosts: CreatedPost[] = [];
+
+      for (let i = 0; i < targetSourcePosts.length; i++) {
+        const sourcePost = targetSourcePosts[i];
+        const scheduledDate = dates[i];
+
+        setGeneratingProgress({
+          current: i + 1,
+          total: 12,
+          message: `Adaptando post ${i + 1} de 12 al ${langLabel} con IA...`,
+        });
+
         const rawHook = sourcePost.hook?.replace(/:$/, "").trim() || sourcePost.topic || "Estrategia B2B en LinkedIn";
-        const title = rawHook.slice(0, 75);
-
-        // Contenido estructurado de alto impacto para LinkedIn
-        let postContent = "";
+        let rawContent = "";
         if (sourcePost.fullContent && sourcePost.fullContent.length > 120) {
-          postContent = sourcePost.fullContent;
+          rawContent = sourcePost.fullContent;
         } else {
-          postContent = `${rawHook}\n\nLa mayoría de las empresas B2B cometen el error de precipitar el pitch comercial antes de entender el contexto real del decisor.\n\nAquí los 3 puntos clave para generar demanda cualificada:\n• 1. Diagnóstico previo: No presentes una propuesta sin entender el problema real.\n• 2. Relevancia sobre volumen: 10 conversaciones contextualizadas superan a 500 mensajes genéricos.\n• 3. Construcción de confianza: Aporta perspectiva y casos reales antes de pedir una reunión.\n\n¿Cuál de estos tres puntos representa tu mayor desafío actual? Te leo en comentarios.`;
+          rawContent = `${rawHook}\n\nLa mayoría de las empresas B2B cometen el error de precipitar el pitch comercial antes de entender el contexto real del decisor.\n\nAquí los 3 puntos clave para generar demanda cualificada:\n• 1. Diagnóstico previo: No presentes una propuesta sin entender el problema real.\n• 2. Relevancia sobre volumen: 10 conversaciones contextualizadas superan a 500 mensajes genéricos.\n• 3. Construcción de confianza: Aporta perspectiva y casos reales antes de pedir una reunión.\n\n¿Cuál de estos tres puntos representa tu mayor desafío actual? Te leo en comentarios.`;
         }
 
+        let translatedHook = rawHook;
+        let translatedContent = rawContent;
+
+        const isAlreadyTarget =
+          (targetLang === "en" && (sourcePost.detectedLanguage === "en" || !sourcePost.detectedLanguage)) ||
+          (targetLang === "es" && sourcePost.detectedLanguage === "es") ||
+          (targetLang === "pt" && sourcePost.detectedLanguage === "pt");
+
+        if (!isAlreadyTarget) {
+          try {
+            const promptText = `HOOK: ${rawHook}\n\nCONTENT:\n${rawContent}`;
+            const res = await fetch("/api/ai/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: promptText,
+                targetLanguage: targetLang,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.translatedText) {
+                const text = data.translatedText;
+                if (text.includes("HOOK:") && text.includes("CONTENT:")) {
+                  const afterHook = text.split("HOOK:")[1] || "";
+                  const parts = afterHook.split("CONTENT:");
+                  translatedHook = parts[0]?.trim() || rawHook;
+                  translatedContent = parts[1]?.trim() || text;
+                } else {
+                  translatedContent = text.trim();
+                  const firstLine = translatedContent.split("\n")[0].trim();
+                  if (firstLine.length > 5) translatedHook = firstLine;
+                }
+              } else {
+                const fb = getLocalizedViralFallback(rawHook, rawContent, targetLang);
+                translatedHook = fb.hook;
+                translatedContent = fb.content;
+              }
+            } else {
+              const fb = getLocalizedViralFallback(rawHook, rawContent, targetLang);
+              translatedHook = fb.hook;
+              translatedContent = fb.content;
+            }
+          } catch (e) {
+            const fb = getLocalizedViralFallback(rawHook, rawContent, targetLang);
+            translatedHook = fb.hook;
+            translatedContent = fb.content;
+          }
+        } else if (targetLang !== "en" && (!sourcePost.detectedLanguage || sourcePost.detectedLanguage === "en")) {
+          const fb = getLocalizedViralFallback(rawHook, rawContent, targetLang);
+          translatedHook = fb.hook;
+          translatedContent = fb.content;
+        }
+
+        const title = translatedHook.replace(/^["'«»]|["'«»]$/g, "").slice(0, 75);
+
         const post: CreatedPost = {
-          id: `scheduled-month-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `scheduled-month-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
           title,
           format: "text",
-          content: postContent,
+          content: translatedContent,
           sourceMode: "viral",
           status: "scheduled",
           scheduledAt: scheduledDate.toISOString(),
           createdAt: new Date().toISOString(),
           targetAccountId,
+          targetLanguage: targetLang,
         };
 
-        return post;
-      });
+        newScheduledPosts.push(post);
+      }
 
-      // 4. Guardar los 12 posts en el almacenamiento persistente
+      // 5. Guardar los 12 posts en el almacenamiento persistente
       addBatchCreatedPosts(newScheduledPosts);
       setGeneratedMonthPosts(newScheduledPosts);
       setShowMonthPlanModal(true);
@@ -586,6 +761,7 @@ export default function ViralRadarView({
       console.error("[Generate Month Plan Error]:", err);
     } finally {
       setIsGeneratingMonthPlan(false);
+      setGeneratingProgress(null);
     }
   };
 
@@ -1645,6 +1821,189 @@ export default function ViralRadarView({
           </div>
         </div>
       )}
+
+      {/* Modal 1: Configuración Previa del Plan de 1 Mes (Multi-cuenta e Idioma) */}
+      {showConfigMonthPlanModal && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto custom-scrollbar rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-gradient-to-tr from-[#0099ff] to-blue-600 text-white shadow-md shadow-blue-500/20">
+                  <Sparkles className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Programar Contenido para 1 Mes (12 Posts)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Configura la cuenta de destino y el idioma objetivo antes de generar
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigMonthPlanModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* 1. Selector de Cuenta de LinkedIn Destino */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>Cuenta de LinkedIn Destino</span>
+                <span className="text-[11px] font-normal text-slate-400">
+                  {availableAccounts.length} cuenta{availableAccounts.length === 1 ? "" : "s"} disponible{availableAccounts.length === 1 ? "" : "s"}
+                </span>
+              </label>
+
+              {availableAccounts.length > 0 ? (
+                <div className="space-y-1.5">
+                  <select
+                    value={monthPlanTargetAccountId}
+                    onChange={(e) => {
+                      const newId = e.target.value;
+                      setMonthPlanTargetAccountId(newId);
+                      const found = availableAccounts.find(
+                        (a: any) => a.id === newId || a.unipileAccountId === newId
+                      );
+                      if (found?.targetLanguage) {
+                        setMonthPlanTargetLanguage(found.targetLanguage);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0099ff]"
+                  >
+                    {availableAccounts.map((acc: any) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.email || "LinkedIn"}) · {acc.targetLanguage ? acc.targetLanguage.toUpperCase() : "ES"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs text-slate-500">
+                  {currentUser.name} (Usuario Actual)
+                </div>
+              )}
+            </div>
+
+            {/* 2. Selector de Idioma Objetivo */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Idioma de Publicación e IA
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "es", flag: "🇪🇸", label: "Español", desc: "LATAM / España" },
+                  { id: "pt", flag: "🇧🇷", label: "Português", desc: "Brasil / Portugal" },
+                  { id: "en", flag: "🇺🇸", label: "English", desc: "USA / Global B2B" },
+                ].map((lang) => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setMonthPlanTargetLanguage(lang.id as any)}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                      monthPlanTargetLanguage === lang.id
+                        ? "border-[#0099ff] bg-[#0099ff]/10 text-[#0099ff] ring-2 ring-[#0099ff]/20 font-bold"
+                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 font-medium"
+                    }`}
+                  >
+                    <span className="text-xl mb-1 leading-none">{lang.flag}</span>
+                    <span className="text-xs">{lang.label}</span>
+                    <span className="text-[10px] text-slate-400">{lang.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Checkbox: Recordar idioma en la cuenta */}
+              <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={saveLanguageToAccount}
+                  onChange={(e) => setSaveLanguageToAccount(e.target.checked)}
+                  className="rounded border-slate-300 text-[#0099ff] focus:ring-[#0099ff]"
+                />
+                <span className="text-xs text-slate-600 dark:text-slate-400">
+                  Guardar este idioma como preferido para esta cuenta
+                </span>
+              </label>
+            </div>
+
+            {/* 3. Estructura del Plan */}
+            <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-2 text-xs">
+              <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Calendar className="size-4 text-[#0099ff]" />
+                Estructura del Plan:
+              </div>
+              <ul className="space-y-1 text-slate-600 dark:text-slate-400 text-[11px] list-disc list-inside">
+                <li>12 publicaciones distribuidas en 4 semanas (<strong>Lunes, Miércoles y Viernes a las 09:30 AM</strong>).</li>
+                <li>Generación inicial en <strong>100% Texto Puro de alto engagement</strong>.</li>
+                <li>La IA adaptará ganchos, estructura y llamadas a la acción al idioma seleccionado.</li>
+                <li>Al revisarlos en el calendario, podrás enriquecer cualquier post con <strong>Portada Visual (4:5)</strong> o <strong>Carrusel PDF</strong> con 1 clic.</li>
+              </ul>
+            </div>
+
+            {/* Footer / Botones de Acción */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowConfigMonthPlanModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteGenerateMonthPlan}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all hover:scale-[1.02] cursor-pointer"
+              >
+                <Sparkles className="size-4 text-amber-300" />
+                <span>
+                  Generar 12 Posts en {monthPlanTargetLanguage === "pt" ? "Português" : monthPlanTargetLanguage === "en" ? "English" : "Español"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Pantalla de Carga y Progreso de Adaptación con IA */}
+      {isGeneratingMonthPlan && generatingProgress && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-4">
+            <div className="inline-flex p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#0099ff] ring-4 ring-blue-500/10">
+              <Sparkles className="size-8 animate-spin text-[#0099ff]" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Adaptando Publicaciones Virales con IA
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {generatingProgress.message}
+              </p>
+            </div>
+
+            {/* Barra de Progreso */}
+            <div className="space-y-1.5">
+              <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#0099ff] to-blue-600 transition-all duration-300"
+                  style={{
+                    width: `${Math.round((generatingProgress.current / generatingProgress.total) * 100)}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>{generatingProgress.current} de {generatingProgress.total}</span>
+                <span>{Math.round((generatingProgress.current / generatingProgress.total) * 100)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal: Plan Editorial de 1 Mes Generado con Éxito */}
       {showMonthPlanModal && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
@@ -1679,6 +2038,12 @@ export default function ViralRadarView({
                 <FileText className="size-3.5" />
                 12 Publicaciones en Texto Puro Listas
               </span>
+              {generatedMonthPosts[0]?.targetLanguage && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                  <Globe className="size-3.5" />
+                  Idioma: {generatedMonthPosts[0].targetLanguage === "pt" ? "🇧🇷 Português" : generatedMonthPosts[0].targetLanguage === "en" ? "🇺🇸 English" : "🇪🇸 Español"}
+                </span>
+              )}
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs font-semibold text-[#0099ff]">
                 <Sparkles className="size-3.5" />
                 Puedes elevar cualquier post a Portada Visual o Carrusel PDF al revisarlo

@@ -3,7 +3,9 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { getStoredAccounts } from "@/lib/unipile/store";
+import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import {
   ChevronLeft,
   ChevronRight,
@@ -37,6 +39,12 @@ export default function EditorialCalendarView({
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "published">("all");
+  const [accountFilter, setAccountFilter] = useState<string>("all");
+  const [accountsList, setAccountsList] = useState<ConnectedLinkedInAccount[]>([]);
+
+  useEffect(() => {
+    setAccountsList(getStoredAccounts());
+  }, []);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
   const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<CreatedPost | null>(null);
@@ -253,15 +261,18 @@ export default function EditorialCalendarView({
     return days;
   }, [currentDate, locale]);
 
-  // Filtrado de publicaciones por estado
+  // Filtrado de publicaciones por estado y cuenta
   const filteredPosts = useMemo(() => {
     return posts.filter((p) => {
       if (p.status !== "scheduled" && p.status !== "published") return false;
-      if (statusFilter === "scheduled") return p.status === "scheduled";
-      if (statusFilter === "published") return p.status === "published";
+      if (statusFilter === "scheduled" && p.status !== "scheduled") return false;
+      if (statusFilter === "published" && p.status !== "published") return false;
+      if (accountFilter !== "all" && p.targetAccountId && p.targetAccountId !== accountFilter) {
+        return false;
+      }
       return true;
     });
-  }, [posts, statusFilter]);
+  }, [posts, statusFilter, accountFilter]);
 
   const totalActiveCount = useMemo(() => {
     return posts.filter((p) => p.status === "scheduled" || p.status === "published").length;
@@ -427,6 +438,23 @@ export default function EditorialCalendarView({
                 </button>
               ))}
             </div>
+
+            {/* Selector de Cuenta para Multi-Cuenta (1, 5, 10 cuentas independientes) */}
+            {accountsList.length > 0 && (
+              <select
+                value={accountFilter}
+                onChange={(e) => setAccountFilter(e.target.value)}
+                className="h-8 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer"
+                title="Filtrar publicaciones por cuenta de LinkedIn"
+              >
+                <option value="all">Todas las cuentas</option>
+                {accountsList.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.targetLanguage ? acc.targetLanguage.toUpperCase() : "ES"})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -563,6 +591,11 @@ export default function EditorialCalendarView({
                                   })
                                 : "09:30"}
                             </span>
+                            {post.targetLanguage && (
+                              <span className="text-[10px] shrink-0 font-bold" title={`Idioma: ${post.targetLanguage.toUpperCase()}`}>
+                                {post.targetLanguage === "pt" ? "🇧🇷" : post.targetLanguage === "en" ? "🇺🇸" : "🇪🇸"}
+                              </span>
+                            )}
                             <span className="truncate">{post.title}</span>
                           </div>
                         </div>
@@ -683,17 +716,24 @@ export default function EditorialCalendarView({
                         title={t("dragDetailsTooltip", { title: post.title })}
                       >
                         <div className="flex items-center justify-between gap-1 mb-1">
-                          <span
-                            className={`rounded-lg px-1.5 py-0.5 text-xs font-bold uppercase ${
-                              post.format === "carousel"
-                                ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
-                                : post.format === "image"
-                                ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
-                                : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                            }`}
-                          >
-                            {post.format}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`rounded-lg px-1.5 py-0.5 text-xs font-bold uppercase ${
+                                post.format === "carousel"
+                                  ? "bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300"
+                                  : post.format === "image"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                  : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                              }`}
+                            >
+                              {post.format}
+                            </span>
+                            {post.targetLanguage && (
+                              <span className="text-[10px] font-bold" title={`Idioma: ${post.targetLanguage.toUpperCase()}`}>
+                                {post.targetLanguage === "pt" ? "🇧🇷 PT" : post.targetLanguage === "en" ? "🇺🇸 EN" : "🇪🇸 ES"}
+                              </span>
+                            )}
+                          </div>
                           <span
                             className={`h-2 w-2 rounded-full ${
                               post.status === "published" ? "bg-emerald-500" : "bg-brand-500"
@@ -772,6 +812,11 @@ export default function EditorialCalendarView({
                   }`}>
                     {selectedPostDetails.format === "image" ? "Portada Visual (4:5)" : selectedPostDetails.format === "carousel" ? "Carrusel PDF" : "Texto Puro"}
                   </span>
+                  {selectedPostDetails.targetLanguage && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      {selectedPostDetails.targetLanguage === "pt" ? "🇧🇷 Português" : selectedPostDetails.targetLanguage === "en" ? "🇺🇸 English" : "🇪🇸 Español"}
+                    </span>
+                  )}
                   <span className="text-[10px] font-bold text-slate-400 uppercase">
                     • {selectedPostDetails.status}
                   </span>

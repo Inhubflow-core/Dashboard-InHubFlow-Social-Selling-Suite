@@ -94,6 +94,14 @@ export default function LinkedInAccountCard({
               <span>{account.assignedUserName}</span>
             </span>
           )}
+          {account.targetLanguage && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shrink-0"
+              title={`Idioma de prospección e IA: ${account.targetLanguage === "pt" ? "Português" : account.targetLanguage === "en" ? "English" : "Español"}`}
+            >
+              <span>{account.targetLanguage === "pt" ? "🇧🇷 PT" : account.targetLanguage === "en" ? "🇺🇸 EN" : "🇪🇸 ES"}</span>
+            </span>
+          )}
         </div>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">
           {account.email ? `${account.email} · ` : ""}
