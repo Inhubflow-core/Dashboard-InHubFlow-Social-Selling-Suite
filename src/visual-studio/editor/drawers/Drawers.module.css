@@ -578,6 +578,11 @@
   margin: 0 auto;
 }
 
+.highlightPreview svg rect,
+.highlightPreview svg path[fill]:not([stroke]) {
+  opacity: 0.65;
+}
+
 .highlightLabel {
   display: -webkit-box;
   -webkit-line-clamp: 2;

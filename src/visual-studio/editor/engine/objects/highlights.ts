@@ -77,7 +77,7 @@ export const HIGHLIGHT_STYLES: HighlightStyleDef[] = [
     buildSvg: (color) => `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="200" height="50">
         <path d="M 6,36 C 45,34 110,38 194,33 C 197,22 196,15 193,12 C 120,16 65,11 6,17 C 4,24 4,30 6,36 Z"
-          fill="${color}" opacity="0.55" />
+          fill="${color}" />
       </svg>
     `,
     computePlacement: (box) => ({
@@ -176,8 +176,7 @@ export const HIGHLIGHT_STYLES: HighlightStyleDef[] = [
     defaultColor: '#FFE600',
     buildSvg: (color) => `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
-        <rect x="6" y="8" width="188" height="44" rx="22" ry="22"
-          fill="${color}" opacity="0.32" stroke="${color}" stroke-width="2" stroke-opacity="0.75" />
+        <rect x="6" y="8" width="188" height="44" rx="22" ry="22" fill="${color}" />
       </svg>
     `,
     computePlacement: (box) => ({
@@ -333,6 +332,7 @@ export async function applyTextHighlight(
 
   const scaleX = placement.width / Math.max(width, 1)
   const scaleY = placement.height / Math.max(height, 1)
+  const defaultOpacity = style.behindText ? 0.5 : 1
 
   object.set({
     left: placement.x,
@@ -341,6 +341,7 @@ export async function applyTextHighlight(
     originY: 'center',
     scaleX,
     scaleY,
+    opacity: defaultOpacity,
   })
 
   // Assign metadata and properties

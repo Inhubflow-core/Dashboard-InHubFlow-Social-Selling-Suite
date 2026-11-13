@@ -50,8 +50,14 @@ export function ColorButton({ label, value, onChange, solidOnly, variant = 'swat
           )}
         </button>
       </Tooltip>
-      <Popover open={open} onClose={() => setOpen(false)} anchorRef={ref} label={label} placement="bottom-start">
-        {solidOnly && value.type === 'solid' ? <ColorPicker value={value.color} onChange={(color) => onChange({ type: 'solid', color })} extraSwatches={extraSwatches} /> : <FillEditor value={value} onChange={onChange} solidOnly={solidOnly} extraSwatches={extraSwatches} />}
+      <Popover open={open} onClose={() => setOpen(false)} anchorRef={ref} label={label} placement="bottom-start" width={330} variant="plain" cover>
+        <div style={{ width: 330, padding: 14, boxSizing: 'border-box', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
+          {solidOnly && value.type === 'solid' ? (
+            <ColorPicker value={value.color} onChange={(color) => onChange({ type: 'solid', color })} extraSwatches={extraSwatches} />
+          ) : (
+            <FillEditor value={value} onChange={onChange} solidOnly={solidOnly} extraSwatches={extraSwatches} />
+          )}
+        </div>
       </Popover>
     </>
   )

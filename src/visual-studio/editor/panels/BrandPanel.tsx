@@ -103,7 +103,7 @@ function AddColor({ onAdd }: { onAdd: (color: string) => void }) {
       <button ref={ref} type="button" className={styles.addBtn} aria-label={t.brand.addColor} aria-haspopup="dialog" aria-expanded={open} title={t.brand.addColor} data-testid="brand-add-color" onClick={() => setOpen((o) => !o)}>
         <Plus size={16} aria-hidden="true" />
       </button>
-      <Popover open={open} onClose={() => setOpen(false)} anchorRef={ref} label={t.brand.addColor} placement="bottom-start" cover>
+      <Popover open={open} onClose={() => setOpen(false)} anchorRef={ref} label={t.brand.addColor} placement="bottom-start" width={330} variant="plain" cover>
         <div className={styles.pickPopover}>
           <ColorPicker value={color} onChange={setColor} />
           <Button
