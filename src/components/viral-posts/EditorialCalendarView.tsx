@@ -4,9 +4,23 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  FileText,
+  Image as ImageIcon,
+  Layers,
+  Sparkles,
+  Clock,
+  Calendar,
+  Check,
+  Edit3,
+  X,
+} from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import VisualStudioModal from "./VisualStudioModal";
 
 
 export default function EditorialCalendarView({
@@ -32,9 +46,17 @@ export default function EditorialCalendarView({
   const [justRescheduledInfo, setJustRescheduledInfo] = useState<{ title: string; date: string } | null>(null);
   const [slideDirection, setSlideDirection] = useState<"next" | "prev" | null>(null);
 
-    // Sincronizar fecha y hora al abrir el modal de detalle del post
+  // Estados para Enriquecimiento Visual en Revisión (Portadas y Carruseles)
+  const [showVisualStudio, setShowVisualStudio] = useState(false);
+  const [visualStudioMode, setVisualStudioMode] = useState<"single" | "carousel">("single");
+  const [editContentText, setEditContentText] = useState("");
+  const [contentSaveSuccess, setContentSaveSuccess] = useState(false);
+
+  // Sincronizar fecha y hora al abrir el modal de detalle del post
   const openPostDetails = (post: CreatedPost) => {
     setSelectedPostDetails(post);
+    setEditContentText(post.content || "");
+    setContentSaveSuccess(false);
     if (post.scheduledAt) {
       const d = new Date(post.scheduledAt);
       const year = d.getFullYear();
@@ -50,6 +72,16 @@ export default function EditorialCalendarView({
       setScheduleEditTime("09:30");
     }
     setScheduleSaveSuccess(false);
+  };
+
+  const handleSaveContentText = () => {
+    if (!selectedPostDetails) return;
+    updatePost(selectedPostDetails.id, {
+      content: editContentText,
+    });
+    setSelectedPostDetails((prev) => prev ? { ...prev, content: editContentText } : null);
+    setContentSaveSuccess(true);
+    setTimeout(() => setContentSaveSuccess(false), 3000);
   };
 
   const handleSaveNewSchedule = () => {
@@ -724,59 +756,227 @@ export default function EditorialCalendarView({
         </div>
       </div>
 
-      {/* Modal de Detalle de Publicación */}
+      {/* Modal de Detalle y Revisión de Publicación */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto custom-scrollbar rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
-            <div className="flex items-start justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
+          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto custom-scrollbar rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <span className="text-xs uppercase font-bold text-brand-600">
-                  {selectedPostDetails.format} • {selectedPostDetails.status}
-                </span>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mt-0.5">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
+                    selectedPostDetails.format === "image"
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                      : selectedPostDetails.format === "carousel"
+                      ? "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                  }`}>
+                    {selectedPostDetails.format === "image" ? "Portada Visual (4:5)" : selectedPostDetails.format === "carousel" ? "Carrusel PDF" : "Texto Puro"}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                    • {selectedPostDetails.status}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1">
                   {selectedPostDetails.title}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedPostDetails(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-white font-bold"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <div className="rounded-lg bg-gray-50 p-3.5 font-mono text-xs text-gray-700 leading-relaxed whitespace-pre-wrap dark:bg-gray-800/60 dark:text-gray-300">
-              {selectedPostDetails.content}
+            {/* Editor de Contenido / Copy */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span className="font-semibold flex items-center gap-1.5">
+                  <FileText className="size-3.5 text-slate-500" />
+                  Contenido de la Publicación:
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {editContentText.length} caracteres
+                </span>
+              </div>
+              <textarea
+                value={editContentText}
+                onChange={(e) => setEditContentText(e.target.value)}
+                rows={6}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-xs leading-relaxed text-slate-800 dark:text-slate-200 font-sans focus:border-[#0099ff] focus:outline-hidden"
+              />
+              <div className="flex items-center justify-between">
+                {contentSaveSuccess ? (
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <Check className="size-3" />
+                    Texto guardado con éxito
+                  </span>
+                ) : <span />}
+                {editContentText !== selectedPostDetails.content && (
+                  <button
+                    type="button"
+                    onClick={handleSaveContentText}
+                    className="px-3 py-1 rounded-lg bg-[#0099ff] hover:bg-[#0082db] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    Guardar Cambios de Texto
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Configuración y selección de horario de publicación */}
+            {/* Gestión del Formato Visual (Añadir Portada, Convertir a Carrusel o Volver a Texto) */}
+            <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Sparkles className="size-3.5 text-[#0099ff]" />
+                  Formato y Recursos Visuales
+                </span>
+                {selectedPostDetails.format !== "text" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updatePost(selectedPostDetails.id, {
+                        format: "text",
+                        coverImage: undefined,
+                        mediaUrl: undefined,
+                        carouselPdfUrl: undefined,
+                        carouselThumbnail: undefined,
+                        carouselSlides: undefined,
+                      });
+                      setSelectedPostDetails((prev) => prev ? {
+                        ...prev,
+                        format: "text",
+                        coverImage: undefined,
+                        mediaUrl: undefined,
+                        carouselPdfUrl: undefined,
+                        carouselThumbnail: undefined,
+                        carouselSlides: undefined,
+                      } : null);
+                    }}
+                    className="text-[11px] font-semibold text-red-500 hover:underline cursor-pointer"
+                  >
+                    Quitar Recurso (Volver a Texto Puro)
+                  </button>
+                )}
+              </div>
+
+              {selectedPostDetails.format === "text" && (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Este post está programado como <strong>Texto Puro</strong>. Si deseas destacar en el feed, puedes enriquecerlo con una portada o un carrusel PDF:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVisualStudioMode("single");
+                        setShowVisualStudio(true);
+                      }}
+                      className="py-2.5 px-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/40 hover:bg-blue-100 text-[#0099ff] text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                    >
+                      <ImageIcon className="size-4" />
+                      <span>+ Añadir Portada Visual (4:5)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVisualStudioMode("carousel");
+                        setShowVisualStudio(true);
+                      }}
+                      className="py-2.5 px-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/80 dark:bg-purple-950/40 hover:bg-purple-100 text-purple-600 dark:text-purple-300 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                    >
+                      <Layers className="size-4" />
+                      <span>+ Convertir a Carrusel PDF</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedPostDetails.format === "image" && (
+                <div className="flex items-center justify-between gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    {selectedPostDetails.coverImage ? (
+                      <img src={selectedPostDetails.coverImage} alt="Portada" className="h-14 w-12 object-cover rounded-md border" />
+                    ) : (
+                      <div className="h-14 w-12 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                        IMG
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">Portada Visual Adjunta</p>
+                      <p className="text-[11px] text-slate-500">Diseño en proporción vertical 4:5 para LinkedIn</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVisualStudioMode("single");
+                      setShowVisualStudio(true);
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    Editar en Editor Visual
+                  </button>
+                </div>
+              )}
+
+              {selectedPostDetails.format === "carousel" && (
+                <div className="flex items-center justify-between gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    {selectedPostDetails.carouselThumbnail ? (
+                      <img src={selectedPostDetails.carouselThumbnail} alt="Portada Carrusel" className="h-14 w-12 object-cover rounded-md border" />
+                    ) : (
+                      <div className="h-14 w-12 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">
+                        PDF
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">Carrusel PDF de LinkedIn</p>
+                      <p className="text-[11px] text-slate-500">{selectedPostDetails.carouselPageCount || 4} diapositivas listas</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVisualStudioMode("carousel");
+                      setShowVisualStudio(true);
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-300 text-xs font-bold hover:bg-purple-50 dark:hover:bg-purple-950 transition cursor-pointer"
+                  >
+                    Editar en Editor Visual
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Configuración de Horario de Publicación */}
             {selectedPostDetails.status !== "published" ? (
-              <div className="rounded-lg border border-gray-300 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-800/50 space-y-3">
-                <span className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide block">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide block">
                   {t("scheduleConfigTitle")}
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                       {t("dateLabel")}
                     </label>
                     <input
                       type="date"
                       value={scheduleEditDate}
                       onChange={(e) => setScheduleEditDate(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-[#0099ff] focus:outline-hidden dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                       {t("timeLabel")}
                     </label>
                     <input
                       type="time"
                       value={scheduleEditTime}
                       onChange={(e) => setScheduleEditTime(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-[#0099ff] focus:outline-hidden dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                 </div>
@@ -785,36 +985,77 @@ export default function EditorialCalendarView({
                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                       ✓ {t("scheduleUpdatedSuccess")}
                     </span>
-                  ) : <span></span>}
+                  ) : <span />}
                   <button
                     type="button"
                     onClick={handleSaveNewSchedule}
-                    className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs cursor-pointer"
+                    className="rounded-lg bg-[#0099ff] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#0082db] transition shadow-xs cursor-pointer"
                   >
                     {t("saveScheduleBtn")}
                   </button>
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {t("emissionScheduleLabel")}:{" "}
-                <strong className="text-gray-800 dark:text-gray-200">
+                <strong className="text-slate-800 dark:text-slate-200">
                   {new Date(selectedPostDetails.scheduledAt || selectedPostDetails.publishedAt || "").toLocaleString(locale)}
                 </strong>
               </p>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-gray-300 dark:border-gray-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setSelectedPostDetails(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Cerrar
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Editor Visual Integrado para Portadas y Carruseles */}
+      {showVisualStudio && selectedPostDetails && (
+        <VisualStudioModal
+          isOpen={showVisualStudio}
+          onClose={() => setShowVisualStudio(false)}
+          initialText={selectedPostDetails.title || selectedPostDetails.content}
+          mode={visualStudioMode}
+          aspectRatio="4:5"
+          onApplyImage={(dataUrl) => {
+            updatePost(selectedPostDetails.id, {
+              format: "image",
+              coverImage: dataUrl,
+              mediaUrl: dataUrl,
+            });
+            setSelectedPostDetails((prev) => prev ? {
+              ...prev,
+              format: "image",
+              coverImage: dataUrl,
+              mediaUrl: dataUrl,
+            } : null);
+            setShowVisualStudio(false);
+          }}
+          onApplyCarousel={(result) => {
+            updatePost(selectedPostDetails.id, {
+              format: "carousel",
+              carouselPdfUrl: result.pdfDataUrl,
+              carouselPageCount: result.pageCount,
+              carouselThumbnail: result.thumbnail,
+            });
+            setSelectedPostDetails((prev) => prev ? {
+              ...prev,
+              format: "carousel",
+              carouselPdfUrl: result.pdfDataUrl,
+              carouselPageCount: result.pageCount,
+              carouselThumbnail: result.thumbnail,
+            } : null);
+            setShowVisualStudio(false);
+          }}
+        />
       )}
     </div>
   );

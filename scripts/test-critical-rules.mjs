@@ -3052,7 +3052,15 @@ assert(viralRadarCode61.includes('Crear Contenido para 1 Mes (12 Posts)'), 'Bot�
 assert(viralRadarCode61.includes('handleGenerateMonthPlan'), 'Función orquestadora handleGenerateMonthPlan implementada');
 assert(viralRadarCode61.includes('showMonthPlanModal'), 'Modal confirmatorio y explicativo showMonthPlanModal implementado');
 assert(viralRadarCode61.includes('onTabChange("calendar")'), 'Acceso directo para navegar al Calendario Editorial tras generar los 12 posts');
-assert(viralRadarCode61.includes('4 Portadas Ejecutivas') && viralRadarCode61.includes('4 Artículos de Texto') && viralRadarCode61.includes('4 Carruseles PDF'), 'Estrategia diversificada de 3 formatos (Portadas, Texto, Carruseles) presentada');
+assert(viralRadarCode61.includes('12 Publicaciones en Texto Puro Listas'), 'Plan de 1 mes inicializa las 12 publicaciones en formato de texto puro');
+assert(viralRadarCode61.includes('format: "text"'), 'Posts generados con 1 clic se programan en formato "text"');
+
+const calendarCode61 = fs.readFileSync('src/components/viral-posts/EditorialCalendarView.tsx', 'utf8');
+assert(calendarCode61.includes('+ Añadir Portada Visual (4:5)'), 'Calendario permite enriquecer un post de texto con portada visual');
+assert(calendarCode61.includes('+ Convertir a Carrusel PDF'), 'Calendario permite convertir un post a carrusel PDF');
+assert(calendarCode61.includes('handleSaveContentText'), 'Calendario permite editar y guardar el texto del post en vivo');
+assert(calendarCode61.includes('VisualStudioModal'), 'Calendario integra VisualStudioModal para diseño interactivo de recursos');
+assert(calendarCode61.includes('Quitar Recurso (Volver a Texto Puro)'), 'Calendario permite revertir un post enriquecido a texto puro');
 
 // Limpieza de base de datos de test
 

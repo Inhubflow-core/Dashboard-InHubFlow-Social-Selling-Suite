@@ -549,13 +549,9 @@ export default function ViralRadarView({
       const activeAccount = getActiveAccountForUser(currentUser);
       const targetAccountId = activeAccount?.id || currentUser?.id;
 
-      // 3. Transformar cada post viral en un CreatedPost programado
+      // 3. Transformar cada post viral en un CreatedPost programado (100% Texto Puro de entrada)
       const newScheduledPosts: CreatedPost[] = targetSourcePosts.map((sourcePost, index) => {
         const scheduledDate = dates[index];
-        // Distribuir equitativamente entre los 3 formatos: 0 = Imagen, 1 = Texto, 2 = Carrusel
-        const formatTypeIndex = index % 3;
-        const format: PostFormat = formatTypeIndex === 0 ? "image" : formatTypeIndex === 1 ? "text" : "carousel";
-
         const rawHook = sourcePost.hook?.replace(/:$/, "").trim() || sourcePost.topic || "Estrategia B2B en LinkedIn";
         const title = rawHook.slice(0, 75);
 
@@ -567,46 +563,12 @@ export default function ViralRadarView({
           postContent = `${rawHook}\n\nLa mayoría de las empresas B2B cometen el error de precipitar el pitch comercial antes de entender el contexto real del decisor.\n\nAquí los 3 puntos clave para generar demanda cualificada:\n• 1. Diagnóstico previo: No presentes una propuesta sin entender el problema real.\n• 2. Relevancia sobre volumen: 10 conversaciones contextualizadas superan a 500 mensajes genéricos.\n• 3. Construcción de confianza: Aporta perspectiva y casos reales antes de pedir una reunión.\n\n¿Cuál de estos tres puntos representa tu mayor desafío actual? Te leo en comentarios.`;
         }
 
-        const bgUrl =
-          SAMPLE_B2B_BACKGROUNDS[index % SAMPLE_B2B_BACKGROUNDS.length]?.url ||
-          "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85";
-
         const post: CreatedPost = {
           id: `scheduled-month-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`,
           title,
-          format,
+          format: "text",
           content: postContent,
           sourceMode: "viral",
-          mediaUrl: format === "image" ? (sourcePost.mediaUrl || bgUrl) : undefined,
-          coverImage: format === "image" || format === "carousel" ? (sourcePost.mediaUrl || bgUrl) : undefined,
-          carouselPageCount: format === "carousel" ? 4 : undefined,
-          carouselSlides: format === "carousel" ? [
-            {
-              slideNumber: 1,
-              isCover: true,
-              title: rawHook,
-              subtitle: "Guía Ejecutiva de Social Selling B2B",
-              content: ["InHubFlow Social Selling", "Framework de Alto Rendimiento"],
-              backgroundImageUrl: bgUrl,
-              coverLayout: index % 2 === 0 ? "bottom" : "split_left",
-            },
-            {
-              slideNumber: 2,
-              title: "Paso 1: Diagnóstico de Situación",
-              content: ["Identifica la brecha de negocio.", "Prioriza las cuentas con intención real de compra."],
-            },
-            {
-              slideNumber: 3,
-              title: "Paso 2: Conversación Consultiva",
-              content: ["Aporta contexto antes de pedir una reunión.", "Posiciona autoridad sin fricción comercial."],
-            },
-            {
-              slideNumber: 4,
-              isCta: true,
-              title: "¿Quieres aplicar esta metodología?",
-              content: ["Guarda esta publicación en tus marcadores.", "Comenta 'SISTEMA' para recibir el documento completo."],
-            }
-          ] : undefined,
           status: "scheduled",
           scheduledAt: scheduledDate.toISOString(),
           createdAt: new Date().toISOString(),
@@ -1713,18 +1675,13 @@ export default function ViralRadarView({
 
             {/* Badges de Resumen de Formatos */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Estrategia de Formatos:</span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-[11px] font-bold text-[#0099ff]">
-                <ImageIcon className="size-3.5" />
-                4 Portadas Ejecutivas (4:5)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                 <FileText className="size-3.5" />
-                4 Artículos de Texto Puro
+                12 Publicaciones en Texto Puro Listas
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[11px] font-bold text-purple-600 dark:text-purple-400">
-                <Layers className="size-3.5" />
-                4 Carruseles PDF
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs font-semibold text-[#0099ff]">
+                <Sparkles className="size-3.5" />
+                Puedes elevar cualquier post a Portada Visual o Carrusel PDF al revisarlo
               </span>
             </div>
 
