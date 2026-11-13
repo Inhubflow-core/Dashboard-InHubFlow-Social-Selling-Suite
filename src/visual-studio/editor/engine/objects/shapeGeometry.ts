@@ -36,7 +36,7 @@ export function starPoints(points: number, innerRatio: number, size = 100): Pt[]
   return normalizePoints(pts, size)
 }
 
-/** Fits the points tightly into [0,size]² so the shape fills its bounding box regardless of vertex count. */
+/** Fits the points uniformly into [0,size]² preserving aspect ratio, equal side lengths and centering the shape. */
 function normalizePoints(pts: Pt[], size: number): Pt[] {
   const xs = pts.map((p) => p.x)
   const ys = pts.map((p) => p.y)
@@ -46,7 +46,13 @@ function normalizePoints(pts: Pt[], size: number): Pt[] {
   const maxY = Math.max(...ys)
   const w = maxX - minX || 1
   const h = maxY - minY || 1
-  return pts.map((p) => ({ x: round(((p.x - minX) / w) * size), y: round(((p.y - minY) / h) * size) }))
+  const scale = size / Math.max(w, h)
+  const offsetX = (size - w * scale) / 2
+  const offsetY = (size - h * scale) / 2
+  return pts.map((p) => ({
+    x: round(offsetX + (p.x - minX) * scale),
+    y: round(offsetY + (p.y - minY) * scale),
+  }))
 }
 
 const round = (n: number): number => Math.round(n * 1000) / 1000

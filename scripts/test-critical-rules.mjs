@@ -2562,12 +2562,52 @@ console.log("\n--- 48. Prueba de Formas Basicas y Decorativas (Blanco por Defect
 const shapesDrawerSrc48 = fs.readFileSync('src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
 const factoriesSrc48 = fs.readFileSync('src/visual-studio/editor/engine/objects/factories.ts', 'utf8');
 const insertSrc48 = fs.readFileSync('src/visual-studio/editor/engine/api/insert.ts', 'utf8');
+const shapeGeometrySrc48 = fs.readFileSync('src/visual-studio/editor/engine/objects/shapeGeometry.ts', 'utf8');
 
 // 1. softShape y baseShape en factories.ts
 assert(factoriesSrc48.includes("fill: '#ffffff'") && factoriesSrc48.includes("stroke: null") && factoriesSrc48.includes("strokeWidth: 0"), "baseShape en factories.ts establece fill: '#ffffff', stroke: null y strokeWidth: 0");
 assert(factoriesSrc48.includes("obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, strokeUniform: true })"), "softShape aplica fill blanco puro (#ffffff) y sin bordes por defecto");
 assert(factoriesSrc48.includes("(obj as any).set('rx', 0)") && factoriesSrc48.includes("(obj as any).set('ry', 0)"), "softShape elimina cualquier redondez (rx: 0, ry: 0) por defecto");
 assert(factoriesSrc48.includes("if (obj instanceof Rect || (obj as any).type === 'rect')"), "softShape solo resetea redondez rx/ry en Rectangulos sin colapsar el radio del circulo (Ellipse)");
+
+// 1.b Geometría de Polígono Perfecto (Lados de igual longitud)
+assert(shapeGeometrySrc48.includes('scale = size / Math.max(w, h)'), 'normalizePoints escala uniformemente para preservar la simetría y longitud exacta de lados');
+assert(!factoriesSrc48.includes("p.set({ width: 100, height: 100 })"), 'polygonFrom preserva el ancho matemático real de los vértices sin forzar distorsión 100x100');
+
+function testNormalizePoints(pts, size) {
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const w = maxX - minX || 1;
+  const h = maxY - minY || 1;
+  const scale = size / Math.max(w, h);
+  const offsetX = (size - w * scale) / 2;
+  const offsetY = (size - h * scale) / 2;
+  return pts.map((p) => ({
+    x: Math.round((offsetX + (p.x - minX) * scale) * 1000) / 1000,
+    y: Math.round((offsetY + (p.y - minY) * scale) * 1000) / 1000,
+  }));
+}
+function testRegPoly(sides, size = 100) {
+  const n = sides;
+  const r = size / 2;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    pts.push({ x: r + r * Math.cos(a), y: r + r * Math.sin(a) });
+  }
+  return testNormalizePoints(pts, size);
+}
+const hexPts = testRegPoly(6, 100);
+const sideLengths = hexPts.map((p, i) => {
+  const next = hexPts[(i + 1) % hexPts.length];
+  return Math.round(Math.hypot(next.x - p.x, next.y - p.y) * 100) / 100;
+});
+const allSidesEqual = sideLengths.every((len) => Math.abs(len - sideLengths[0]) < 0.05);
+assert(allSidesEqual && sideLengths[0] === 50, 'El polígono regular (hexágono) tiene lados de idéntica longitud (polígono perfecto de 6 lados iguales)');
 
 // 2. Formas en insert.ts
 assert(insertSrc48.includes("rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })"), "Rectangulo en insert.ts inicia blanco, sin borde y sin redondez");

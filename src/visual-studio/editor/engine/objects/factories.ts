@@ -170,7 +170,6 @@ export function createTriangle(at: Placement, size: number, height = size * 0.9)
 
 export function polygonFrom(points: { x: number; y: number }[], at: Placement, size: number, props: DoryProps): Polygon {
   const p = new Polygon(points, { ...baseShape(at, size, size) })
-  p.set({ width: 100, height: 100 })
   p.set({ scaleX: size / 100, scaleY: size / 100, left: at.x, top: at.y })
   return finish(p, props)
 }
