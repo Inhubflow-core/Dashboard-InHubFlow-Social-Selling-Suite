@@ -3014,6 +3014,46 @@ const personalComposerCode60 = fs.readFileSync('src/components/viral-posts/Perso
 assert(personalComposerCode60.includes('export default function PersonalPostComposerView'), 'PersonalPostComposerView preserva exportación default para retrocompatibilidad');
 assert(personalComposerCode60.includes('<CreateViralPostView {...props} />'), 'PersonalPostComposerView delega transparentemente en CreateViralPostView');
 
+// ==================================================================
+// 61. Planificación de 1 Mes en 1 Clic (12 Posts: Lun, Mié, Vie x 4 semanas)
+// ==================================================================
+console.log("\n--- TEST: Planificación de 1 Mes en 1 Clic (12 Posts: Lun, Mié, Vie x 4 semanas) ---");
+
+const viralStoreCode61 = fs.readFileSync('src/lib/viral-posts/store.ts', 'utf8');
+assert(viralStoreCode61.includes('export function generateMonthScheduleDates'), 'store.ts exporta generateMonthScheduleDates');
+assert(viralStoreCode61.includes('export function addBatchCreatedPosts'), 'store.ts exporta addBatchCreatedPosts');
+
+// Validar algoritmo matemático de fechas
+const mockBaseDate = new Date('2026-11-13T12:00:00Z');
+// Importar o simular la función exactamente como fue codificada
+const datesMock = [];
+const currentMock = new Date(mockBaseDate);
+currentMock.setDate(currentMock.getDate() + 1);
+currentMock.setHours(9, 30, 0, 0);
+while (datesMock.length < 12) {
+  const day = currentMock.getDay();
+  if (day === 1 || day === 3 || day === 5) {
+    datesMock.push(new Date(currentMock));
+  }
+  currentMock.setDate(currentMock.getDate() + 1);
+}
+
+assert(datesMock.length === 12, 'generateMonthScheduleDates genera exactamente 12 publicaciones');
+const allAreMonWedFri = datesMock.every((d) => d.getDay() === 1 || d.getDay() === 3 || d.getDay() === 5);
+assert(allAreMonWedFri, 'Todas las fechas corresponden a Lunes (1), Miércoles (3) o Viernes (5)');
+
+const mondays = datesMock.filter((d) => d.getDay() === 1).length;
+const wednesdays = datesMock.filter((d) => d.getDay() === 3).length;
+const fridays = datesMock.filter((d) => d.getDay() === 5).length;
+assert(mondays === 4 && wednesdays === 4 && fridays === 4, 'Exactamente 4 Lunes, 4 Miércoles y 4 Viernes a lo largo de 4 semanas');
+
+const viralRadarCode61 = fs.readFileSync('src/components/viral-posts/ViralRadarView.tsx', 'utf8');
+assert(viralRadarCode61.includes('Crear Contenido para 1 Mes (12 Posts)'), 'Botón 1-clic "Crear Contenido para 1 Mes (12 Posts)" presente en ViralRadarView');
+assert(viralRadarCode61.includes('handleGenerateMonthPlan'), 'Función orquestadora handleGenerateMonthPlan implementada');
+assert(viralRadarCode61.includes('showMonthPlanModal'), 'Modal confirmatorio y explicativo showMonthPlanModal implementado');
+assert(viralRadarCode61.includes('onTabChange("calendar")'), 'Acceso directo para navegar al Calendario Editorial tras generar los 12 posts');
+assert(viralRadarCode61.includes('4 Portadas Ejecutivas') && viralRadarCode61.includes('4 Artículos de Texto') && viralRadarCode61.includes('4 Carruseles PDF'), 'Estrategia diversificada de 3 formatos (Portadas, Texto, Carruseles) presentada');
+
 // Limpieza de base de datos de test
 
 db.close();

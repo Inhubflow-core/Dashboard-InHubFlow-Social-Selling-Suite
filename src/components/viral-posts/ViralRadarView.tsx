@@ -23,11 +23,26 @@ import {
   setSelectedTemplateForModeling,
   getStoredRadarState,
   saveStoredRadarState,
+  generateMonthScheduleDates,
+  addBatchCreatedPosts,
 } from "@/lib/viral-posts/store";
-import type { PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
+import { SAMPLE_B2B_BACKGROUNDS } from "./CreateViralPostView";
+import type { CreatedPost, PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Sparkles,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  Layers,
+  FileText,
+  Image as ImageIcon,
+  X,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 
 export type TargetMarket =
   | "latam_us"
@@ -170,6 +185,11 @@ export default function ViralRadarView({
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasSearchedOnce, setHasSearchedOnce] = useState(false);
+
+  // Estados para Generador de Plan de 1 Mes (12 Posts)
+  const [isGeneratingMonthPlan, setIsGeneratingMonthPlan] = useState(false);
+  const [showMonthPlanModal, setShowMonthPlanModal] = useState(false);
+  const [generatedMonthPosts, setGeneratedMonthPosts] = useState<CreatedPost[]>([]);
 
   // Detección 100% Automática de Ubicación y Mercado (Sin selección manual de botones)
   const [detectedLocation, setDetectedLocation] = useState<DetectedMarketInfo>(() => detectUserMarket());
@@ -492,6 +512,121 @@ export default function ViralRadarView({
     setSelectedPostForModal(null);
   };
 
+  const formatScheduleDay = (isoDate: string) => {
+    const d = new Date(isoDate);
+    const dayNames = ["Dom", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb"];
+    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const dayName = dayNames[d.getDay()] || "Día";
+    const dayNumber = d.getDate();
+    const monthName = monthNames[d.getMonth()] || "";
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return {
+      dayName,
+      dayNumber,
+      monthName,
+      time: `${hours}:${minutes}`,
+      fullLabel: `${dayName} ${dayNumber} ${monthName} · ${hours}:${minutes}`,
+    };
+  };
+
+  // Generador 1-Clic: Programa 12 posts (Lunes, Miércoles y Viernes en 4 semanas)
+  const handleGenerateMonthPlan = () => {
+    if (!filteredPosts || filteredPosts.length === 0) return;
+    setIsGeneratingMonthPlan(true);
+
+    try {
+      // 1. Obtener exactamente 12 fechas en días Lun, Mié y Vie de las próximas 4 semanas
+      const dates = generateMonthScheduleDates(new Date());
+
+      // 2. Tomar los mejores posts virales (o ciclar sobre el Top 12)
+      const targetSourcePosts: ViralPostTemplate[] = [];
+      for (let i = 0; i < 12; i++) {
+        targetSourcePosts.push(filteredPosts[i % filteredPosts.length]);
+      }
+
+      // Cuenta activa de LinkedIn para asignación
+      const activeAccount = getActiveAccountForUser(currentUser);
+      const targetAccountId = activeAccount?.id || currentUser?.id;
+
+      // 3. Transformar cada post viral en un CreatedPost programado
+      const newScheduledPosts: CreatedPost[] = targetSourcePosts.map((sourcePost, index) => {
+        const scheduledDate = dates[index];
+        // Distribuir equitativamente entre los 3 formatos: 0 = Imagen, 1 = Texto, 2 = Carrusel
+        const formatTypeIndex = index % 3;
+        const format: PostFormat = formatTypeIndex === 0 ? "image" : formatTypeIndex === 1 ? "text" : "carousel";
+
+        const rawHook = sourcePost.hook?.replace(/:$/, "").trim() || sourcePost.topic || "Estrategia B2B en LinkedIn";
+        const title = rawHook.slice(0, 75);
+
+        // Contenido estructurado de alto impacto para LinkedIn
+        let postContent = "";
+        if (sourcePost.fullContent && sourcePost.fullContent.length > 120) {
+          postContent = sourcePost.fullContent;
+        } else {
+          postContent = `${rawHook}\n\nLa mayoría de las empresas B2B cometen el error de precipitar el pitch comercial antes de entender el contexto real del decisor.\n\nAquí los 3 puntos clave para generar demanda cualificada:\n• 1. Diagnóstico previo: No presentes una propuesta sin entender el problema real.\n• 2. Relevancia sobre volumen: 10 conversaciones contextualizadas superan a 500 mensajes genéricos.\n• 3. Construcción de confianza: Aporta perspectiva y casos reales antes de pedir una reunión.\n\n¿Cuál de estos tres puntos representa tu mayor desafío actual? Te leo en comentarios.`;
+        }
+
+        const bgUrl =
+          SAMPLE_B2B_BACKGROUNDS[index % SAMPLE_B2B_BACKGROUNDS.length]?.url ||
+          "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85";
+
+        const post: CreatedPost = {
+          id: `scheduled-month-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`,
+          title,
+          format,
+          content: postContent,
+          sourceMode: "viral",
+          mediaUrl: format === "image" ? (sourcePost.mediaUrl || bgUrl) : undefined,
+          coverImage: format === "image" || format === "carousel" ? (sourcePost.mediaUrl || bgUrl) : undefined,
+          carouselPageCount: format === "carousel" ? 4 : undefined,
+          carouselSlides: format === "carousel" ? [
+            {
+              slideNumber: 1,
+              isCover: true,
+              title: rawHook,
+              subtitle: "Guía Ejecutiva de Social Selling B2B",
+              content: ["InHubFlow Social Selling", "Framework de Alto Rendimiento"],
+              backgroundImageUrl: bgUrl,
+              coverLayout: index % 2 === 0 ? "bottom" : "split_left",
+            },
+            {
+              slideNumber: 2,
+              title: "Paso 1: Diagnóstico de Situación",
+              content: ["Identifica la brecha de negocio.", "Prioriza las cuentas con intención real de compra."],
+            },
+            {
+              slideNumber: 3,
+              title: "Paso 2: Conversación Consultiva",
+              content: ["Aporta contexto antes de pedir una reunión.", "Posiciona autoridad sin fricción comercial."],
+            },
+            {
+              slideNumber: 4,
+              isCta: true,
+              title: "¿Quieres aplicar esta metodología?",
+              content: ["Guarda esta publicación en tus marcadores.", "Comenta 'SISTEMA' para recibir el documento completo."],
+            }
+          ] : undefined,
+          status: "scheduled",
+          scheduledAt: scheduledDate.toISOString(),
+          createdAt: new Date().toISOString(),
+          targetAccountId,
+        };
+
+        return post;
+      });
+
+      // 4. Guardar los 12 posts en el almacenamiento persistente
+      addBatchCreatedPosts(newScheduledPosts);
+      setGeneratedMonthPosts(newScheduledPosts);
+      setShowMonthPlanModal(true);
+    } catch (err) {
+      console.error("[Generate Month Plan Error]:", err);
+    } finally {
+      setIsGeneratingMonthPlan(false);
+    }
+  };
+
   const handleTogglePostTranslation = async (post: ViralPostTemplate) => {
     if (!post) return;
     const current = translations[post.id];
@@ -742,9 +877,9 @@ export default function ViralRadarView({
 
       {/* Listado de Tarjetas */}
       <div>
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
               {t("sectionTitle", { count: filteredPosts.length })}
             </h3>
             {livePosts.length > 0 && (
@@ -772,11 +907,30 @@ export default function ViralRadarView({
               </button>
             )}
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {searchError && lastSuccessfulKeyword !== searchKeyword
-    ? t("showingRetryPending", { last: lastSuccessfulKeyword, current: searchKeyword })
-    : t("showingKeyword", { kw: lastSuccessfulKeyword || searchKeyword })}
-          </span>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Botón 1-Clic: Crear Contenido para 1 Mes (12 Posts) */}
+            {filteredPosts.length > 0 && (
+              <button
+                type="button"
+                onClick={handleGenerateMonthPlan}
+                disabled={isGeneratingMonthPlan}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              >
+                <Sparkles className={`size-4 ${isGeneratingMonthPlan ? "animate-spin" : "text-amber-300"}`} />
+                <span>{isGeneratingMonthPlan ? "Programando 12 posts..." : "Crear Contenido para 1 Mes (12 Posts)"}</span>
+                <span className="hidden md:inline-block text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
+                  Lun · Mié · Vie (4 sem.)
+                </span>
+              </button>
+            )}
+
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {searchError && lastSuccessfulKeyword !== searchKeyword
+                ? t("showingRetryPending", { last: lastSuccessfulKeyword, current: searchKeyword })
+                : t("showingKeyword", { kw: lastSuccessfulKeyword || searchKeyword })}
+            </span>
+          </div>
         </div>
 
         {/* Banner explicativo cuando opera en modo local / simulación */}
@@ -1524,6 +1678,154 @@ export default function ViralRadarView({
                   }}
                   className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition shadow-xs cursor-pointer"
                 >{t("modelThisPostBtn")}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal: Plan Editorial de 1 Mes Generado con Éxito */}
+      {showMonthPlanModal && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto custom-scrollbar rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6">
+            {/* Header del Modal */}
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0099ff]">
+                    <Sparkles className="size-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    ¡12 Publicaciones Programadas para 1 Mes Completo!
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Hemos generado y distribuido 12 publicaciones inspiradas en tu Top 12 viral, organizadas a razón de 3 por semana (<strong>Lunes, Miércoles y Viernes a las 09:30 AM</strong>).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMonthPlanModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Badges de Resumen de Formatos */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Estrategia de Formatos:</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-[11px] font-bold text-[#0099ff]">
+                <ImageIcon className="size-3.5" />
+                4 Portadas Ejecutivas (4:5)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                <FileText className="size-3.5" />
+                4 Artículos de Texto Puro
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[11px] font-bold text-purple-600 dark:text-purple-400">
+                <Layers className="size-3.5" />
+                4 Carruseles PDF
+              </span>
+            </div>
+
+            {/* Cuadrícula de 4 Semanas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[0, 1, 2, 3].map((weekIndex) => {
+                const weekPosts = generatedMonthPosts.slice(weekIndex * 3, (weekIndex + 1) * 3);
+                return (
+                  <div
+                    key={weekIndex}
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/60 pb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Calendar className="size-3.5 text-[#0099ff]" />
+                        Semana {weekIndex + 1}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        3 Publicaciones
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {weekPosts.map((post) => {
+                        const sched = formatScheduleDay(post.scheduledAt || "");
+                        return (
+                          <div
+                            key={post.id}
+                            className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-start gap-3 shadow-2xs"
+                          >
+                            <div className="shrink-0 text-center w-12 pt-0.5">
+                              <span className="block text-[10px] font-extrabold uppercase text-[#0099ff]">
+                                {sched.dayName.slice(0, 3)}
+                              </span>
+                              <span className="block text-sm font-extrabold text-slate-800 dark:text-white leading-tight">
+                                {sched.dayNumber}
+                              </span>
+                              <span className="block text-[9px] text-slate-400">
+                                {sched.monthName}
+                              </span>
+                            </div>
+
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                                  post.format === "image"
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                                    : post.format === "carousel"
+                                    ? "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                                }`}>
+                                  {post.format === "image" ? "Portada" : post.format === "carousel" ? "Carrusel" : "Texto"}
+                                </span>
+                                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                                  <Clock className="size-2.5" />
+                                  {sched.time}
+                                </span>
+                              </div>
+                              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">
+                                {post.title}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                💡 Puedes revisar, reorganizar o editar el contenido e imágenes de cada publicación desde el <strong>Calendario Editorial</strong>.
+              </span>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowMonthPlanModal(false)}
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                >
+                  Seguir en Radar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMonthPlanModal(false);
+                    if (onTabChange) {
+                      onTabChange("calendar");
+                    } else {
+                      router.push("/viral-posts?tab=calendar");
+                    }
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <Calendar className="size-4" />
+                  <span>Ir al Calendario Editorial</span>
+                  <ArrowRight className="size-3.5" />
+                </button>
               </div>
             </div>
           </div>

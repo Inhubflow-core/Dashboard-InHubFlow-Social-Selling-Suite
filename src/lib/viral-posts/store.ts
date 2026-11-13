@@ -206,6 +206,12 @@ export function useCreatedPosts() {
     saveCreatedPosts(updated);
   };
 
+  const addBatchPosts = (newPosts: CreatedPost[]) => {
+    const updated = [...newPosts, ...posts];
+    setPosts(updated);
+    saveCreatedPosts(updated);
+  };
+
   const updatePost = (id: string, updates: Partial<CreatedPost>) => {
     const updated = posts.map((p) => (p.id === id ? { ...p, ...updates } : p));
     setPosts(updated);
@@ -218,5 +224,36 @@ export function useCreatedPosts() {
     saveCreatedPosts(updated);
   };
 
-  return { posts, isLoaded, addPost, updatePost, deletePost };
+  return { posts, isLoaded, addPost, addBatchPosts, updatePost, deletePost };
 }
+
+/**
+ * Genera 12 fechas consecutivas en 4 semanas en días Lunes (1), Miércoles (3) y Viernes (5) a las 09:30 AM
+ */
+export function generateMonthScheduleDates(startDate: Date = new Date()): Date[] {
+  const dates: Date[] = [];
+  const current = new Date(startDate);
+  // Comenzar desde el día siguiente
+  current.setDate(current.getDate() + 1);
+  current.setHours(9, 30, 0, 0);
+
+  while (dates.length < 12) {
+    const day = current.getDay(); // 1 = Lunes, 3 = Miércoles, 5 = Viernes
+    if (day === 1 || day === 3 || day === 5) {
+      dates.push(new Date(current));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+/**
+ * Guarda en lote una lista de posts creados en el almacenamiento persistente
+ */
+export function addBatchCreatedPosts(newPosts: CreatedPost[]): CreatedPost[] {
+  const current = getStoredCreatedPosts();
+  const updated = [...newPosts, ...current];
+  saveCreatedPosts(updated);
+  return updated;
+}
+
