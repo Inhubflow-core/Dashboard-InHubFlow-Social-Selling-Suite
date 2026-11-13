@@ -2628,6 +2628,12 @@ assert(!shapesDrawerSrc48.includes("id: 'rounded'"), "Rectangulo redondeado ('ro
 assert(!shapesDrawerSrc48.includes("moreBasics"), "Grupo 'moreBasics' eliminado por completo de la interfaz del drawer");
 assert(shapesDrawerSrc48.includes('id: \'frame\', label: t.drawers.frame, icon: sv(<rect x="4" y="2" width="20" height="24" rx="0"'), "Icono de Marco (frame) tiene esquinas rectas con rx=0");
 
+// 4. Speech Bubble y Cloud en Formas Basicas (lineales / solo borde)
+assert(shapesDrawerSrc48.includes("id: 'speech',") && shapesDrawerSrc48.includes("run: shape('speech')"), "Speech bubble integrado en el grupo de formas basicas");
+assert(shapesDrawerSrc48.includes("id: 'cloud',") && shapesDrawerSrc48.includes("run: shape('cloud')"), "Cloud integrado en el grupo de formas basicas");
+assert(insertSrc48.includes("case 'speech':") && insertSrc48.includes("fill: 'transparent'"), "Speech bubble se inserta de forma lineal (solo borde, fill transparente)");
+assert(insertSrc48.includes("case 'cloud':") && insertSrc48.includes("fill: 'transparent'"), "Cloud se inserta de forma lineal (solo borde, fill transparente)");
+
 // ==================================================================
 // 49. Prueba de Desactivacion de Doble Clic en Vacio e Interaccion Inmediata Multipagina
 // ==================================================================

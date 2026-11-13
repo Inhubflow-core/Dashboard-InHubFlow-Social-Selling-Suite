@@ -54,7 +54,7 @@ import { t } from '../../strings'
 import { reidTree } from './arrange'
 import { clipPropsFromAsset, isClip } from '../../clips/model'
 
-export type ShapeKind = 'rect' | 'rounded' | 'ellipse' | 'triangle' | 'polygon' | 'star' | 'diamond' | 'line' | 'arrow' | 'divider' | 'frame'
+export type ShapeKind = 'rect' | 'rounded' | 'ellipse' | 'triangle' | 'polygon' | 'star' | 'diamond' | 'line' | 'arrow' | 'divider' | 'frame' | 'speech' | 'cloud'
 
 const MAX_SVG_BYTES = 2 * 1024 * 1024
 
@@ -224,6 +224,42 @@ export class InsertApi {
         obj = createRect(at, Math.round(200 * k), 0, Math.round(280 * k))
         obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })
         label = t.history.addFrame
+        break
+      }
+      case 'speech': {
+        const page = this.engine.pageSizeOf(this.engine.state.activePageId)
+        const pathObj = createPathShape('speech', at, defaultShapeSize(page))
+        if (pathObj) {
+          pathObj.set({
+            fill: 'transparent',
+            stroke: '#1c1517',
+            strokeWidth: Math.max(2, Math.round(2 * k)),
+            strokeLinejoin: 'round',
+            strokeUniform: true,
+          })
+          obj = pathObj
+        } else {
+          obj = softShape(createRect(at, defaultShapeSize(page)), page)
+        }
+        label = t.shapes.speech
+        break
+      }
+      case 'cloud': {
+        const page = this.engine.pageSizeOf(this.engine.state.activePageId)
+        const pathObj = createPathShape('cloud', at, defaultShapeSize(page))
+        if (pathObj) {
+          pathObj.set({
+            fill: 'transparent',
+            stroke: '#1c1517',
+            strokeWidth: Math.max(2, Math.round(2 * k)),
+            strokeLinejoin: 'round',
+            strokeUniform: true,
+          })
+          obj = pathObj
+        } else {
+          obj = softShape(createRect(at, defaultShapeSize(page)), page)
+        }
+        label = t.shapes.cloud
         break
       }
     }

@@ -27,8 +27,8 @@ interface ShapeCard {
 
 const chartPreview = (kind: ChartKind): string => `data:image/svg+xml;utf8,${encodeURIComponent(chartSvg(kind))}`
 
-const sv = (children: ReactNode): ReactNode => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+const sv = (children: ReactNode, viewBox = '0 0 28 28'): ReactNode => (
+  <svg width="28" height="28" viewBox={viewBox} fill="none" aria-hidden="true">
     {children}
   </svg>
 )
@@ -55,6 +55,34 @@ export function ShapesDrawer({ close }: PanelProps) {
     { id: 'ellipse', label: t.basicShapes.circle, icon: sv(<circle cx="14" cy="14" r="10" stroke="currentColor" strokeWidth="1.5" />), run: shape('ellipse') },
     { id: 'triangle', label: t.basicShapes.triangle, icon: sv(<path d="M14 4L24 24H4L14 4z" stroke="currentColor" strokeWidth="1.5" />), run: shape('triangle') },
     { id: 'line', label: t.basicShapes.line, icon: sv(<line x1="4" y1="14" x2="24" y2="14" stroke="currentColor" strokeWidth="2" />), run: shape('line') },
+    {
+      id: 'speech',
+      label: t.shapes.speech,
+      icon: sv(
+        <path
+          d="M16 8 H84 Q92 8 92 16 V56 Q92 64 84 64 H46 L26 86 V64 H16 Q8 64 8 56 V16 Q8 8 16 8 Z"
+          stroke="currentColor"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />,
+        '0 0 100 100'
+      ),
+      run: shape('speech'),
+    },
+    {
+      id: 'cloud',
+      label: t.shapes.cloud,
+      icon: sv(
+        <path
+          d="M26 80 C10 80 2 68 6 55 C8 45 18 40 25 42 C25 25 41 14 56 21 C64 9 85 14 86 33 C99 35 101 54 91 65 C87 75 79 80 70 80 Z"
+          stroke="currentColor"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />,
+        '0 0 100 100'
+      ),
+      run: shape('cloud'),
+    },
   ]
   const decorative: ShapeCard[] = [
     { id: 'star', label: t.basicShapes.star, icon: sv(<path d="M14 2l3.5 7.5L25 11l-5.5 5 1.5 8L14 20.5 7 24l1.5-8L3 11l7.5-1.5L14 2z" stroke="currentColor" strokeWidth="1.5" />), run: shape('star') },
