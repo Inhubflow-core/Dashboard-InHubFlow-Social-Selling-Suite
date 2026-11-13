@@ -2316,7 +2316,7 @@ assert(gradientOverlaysCode.includes('lowestTextIndex'), "Ajuste inteligente de 
 const shapesDrawerCode = fs.readFileSync('c:/Users/Roberto/Documents/CLIENTES/INHUBFLOW/InHubFlow - Social Selling/Dashboard InHubFlow Social Selling Suite/src/visual-studio/editor/drawers/ShapesDrawer.tsx', 'utf8');
 assert(shapesDrawerCode.includes('gradientSection'), "Sección estelar de degradados integrada en el drawer de Elementos");
 assert(shapesDrawerCode.includes('handleInsertOverlay'), "Disparador de inserción directa de degradados presente en Elementos");
-assert(shapesDrawerCode.includes('coverageBtn'), "Control de cobertura de degradado (Zona Texto 65% vs Lienzo 100%) disponible");
+assert(shapesDrawerCode.includes("coverage: 'half'"), "Cobertura de degradado fijada en 65% (Zona Texto) por defecto sin controles innecesarios");
 
 // ==================================================================
 // 39. Prueba de Composiciones de Portada 1-Clic para Carruseles B2B

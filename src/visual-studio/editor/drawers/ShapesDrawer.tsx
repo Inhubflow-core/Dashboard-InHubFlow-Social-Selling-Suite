@@ -37,7 +37,6 @@ const sv = (children: ReactNode): ReactNode => (
 export function ShapesDrawer({ close }: PanelProps) {
   const editor = useEditor()
   const [selectedColor, setSelectedColor] = useState('#000000')
-  const [coverage, setCoverage] = useState<'half' | 'full'>('half')
   const colorBtnRef = useRef<HTMLButtonElement>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -46,7 +45,8 @@ export function ShapesDrawer({ close }: PanelProps) {
   const insertChart = (kind: ChartKind): Promise<void> => editor.insert.svgElement(chartSvg(kind), `chart-${kind}`, t.drawers.chartNames[kind])
 
   const handleInsertOverlay = async (preset: GradientOverlayPreset) => {
-    await insertGradientOverlay(editor, preset, { color: selectedColor, coverage, opacity: 1 })
+    // Cobertura por defecto al 65% (Zona Texto)
+    await insertGradientOverlay(editor, preset, { color: selectedColor, coverage: 'half', opacity: 1 })
     close()
   }
 
@@ -201,26 +201,6 @@ export function ShapesDrawer({ close }: PanelProps) {
               />
             </div>
           </Popover>
-        </div>
-
-        {/* Selector de Cobertura */}
-        <div style={{ marginBottom: 12 }}>
-          <div className={styles.coverageToggle}>
-            <button
-              type="button"
-              className={`${styles.coverageBtn} ${coverage === 'half' ? styles.coverageBtnActive : ''}`}
-              onClick={() => setCoverage('half')}
-            >
-              Zona Texto (65%)
-            </button>
-            <button
-              type="button"
-              className={`${styles.coverageBtn} ${coverage === 'full' ? styles.coverageBtnActive : ''}`}
-              onClick={() => setCoverage('full')}
-            >
-              Lienzo Completo
-            </button>
-          </div>
         </div>
 
         {/* Tarjetas de Presets de Degradado */}
