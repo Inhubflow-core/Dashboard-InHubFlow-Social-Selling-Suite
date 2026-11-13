@@ -22,18 +22,6 @@ registerPalette({
   colors: ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'],
 })
 registerPalette({
-  id: 'pastel',
-  label: 'Pastel',
-  order: 20,
-  colors: ['#fecaca', '#fed7aa', '#fef08a', '#d9f99d', '#bbf7d0', '#a5f3fc', '#bfdbfe', '#c7d2fe', '#e9d5ff', '#fbcfe8'],
-})
-registerPalette({
-  id: 'earth',
-  label: 'Earth',
-  order: 30,
-  colors: ['#292524', '#57534e', '#78716c', '#a8a29e', '#d6d3d1', '#92400e', '#b45309', '#d97706', '#65a30d', '#3f6212'],
-})
-registerPalette({
   id: 'mono',
   label: 'Grayscale',
   order: 40,
