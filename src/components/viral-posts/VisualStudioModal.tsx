@@ -8,8 +8,11 @@ import {
   Square as SquareIcon, 
   RectangleHorizontal,
   Loader2,
-  BookmarkPlus 
+  BookmarkPlus,
+  Download,
+  FileText
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import "@visual-studio/styles/tokens.css";
 import { initContrast } from "@visual-studio/lib/contrast";
 import { EditorApp } from "@visual-studio/editor/EditorApp";
@@ -82,6 +85,7 @@ export const LINKEDIN_SIZES: Record<LinkedInAspectRatio, LinkedInSizeConfig> = {
 export interface VisualStudioModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: "single" | "carousel";
   initialTitle?: string;
   initialSubtitle?: string;
   initialHighlight?: string;
@@ -91,17 +95,20 @@ export interface VisualStudioModalProps {
   authorHandle?: string;
   authorAvatar?: string;
   onApplyImage?: (dataUrl: string) => void;
+  onApplyCarousel?: (result: { pdfDataUrl: string; pageCount: number; thumbnail: string }) => void;
 }
 
 export default function VisualStudioModal({
   isOpen,
   onClose,
+  mode = "single",
   initialTitle,
   initialSubtitle,
   initialHighlight,
   authorName,
   authorHandle,
   onApplyImage,
+  onApplyCarousel,
 }: VisualStudioModalProps) {
   const { isSuperAdmin, currentUser } = useAuth();
   const editorRef = useRef<EditorHandle>(null);
@@ -285,10 +292,151 @@ export default function VisualStudioModal({
           effects: null,
         } as any);
       }
+
+      // Si estamos en modo Carrusel y solo hay 1 página, agregar diapositivas iniciales de contenido y CTA
+      if (mode === "carousel" && blank.pages.length === 1) {
+        blank.pages.push({
+          id: newId(),
+          width: dimensions.width,
+          height: dimensions.height,
+          background: { type: "solid", color: "#f8fafc" },
+          objects: [
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "Paso 1",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.22),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.8),
+              height: 80,
+              text: "1. El Diagnóstico",
+              fontFamily: "Outfit",
+              fontSize: isHorizontal ? 32 : isSquare ? 38 : 42,
+              fontWeight: "bold",
+              fill: "#0f172a",
+              textAlign: "center",
+            } as any,
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "Contenido 1",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.46),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.76),
+              height: 160,
+              text: "La mayoría de estrategias fallan al saltar directo al pitch comercial sin entender el dolor del decisor.",
+              fontFamily: "Inter",
+              fontSize: isHorizontal ? 20 : isSquare ? 24 : 26,
+              fontWeight: "normal",
+              fill: "#475569",
+              textAlign: "center",
+              lineHeight: 1.4,
+            } as any,
+          ],
+        } as any);
+
+        blank.pages.push({
+          id: newId(),
+          width: dimensions.width,
+          height: dimensions.height,
+          background: { type: "solid", color: "#ffffff" },
+          objects: [
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "Paso 2",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.22),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.8),
+              height: 80,
+              text: "2. El Framework",
+              fontFamily: "Outfit",
+              fontSize: isHorizontal ? 32 : isSquare ? 38 : 42,
+              fontWeight: "bold",
+              fill: "#0f172a",
+              textAlign: "center",
+            } as any,
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "Contenido 2",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.46),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.76),
+              height: 160,
+              text: "Crea un activo de valor concreto (Playbook o Plantilla) que resuelva un problema real en menos de 10 minutos.",
+              fontFamily: "Inter",
+              fontSize: isHorizontal ? 20 : isSquare ? 24 : 26,
+              fontWeight: "normal",
+              fill: "#475569",
+              textAlign: "center",
+              lineHeight: 1.4,
+            } as any,
+          ],
+        } as any);
+
+        blank.pages.push({
+          id: newId(),
+          width: dimensions.width,
+          height: dimensions.height,
+          background: { type: "solid", color: "#0f172a" },
+          objects: [
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "CTA",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.35),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.82),
+              height: 120,
+              text: "¿Quieres este recurso?",
+              fontFamily: "Outfit",
+              fontSize: isHorizontal ? 36 : isSquare ? 44 : 48,
+              fontWeight: "bold",
+              fill: "#ffffff",
+              textAlign: "center",
+            } as any,
+            {
+              id: newId(),
+              type: "Textbox",
+              kind: "text",
+              name: "CTA Sub",
+              left: Math.round(dimensions.width / 2),
+              top: Math.round(dimensions.height * 0.58),
+              originX: "center",
+              originY: "center",
+              width: Math.round(dimensions.width * 0.78),
+              height: 80,
+              text: "Deja un comentario con la palabra clave y te lo enviamos directamente por mensaje privado.",
+              fontFamily: "Inter",
+              fontSize: isHorizontal ? 18 : isSquare ? 22 : 24,
+              fontWeight: "normal",
+              fill: "#94a3b8",
+              textAlign: "center",
+              lineHeight: 1.4,
+            } as any,
+          ],
+        } as any);
+      }
     }
 
     return blank;
-  }, [docKey, initialTitle, initialSubtitle]);
+  }, [docKey, initialTitle, initialSubtitle, mode]);
 
   // Create in-memory adapter con auto-persistencia en localStorage para que no se pierda al recargar (F5)
   const adapterPackage = useMemo(() => {
@@ -414,26 +562,122 @@ export default function VisualStudioModal({
     }
   }, []);
 
-  // Handle Apply to LinkedIn Post
-  const handleApplyToPost = useCallback(() => {
+  // Helper to extract multi-page PDF for carousel
+  const generateCarouselPdf = useCallback(async (): Promise<{ pdfDataUrl: string; pageCount: number; thumbnail: string } | null> => {
+    try {
+      const engine = editorRef.current?.getEngine?.();
+      const rawDoc = editorRef.current?.getDocument?.() || null;
+      if (!rawDoc || !rawDoc.pages || rawDoc.pages.length === 0) return null;
+
+      const pdf = new jsPDF({
+        orientation: dimensions.width > dimensions.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [dimensions.width, dimensions.height],
+        hotfixes: ["px_scaling"],
+      });
+
+      let thumbnail = "";
+
+      for (let i = 0; i < rawDoc.pages.length; i++) {
+        const page = rawDoc.pages[i];
+        let pageDataUrl: string | null = null;
+
+        if (engine) {
+          try {
+            const view = engine.viewOf(page.id);
+            if (view?.canvas) {
+              pageDataUrl = view.canvas.toDataURL({
+                format: "jpeg",
+                quality: 0.92,
+              });
+            }
+          } catch {}
+        }
+
+        if (!pageDataUrl) {
+          const fallback = getRenderedImageDataUrl();
+          if (fallback) pageDataUrl = fallback;
+        }
+
+        if (pageDataUrl) {
+          if (i === 0) {
+            thumbnail = pageDataUrl;
+          }
+          if (i > 0) {
+            pdf.addPage([dimensions.width, dimensions.height]);
+          }
+          pdf.addImage(pageDataUrl, "JPEG", 0, 0, dimensions.width, dimensions.height);
+        }
+      }
+
+      const pdfDataUrl = pdf.output("datauristring");
+      return {
+        pdfDataUrl,
+        pageCount: rawDoc.pages.length,
+        thumbnail: thumbnail || (getRenderedImageDataUrl() || ""),
+      };
+    } catch (err) {
+      console.error("[VisualStudio] Error generando carrusel PDF:", err);
+      return null;
+    }
+  }, [dimensions, getRenderedImageDataUrl]);
+
+  // Handle Apply to LinkedIn Post (Single Image or Carousel PDF)
+  const handleApplyToPost = useCallback(async () => {
     setIsExporting(true);
     try {
-      const dataUrl = getRenderedImageDataUrl();
-      if (dataUrl && onApplyImage) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(DRAFT_STORAGE_KEY);
+      if (mode === "carousel" && onApplyCarousel) {
+        const result = await generateCarouselPdf();
+        if (result) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+          }
+          onApplyCarousel(result);
+          onClose();
+          return;
+        } else {
+          alert("No se pudo generar el carrusel en PDF. Por favor intenta de nuevo.");
         }
-        onApplyImage(dataUrl);
-        onClose();
       } else {
-        alert("No se pudo exportar la imagen. Por favor intenta de nuevo.");
+        const dataUrl = getRenderedImageDataUrl();
+        if (dataUrl && onApplyImage) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+          }
+          onApplyImage(dataUrl);
+          onClose();
+          return;
+        } else {
+          alert("No se pudo exportar la imagen. Por favor intenta de nuevo.");
+        }
       }
     } catch (err) {
       console.error(err);
     } finally {
       setIsExporting(false);
     }
-  }, [getRenderedImageDataUrl, onApplyImage, onClose]);
+  }, [mode, onApplyCarousel, onApplyImage, generateCarouselPdf, getRenderedImageDataUrl, onClose]);
+
+  // Handle Direct Download PDF
+  const handleDownloadPdf = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const result = await generateCarouselPdf();
+      if (result) {
+        const a = document.createElement("a");
+        a.href = result.pdfDataUrl;
+        const ratioSlug = aspectRatio === "4:5" ? "vertical-4x5" : aspectRatio === "1:1" ? "cuadrada-1x1" : "horizontal-191x1";
+        a.download = `inhubflow-carrusel-${ratioSlug}-${result.pageCount}paginas-${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (err) {
+      console.error("Error al descargar PDF:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [generateCarouselPdf, aspectRatio]);
 
   // Handle Direct Download PNG
   const handleDownloadPng = useCallback(() => {
@@ -621,6 +865,18 @@ export default function VisualStudioModal({
         </button>
       )}
 
+      {/* Botón de Descarga Directa (PNG o PDF) */}
+      <button
+        type="button"
+        onClick={mode === "carousel" ? handleDownloadPdf : handleDownloadPng}
+        disabled={isExporting}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 transition-all active:scale-95 disabled:opacity-50"
+        title={mode === "carousel" ? "Descargar documento PDF del carrusel" : "Descargar imagen PNG en alta resolución"}
+      >
+        <Download size={14} />
+        <span>{mode === "carousel" ? "Descargar PDF" : "Descargar PNG"}</span>
+      </button>
+
       {/* Acción principal: "Aplicar al Post" */}
       <button
         type="button"
@@ -633,7 +889,7 @@ export default function VisualStudioModal({
         ) : (
           <Check size={14} />
         )}
-        <span>Aplicar al Post</span>
+        <span>{mode === "carousel" ? "Aplicar Carrusel (PDF)" : "Aplicar al Post"}</span>
       </button>
     </div>
   );

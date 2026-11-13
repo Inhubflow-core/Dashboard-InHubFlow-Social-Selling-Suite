@@ -19,7 +19,7 @@ import {
 } from "@/lib/viral-posts/store";
 import type { CarouselSlide, CreatedPost, PostFormat } from "@/lib/viral-posts/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
 import {
@@ -28,11 +28,30 @@ import {
   Bot,
   Upload,
   Layout,
-  AlignLeft,
   AlignCenter,
+  AlignLeft,
   AlignRight,
   Palette,
   Check,
+  Flame,
+  Copy,
+  PenTool,
+  FileText,
+  Layers,
+  Download,
+  Calendar,
+  Send,
+  Eye,
+  Trash2,
+  RefreshCw,
+  Sliders,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  HelpCircle,
+  Clock,
+  Type,
+  ListOrdered
 } from "lucide-react";
 import VisualStudioModal from "./VisualStudioModal";
 
@@ -94,6 +113,16 @@ export function parseHighlightedTitle(title: string, highlightColor: string = "#
   });
 }
 
+function toUnicodeBold(text: string): string {
+  return text.replace(/[A-Za-z0-9]/g, (char) => {
+    const code = char.charCodeAt(0);
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1d400 + code - 65);
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1d41a + code - 97);
+    if (code >= 48 && code <= 57) return String.fromCodePoint(0x1d7ce + code - 48);
+    return char;
+  });
+}
+
 export default function CreateViralPostView({
   onTabChange,
   hideBreadcrumb,
@@ -106,46 +135,178 @@ export default function CreateViralPostView({
   const { currentUser } = useAuth();
   const { addPost } = useCreatedPosts();
 
+  // 1. Selector de 3 Vías de Entrada (Origen del Post)
+  const [sourceMode, setSourceMode] = useState<"viral" | "external" | "scratch">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab")?.toLowerCase();
+      if (tab === "personal" || tab === "scratch") return "scratch";
+      if (tab === "external") return "external";
+    }
+    const selected = getSelectedTemplateForModeling();
+    return selected ? "viral" : "scratch";
+  });
+
+  // 2. Selector de 3 Formatos de Salida (Modelos de Post)
+  const [format, setFormat] = useState<PostFormat>("text"); // "text" | "image" | "carousel"
+
   // Cuentas de LinkedIn disponibles
   const [accounts, setAccounts] = useState<UnipileAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
-  const [format, setFormat] = useState<PostFormat>("text");
+  // Datos principales del Post
   const [topic, setTopic] = useState("Social Selling B2B");
+  const [tone, setTone] = useState("Autoridad B2B con llamada a la acción");
+  const [content, setContent] = useState("");
+  const [externalText, setExternalText] = useState("");
+
+  // Centinela Inbound & Auto-DM
   const [leadMagnetKeyword, setLeadMagnetKeyword] = useState("SISTEMA");
   const [autoDmEnabled, setAutoDmEnabled] = useState(true);
   const [autoLikeComment, setAutoLikeComment] = useState(true);
   const [autoDmMessage, setAutoDmMessage] = useState(
     `¡Hola {nombre}! Vi que comentaste '{palabra_clave}' en mi publicación. Aquí tienes el documento completo con el framework accionable. ¿En qué reto comercial estás enfocado este trimestre?`
   );
-  const [tone, setTone] = useState("Autoridad B2B con llamada a la acción");
-  const [content, setContent] = useState("");
-  const [imagePrompt, setImagePrompt] = useState("");
-  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
+  // Recurso Visual: Imagen Individual (Modelo 2)
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imagePrompt, setImagePrompt] = useState("");
+
+  // Recurso Visual: Carrusel Multipágina PDF (Modelo 3)
+  const [carouselPdfUrl, setCarouselPdfUrl] = useState<string | null>(null);
+  const [carouselPageCount, setCarouselPageCount] = useState<number>(0);
+  const [carouselThumbnail, setCarouselThumbnail] = useState<string | null>(null);
+  const [carouselPreviewSlide, setCarouselPreviewSlide] = useState(0);
+
+  // Modal del Editor Visual
   const [isVisualStudioOpen, setIsVisualStudioOpen] = useState(false);
 
+  // Referencia original si vino del Radar Viral
+  const [referenceHook, setReferenceHook] = useState("");
+  const [referenceContent, setReferenceContent] = useState("");
+  const [referenceAuthor, setReferenceAuthor] = useState("");
+
+  // Estados de IA, Feedback y Publicación
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    const tomorrow = new Date(Date.now() + 86400000);
+    return tomorrow.toISOString().split("T")[0];
+  });
+  const [scheduledTime, setScheduledTime] = useState("09:30");
+  const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isExpandedPreview, setIsExpandedPreview] = useState(false);
+
+  // Compatibilidad con estructura legacy de slides si se requiere
+  const [slides, setSlides] = useState<CarouselSlide[]>([
+    {
+      slideNumber: 1,
+      isCover: true,
+      title: "La mayoría de líderes B2B cometen **el mismo error** al prospectar en LinkedIn",
+      subtitle: "Hablan de su producto antes de entender el dolor del decisor.",
+      content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
+      footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+      coverLayout: "bottom",
+      backgroundImageUrl: SAMPLE_B2B_BACKGROUNDS[0].url,
+      highlightColor: "#f97316",
+    },
+    {
+      slideNumber: 2,
+      title: "El Diagnóstico",
+      content: ["Paso 1: Identifica el dolor real", "Evita el pitch comercial en frío", "Genera contexto de valor"],
+      footerText: "Paso 1: Diagnóstico",
+    },
+    {
+      slideNumber: 3,
+      isCta: true,
+      title: "¿Quieres Implementar Este Sistema?",
+      subtitle: "Recibe el documento de trabajo completo en PDF",
+      content: ["Comenta SISTEMA en esta publicación", "Te envío la guía por mensaje privado."],
+      footerText: "InHubFlow Social Selling",
+    },
+  ]);
+
+  const [carouselTheme, setCarouselTheme] = useState(() => ({
+    primaryColor: "#0099ff",
+    fontFamily: "Outfit",
+    authorName: currentUser.name,
+    authorHandle: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+  }));
+
+  // Cargar cuentas conectadas de LinkedIn
+  useEffect(() => {
+    const syncAccounts = () => {
+      const visible = getVisibleAccountsForUser(currentUser);
+      setAccounts(visible);
+      const active = getActiveAccountForUser(currentUser);
+      if (active) {
+        setSelectedAccountId(active.id);
+      } else if (visible.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(visible[0].id);
+      }
+    };
+    syncAccounts();
+    window.addEventListener("storage", syncAccounts);
+    return () => window.removeEventListener("storage", syncAccounts);
+  }, [currentUser]);
+
+  // Carga inicial según plantilla de Radar o borrador previo
+  useEffect(() => {
+    const selected = getSelectedTemplateForModeling();
+    if (selected) {
+      setSourceMode("viral");
+      setFormat(selected.format || "text");
+      setTopic(selected.topic || "Social Selling B2B");
+      setReferenceHook(selected.hook || "");
+      setReferenceContent(selected.fullContent || "");
+      setReferenceAuthor(selected.author || "");
+
+      if (selected.format === "text") {
+        setContent(`Construir autoridad en LinkedIn requiere consistencia y un gancho probado:
+
+${selected.hook}
+
+1. Entiende el dolor del decisor antes de proponer tu oferta.
+2. Comparte frameworks accionables en cada publicación.
+3. Genera conversación genuina con preguntas directas.
+
+¿Cuál es tu mayor desafío de prospección este mes? Comenta "${leadMagnetKeyword}" para enviarte nuestro playbook.`);
+      } else if (selected.format === "image") {
+        setContent(`La claridad en tu propuesta comercial es la mejor inversión que puedes hacer:
+
+${selected.hook}
+
+Revisa los puntos clave en la imagen adjunta y aplícalos en tu estrategia hoy.`);
+      } else if (selected.format === "carousel") {
+        setContent(`Desliza el carrusel completo para ver la guía detallada paso a paso:
+
+${selected.hook}
+
+Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF directamente por mensaje privado.`);
+      }
+    } else if (!content) {
+      setContent(`La mayoría de líderes B2B cometen el mismo error al prospectar en LinkedIn:
+
+Hablan de su producto antes de entender el dolor del decisor.
+
+Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
+
+1. Identifica una señal de compra real (contrataciones, cambios de puesto).
+2. Abre con un diagnóstico personalizado en lugar de un pitch en frío.
+3. Entrega un activo de valor concreto (plantilla, guía o cálculo).
+
+¿Cuál ha sido tu mayor reto de prospección este trimestre? Comenta "${leadMagnetKeyword}" y te envío el recurso completo.`);
+    }
+  }, [leadMagnetKeyword]);
+
+  // Manejo de apertura / cierre del Editor Visual sincronizado con URL
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const shouldBeOpen = params.get("editor") === "open" || sessionStorage.getItem("inhubflow_visual_studio_open") === "true";
-      if (shouldBeOpen) {
-        setIsVisualStudioOpen(true);
-      }
+      if (shouldBeOpen) setIsVisualStudioOpen(true);
     } catch {}
-  }, []);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const shouldBeOpen = params.get("editor") === "open";
-      setIsVisualStudioOpen(shouldBeOpen);
-      if (!shouldBeOpen) {
-        sessionStorage.removeItem("inhubflow_visual_studio_open");
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const handleOpenVisualStudio = () => {
@@ -168,177 +329,21 @@ export default function CreateViralPostView({
     }
   };
 
-  // Referencia original si vino de Radar Viral
-  const [referenceHook, setReferenceHook] = useState("");
-  const [referenceContent, setReferenceContent] = useState("");
-  const [referenceAuthor, setReferenceAuthor] = useState("");
-
-  // Estados de IA y Publicación
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState(() => {
-    const tomorrow = new Date(Date.now() + 86400000);
-    return tomorrow.toISOString().split("T")[0];
-  });
-  const [scheduledTime, setScheduledTime] = useState("09:30");
-  const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  // Carrusel slides state
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [carouselTheme, setCarouselTheme] = useState(() => ({
-    primaryColor: "#0099ff",
-    fontFamily: "Outfit",
-    authorName: currentUser.name,
-    authorHandle: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-  }));
-
-  const [slides, setSlides] = useState<CarouselSlide[]>([
-    {
-      slideNumber: 1,
-      isCover: true,
-      title: "La mayoría de líderes B2B cometen **el mismo error** al prospectar en LinkedIn",
-      subtitle: "Hablan de su producto antes de entender el dolor del decisor.",
-      content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
-      footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-      coverLayout: "bottom",
-      backgroundImageUrl: SAMPLE_B2B_BACKGROUNDS[0].url,
-      highlightColor: "#f97316",
-    },
-    {
-      slideNumber: 2,
-      title: "El Problema del Mensaje en Frío",
-      content: [
-        "El decisor percibe spam antes de entender tu propuesta.",
-        "Tasa de respuesta inferior al 3% en frío tradicional.",
-        "Bloqueo comercial de tu perfil personal.",
-      ],
-      footerText: "Paso 1: Diagnóstico",
-    },
-    {
-      slideNumber: 3,
-      title: "La Alternativa Inbound",
-      content: [
-        "Crea un activo de valor concreto (Plantilla o Playbook).",
-        "Publica mostrando los resultados tangibles.",
-        "Pide una palabra clave de activación en los comentarios.",
-      ],
-      footerText: "Paso 2: Activación",
-    },
-    {
-      slideNumber: 4,
-      title: "Entrega Instantánea en DM",
-      content: [
-        "El monitor detecta el comentario con la palabra clave.",
-        "Valida el estado de conexión en LinkedIn.",
-        "Despacha el PDF directamente al chat privado.",
-      ],
-      footerText: "Paso 3: Automatización",
-    },
-    {
-      slideNumber: 5,
-      isCta: true,
-      title: "¿Quieres Implementar Este Sistema?",
-      subtitle: "Recibe el documento de trabajo completo en PDF",
-      content: [
-        "Comenta SISTEMA en esta publicación",
-        "Te envío la guía por mensaje privado hoy mismo.",
-      ],
-      footerText: "InHubFlow Social Selling",
-    },
-  ]);
-
-  // Cargar cuentas de LinkedIn conectadas reactivamente
-  useEffect(() => {
-    const syncAccounts = () => {
-      const visible = getVisibleAccountsForUser(currentUser);
-      const active = getActiveAccountForUser(currentUser);
-      const ownAccounts = visible.filter(
-        (a) =>
-          accountMatchesUser(a, currentUser) ||
-          (currentUser.role !== "super_admin" && a.ownerId === currentUser.id)
-      );
-      const accountsList = ownAccounts.length > 0 ? ownAccounts : visible;
-      setAccounts(accountsList as any);
-      if (active) {
-        setSelectedAccountId(active.id);
-        setCarouselTheme((prev) => ({
-          ...prev,
-          authorName: active.name || currentUser.name,
-          authorHandle: `@${(active.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-        }));
-      }
-    };
-
-    syncAccounts();
-    window.addEventListener("storage", syncAccounts);
-    return () => window.removeEventListener("storage", syncAccounts);
-  }, [currentUser]);
-
-  // Al cargar, verificar si venimos con un post seleccionado del Radar Viral
-  useEffect(() => {
-    const selected = getSelectedTemplateForModeling();
-    if (selected) {
-      setFormat(selected.format);
-      setTopic(selected.topic || "Social Selling B2B");
-      setReferenceHook(selected.hook || "");
-      setReferenceContent(selected.fullContent || "");
-      setReferenceAuthor(selected.author || "");
-
-      if (selected.format === "text") {
-        setContent(`Construir autoridad en LinkedIn requiere consistencia y un gancho probado:
-
-${selected.hook}
-
-1. Entiende el dolor antes de proponer tu oferta.
-2. Comparte frameworks accionables en cada publicación.
-3. Genera conversación genuina con preguntas directas.
-
-Comenta "${leadMagnetKeyword}" abajo si deseas recibir nuestro playbook completo.`);
-      } else if (selected.format === "image") {
-        setContent(`La claridad en tu propuesta comercial es la mejor inversión que puedes hacer este mes:
-
-${selected.hook}
-
-Revisa los puntos clave en la imagen adjunta y aplícalos hoy.`);
-        setImagePrompt(
-          selected.imagePrompt ||
-            "Minimalist executive desk setup with laptop showing pipeline growth chart, warm ambient corporate blue tones, hyper-realistic 8k."
-        );
-      } else if (selected.format === "carousel") {
-        setContent(`Desliza el carrusel completo para ver la guía detallada:
-
-${selected.hook}
-
-Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por mensaje privado.`);
-        if (selected.carouselSlides && selected.carouselSlides.length > 0) {
-          setSlides(selected.carouselSlides);
-        }
-      }
-    } else {
-      setContent(t("samplePostContent", { keyword: leadMagnetKeyword }));
-      setImagePrompt(
-        "Modern corporate laptop showing analytics dashboard on glass desk, subtle blue backlighting, photorealistic style, 8k resolution."
-      );
-    }
-  }, [leadMagnetKeyword]);
-
-  // Modelar / Re-generar con IA + Base de Conocimiento Aprobada (RAG)
-  const handleGenerateAi = async () => {
+  // Re-generar / Modelar con IA + RAG de la Empresa
+  const handleGenerateAi = async (overrideText?: string) => {
     setIsGeneratingAi(true);
     setPublishFeedback(null);
 
     try {
-      const approvedKnowledge = getStoredKnowledgeSources().filter(
-        (k) => k.status === "approved"
-      );
+      const approvedKnowledge = getStoredKnowledgeSources().filter((k) => k.status === "approved");
+      const targetOriginal = overrideText || (sourceMode === "external" ? externalText : referenceContent) || content;
 
       const res = await fetch("/api/ai/model-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           hook: referenceHook,
-          originalContent: referenceContent || content,
+          originalContent: targetOriginal,
           topic,
           format,
           leadMagnetKeyword,
@@ -348,51 +353,59 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || t("feedbackAiFail"));
-      }
+      if (!res.ok) throw new Error(data.error || "No se pudo generar el contenido con IA.");
 
       const generated = data.result;
-
-      if (generated.content) {
-        setContent(generated.content);
-      }
-
-      if (format === "image" && generated.imagePrompt) {
-        setImagePrompt(generated.imagePrompt);
-      }
-
-      if (format === "carousel" && Array.isArray(generated.slides) && generated.slides.length > 0) {
-        setSlides(generated.slides);
-      }
+      if (generated.content) setContent(generated.content);
+      if (format === "image" && generated.imagePrompt) setImagePrompt(generated.imagePrompt);
 
       setPublishFeedback({
         type: "success",
-        message: t("feedbackAiSuccess"),
+        message: "¡Contenido modelado exitosamente con IA y adaptado a tu marca!",
       });
-      setTimeout(() => setPublishFeedback(null), 5000);
+      setTimeout(() => setPublishFeedback(null), 4000);
     } catch (err: any) {
       console.error("[Generate AI Error]:", err);
       setPublishFeedback({
         type: "error",
-        message: err.message || t("feedbackAiError"),
+        message: err.message || "Error al conectar con el motor de IA.",
       });
     } finally {
       setIsGeneratingAi(false);
     }
   };
 
-  const handleCopyPrompt = () => {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(imagePrompt);
-      setCopiedPrompt(true);
-      setTimeout(() => setCopiedPrompt(false), 2500);
-    }
+  // Formateadores rápidos para composición libre
+  const applyBoldToSelection = () => {
+    const el = document.getElementById("post-content-textarea") as HTMLTextAreaElement;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start === end) return;
+    const selected = content.slice(start, end);
+    const converted = toUnicodeBold(selected);
+    const updated = content.slice(0, start) + converted + content.slice(end);
+    setContent(updated);
   };
 
-  const handleDownloadPdf = async () => {
-    await exportCarouselToPdf(slides, {
+  const insertBulletList = () => {
+    const prefix = "\n• ";
+    setContent((prev) => prev + prefix);
+  };
+
+  // Descarga directa del PDF del carrusel si fue generado
+  const handleDownloadPdf = () => {
+    if (carouselPdfUrl) {
+      const a = document.createElement("a");
+      a.href = carouselPdfUrl;
+      a.download = `carrusel-${topic.replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+    // Fallback: exporter de slides si no se generó por Visual Studio
+    void exportCarouselToPdf(slides, {
       primaryColor: carouselTheme.primaryColor,
       authorName: carouselTheme.authorName,
       authorHandle: carouselTheme.authorHandle,
@@ -400,40 +413,47 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
     });
   };
 
-  // Guardar post (Borrador, Programado o Publicación Real)
+  // Guardar post (Borrador, Programado o Publicación Inmediata en LinkedIn)
   const handleSavePost = async (status: "draft" | "scheduled" | "published", customScheduledAt?: string) => {
     setPublishFeedback(null);
-
     let linkedinPostId: string | undefined = undefined;
 
-    // Si es publicación inmediata, llamar a la API de Unipile
+    // Despacho directo a Unipile
     if (status === "published") {
       setIsPublishing(true);
       try {
+        let attachments: any[] | undefined = undefined;
+
+        if (format === "carousel" && carouselPdfUrl) {
+          attachments = [
+            {
+              content: carouselPdfUrl,
+              filename: "carrusel.pdf",
+              content_type: "application/pdf",
+            },
+          ];
+        } else if (format === "image" && previewImage) {
+          attachments = [
+            {
+              content: previewImage,
+              filename: "portada.png",
+              content_type: "image/png",
+            },
+          ];
+        }
+
         const res = await fetch("/api/unipile/posts/publish", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             account_id: selectedAccountId,
             text: content,
-            attachments: previewImage
-              ? [
-                  {
-                    content: previewImage,
-                    filename: "post-cover.png",
-                    content_type: "image/png",
-                  },
-                ]
-              : undefined,
+            attachments,
           }),
         });
 
         const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InHubFlow.");
-        }
-
+        if (!res.ok) throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InHubFlow.");
         linkedinPostId = data.postId;
       } catch (err: any) {
         console.error("[Publish Post Error]:", err);
@@ -450,13 +470,16 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
 
     const newPost: CreatedPost = {
       id: `post-${Date.now()}`,
-      title: content.split("\n")[0].substring(0, 70) || `Post sobre ${topic}`,
+      title: content.split("\n")[0].substring(0, 70) || `Publicación sobre ${topic}`,
       format,
       content,
+      sourceMode,
       imagePrompt: format === "image" ? imagePrompt : undefined,
       mediaUrl: previewImage || undefined,
-      coverLayout: format === "carousel" ? slides[0]?.coverLayout : undefined,
-      coverImage: format === "carousel" ? slides[0]?.backgroundImageUrl : undefined,
+      coverImage: previewImage || carouselThumbnail || undefined,
+      carouselPdfUrl: format === "carousel" ? (carouselPdfUrl || undefined) : undefined,
+      carouselPageCount: format === "carousel" ? (carouselPageCount || 4) : undefined,
+      carouselThumbnail: format === "carousel" ? (carouselThumbnail || undefined) : undefined,
       carouselSlides: format === "carousel" ? slides : undefined,
       carouselTheme: format === "carousel" ? carouselTheme : undefined,
       leadMagnetKeyword: autoDmEnabled ? leadMagnetKeyword : undefined,
@@ -467,63 +490,35 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
       targetAccountId: selectedAccountId,
       linkedinPostId,
       scheduledAt:
-        status === "scheduled" ? new Date(Date.now() + 86400000).toISOString() : undefined,
+        status === "scheduled" ? (customScheduledAt || new Date(Date.now() + 86400000).toISOString()) : undefined,
       publishedAt: status === "published" ? new Date().toISOString() : undefined,
       createdAt: new Date().toISOString(),
       metrics:
-        status === "published"
-          ? { likes: 0, comments: 0, impressions: 0, leadsCaptured: 0 }
-          : undefined,
+        status === "published" ? { likes: 0, comments: 0, impressions: 0, leadsCaptured: 0 } : undefined,
     };
 
     addPost(newPost);
     setSelectedTemplateForModeling(null);
+
     if (onTabChange) {
       onTabChange("list");
     } else {
-      router.push("/viral-posts/list");
+      router.push("/viral-posts?tab=list");
     }
   };
 
-  const currentSlide = slides[currentSlideIndex] || slides[0];
   const activeAccObj = accounts.find((a) => a.id === selectedAccountId);
+  const charCount = content.length;
+  const estimatedReadingTimeMin = Math.max(1, Math.ceil(content.split(/\s+/).length / 200));
 
   return (
     <div className="w-full space-y-6">
-      {!hideBreadcrumb && <PageBreadcrumb pageTitle={t("pageTitle")} />}
+      {!hideBreadcrumb && <PageBreadcrumb pageTitle="Creador de Publicaciones LinkedIn" />}
 
-      {/* Banner de Referencia si viene de Radar Viral */}
-      {referenceAuthor && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-brand-50/70 border border-brand-200 dark:bg-brand-950/30 dark:border-brand-900/60">
-          <div className="space-y-0.5">
-            <span className="text-xs uppercase font-bold tracking-wider text-brand-600 dark:text-brand-400">
-              {t("modelingFromRadar")}
-            </span>
-            <p className="text-xs font-semibold text-gray-800 dark:text-white">
-              {t("originalPostBy", { author: referenceAuthor, hook: referenceHook.slice(0, 80) })}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleGenerateAi}
-            disabled={isGeneratingAi}
-            className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-          >
-            {isGeneratingAi ? (
-              <>
-                <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                {t("rewritingWithAi")}
-              </>
-            ) : (
-              t("rewriteWithAiBtn")
-            )}
-          </button>
-        </div>
-      )}
-
+      {/* Alerta de Feedback */}
       {publishFeedback && (
         <div
-          className={`p-3.5 rounded-lg text-xs font-medium border ${
+          className={`p-3.5 rounded-xl text-xs font-semibold border shadow-xs transition-all ${
             publishFeedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900/50 dark:text-emerald-300"
               : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-300"
@@ -533,609 +528,615 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
         </div>
       )}
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Panel Izquierdo: Editor y Controles */}
-        <div className="col-span-12 xl:col-span-7 space-y-6">
-          <ComponentCard
-            title={t("cardTitle")}
-            desc={t("cardDesc")}
+      {/* 1. Selector Superior de las 3 Vías de Entrada (Origen del Post) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 pl-1">Origen:</span>
+          <div className="flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/60">
+            <button
+              type="button"
+              onClick={() => setSourceMode("viral")}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                sourceMode === "viral"
+                  ? "bg-white dark:bg-slate-900 text-[#0099ff] shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Flame className="size-3.5" />
+              <span>Desde Post Viral</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSourceMode("external")}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                sourceMode === "external"
+                  ? "bg-white dark:bg-slate-900 text-[#0099ff] shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Copy className="size-3.5" />
+              <span>Pegar Texto</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSourceMode("scratch")}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                sourceMode === "scratch"
+                  ? "bg-white dark:bg-slate-900 text-[#0099ff] shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <PenTool className="size-3.5" />
+              <span>Escribir Libre</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Cuenta LinkedIn Conectada */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <span className="text-xs font-medium text-slate-500">Publicar como:</span>
+          <select
+            value={selectedAccountId}
+            onChange={(e) => setSelectedAccountId(e.target.value)}
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-white focus:outline-hidden focus:border-[#0099ff]"
           >
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name} ({acc.status === "OK" ? "Conectada" : "Desconectada"})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Banner Informativo / Asistente según la Vía de Entrada Seleccionada */}
+      {sourceMode === "viral" && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-blue-50/70 border border-blue-200 dark:bg-blue-950/30 dark:border-blue-900/60">
+          <div className="space-y-0.5">
+            <span className="text-[11px] uppercase font-bold tracking-wider text-[#0099ff]">
+              🔥 Modo Inspiración Viral
+            </span>
+            <p className="text-xs font-semibold text-slate-800 dark:text-white">
+              {referenceAuthor ? (
+                <>Inspirado en publicación viral de <strong>{referenceAuthor}</strong>: &quot;{referenceHook.slice(0, 75)}...&quot;</>
+              ) : (
+                <>Usa un post del radar para modelar su estructura ganadora con IA.</>
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {referenceAuthor ? (
+              <button
+                type="button"
+                onClick={() => handleGenerateAi()}
+                disabled={isGeneratingAi}
+                className="rounded-lg bg-[#0099ff] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#0082db] transition flex items-center gap-2 shadow-xs disabled:opacity-50"
+              >
+                {isGeneratingAi ? (
+                  <>
+                    <RefreshCw className="size-3.5 animate-spin" />
+                    <span>Reescribiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="size-3.5" />
+                    <span>Re-modelar con IA</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onTabChange?.("radar")}
+                className="rounded-lg bg-[#0099ff] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#0082db] transition flex items-center gap-1.5 shadow-xs"
+              >
+                <Flame className="size-3.5" />
+                <span>Explorar Radar Viral</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {sourceMode === "external" && (
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Copy className="size-3.5 text-[#0099ff]" />
+              Pega aquí el texto de otro post o artículo:
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const text = await navigator.clipboard.readText();
+                  if (text) setExternalText(text);
+                } catch {}
+              }}
+              className="text-[11px] font-semibold text-[#0099ff] hover:underline"
+            >
+              Pegar del portapapeles
+            </button>
+          </div>
+          <textarea
+            rows={3}
+            value={externalText}
+            onChange={(e) => setExternalText(e.target.value)}
+            placeholder="Pega el contenido ajeno para reestructurarlo con tu propia voz de marca..."
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-xs text-slate-800 dark:text-white focus:outline-hidden focus:border-[#0099ff]"
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              disabled={!externalText.trim() || isGeneratingAi}
+              onClick={() => handleGenerateAi(externalText)}
+              className="px-3.5 py-1.5 rounded-lg bg-[#0099ff] text-white text-xs font-bold hover:bg-[#0082db] disabled:opacity-50 transition flex items-center gap-1.5"
+            >
+              {isGeneratingAi ? <RefreshCw className="size-3 animate-spin" /> : <Sparkles className="size-3" />}
+              <span>Reestructurar con IA</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-12 gap-6">
+        {/* Panel Izquierdo: Configuración del Formato y Redacción */}
+        <div className="col-span-12 xl:col-span-7 space-y-5">
+          <ComponentCard title="Editor y Formato de Publicación">
             <div className="space-y-5">
-              {/* Selector de 3 Formatos */}
+              {/* 2. Selector de los 3 Modelos de Post */}
               <div>
-                <label className="mb-2 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                  {t("outputFormat")}
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Modelo de Publicación en LinkedIn:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setFormat("text")}
-                    className={`rounded-lg p-3.5 text-center transition ${
+                    className={`rounded-xl p-3.5 text-left border-2 transition-all ${
                       format === "text"
-                        ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
-                        : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
+                        ? "border-[#0099ff] bg-blue-50/40 dark:bg-blue-950/20 shadow-xs"
+                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 bg-white dark:bg-slate-900"
                     }`}
                   >
-                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {t("format1Text")}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {t("format1Desc")}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <FileText className={`size-4 ${format === "text" ? "text-[#0099ff]" : "text-slate-400"}`} />
+                      <span className="font-bold text-xs text-slate-800 dark:text-white">1. Sin Imagen</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-tight">Solo texto persuasivo y de lectura rápida</p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setFormat("image")}
-                    className={`rounded-lg p-3.5 text-center transition ${
+                    className={`rounded-xl p-3.5 text-left border-2 transition-all ${
                       format === "image"
-                        ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
-                        : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
+                        ? "border-[#0099ff] bg-blue-50/40 dark:bg-blue-950/20 shadow-xs"
+                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 bg-white dark:bg-slate-900"
                     }`}
                   >
-                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {t("format2Image")}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {t("format2Desc")}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <ImageIcon className={`size-4 ${format === "image" ? "text-[#0099ff]" : "text-slate-400"}`} />
+                      <span className="font-bold text-xs text-slate-800 dark:text-white">2. Con Imagen</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-tight">Portada editorial o infografía (4:5 / 1:1)</p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setFormat("carousel")}
-                    className={`rounded-lg p-3.5 text-center transition ${
+                    className={`rounded-xl p-3.5 text-left border-2 transition-all ${
                       format === "carousel"
-                        ? "border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30"
-                        : "border border-gray-200 hover:border-gray-300 dark:border-gray-800"
+                        ? "border-[#0099ff] bg-blue-50/40 dark:bg-blue-950/20 shadow-xs"
+                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 bg-white dark:bg-slate-900"
                     }`}
                   >
-                    <p className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {t("format3Carousel")}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {t("format3Desc")}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Layers className={`size-4 ${format === "carousel" ? "text-[#0099ff]" : "text-slate-400"}`} />
+                      <span className="font-bold text-xs text-slate-800 dark:text-white">3. Carrusel (PDF)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-tight">Documento multipágina deslizable en PDF</p>
                   </button>
                 </div>
               </div>
 
-              {/* Tema, Palabra Clave y Tono */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Parámetros Temáticos y Tono */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    {t("topicLabel")}
+                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Tema / Nicho B2B:
                   </label>
                   <input
                     type="text"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder={t("topicPlaceholder")}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    placeholder="Ej: Social Selling, Liderazgo B2B..."
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-hidden focus:border-[#0099ff]"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    {t("leadMagnetLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    value={leadMagnetKeyword}
-                    onChange={(e) => setLeadMagnetKeyword(e.target.value.toUpperCase())}
-                    placeholder={t("leadMagnetPlaceholder")}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-mono font-semibold text-brand-600 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-brand-400"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    {t("toneLabel")}
+                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Tono de Autoridad:
                   </label>
                   <select
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-hidden focus:border-[#0099ff]"
                   >
-                    <option value="Autoridad B2B con llamada a la acción">{t("toneB2BAuthority")}</option>
-                    <option value="Storytelling personal y de aprendizaje">{t("toneStorytelling")}</option>
-                    <option value="Educativo directo paso a paso">{t("toneStepByStep")}</option>
-                    <option value="Provocador y debate constructivo">{t("toneProvocative")}</option>
+                    <option value="Autoridad B2B con llamada a la acción">Autoridad B2B con llamada a la acción</option>
+                    <option value="Historia personal de aprendizaje">Historia personal de aprendizaje</option>
+                    <option value="Opinión contraria / Pensamiento crítico">Opinión contraria / Pensamiento crítico</option>
+                    <option value="Paso a paso técnico y accionable">Paso a paso técnico y accionable</option>
                   </select>
                 </div>
               </div>
 
-              {/* SECCIÓN CENTINELA INBOUND LEAD MAGNET & AUTO-DM */}
-              <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-3.5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-7 rounded-lg bg-brand-500/20 text-brand-500 flex items-center justify-center shrink-0">
-                      <Bot className="size-3.5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
-                        <span>Auto-DM de Comentarios Inbound</span>
-                        <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-1.5 py-0.2 rounded-sm font-semibold">
-                          Activo
-                        </span>
-                      </p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        Envía automáticamente el recurso por mensaje privado a quien comente &quot;{leadMagnetKeyword}&quot;.
-                      </p>
-                    </div>
+              {/* Área de Redacción del Post */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Copia del Post (Texto LinkedIn):
+                  </label>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                    <span>{charCount} caracteres</span>
+                    <span>·</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="size-3" />
+                      {estimatedReadingTimeMin} min de lectura
+                    </span>
+                  </div>
+                </div>
+
+                {/* Barra de Formateo Rápido */}
+                <div className="flex items-center gap-2 mb-2 p-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/60">
+                  <button
+                    type="button"
+                    onClick={applyBoldToSelection}
+                    className="px-2 py-1 rounded-md text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-1"
+                    title="Convertir texto seleccionado a negrita Unicode de LinkedIn"
+                  >
+                    <Type className="size-3.5" />
+                    <span>Negrita</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={insertBulletList}
+                    className="px-2 py-1 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-1"
+                    title="Insertar viñeta limpia"
+                  >
+                    <ListOrdered className="size-3.5" />
+                    <span>Viñeta</span>
+                  </button>
+                  <div className="h-3 w-px bg-slate-300 dark:bg-slate-700 mx-1" />
+                  <span className="text-[10px] text-slate-400">
+                    Tip: Los primeros 140 caracteres definen el gancho antes de &quot;...ver más&quot;
+                  </span>
+                </div>
+
+                <textarea
+                  id="post-content-textarea"
+                  rows={9}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Escribe o afina el texto de tu publicación..."
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 text-xs text-slate-900 dark:text-white leading-relaxed focus:outline-hidden focus:border-[#0099ff] font-sans"
+                />
+              </div>
+
+              {/* 3. Contenedor de Recurso Visual (Solo para Modelo 2: Con Imagen o Modelo 3: Carrusel) */}
+              {format === "image" && (
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                      <ImageIcon className="size-4 text-[#0099ff]" />
+                      Recurso Visual para Portada (Modelo con Imagen)
+                    </span>
+                    {previewImage && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold">
+                        Portada Lista
+                      </span>
+                    )}
                   </div>
 
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={autoDmEnabled}
-                      onChange={(e) => setAutoDmEnabled(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-8 h-4.5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-brand-500"></div>
-                  </label>
+                  {previewImage ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <img src={previewImage} alt="Portada" className="h-14 w-12 object-cover rounded-md border" />
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">Portada de LinkedIn Diseñada</p>
+                          <p className="text-[11px] text-slate-500">Formato vertical 4:5 optimizado para feed</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleOpenVisualStudio}
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
+                        >
+                          Ajustar en Editor
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewImage(null)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 transition"
+                          title="Quitar imagen"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={handleOpenVisualStudio}
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <Sparkles className="size-3.5" />
+                        <span>Diseñar Portada en Editor Visual</span>
+                      </button>
+                      <label className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <Upload className="size-3.5" />
+                        <span>Subir Imagen Propia</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => setPreviewImage(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {format === "carousel" && (
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                      <Layers className="size-4 text-[#0099ff]" />
+                      Documento Carrusel Multipágina en PDF
+                    </span>
+                    {carouselPdfUrl && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">
+                        PDF Compilado ({carouselPageCount || 4} diapositivas)
+                      </span>
+                    )}
+                  </div>
+
+                  {carouselPdfUrl ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        {carouselThumbnail ? (
+                          <img src={carouselThumbnail} alt="Portada Carrusel" className="h-14 w-12 object-cover rounded-md border" />
+                        ) : (
+                          <div className="h-14 w-12 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            PDF
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">Carrusel PDF de LinkedIn Listo</p>
+                          <p className="text-[11px] text-slate-500">{carouselPageCount || 4} diapositivas vectoriales preparadas para deslizar</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleOpenVisualStudio}
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
+                        >
+                          Editar Carrusel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDownloadPdf}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 text-xs font-semibold flex items-center gap-1"
+                          title="Descargar archivo PDF"
+                        >
+                          <Download className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCarouselPdfUrl(null);
+                            setCarouselThumbnail(null);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 transition"
+                          title="Quitar carrusel"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={handleOpenVisualStudio}
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <Layers className="size-3.5" />
+                        <span>Diseñar Carrusel en Editor Visual</span>
+                      </button>
+                      <label className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <Upload className="size-3.5" />
+                        <span>Subir PDF Existente</span>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                setCarouselPdfUrl(reader.result as string);
+                                setCarouselPageCount(5);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Presets de Composición de Portada (1 Clic) para Carruseles B2B */}
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Layout className="size-3 text-[#0099ff]" />
+                        Presets de Composición de Portada (1 Clic)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...slides];
+                          updated[0].coverLayout = "bottom";
+                          setSlides(updated);
+                        }}
+                        className={`p-1.5 rounded-lg border text-[11px] font-semibold text-center transition flex items-center justify-center gap-1 ${
+                          (slides[0]?.coverLayout || "bottom") === "bottom"
+                            ? "border-[#0099ff] bg-blue-50 dark:bg-blue-950 text-[#0099ff]"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                        }`}
+                      >
+                        <AlignCenter className="size-3" />
+                        <span>Inferior / Pie</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...slides];
+                          updated[0].coverLayout = "split_left";
+                          setSlides(updated);
+                        }}
+                        className={`p-1.5 rounded-lg border text-[11px] font-semibold text-center transition flex items-center justify-center gap-1 ${
+                          slides[0]?.coverLayout === "split_left"
+                            ? "border-[#0099ff] bg-blue-50 dark:bg-blue-950 text-[#0099ff]"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                        }`}
+                      >
+                        <AlignLeft className="size-3" />
+                        <span>Split Izquierdo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...slides];
+                          updated[0].coverLayout = "split_right";
+                          setSlides(updated);
+                        }}
+                        className={`p-1.5 rounded-lg border text-[11px] font-semibold text-center transition flex items-center justify-center gap-1 ${
+                          slides[0]?.coverLayout === "split_right"
+                            ? "border-[#0099ff] bg-blue-50 dark:bg-blue-950 text-[#0099ff]"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                        }`}
+                      >
+                        <AlignRight className="size-3" />
+                        <span>Split Derecho</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Centinela Inbound & Despacho Auto-DM */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                      <Bot className="size-4 text-[#0099ff]" />
+                      Centinela Inbound & Despacho Auto-DM
+                    </span>
+                    <p className="text-[11px] text-slate-500">
+                      Monitorea comentarios con la palabra clave y despacha tu recurso por DM.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={autoDmEnabled}
+                    onChange={(e) => setAutoDmEnabled(e.target.checked)}
+                    className="size-4 accent-[#0099ff] rounded cursor-pointer"
+                  />
                 </div>
 
                 {autoDmEnabled && (
-                  <div className="pt-2 border-t border-brand-500/20 space-y-2">
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase">
-                      Mensaje Automático en DM de LinkedIn:
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={autoDmMessage}
-                      onChange={(e) => setAutoDmMessage(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-brand-500 focus:outline-hidden"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Palabra Clave:
+                      </label>
+                      <input
+                        type="text"
+                        value={leadMagnetKeyword}
+                        onChange={(e) => setLeadMagnetKeyword(e.target.value.toUpperCase())}
+                        placeholder="Ej: SISTEMA, GUIA..."
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-bold text-[#0099ff] focus:outline-hidden"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Mensaje Automatizado por DM:
+                      </label>
+                      <input
+                        type="text"
+                        value={autoDmMessage}
+                        onChange={(e) => setAutoDmMessage(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-hidden"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Botón de Generación / Mejora con IA + Base de Conocimiento (RAG) */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-brand-200 bg-brand-50/40 dark:border-brand-900/60 dark:bg-brand-950/20">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-medium text-gray-800 dark:text-white/90">
-                      {t("aiModelerTitle")}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t("aiModelerDesc")}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={isGeneratingAi}
-                  onClick={handleGenerateAi}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition flex items-center gap-2 shrink-0 disabled:opacity-50 shadow-xs"
-                >
-                  {isGeneratingAi ? (
-                    <>
-                      <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                      {t("modelingAi")}
-                    </>
-                  ) : (
-                    t("generateAiBtn")
-                  )}
-                </button>
-              </div>
-
-              {/* Formato 2: Generador de Prompt Visual y Estudio Gráfico */}
-              {format === "image" && (
-                <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
-                  {/* Banner Destacado del Estudio Visual */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-8 rounded-lg bg-brand-500/20 flex items-center justify-center text-brand-500 shrink-0">
-                        <Sparkles className="size-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white">
-                          Editor Visual (Suite Creativa)
-                        </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                          Diseña tu imagen con plantillas virales, fotos de stock y degradé de alto impacto.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleOpenVisualStudio}
-                      className="rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-600 transition flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
-                    >
-                      <Sparkles className="size-3.5" />
-                      <span>{previewImage ? "Editar en Estudio" : "Diseñar con Estudio"}</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                      {t("visualPromptTitle")}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyPrompt}
-                      className="rounded-lg bg-white border border-gray-300 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
-                    >
-                      {copiedPrompt ? t("copiedToClipboard") : t("copyPromptBtn")}
-                    </button>
-                  </div>
-                  <textarea
-                    rows={2}
-                    value={imagePrompt}
-                    onChange={(e) => setImagePrompt(e.target.value)}
-                    className="custom-scrollbar w-full rounded-lg border border-gray-300 bg-white p-2.5 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  />
-                  <div className="pt-1">
-                    <label className="block text-xs leading-5 font-normal tracking-normal uppercase text-gray-400 mb-1">
-                      {t("uploadImageLabel")}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = () => setPreviewImage(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-950 dark:file:text-brand-300 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Formato 3: Editor de Diapositivas del Carrusel */}
-              {format === "carousel" && (
-                <div className="rounded-lg border border-gray-300 p-4 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                        {t("slideEditorTitle", { current: currentSlideIndex + 1, total: slides.length })}
-                      </span>
-                      <p className="text-xs text-gray-500">
-                        {currentSlide.isCover
-                          ? t("slideCover")
-                          : currentSlide.isCta
-                          ? t("slideCta")
-                          : t("slideContent")}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        disabled={currentSlideIndex === 0}
-                        onClick={() => setCurrentSlideIndex((prev) => Math.max(0, prev - 1))}
-                        className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300"
-                      >
-                        Anterior
-                      </button>
-                      <button
-                        type="button"
-                        disabled={currentSlideIndex === slides.length - 1}
-                        onClick={() =>
-                          setCurrentSlideIndex((prev) => Math.min(slides.length - 1, prev + 1))
-                        }
-                        className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300"
-                      >
-                        Siguiente
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDownloadPdf}
-                        className="rounded-lg bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600 transition"
-                      >
-                        Descargar PDF
-                      </button>
-                    </div>
-                  </div>
-
-                                    {/* Selector especial cuando estamos en la diapositiva de portada (Slide 1) */}
-                  {currentSlide.isCover && (
-                    <div className="space-y-4 rounded-xl border border-brand-200 bg-brand-50/40 p-4 dark:border-brand-900/50 dark:bg-brand-950/20">
-                      {/* 1. Selector de Composición (3 Presets 1-Clic) */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
-                            <Layout className="size-3.5" />
-                            Composición de Portada (1 Clic)
-                          </label>
-                          <span className="text-[11px] text-brand-600 dark:text-brand-400 font-medium">
-                            Presets Virales LinkedIn
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = [...slides];
-                              updated[currentSlideIndex].coverLayout = "bottom";
-                              setSlides(updated);
-                            }}
-                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
-                              (currentSlide.coverLayout || "bottom") === "bottom"
-                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
-                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                            }`}
-                          >
-                            <AlignCenter className="size-4 shrink-0" />
-                            <span>Inferior / Pie</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = [...slides];
-                              updated[currentSlideIndex].coverLayout = "split_left";
-                              setSlides(updated);
-                            }}
-                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
-                              currentSlide.coverLayout === "split_left"
-                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
-                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                            }`}
-                          >
-                            <AlignLeft className="size-4 shrink-0" />
-                            <span>Split Izquierdo</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = [...slides];
-                              updated[currentSlideIndex].coverLayout = "split_right";
-                              setSlides(updated);
-                            }}
-                            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
-                              currentSlide.coverLayout === "split_right"
-                                ? "border-brand-500 bg-brand-500 text-white shadow-xs"
-                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                            }`}
-                          >
-                            <AlignRight className="size-4 shrink-0" />
-                            <span>Split Derecho</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 2. Selector de Fotografía de Fondo B2B */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 mb-2">
-                          Foto Ejecutiva B2B de Fondo
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                          {SAMPLE_B2B_BACKGROUNDS.map((bg) => {
-                            const isSelected = currentSlide.backgroundImageUrl === bg.url;
-                            return (
-                              <button
-                                key={bg.id}
-                                type="button"
-                                onClick={() => {
-                                  const updated = [...slides];
-                                  updated[currentSlideIndex].backgroundImageUrl = bg.url;
-                                  setSlides(updated);
-                                }}
-                                className={`relative group h-16 rounded-lg overflow-hidden border-2 transition ${
-                                  isSelected
-                                    ? "border-brand-500 ring-2 ring-brand-500/30 scale-[0.98]"
-                                    : "border-transparent hover:border-gray-300 dark:hover:border-gray-700 opacity-80 hover:opacity-100"
-                                }`}
-                              >
-                                <img
-                                  src={bg.url}
-                                  alt={bg.name}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-1">
-                                  <span className="text-[10px] text-white font-medium text-center leading-tight line-clamp-2">
-                                    {bg.name}
-                                  </span>
-                                </div>
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 bg-brand-500 text-white rounded-full p-0.5">
-                                    <Check className="size-3" />
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* Subir foto propia o URL */}
-                        <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
-                          <label className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 cursor-pointer shrink-0">
-                            <Upload className="size-3.5" />
-                            <span>Subir Foto Propia</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    const updated = [...slides];
-                                    updated[currentSlideIndex].backgroundImageUrl = reader.result as string;
-                                    setSlides(updated);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </label>
-
-                          <input
-                            type="text"
-                            placeholder="O pega URL de imagen (https://...)"
-                            value={currentSlide.backgroundImageUrl || ""}
-                            onChange={(e) => {
-                              const updated = [...slides];
-                              updated[currentSlideIndex].backgroundImageUrl = e.target.value;
-                              setSlides(updated);
-                            }}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                          />
-                        </div>
-                      </div>
-
-                      {/* 3. Color de Resalto de Palabras Clave */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-bold uppercase tracking-wider text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
-                            <Palette className="size-3.5" />
-                            Color de Resalto para **palabra**
-                          </label>
-                          <span className="text-[11px] font-mono text-gray-500">
-                            {currentSlide.highlightColor || "#f97316"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {[
-                            { name: "Naranja Viral", hex: "#f97316" },
-                            { name: "Amarillo Foco", hex: "#facc15" },
-                            { name: "Azul Eléctrico", hex: "#38bdf8" },
-                            { name: "Verde Éxito", hex: "#34d399" },
-                            { name: "Blanco Puro", hex: "#ffffff" },
-                          ].map((col) => {
-                            const isSelected = (currentSlide.highlightColor || "#f97316") === col.hex;
-                            return (
-                              <button
-                                key={col.hex}
-                                type="button"
-                                title={col.name}
-                                onClick={() => {
-                                  const updated = [...slides];
-                                  updated[currentSlideIndex].highlightColor = col.hex;
-                                  setSlides(updated);
-                                }}
-                                className={`size-6 rounded-full border-2 transition ${
-                                  isSelected
-                                    ? "ring-2 ring-brand-500 scale-110 border-white shadow-xs"
-                                    : "border-gray-300 hover:scale-105"
-                                }`}
-                                style={{ backgroundColor: col.hex }}
-                              />
-                            );
-                          })}
-                          <span className="text-[11px] text-gray-500 ml-2">
-                            Usa <code className="text-brand-600 dark:text-brand-400 font-bold">**palabra**</code> en el título para iluminarla.
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-<div className="space-y-3 bg-white p-3.5 rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase">
-                          {t("slideTitleLabel")}
-                        </label>
-                        {currentSlide.isCover && (
-                          <span className="text-[11px] text-brand-600 dark:text-brand-400 font-medium">
-                            Tip: Rodear con **asteriscos** para resaltar
-                          </span>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={currentSlide.title}
-                        onChange={(e) => {
-                          const updated = [...slides];
-                          updated[currentSlideIndex].title = e.target.value;
-                          setSlides(updated);
-                        }}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-900 font-semibold focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                      />
-                    </div>
-
-                    {currentSlide.subtitle !== undefined && (
-                      <div>
-                        <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                          {t("slideSubtitleLabel")}
-                        </label>
-                        <input
-                          type="text"
-                          value={currentSlide.subtitle}
-                          onChange={(e) => {
-                            const updated = [...slides];
-                            updated[currentSlideIndex].subtitle = e.target.value;
-                            setSlides(updated);
-                          }}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block text-xs leading-5 font-normal tracking-normal text-gray-400 uppercase mb-1">
-                        {t("slideBulletsLabel")}
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={currentSlide.content.join("\n")}
-                        onChange={(e) => {
-                          const updated = [...slides];
-                          updated[currentSlideIndex].content = e.target.value.split("\n");
-                          setSlides(updated);
-                        }}
-                        className="custom-scrollbar w-full rounded-lg border border-gray-300 p-2 text-xs font-mono text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Editor de Texto del Post de LinkedIn */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs leading-5 font-normal tracking-normal uppercase text-gray-400">
-                    {t("postBodyLabel")}
-                  </label>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {t("charCountRecommendation", { count: content.length })}
-                  </span>
-                </div>
-                <textarea
-                  rows={8}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="custom-scrollbar w-full rounded-lg border border-gray-300 bg-white p-4 font-sans text-sm text-gray-800 leading-relaxed focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* Acciones Finales */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-300 dark:border-gray-800">
+              {/* Botones de Acción */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => handleSavePost("draft")}
-                  className="rounded-lg border border-gray-300 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                 >
-                  {t("saveDraft")}
+                  Guardar Borrador
                 </button>
-                <div className="flex items-center gap-3">
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     type="button"
-                    onClick={() => handleSavePost("scheduled")}
-                    className="rounded-lg border border-brand-500 px-4 py-2.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20"
+                    onClick={() => setShowScheduleModal(true)}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-[#0099ff] text-[#0099ff] text-xs font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 transition flex items-center justify-center gap-1.5"
                   >
-                    {t("schedulePost")}
+                    <Calendar className="size-3.5" />
+                    <span>Programar</span>
                   </button>
+
                   <button
                     type="button"
-                    disabled={isPublishing}
+                    disabled={isPublishing || !content.trim()}
                     onClick={() => handleSavePost("published")}
-                    className="rounded-lg bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition flex items-center gap-2"
+                    className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
                   >
                     {isPublishing ? (
                       <>
-                        <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        Publicando en LinkedIn...
+                        <RefreshCw className="size-3.5 animate-spin" />
+                        <span>Publicando...</span>
                       </>
                     ) : (
-                      t("publishNow")
+                      <>
+                        <Send className="size-3.5" />
+                        <span>Publicar Ahora</span>
+                      </>
                     )}
                   </button>
                 </div>
@@ -1144,285 +1145,221 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           </ComponentCard>
         </div>
 
-        {/* Panel Derecho: Previsualización Fiel a LinkedIn */}
-        <div className="col-span-12 xl:col-span-5 space-y-6">
-          <ComponentCard
-            title={t("exactPreviewTitle")}
-            desc={t("exactPreviewDesc")}
-          >
-            <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
-              {/* Cabecera de perfil */}
-              <div suppressHydrationWarning className="flex items-center gap-3 mb-4">
-                <div
-                  suppressHydrationWarning
-                  className="h-11 w-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm"
-                >
-                  {(activeAccObj?.name || currentUser.name)
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
+        {/* Panel Derecho: Previsualizador Realista de LinkedIn (Live Feed Preview) */}
+        <div className="col-span-12 xl:col-span-5 space-y-4">
+          <div className="sticky top-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Previsualización en LinkedIn
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                <Eye className="size-3" />
+                Feed Desktop & Móvil
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden text-slate-900 dark:text-white">
+              {/* Header de Autor */}
+              <div className="p-3.5 flex items-start justify-between border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                    {(activeAccObj?.name || currentUser.name).charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold leading-tight">{activeAccObj?.name || currentUser.name}</h4>
+                    <p className="text-[10px] text-slate-500 leading-tight line-clamp-1">
+                      Líder B2B · Fundador & Estratega de Crecimiento
+                    </p>
+                    <span className="text-[9px] text-slate-400 flex items-center gap-1 mt-0.5">
+                      Ahora · 🌐
+                    </span>
+                  </div>
                 </div>
-                <div suppressHydrationWarning>
-                  <h4 suppressHydrationWarning className="text-xs font-bold text-gray-900 dark:text-white">
-                    {activeAccObj ? activeAccObj.name : currentUser.name}
-                  </h4>
-                  <p suppressHydrationWarning className="text-xs text-gray-500 dark:text-gray-400">
-                    {activeAccObj ? t("connectedProfileBadge") : t("defaultProfileBadge")}
-                  </p>
-                  <p className="text-xs text-gray-400">{t("nowPublic")}</p>
-                </div>
+                <span className="text-xs font-bold text-[#0077b5]">in</span>
               </div>
 
-              {/* Texto del post */}
-              <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap dark:text-gray-200 mb-4 font-sans">
-                {content}
+              {/* Texto del Post con Gancho y Plegado */}
+              <div className="p-3.5 text-xs leading-relaxed whitespace-pre-wrap font-sans">
+                {isExpandedPreview ? (
+                  content
+                ) : (
+                  <>
+                    {content.slice(0, 160)}
+                    {content.length > 160 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsExpandedPreview(true)}
+                        className="text-slate-500 hover:text-[#0099ff] font-semibold ml-1 cursor-pointer"
+                      >
+                        ...ver más
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* Adjunto Visual según Formato */}
+              {/* Adjunto Visual según Modelo */}
               {format === "image" && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+                <div className="bg-slate-100 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
                   {previewImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={previewImage}
-                      alt={t("previewImageAlt")}
-                      className="w-full h-56 object-cover"
-                    />
+                    <img src={previewImage} alt="Vista previa de portada" className="w-full max-h-[380px] object-contain" />
                   ) : (
-                    <div className="h-56 flex flex-col items-center justify-center p-6 text-center text-gray-400">
-                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        {t("attachedImagePlaceholder")}
-                      </p>
-                      <p className="text-xs mt-1 max-w-xs font-mono">
-                        {t("midjourneyConfiguredPrompt")}
-                      </p>
+                    <div className="py-12 px-4 text-center">
+                      <ImageIcon className="size-8 text-slate-400 mx-auto mb-2 opacity-60" />
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Sin portada adjunta aún</p>
+                      <button
+                        type="button"
+                        onClick={handleOpenVisualStudio}
+                        className="mt-2 text-xs font-bold text-[#0099ff] hover:underline"
+                      >
+                        + Diseñar portada en Editor Visual
+                      </button>
                     </div>
                   )}
                 </div>
               )}
 
               {format === "carousel" && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-800 shadow-theme-xs">
-                  {/* Vista fiel del Slide actual */}
-                  {currentSlide.isCover && currentSlide.backgroundImageUrl ? (
-                    // Portada de Alto Impacto B2B con Foto + Degradé Dinámico
+                <div className="bg-slate-100 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 overflow-hidden relative">
+                  {carouselThumbnail || carouselPdfUrl ? (
+                    <div>
+                      <div className="relative aspect-4/5 w-full bg-slate-900 flex items-center justify-center">
+                        <img
+                          src={carouselThumbnail || previewImage || ""}
+                          alt="Diapositiva carrusel"
+                          className="w-full h-full object-contain"
+                        />
+                        {/* Badge de Documento PDF */}
+                        <div className="absolute top-2.5 right-2.5 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-1">
+                          <Layers className="size-3" />
+                          <span>1 / {carouselPageCount || 4}</span>
+                        </div>
+                      </div>
+                      <div className="p-2 bg-slate-50 dark:bg-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300 px-3">
+                        <span className="font-semibold line-clamp-1">Documento PDF · Carrusel LinkedIn</span>
+                        <button
+                          type="button"
+                          onClick={handleOpenVisualStudio}
+                          className="text-[#0099ff] font-bold hover:underline shrink-0"
+                        >
+                          Editar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <div
-                      className="aspect-square w-full relative overflow-hidden bg-gray-950 text-white flex flex-col justify-between"
+                      className="relative aspect-4/5 w-full flex flex-col justify-between p-5 text-white"
                       style={{
-                        backgroundImage: `url(${currentSlide.backgroundImageUrl})`,
+                        backgroundImage: `url(${slides[0]?.backgroundImageUrl || SAMPLE_B2B_BACKGROUNDS[0].url})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }}
                     >
-                      {/* Capa de degradé según coverLayout */}
+                      {/* Capa de degradé dinámico según coverLayout */}
                       <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
                           background:
-                            currentSlide.coverLayout === "split_left"
+                            slides[0]?.coverLayout === "split_left"
                               ? "linear-gradient(to right, rgba(10, 18, 42, 0.96) 0%, rgba(10, 18, 42, 0.88) 45%, rgba(10, 18, 42, 0.25) 75%, transparent 100%)"
-                              : currentSlide.coverLayout === "split_right"
+                              : slides[0]?.coverLayout === "split_right"
                               ? "linear-gradient(to left, rgba(10, 18, 42, 0.96) 0%, rgba(10, 18, 42, 0.88) 45%, rgba(10, 18, 42, 0.25) 75%, transparent 100%)"
                               : "linear-gradient(to top, rgba(10, 18, 42, 0.97) 0%, rgba(10, 18, 42, 0.82) 48%, rgba(10, 18, 42, 0.15) 78%, transparent 100%)",
                         }}
                       />
-
-                      {/* Header de la diapositiva */}
-                      <div className="relative z-10 flex items-center justify-between p-5 pb-0">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-white">
-                          {t("badgeCover")}
+                      <div className="relative z-10 flex items-center justify-between">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs">
+                          PORTADA B2B
                         </span>
-                        <span className="text-xs text-white/80 font-medium">
-                          {currentSlideIndex + 1} / {slides.length}
-                        </span>
-                      </div>
-
-                      {/* Contenido según coverLayout */}
-                      <div
-                        className={`relative z-10 p-5 ${
-                          currentSlide.coverLayout === "split_left"
-                            ? "max-w-[70%] my-auto text-left"
-                            : currentSlide.coverLayout === "split_right"
-                            ? "max-w-[70%] ml-auto my-auto text-left"
-                            : "mt-auto text-center max-w-sm mx-auto"
-                        }`}
-                      >
-                        <h3 className="text-base sm:text-lg font-extrabold text-white leading-snug drop-shadow-xs">
-                          {parseHighlightedTitle(
-                            currentSlide.title,
-                            currentSlide.highlightColor || "#f97316"
-                          )}
-                        </h3>
-
-                        {currentSlide.subtitle && (
-                          <p className="text-xs text-gray-200 mt-2 leading-relaxed drop-shadow-xs">
-                            {currentSlide.subtitle}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Footer con branding */}
-                      <div className="relative z-10 p-5 pt-0">
-                        <div className="pt-2.5 border-t border-white/20 flex justify-between text-[11px] text-white/80">
-                          <span>{carouselTheme.authorName}</span>
-                          <span>{carouselTheme.authorHandle}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Diapositiva interior, CTA o portada estándar plana
-                    <div
-                      className="aspect-square w-full p-6 flex flex-col justify-between"
-                      style={{
-                        backgroundColor: currentSlide.isCover
-                          ? carouselTheme.primaryColor
-                          : currentSlide.isCta
-                          ? "#f5faff"
-                          : "#ffffff",
-                        color: currentSlide.isCover ? "#ffffff" : "#101828",
-                      }}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span
-                            className="text-xs font-bold uppercase tracking-wider"
-                            style={{
-                              color: currentSlide.isCover
-                                ? "rgba(255,255,255,0.8)"
-                                : carouselTheme.primaryColor,
-                            }}
-                          >
-                            {currentSlide.isCover
-                              ? t("badgeCover")
-                              : currentSlide.isCta
-                              ? t("badgeCta")
-                              : t("badgeSlide", { number: currentSlide.slideNumber })}
-                          </span>
-                          <span
-                            className="text-xs"
-                            style={{
-                              color: currentSlide.isCover ? "rgba(255,255,255,0.7)" : "#94a3b8",
-                            }}
-                          >
-                            {currentSlideIndex + 1} / {slides.length}
-                          </span>
-                        </div>
-
-                        <h3
-                          className="text-base font-bold mb-2 leading-snug"
-                          style={{
-                            color: currentSlide.isCover
-                              ? "#ffffff"
-                              : currentSlide.isCta
-                              ? carouselTheme.primaryColor
-                              : "#101828",
-                          }}
+                        <button
+                          type="button"
+                          onClick={handleOpenVisualStudio}
+                          className="text-xs font-bold text-white bg-[#0099ff] hover:bg-[#0082db] px-2.5 py-1 rounded-md transition shadow-xs flex items-center gap-1"
                         >
-                          {currentSlide.isCover
-                            ? parseHighlightedTitle(
-                                currentSlide.title,
-                                currentSlide.highlightColor || "#f97316"
-                              )
-                            : currentSlide.title}
-                        </h3>
-
-                        {currentSlide.subtitle && (
-                          <p
-                            className="text-xs mb-4"
-                            style={{
-                              color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#475467",
-                            }}
-                          >
-                            {currentSlide.subtitle}
-                          </p>
-                        )}
-
-                        <div className="space-y-2 mt-4">
-                          {currentSlide.content.map((c, i) => (
-                            <div key={i} className="flex items-start gap-2">
-                              {!currentSlide.isCover && (
-                                <span
-                                  className="mt-1 h-1.5 w-1.5 rounded-full shrink-0"
-                                  style={{
-                                    backgroundColor: currentSlide.isCta
-                                      ? carouselTheme.primaryColor
-                                      : "#0099ff",
-                                  }}
-                                ></span>
-                              )}
-                              <p
-                                className="text-xs leading-relaxed"
-                                style={{
-                                  color: currentSlide.isCover ? "rgba(255,255,255,0.9)" : "#334155",
-                                }}
-                              >
-                                {c}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+                          <Layers className="size-3" />
+                          <span>Abrir en Editor Visual</span>
+                        </button>
                       </div>
-
-                      <div
-                        className="pt-3 border-t flex justify-between text-xs"
-                        style={{
-                          borderColor: currentSlide.isCover
-                            ? "rgba(255,255,255,0.2)"
-                            : "rgba(0,0,0,0.06)",
-                          color: currentSlide.isCover ? "rgba(255,255,255,0.8)" : "#94a3b8",
-                        }}
-                      >
-                        <span>{carouselTheme.authorName}</span>
-                        <span>{carouselTheme.authorHandle}</span>
+                      <div className="relative z-10 space-y-1">
+                        <h4 className="text-sm font-extrabold leading-snug">
+                          {parseHighlightedTitle(slides[0]?.title || title, slides[0]?.highlightColor || "#f97316")}
+                        </h4>
+                        <p className="text-[11px] text-white/80">{slides[0]?.subtitle}</p>
                       </div>
                     </div>
                   )}
-
-                  {/* Barra de navegación de carrusel */}
-                  <div className="flex items-center justify-between p-2.5 bg-gray-50 border-t border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-700">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {t("linkedinPdfDocument")}
-                    </span>
-                    <div className="flex gap-1.5">
-                      <button
-                        type="button"
-                        disabled={currentSlideIndex === 0}
-                        onClick={() => setCurrentSlideIndex((p) => Math.max(0, p - 1))}
-                        className="rounded-lg px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                        &larr;
-                      </button>
-                      <button
-                        type="button"
-                        disabled={currentSlideIndex === slides.length - 1}
-                        onClick={() => setCurrentSlideIndex((p) => Math.min(slides.length - 1, p + 1))}
-                        className="rounded-lg px-2 py-0.5 text-xs bg-white border border-gray-200 disabled:opacity-40 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                        &rarr;
-                      </button>
-                    </div>
-                  </div>
                 </div>
               )}
 
-              {/* Barra de interacción de LinkedIn */}
-              <div className="pt-3 border-t border-gray-300 flex items-center justify-between text-xs text-gray-500 dark:border-gray-800">
-                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinLike")}</span>
-                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinComment")}</span>
-                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinShare")}</span>
-                <span className="hover:text-gray-900 cursor-pointer">{t("linkedinSend")}</span>
+              {/* Barra de Reacciones LinkedIn */}
+              <div className="p-2.5 px-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                <span className="hover:text-slate-900 cursor-pointer">👍 Reaccionar</span>
+                <span className="hover:text-slate-900 cursor-pointer">💬 Comentar</span>
+                <span className="hover:text-slate-900 cursor-pointer">🔁 Repostear</span>
+                <span className="hover:text-slate-900 cursor-pointer">📤 Enviar</span>
               </div>
             </div>
-          </ComponentCard>
+          </div>
         </div>
       </div>
 
-      {/* Modal de Estudio Visual Integrado */}
+      {/* Modal de Programación */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Calendar className="size-4 text-[#0099ff]" />
+              Programar Publicación en LinkedIn
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Fecha:</label>
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Hora:</label>
+                <input
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(false)}
+                className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const combined = new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString();
+                  setShowScheduleModal(false);
+                  void handleSavePost("scheduled", combined);
+                }}
+                className="px-4 py-1.5 rounded-lg bg-[#0099ff] text-white text-xs font-bold"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Estudio Visual Integrado (Portada o Carrusel PDF) */}
       <VisualStudioModal
         isOpen={isVisualStudioOpen}
         onClose={handleCloseVisualStudio}
+        mode={format === "carousel" ? "carousel" : "single"}
         initialTitle={parsePostHeader(content, referenceHook || topic).hook}
         initialSubtitle={parsePostHeader(content, referenceHook || topic).subtitle}
         initialHighlight={parsePostHeader(content, referenceHook || topic).highlight}
@@ -1433,7 +1370,18 @@ Comenta "${leadMagnetKeyword}" para enviarte la plantilla oficial en PDF por men
           handleCloseVisualStudio();
           setPublishFeedback({
             type: "success",
-            message: "¡Diseño visual aplicado con éxito a la publicación!",
+            message: "¡Portada visual aplicada con éxito a la publicación!",
+          });
+          setTimeout(() => setPublishFeedback(null), 3000);
+        }}
+        onApplyCarousel={(result) => {
+          setCarouselPdfUrl(result.pdfDataUrl);
+          setCarouselPageCount(result.pageCount);
+          setCarouselThumbnail(result.thumbnail);
+          handleCloseVisualStudio();
+          setPublishFeedback({
+            type: "success",
+            message: `¡Carrusel de ${result.pageCount} páginas en PDF generado y adjuntado con éxito!`,
           });
           setTimeout(() => setPublishFeedback(null), 3000);
         }}

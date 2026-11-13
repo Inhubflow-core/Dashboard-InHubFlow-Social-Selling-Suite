@@ -54,6 +54,10 @@ export interface CreatedPost {
   mediaUrl?: string;
   coverLayout?: CoverLayout;
   coverImage?: string;
+  carouselPdfUrl?: string;
+  carouselPageCount?: number;
+  carouselThumbnail?: string;
+  sourceMode?: "viral" | "external" | "scratch";
   carouselSlides?: CarouselSlide[];
   carouselTheme?: {
     primaryColor: string;

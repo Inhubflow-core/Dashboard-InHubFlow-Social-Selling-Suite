@@ -2976,6 +2976,44 @@ assert(stringsCode59.includes("Colores de Marca (Hasta 6)"), 'strings.ts describ
 const textDrawerCode59 = fs.readFileSync('src/visual-studio/editor/drawers/TextDrawer.tsx', 'utf8');
 assert(textDrawerCode59.includes("color: '#0f172a'") && textDrawerCode59.includes('value={highlightWord}'), 'El input de Frase Resaltada en Gancho tiene color de texto oscuro normal (#0f172a)');
 
+// ==================================================================
+// 60. Motor de Posts Virales Unificado (3 Entradas, 3 Formatos, Carrusel PDF)
+// ==================================================================
+console.log("\n--- TEST: Motor de Posts Virales Unificado (3 Entradas, 3 Formatos, Carrusel PDF) ---");
+
+const viralTypesCode60 = fs.readFileSync('src/lib/viral-posts/types.ts', 'utf8');
+assert(viralTypesCode60.includes('carouselPdfUrl?: string'), 'types.ts define carouselPdfUrl en CreatedPost');
+assert(viralTypesCode60.includes('carouselPageCount?: number'), 'types.ts define carouselPageCount en CreatedPost');
+assert(viralTypesCode60.includes('carouselThumbnail?: string'), 'types.ts define carouselThumbnail en CreatedPost');
+assert(viralTypesCode60.includes('sourceMode?: "viral" | "external" | "scratch"'), 'types.ts define sourceMode con las 3 vías de entrada');
+
+const createPostViewCode60 = fs.readFileSync('src/components/viral-posts/CreateViralPostView.tsx', 'utf8');
+assert(createPostViewCode60.includes('sourceMode, setSourceMode'), 'CreateViralPostView gestiona el estado de origen sourceMode');
+assert(createPostViewCode60.includes('onClick={() => setSourceMode("viral")}'), 'Selector interactivo de entrada: Desde Post Viral');
+assert(createPostViewCode60.includes('onClick={() => setSourceMode("external")}'), 'Selector interactivo de entrada: Desde Texto Pegado');
+assert(createPostViewCode60.includes('onClick={() => setSourceMode("scratch")}'), 'Selector interactivo de entrada: Escribir Yo Mismo');
+
+assert(createPostViewCode60.includes('onClick={() => setFormat("text")}'), 'Selector de formato Modelo 1: Sin imagen');
+assert(createPostViewCode60.includes('onClick={() => setFormat("image")}'), 'Selector de formato Modelo 2: Con imagen');
+assert(createPostViewCode60.includes('onClick={() => setFormat("carousel")}'), 'Selector de formato Modelo 3: Carrusel (PDF)');
+
+assert(createPostViewCode60.includes('onApplyCarousel='), 'CreateViralPostView conecta onApplyCarousel del Editor Visual');
+assert(createPostViewCode60.includes('content_type: "application/pdf"'), 'Despacho a Unipile adjunta carrusel en formato application/pdf');
+
+const vsModalCode60 = fs.readFileSync('src/components/viral-posts/VisualStudioModal.tsx', 'utf8');
+assert(vsModalCode60.includes('mode?: "single" | "carousel"'), 'VisualStudioModal soporta modos single y carousel');
+assert(vsModalCode60.includes('onApplyCarousel?: (result: { pdfDataUrl: string; pageCount: number; thumbnail: string }) => void'), 'VisualStudioModal expone el contrato onApplyCarousel');
+assert(vsModalCode60.includes('generateCarouselPdf = useCallback(async ()'), 'VisualStudioModal implementa compilación vectorial multipágina generateCarouselPdf');
+assert(vsModalCode60.includes('handleDownloadPdf'), 'VisualStudioModal permite descargar directamente el PDF del carrusel');
+
+const viralPageCode60 = fs.readFileSync('src/app/[locale]/(admin)/viral-posts/page.tsx', 'utf8');
+assert(viralPageCode60.includes('type ViralTab = "radar" | "create" | "list" | "calendar"'), 'viral-posts/page.tsx simplificado a exactamente 4 pestañas limpias');
+assert(viralPageCode60.includes('case "personal":') && viralPageCode60.includes('case "composer":') && viralPageCode60.includes('return "create";'), 'resolveTab redirige coherentemente enlaces y marcadores anteriores a "create"');
+
+const personalComposerCode60 = fs.readFileSync('src/components/viral-posts/PersonalPostComposerView.tsx', 'utf8');
+assert(personalComposerCode60.includes('export default function PersonalPostComposerView'), 'PersonalPostComposerView preserva exportación default para retrocompatibilidad');
+assert(personalComposerCode60.includes('<CreateViralPostView {...props} />'), 'PersonalPostComposerView delega transparentemente en CreateViralPostView');
+
 // Limpieza de base de datos de test
 
 db.close();
