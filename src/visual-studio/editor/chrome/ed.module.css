@@ -340,13 +340,22 @@
   height: 32px;
   padding: 0;
   border: none;
+  border-left: 1px solid var(--ed-border);
+  border-right: 1px solid var(--ed-border);
   border-radius: 0;
-  background: var(--ed-text);
-  color: var(--ed-surface);
+  background: var(--ed-surface);
+  color: var(--ed-text);
   text-align: center;
   font: 600 13px / 1 var(--font-sans);
   appearance: textfield;
   -moz-appearance: textfield;
+}
+.stepInput:hover {
+  background: var(--ed-surface-2);
+}
+.stepInput:focus {
+  background: var(--ed-surface);
+  color: var(--ed-text);
 }
 .stepInput:focus-visible {
   outline: none;

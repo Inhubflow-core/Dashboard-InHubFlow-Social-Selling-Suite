@@ -14,7 +14,7 @@ const outside = (raw: string, limit: Limit): boolean => {
   return raw.trim() !== '' && Number.isFinite(n) && (n < limit.min || n > limit.max)
 }
 
-/** `−  36  +` with an inverted number box. The range is the field's tooltip; a value outside it is clamped when committed. */
+/** `− 36 +` stepper with a light number box and dark text. The range is the field's tooltip; a value outside it is clamped when committed. */
 export function Stepper({ label, value, limit, onChange, testId }: { label: string; value: number; limit: Limit; onChange: (value: number, key?: string) => void; testId: string }) {
   const [draft, setDraft] = useState<string | null>(null)
   const { min, max, step } = limit
