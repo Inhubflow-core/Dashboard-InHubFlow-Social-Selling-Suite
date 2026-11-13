@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useEditor } from '../context'
 import { createLine, defaultShapeSize } from '../engine/objects/factories'
 import { PATH_SHAPES } from '../engine/objects/shapeGeometry'
@@ -14,6 +14,8 @@ import {
   insertGradientOverlay,
   type GradientOverlayPreset,
 } from './gradientOverlays'
+import { ColorPicker } from '../ui/ColorPicker'
+import { Popover } from '../ui/Popover'
 import styles from './Drawers.module.css'
 
 interface ShapeCard {
@@ -36,6 +38,8 @@ export function ShapesDrawer({ close }: PanelProps) {
   const editor = useEditor()
   const [selectedColor, setSelectedColor] = useState('#000000')
   const [coverage, setCoverage] = useState<'half' | 'full'>('half')
+  const colorBtnRef = useRef<HTMLButtonElement>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const shape = (kind: ShapeKind) => (): void => void editor.insert.shape(kind)
 
@@ -120,27 +124,35 @@ export function ShapesDrawer({ close }: PanelProps) {
 
         {/* Selector de Color Base */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ed-text)' }}>Color de Sombra</span>
-            <span style={{ fontSize: 10, color: 'var(--ed-text-dim)', fontFamily: 'monospace' }}>
-              {OVERLAY_COLORS.find((c) => c.color.toLowerCase() === selectedColor.toLowerCase())?.label.split(' ')[0] ?? selectedColor.toUpperCase()}
-            </span>
-          </div>
-          <div className={styles.colorPickerRow}>
-            {OVERLAY_COLORS.map((c) => (
-              <button
-                key={c.color}
-                type="button"
-                className={`${styles.colorDot} ${selectedColor.toLowerCase() === c.color.toLowerCase() ? styles.colorDotActive : ''}`}
-                style={{ backgroundColor: c.color }}
-                title={c.label}
-                aria-label={c.label}
-                onClick={() => setSelectedColor(c.color)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor: selectedColor,
+                  border: '1px solid var(--ed-border)',
+                }}
               />
-            ))}
-            <label
-              className={`${styles.colorDot} ${!OVERLAY_COLORS.some((c) => c.color.toLowerCase() === selectedColor.toLowerCase()) ? styles.colorDotActive : ''}`}
-              title="Color personalizado (Selector libre)"
+              <span style={{ fontSize: 10, color: 'var(--ed-text-dim)', fontFamily: 'monospace' }}>
+                {OVERLAY_COLORS.find((c) => c.color.toLowerCase() === selectedColor.toLowerCase())?.label.split(' ')[0] ?? selectedColor.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              ref={colorBtnRef}
+              type="button"
+              className={`${styles.colorDot} ${pickerOpen ? styles.colorDotActive : ''}`}
+              title="Personalizar color de sombra"
+              aria-label="Personalizar color de sombra"
+              aria-haspopup="dialog"
+              aria-expanded={pickerOpen}
+              data-testid="gradient-color-trigger"
+              onClick={() => setPickerOpen((o) => !o)}
               style={{
                 position: 'relative',
                 display: 'inline-flex',
@@ -148,24 +160,47 @@ export function ShapesDrawer({ close }: PanelProps) {
                 justifyContent: 'center',
                 background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)',
                 cursor: 'pointer',
-                overflow: 'hidden',
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                border: '2px solid #ffffff',
+                boxShadow: pickerOpen
+                  ? '0 0 0 2px #6366f1, 0 2px 6px rgba(0,0,0,0.3)'
+                  : '0 0 0 1px var(--ed-border), 0 1px 3px rgba(0,0,0,0.15)',
               }}
+            />
+          </div>
+
+          <Popover
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            anchorRef={colorBtnRef}
+            label="Color de Sombra"
+            placement="right-start"
+            width={330}
+            variant="plain"
+          >
+            <div
+              style={{
+                width: 330,
+                padding: 14,
+                boxSizing: 'border-box',
+                maxHeight: 'calc(100vh - 80px)',
+                overflowY: 'auto',
+              }}
+              data-testid="gradient-color-picker-popover"
             >
-              <input
-                type="color"
-                value={selectedColor.startsWith('#') && selectedColor.length === 7 ? selectedColor : '#000000'}
-                onChange={(e) => setSelectedColor(e.target.value)}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  opacity: 0,
-                  cursor: 'pointer',
-                  width: '100%',
-                  height: '100%',
+              <ColorPicker
+                value={selectedColor}
+                onChange={(hex) => setSelectedColor(hex)}
+                allowAlpha={false}
+                extraSwatches={{
+                  label: 'Recomendados LinkedIn',
+                  colors: OVERLAY_COLORS.map((c) => c.color),
                 }}
               />
-            </label>
-          </div>
+            </div>
+          </Popover>
         </div>
 
         {/* Selector de Cobertura */}
