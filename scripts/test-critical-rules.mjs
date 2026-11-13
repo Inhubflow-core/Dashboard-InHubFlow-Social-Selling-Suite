@@ -2567,6 +2567,7 @@ const insertSrc48 = fs.readFileSync('src/visual-studio/editor/engine/api/insert.
 assert(factoriesSrc48.includes("fill: '#ffffff'") && factoriesSrc48.includes("stroke: null") && factoriesSrc48.includes("strokeWidth: 0"), "baseShape en factories.ts establece fill: '#ffffff', stroke: null y strokeWidth: 0");
 assert(factoriesSrc48.includes("obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, strokeUniform: true })"), "softShape aplica fill blanco puro (#ffffff) y sin bordes por defecto");
 assert(factoriesSrc48.includes("(obj as any).set('rx', 0)") && factoriesSrc48.includes("(obj as any).set('ry', 0)"), "softShape elimina cualquier redondez (rx: 0, ry: 0) por defecto");
+assert(factoriesSrc48.includes("if (obj instanceof Rect || (obj as any).type === 'rect')"), "softShape solo resetea redondez rx/ry en Rectangulos sin colapsar el radio del circulo (Ellipse)");
 
 // 2. Formas en insert.ts
 assert(insertSrc48.includes("rect.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, rx: 0, ry: 0, strokeUniform: true })"), "Rectangulo en insert.ts inicia blanco, sin borde y sin redondez");

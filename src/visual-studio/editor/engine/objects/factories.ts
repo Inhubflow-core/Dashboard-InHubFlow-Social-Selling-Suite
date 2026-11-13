@@ -147,8 +147,10 @@ export function photoBox(page: { width: number; height: number }): number {
  */
 export function softShape<T extends FabricObject>(obj: T, _page?: { width: number; height: number }): T {
   obj.set({ fill: '#ffffff', stroke: null, strokeWidth: 0, strokeUniform: true })
-  if ('rx' in obj) (obj as any).set('rx', 0)
-  if ('ry' in obj) (obj as any).set('ry', 0)
+  if (obj instanceof Rect || (obj as any).type === 'rect') {
+    (obj as any).set('rx', 0)
+    (obj as any).set('ry', 0)
+  }
   return obj
 }
 
