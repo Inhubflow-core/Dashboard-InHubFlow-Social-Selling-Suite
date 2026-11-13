@@ -34,7 +34,7 @@ const sv = (children: ReactNode): ReactNode => (
 /** Shapes drawer: degradados de contraste, formas básicas, decorativas y herramientas. */
 export function ShapesDrawer({ close }: PanelProps) {
   const editor = useEditor()
-  const [selectedColor, setSelectedColor] = useState('#0b132b')
+  const [selectedColor, setSelectedColor] = useState('#000000')
   const [coverage, setCoverage] = useState<'half' | 'full'>('half')
 
   const shape = (kind: ShapeKind) => (): void => void editor.insert.shape(kind)
@@ -115,15 +115,15 @@ export function ShapesDrawer({ close }: PanelProps) {
           </h3>
         </div>
         <p className={styles.gradientDesc}>
-          Crea el contraste perfecto entre tu foto de fondo y el texto del titular.
+          Crea el contraste perfecto entre tu foto de fondo y el titular. Puedes cambiar y personalizar el color del degradado según tu diseño.
         </p>
 
         {/* Selector de Color Base */}
-        <div style={{ marginBottom: 10 }}>
+        <div style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ed-text)' }}>Color de Sombra</span>
-            <span style={{ fontSize: 10, color: 'var(--ed-text-dim)' }}>
-              {OVERLAY_COLORS.find((c) => c.color === selectedColor)?.label.split(' ')[0] ?? selectedColor}
+            <span style={{ fontSize: 10, color: 'var(--ed-text-dim)', fontFamily: 'monospace' }}>
+              {OVERLAY_COLORS.find((c) => c.color.toLowerCase() === selectedColor.toLowerCase())?.label.split(' ')[0] ?? selectedColor.toUpperCase()}
             </span>
           </div>
           <div className={styles.colorPickerRow}>
@@ -131,28 +131,40 @@ export function ShapesDrawer({ close }: PanelProps) {
               <button
                 key={c.color}
                 type="button"
-                className={`${styles.colorDot} ${selectedColor === c.color ? styles.colorDotActive : ''}`}
+                className={`${styles.colorDot} ${selectedColor.toLowerCase() === c.color.toLowerCase() ? styles.colorDotActive : ''}`}
                 style={{ backgroundColor: c.color }}
                 title={c.label}
                 aria-label={c.label}
                 onClick={() => setSelectedColor(c.color)}
               />
             ))}
-            <input
-              type="color"
-              value={selectedColor.startsWith('#') ? selectedColor : '#0b132b'}
-              onChange={(e) => setSelectedColor(e.target.value)}
-              title="Color personalizado"
+            <label
+              className={`${styles.colorDot} ${!OVERLAY_COLORS.some((c) => c.color.toLowerCase() === selectedColor.toLowerCase()) ? styles.colorDotActive : ''}`}
+              title="Color personalizado (Selector libre)"
               style={{
-                width: 24,
-                height: 24,
-                padding: 0,
-                border: 'none',
-                borderRadius: '50%',
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)',
                 cursor: 'pointer',
-                background: 'transparent',
+                overflow: 'hidden',
               }}
-            />
+            >
+              <input
+                type="color"
+                value={selectedColor.startsWith('#') && selectedColor.length === 7 ? selectedColor : '#000000'}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </label>
           </div>
         </div>
 
