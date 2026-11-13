@@ -515,3 +515,79 @@
   overflow: hidden;
 }
 
+/* ── Resaltadores Visuales SVG (2 columnas compactas) ── */
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.highlightCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 6px 8px;
+  border: 1px solid var(--ed-border);
+  border-radius: var(--ed-radius, 10px);
+  background: var(--ed-surface);
+  color: var(--ed-text);
+  cursor: pointer;
+  transition:
+    border-color var(--ed-dur, 120ms) var(--ed-ease, ease),
+    background var(--ed-dur, 120ms) var(--ed-ease, ease),
+    transform var(--ed-dur, 120ms) var(--ed-ease, ease);
+}
+
+.highlightCard:hover {
+  border-color: var(--accent-lilac, #702ffc);
+  background: var(--ed-accent-glow);
+  transform: translateY(-1px);
+}
+
+.highlightCard:active {
+  transform: translateY(0);
+}
+
+.highlightCard:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.highlightPreview {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.highlightPreview svg {
+  width: 100% !important;
+  max-width: 76px !important;
+  height: 24px !important;
+  max-height: 100% !important;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.highlightLabel {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  font: 600 11px / 1.25 var(--font-sans);
+  color: var(--ed-text);
+  text-align: center;
+}
+
+

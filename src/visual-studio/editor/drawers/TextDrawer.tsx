@@ -419,33 +419,24 @@ export function TextDrawer({ close }: PanelProps) {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', marginBottom: '16px' }}>
+      <div className={styles.highlightGrid}>
         {HIGHLIGHT_STYLES.filter((s) => s.kind === 'vector').map((style) => (
           <button
             key={style.id}
             type="button"
-            className={ed.presetBtn}
-            style={{
-              padding: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '8px',
-              textAlign: 'center',
-              cursor: 'pointer',
-            }}
+            className={styles.highlightCard}
             title={style.description}
+            data-testid={`highlight-${style.id}`}
             onClick={async () => {
               await applyTextHighlight(editor, style.id, '#FFE600')
               close()
             }}
           >
             <div
-              style={{ width: '100%', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2px' }}
+              className={styles.highlightPreview}
               dangerouslySetInnerHTML={{ __html: style.buildSvg('#FFE600') }}
             />
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ed-text)' }}>
+            <span className={styles.highlightLabel}>
               {style.label}
             </span>
           </button>

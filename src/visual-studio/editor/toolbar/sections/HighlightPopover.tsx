@@ -85,7 +85,7 @@ export function HighlightPopover({ close }: HighlightPopoverProps) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
             gap: 6,
             maxHeight: 210,
             overflowY: 'auto',
@@ -105,6 +105,8 @@ export function HighlightPopover({ close }: HighlightPopoverProps) {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  minWidth: 0,
+                  width: '100%',
                   padding: '8px 6px',
                   borderRadius: 8,
                   border: isSelected ? '2px solid #702FFC' : '1px solid var(--ed-border, #e2e8f0)',
@@ -120,16 +122,23 @@ export function HighlightPopover({ close }: HighlightPopoverProps) {
                 <div
                   style={{
                     width: '100%',
-                    height: 38,
+                    height: 28,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 4,
+                    overflow: 'hidden',
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: style.kind === 'text'
-                      ? `<div style="font-weight: 800; font-size: 15px; color: ${selectedColor};">Abc</div>`
-                      : style.buildSvg(selectedColor),
+                    __html:
+                      style.kind === 'text'
+                        ? `<div style="font-weight: 800; font-size: 15px; color: ${selectedColor};">Abc</div>`
+                        : style
+                            .buildSvg(selectedColor)
+                            .replace(
+                              /<svg\b/,
+                              '<svg style="width:100%;max-width:76px;height:24px;max-height:100%;display:block;margin:0 auto;"'
+                            ),
                   }}
                 />
                 <span
@@ -138,6 +147,12 @@ export function HighlightPopover({ close }: HighlightPopoverProps) {
                     fontWeight: isSelected ? 700 : 500,
                     color: isSelected ? '#702FFC' : 'var(--ed-text, #1e293b)',
                     lineHeight: 1.2,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    width: '100%',
                   }}
                 >
                   {style.label}
