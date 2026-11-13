@@ -567,16 +567,16 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
 
                 {/* Vista previa de imagen adjunta si existe */}
                 {Boolean(attachedImage && attachedImage.trim() !== "") && (
-                  <div className="relative rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-950 p-2 flex items-center justify-between gap-4">
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800/80 shadow-xs p-2.5 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <img
                         src={attachedImage || undefined}
                         alt="Recurso adjunto"
-                        className="size-16 rounded-lg object-cover border border-gray-700"
+                        className="size-16 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-xs shrink-0"
                       />
                       <div>
-                        <p className="text-xs font-bold text-white">Imagen de Portada Adjunta</p>
-                        <p className="text-[11px] text-emerald-400">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white">Imagen de Portada Adjunta</p>
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
                           Diseñada con resolución nítida para LinkedIn
                         </p>
                       </div>
@@ -586,14 +586,14 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       <button
                         type="button"
                         onClick={handleOpenVisualStudio}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg transition shadow-2xs"
                       >
                         Ajustar
                       </button>
                       <button
                         type="button"
                         onClick={() => setAttachedImage(null)}
-                        className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                        className="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
                         title="Eliminar imagen"
                       >
                         <Trash2 className="size-4" />
