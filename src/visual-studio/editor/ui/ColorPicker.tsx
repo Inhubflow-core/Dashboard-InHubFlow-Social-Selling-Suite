@@ -34,6 +34,8 @@ export function ColorPicker({ value, onChange, allowAlpha = true, extraSwatches,
   const docColors = useDocumentColors()
   const recent = useEditorStateShallow((s) => s.recentColors)
   const allPalettes = useSyncExternalStore(palettes.subscribe, palettes.getSnapshot)
+  const brandPalette = allPalettes.find((p) => p.id === 'brand')
+  const otherPalettes = allPalettes.filter((p) => p.id !== 'brand')
 
   // External changes (selecting another object) reset the picker; our own emissions do not (keeps hue stable).
   useEffect(() => {
@@ -151,9 +153,10 @@ export function ColorPicker({ value, onChange, allowAlpha = true, extraSwatches,
       {!hideSwatches ? (
         <div className={styles.swatchArea}>
           {extraSwatches && extraSwatches.colors.length > 0 ? <SwatchRow label={extraSwatches.label} colors={extraSwatches.colors} onPick={pick} current={hex} /> : null}
+          {brandPalette && brandPalette.colors.length > 0 ? <SwatchRow key="brand" label={brandPalette.label} colors={brandPalette.colors} onPick={pick} current={hex} /> : null}
           {docColors.length > 0 ? <SwatchRow label={t.picker.documentColors} colors={docColors} onPick={pick} current={hex} /> : null}
           {recent.length > 0 ? <SwatchRow label={t.picker.recent} colors={recent} onPick={pick} current={hex} /> : null}
-          {allPalettes.map((p) => (
+          {otherPalettes.map((p) => (
             <SwatchRow key={p.id} label={p.label} colors={p.colors} onPick={pick} current={hex} />
           ))}
         </div>

@@ -7,9 +7,95 @@ import type { AssetRef } from '@visual-studio/types/adapter'
 import type { Asset, BrandFont, BrandKit } from '@visual-studio/types/api'
 import { normalizeColor } from '../engine/colors'
 
-export const MAX_BRAND_COLORS = 24
-export const MAX_BRAND_LOGOS = 12
+export const MAX_BRAND_COLORS = 6
+export const MAX_BRAND_LOGOS = 24
 export const BRAND_ROLES: readonly BrandFont['role'][] = ['heading', 'subheading', 'body']
+
+export const BRAND_STORAGE_KEY = 'inhubflow_brand_kits'
+
+export const DEFAULT_BRAND_KIT: BrandKit = {
+  id: 'brand-kit-default',
+  name: 'Mi Marca Personal',
+  is_default: true,
+  colors: [
+    { id: 'brand-c1', name: 'Púrpura InHubFlow', hex: '#702FFC' },
+    { id: 'brand-c2', name: 'Azul Eléctrico', hex: '#0047FF' },
+    { id: 'brand-c3', name: 'Esmeralda', hex: '#10B981' },
+    { id: 'brand-c4', name: 'Pizarra Oscura', hex: '#0F172A' },
+    { id: 'brand-c5', name: 'Coral Vibrante', hex: '#F43F5E' },
+    { id: 'brand-c6', name: 'Ámbar Dorado', hex: '#F59E0B' },
+  ],
+  fonts: [
+    { role: 'heading', family: 'Outfit' },
+    { role: 'subheading', family: 'Plus Jakarta Sans' },
+    { role: 'body', family: 'Inter' },
+  ],
+  logos: [],
+  created_at: new Date(0).toISOString(),
+  updated_at: new Date(0).toISOString(),
+}
+
+export function loadLocalBrandKits(): BrandKit[] {
+  if (typeof window === 'undefined') return [DEFAULT_BRAND_KIT]
+  try {
+    const raw = localStorage.getItem(BRAND_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+  } catch (err) {
+    console.warn('[BrandKit] Error al leer kits desde localStorage:', err)
+  }
+  try {
+    localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify([DEFAULT_BRAND_KIT]))
+  } catch {}
+  return [DEFAULT_BRAND_KIT]
+}
+
+export function saveLocalBrandKit(kit: BrandKit): BrandKit {
+  const current = loadLocalBrandKits()
+  const kitToSave: BrandKit = {
+    ...kit,
+    id: kit.id || newId(),
+    colors: kit.colors.slice(0, MAX_BRAND_COLORS),
+    updated_at: new Date().toISOString(),
+  }
+  const next = upsertKit(current, kitToSave)
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(next))
+    } catch (err) {
+      console.warn('[BrandKit] Error al guardar kit en localStorage:', err)
+    }
+  }
+  return kitToSave
+}
+
+export function deleteLocalBrandKit(id: string): void {
+  const current = loadLocalBrandKits()
+  const next = current.filter((k) => k.id !== id)
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(next.length > 0 ? next : [DEFAULT_BRAND_KIT]))
+    } catch {}
+  }
+}
+
+export function createLocalBrandService() {
+  return {
+    async list(): Promise<BrandKit[]> {
+      return loadLocalBrandKits()
+    },
+    async save(kit: BrandKit): Promise<BrandKit> {
+      return saveLocalBrandKit(kit)
+    },
+    async remove(id: string): Promise<void> {
+      deleteLocalBrandKit(id)
+    },
+  }
+}
 
 /** A kit that has not been saved yet (empty id: the adapter creates it). */
 export function emptyKit(name: string, isDefault: boolean): BrandKit {

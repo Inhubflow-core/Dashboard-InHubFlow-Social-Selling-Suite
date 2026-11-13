@@ -5,6 +5,7 @@ import { MigrationError } from './errors'
 import { readImageInfo, UnsupportedImageError } from './images'
 import { migrateLocalDesign, type MigrationProgress } from './migrateLocalDesign'
 import { createPublicServices } from './services'
+import { createLocalBrandService } from '../../../editor/panels/brandOps'
 
 const LOCAL_SRC = /^idb:\/\/([0-9a-f-]{36})$/i
 
@@ -117,7 +118,7 @@ export function createGuestAdapter(options: GuestAdapterOptions): EditorAdapter 
         },
         remove: (id) => repo.deleteAsset(id),
       },
-      brand: null,
+      brand: createLocalBrandService(),
       stock: null,
       versions: null,
     },

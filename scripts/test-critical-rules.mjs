@@ -2942,6 +2942,37 @@ assert(textToolbarCode58.includes('HighlightPopover'), 'La barra contextual de t
 
 assert(textDrawerCode58.includes('Resaltador visual'), 'El Drawer lateral de Texto expone la galería de resaltadores visuales');
 
+// ==================================================================
+// 59. TEST: Kit de Marca Personal (6 Colores Priorizados 'Color Brand' y Recursos Visuales)
+// ==================================================================
+console.log("\n--- TEST: Kit de Marca Personal (6 Colores Priorizados 'Color Brand' y Recursos Visuales) ---");
+
+const brandOpsCode59 = fs.readFileSync('src/visual-studio/editor/panels/brandOps.ts', 'utf8');
+const brandPaletteCode59 = fs.readFileSync('src/visual-studio/editor/panels/brandPalette.ts', 'utf8');
+const colorPickerCode59 = fs.readFileSync('src/visual-studio/editor/ui/ColorPicker.tsx', 'utf8');
+const brandPanelCode59 = fs.readFileSync('src/visual-studio/editor/panels/BrandPanel.tsx', 'utf8');
+const memoryAdapterCode59 = fs.readFileSync('src/visual-studio/editor/dev/memoryAdapter.ts', 'utf8');
+const stringsCode59 = fs.readFileSync('src/visual-studio/editor/strings.ts', 'utf8');
+
+assert(brandOpsCode59.includes('export const MAX_BRAND_COLORS = 6'), 'MAX_BRAND_COLORS está fijado estrictamente en 6 colores');
+assert(brandOpsCode59.includes('DEFAULT_BRAND_KIT') && brandOpsCode59.includes('Púrpura InHubFlow'), 'DEFAULT_BRAND_KIT inicializa con los colores y tipografías oficiales de marca');
+assert(brandOpsCode59.includes('createLocalBrandService'), 'brandOps exporta el servicio local persistente createLocalBrandService');
+assert(brandOpsCode59.includes('MAX_BRAND_LOGOS = 24'), 'MAX_BRAND_LOGOS permite almacenar hasta 24 elementos visuales (logos, iconos, sellos)');
+
+assert(brandPaletteCode59.includes("label: 'Color Brand'"), 'brandPalette registra la paleta con la etiqueta "Color Brand"');
+assert(brandPaletteCode59.includes('order: -100'), 'brandPalette tiene prioridad máxima order: -100');
+assert(brandPaletteCode59.includes('initBrandPalette'), 'brandPalette exporta e invoca auto-inicialización initBrandPalette');
+
+assert(colorPickerCode59.includes("const brandPalette = allPalettes.find((p) => p.id === 'brand')"), 'ColorPicker detecta específicamente la paleta brand');
+assert(colorPickerCode59.includes('{brandPalette && brandPalette.colors.length > 0 ? <SwatchRow key="brand" label={brandPalette.label}'), 'ColorPicker prioriza "Color Brand" al inicio de todas las herramientas de color');
+
+assert(!brandPanelCode59.includes('function BrandGate'), 'BrandGate ("Sign up to use brand kits") eliminado por completo de BrandPanel');
+assert(brandPanelCode59.includes('createLocalBrandService'), 'BrandPanel integra createLocalBrandService para operar 100% offline y persistente');
+
+assert(memoryAdapterCode59.includes('brand: createLocalBrandService()'), 'memoryAdapter inicializa el servicio de brand por defecto');
+assert(stringsCode59.includes("palette: (name: string) => `Color Brand"), 'strings.ts nombra la paleta como Color Brand');
+assert(stringsCode59.includes("Colores de Marca (Hasta 6)"), 'strings.ts describe la sección con Colores de Marca (Hasta 6)');
+
 // Limpieza de base de datos de test
 
 db.close();

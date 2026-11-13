@@ -16,7 +16,7 @@ import { Button, IconButton } from '../ui/Button'
 import { ColorPicker } from '../ui/ColorPicker'
 import { Popover } from '../ui/Popover'
 import { Skeleton } from '../ui/Skeleton'
-import { BRAND_ROLES, MAX_BRAND_COLORS, MAX_BRAND_LOGOS, assetToRef, emptyKit, fontOf, pickKit, refToAsset, upsertKit, withColor, withFont, withLogo, withoutColor, withoutLogo } from './brandOps'
+import { BRAND_ROLES, MAX_BRAND_COLORS, MAX_BRAND_LOGOS, assetToRef, createLocalBrandService, emptyKit, fontOf, pickKit, refToAsset, upsertKit, withColor, withFont, withLogo, withoutColor, withoutLogo } from './brandOps'
 import { setBrandPalette } from './brandPalette'
 import { DeleteControl } from './CommentParts'
 import { CategoryMenu, type CategoryEntry } from './library'
@@ -24,30 +24,6 @@ import styles from './Brand.module.css'
 
 type Brand = NonNullable<ReturnType<typeof useEditor>['adapter']['services']['brand']>
 type Rename = { kind: 'idle' } | { kind: 'renaming'; draft: string }
-
-/** Guests: what a brand kit is, and the way to an account. */
-function BrandGate({ onDone }: { onDone: () => void }) {
-  const editor = useEditor()
-  const [busy, setBusy] = useState(false)
-  const signUp = async (): Promise<void> => {
-    setBusy(true)
-    try {
-      const ok = await editor.adapter.requireAccount('brand-kit', async () => ({ document: editor.getDocument(), title: editor.state.title }))
-      if (ok) onDone()
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <div className={styles.gate} data-testid="brand-gate">
-      <strong>{t.brand.gateTitle}</strong>
-      <span>{t.brand.gateBody}</span>
-      <Button variant="primary" disabled={busy} onClick={() => void signUp()} data-testid="brand-signup">
-        {t.brand.gateAction}
-      </Button>
-    </div>
-  )
-}
 
 function LogoThumb({ kit, logoId, onUse, onRemove }: { kit: BrandKit; logoId: string; onUse: () => void; onRemove: () => void }) {
   const logo = kit.logos.find((l) => l.id === logoId)
@@ -295,11 +271,17 @@ function Kit({ brand }: { brand: Brand }) {
           <section className={styles.section}>
             <div className={styles.head}>
               <h3 className={styles.heading}>{t.brand.colors}</h3>
+              <span style={{ fontSize: 11, color: 'var(--ed-text-dim)', fontWeight: 500 }}>
+                {kit.colors.length}/{MAX_BRAND_COLORS}
+              </span>
             </div>
+            <p className={styles.note} style={{ fontSize: 11, lineHeight: 1.4, margin: '2px 0 6px' }}>
+              Priorizados en todas las herramientas de color bajo la categoría <strong>Color Brand</strong>.
+            </p>
             <div className={styles.swatches} role="group" aria-label={t.brand.colors}>
               {kit.colors.map((c) => (
                 <div key={c.id} className={styles.swatchWrap}>
-                  <button type="button" className={styles.swatch} style={{ background: c.hex }} aria-label={t.brand.applyColor(c.name)} title={c.name} data-testid="brand-color" onClick={() => apply(c.hex)} />
+                  <button type="button" className={styles.swatch} style={{ background: c.hex }} aria-label={t.brand.applyColor(c.name)} title={`${c.name} (${c.hex})`} data-testid="brand-color" onClick={() => apply(c.hex)} />
                   <button type="button" className={styles.remove} aria-label={t.brand.removeColor(c.name)} onClick={() => void save(withoutColor(kit, c.id))}>
                     <X size={10} aria-hidden="true" />
                   </button>
@@ -323,7 +305,13 @@ function Kit({ brand }: { brand: Brand }) {
           <section className={styles.section}>
             <div className={styles.head}>
               <h3 className={styles.heading}>{t.brand.logos}</h3>
+              <span style={{ fontSize: 11, color: 'var(--ed-text-dim)', fontWeight: 500 }}>
+                {kit.logos.length}/{MAX_BRAND_LOGOS}
+              </span>
             </div>
+            <p className={styles.note} style={{ fontSize: 11, lineHeight: 1.4, margin: '2px 0 6px' }}>
+              Sube logotipos, íconos o sellos (PNG, JPG, SVG, WebP). Haz clic sobre cualquiera para insertarlo en el lienzo.
+            </p>
             <div className={styles.logos}>
               {kit.logos.map((l) => (
                 <LogoThumb key={l.id} kit={kit} logoId={l.id} onUse={() => void editor.insert.imageFromAsset(assetToRef(l))} onRemove={() => void save(withoutLogo(kit, l.id))} />
@@ -348,11 +336,11 @@ function Kit({ brand }: { brand: Brand }) {
   )
 }
 
-/** Brand sidebar: kits of colours, fonts and logos (signed-in users); guests are invited to sign up. */
+/** Panel lateral de Marca Personal: kit de 6 colores, tipografías, logotipos e íconos guardados localmente. */
 export function BrandPanel() {
   const editor = useEditor()
   useEditorState((s) => s.mode)
-  const [, refresh] = useState(0)
-  const brand = editor.adapter.services.brand
-  return brand ? <Kit brand={brand} /> : <BrandGate onDone={() => refresh((n) => n + 1)} />
+  const [localBrand] = useState(() => createLocalBrandService())
+  const brand = editor.adapter.services.brand ?? localBrand
+  return <Kit brand={brand} />
 }

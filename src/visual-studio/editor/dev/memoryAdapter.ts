@@ -16,6 +16,7 @@ import { createAccountFakes, createTemplatesService } from './fakeCatalog'
 import { type CommentRole, type MemoryCommentsHandle, createMemoryComments } from './memoryComments'
 import { createMemoryUserFonts } from './memoryFonts'
 import { localRepository } from '@visual-studio/lib/local'
+import { createLocalBrandService } from '../panels/brandOps'
 
 /** Cache global en memoria que sobrevive a re-montajes y Hot Module Reload de Next.js */
 const globalAssetUrls = new Map<string, string>()
@@ -340,7 +341,7 @@ export function createMemoryAdapter(options: MemoryAdapterOptions = {}): MemoryA
         },
       },
       video: createPixabayVideoService((f, opts) => adapter.uploadAsset(f, opts)),
-      brand: null,
+      brand: createLocalBrandService(),
       stock: options.enableStock === false ? null : createPixabayStockService((ref) => {
         imageAssets.unshift({
           id: ref.id,
