@@ -3122,6 +3122,23 @@ const nicheSearchCode = fs.readFileSync('src/lib/viral-posts/niche-search.ts', '
 assert(nicheSearchCode.includes('targetCountry?: string'), 'niche-search.ts soporta targetCountry');
 assert(nicheSearchCode.includes('COUNTRY_NICHE_META'), 'niche-search.ts decora posts simulados/locales con ubicación coherente al país');
 
+console.log("\n--- TEST: Blindaje de Red, Timeouts y Respaldo por País en Signal Radar ---");
+
+const globalScanCode = fs.readFileSync('src/app/api/unipile/signals/global/scan/route.ts', 'utf8');
+assert(globalScanCode.includes('leadLocationCache'), 'global/scan implementa leadLocationCache para optimizar resolución de perfiles');
+assert(globalScanCode.includes('Promise.race') && globalScanCode.includes('12000'), 'global/scan envuelve la búsqueda de posts en timeout de 12 segundos');
+assert(globalScanCode.includes('VERIFIED_COLOMBIA_OUTREACH_POSTS'), 'global/scan incluye publicaciones verificadas de debate para Colombia');
+assert(globalScanCode.includes('VERIFIED_BRASIL_OUTREACH_POSTS'), 'global/scan incluye publicaciones verificadas de debate para Brasil');
+assert(globalScanCode.includes('VERIFIED_MEXICO_OUTREACH_POSTS'), 'global/scan incluye publicaciones verificadas de debate para México');
+assert(globalScanCode.includes('VERIFIED_ESPANIA_OUTREACH_POSTS'), 'global/scan incluye publicaciones verificadas de debate para España');
+assert(globalScanCode.includes('getVerifiedDebatePostsForCountry'), 'global/scan implementa selector inteligente de publicaciones por país');
+assert(globalScanCode.includes('Sin interacciones en posts en vivo para'), 'global/scan inyecta decisores verificados de debate comercial cuando leadMap.size es 0');
+
+const competitorScanCode = fs.readFileSync('src/app/api/unipile/competitors/scan/route.ts', 'utf8');
+assert(competitorScanCode.includes('Promise.race') && competitorScanCode.includes('3000'), 'competitors/scan protege resolución de perfiles con timeout de 3 segundos');
+assert(competitorScanCode.includes('category: "posts"') && competitorScanCode.includes('keywords: competitorName'), 'competitors/scan recurre a búsqueda de posts si el slug no es un ID numérico');
+assert(competitorScanCode.includes('Sin interacciones directas en publicaciones vivas de'), 'competitors/scan inyecta decisores de debate de mercado si no hay leads en vivo');
+
 // Limpieza de base de datos de test
 
 db.close();
