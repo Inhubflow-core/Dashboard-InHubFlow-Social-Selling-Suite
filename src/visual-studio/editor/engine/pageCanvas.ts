@@ -931,7 +931,7 @@ export class PageCanvas {
           const pt = host.clientToPage(clickedPageId, ev.clientX, ev.clientY)
           if (pt) {
             const objs = targetView.canvas.getObjects().filter((o) => o.visible !== false && !asDory(o).isUi && !o.excludeFromExport)
-            const hit = objs.slice().reverse().find((o) => o.containsPoint(pt))
+            const hit = objs.slice().reverse().find((o) => (o as any).containsPoint(pt))
             if (hit) {
               targetView.selectObjects([hit])
             } else {

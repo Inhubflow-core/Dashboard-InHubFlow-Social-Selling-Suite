@@ -882,11 +882,27 @@ function getNicheImagePool(keyword: string): string[] {
   ];
 }
 
+const COUNTRY_NICHE_META: Record<string, { location: string; countryCode: string; lang: "es" | "pt" | "en" }> = {
+  BR: { location: "São Paulo, Brasil", countryCode: "BR", lang: "pt" },
+  US: { location: "Austin, Texas, United States", countryCode: "US", lang: "en" },
+  ES: { location: "Madrid, España", countryCode: "ES", lang: "es" },
+  MX: { location: "Ciudad de México, México", countryCode: "MX", lang: "es" },
+  CO: { location: "Bogotá, Colombia", countryCode: "CO", lang: "es" },
+  AR: { location: "Buenos Aires, Argentina", countryCode: "AR", lang: "es" },
+  CL: { location: "Santiago, Chile", countryCode: "CL", lang: "es" },
+  PE: { location: "Lima, Perú", countryCode: "PE", lang: "es" },
+  PA: { location: "Ciudad de Panamá, Panamá", countryCode: "PA", lang: "es" },
+  PT: { location: "Lisboa, Portugal", countryCode: "PT", lang: "pt" },
+  GB: { location: "London, United Kingdom", countryCode: "GB", lang: "en" },
+  AU: { location: "Sydney, Australia", countryCode: "AU", lang: "en" },
+};
+
 // Función para generar dinámicamente 12 publicaciones virales especializadas con ángulos y ganchos únicos
-function generateDynamicNicheTemplates(nicheKeyword: string, targetMarket: string): ViralPostTemplate[] {
+function generateDynamicNicheTemplates(nicheKeyword: string, targetMarket: string, targetCountry?: string): ViralPostTemplate[] {
   const cleanKeyword = nicheKeyword.trim();
   const lower = cleanKeyword.toLowerCase();
   const imagePool = getNicheImagePool(cleanKeyword);
+  const countryMeta = targetCountry && targetCountry !== "ALL" ? COUNTRY_NICHE_META[targetCountry] : null;
 
   const authors = [
     { name: "Laura Benítez", role: `Directora de Estrategia & Crecimiento en ${cleanKeyword}` },
@@ -1455,8 +1471,10 @@ Adjunto la infografía para que puedan guardarla o utilizarla en su próxima reu
       linkedinUrl: `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(
         data.hook.replace(/:$/, "").slice(0, 90)
       )}`,
-      marketOrigin: "LATAM / Hispanoamérica",
-      detectedLanguage: "es",
+      marketOrigin: countryMeta ? countryMeta.location : (targetMarket === "brazil_us" ? "Brasil / Cono Sur" : "LATAM / Hispanoamérica"),
+      authorLocation: countryMeta ? countryMeta.location : (targetMarket === "brazil_us" ? "São Paulo, Brasil" : "Madrid, España"),
+      authorCountry: countryMeta ? countryMeta.countryCode : (targetMarket === "brazil_us" ? "BR" : "ES"),
+      detectedLanguage: countryMeta ? countryMeta.lang : (targetMarket === "brazil_us" ? "pt" : "es"),
       isLive: false,
     };
   });
@@ -1467,8 +1485,9 @@ Adjunto la infografía para que puedan guardarla o utilizarla en su próxima reu
  * Si el término coincide con "saas" o "software", devuelve el catálogo experto de SaaS.
  * Si es otro nicho, genera y adapta dinámicamente las 12 publicaciones más virales para esa temática exacta.
  */
-export function getNicheViralPosts(keywords: string, targetMarket: string): ViralPostTemplate[] {
+export function getNicheViralPosts(keywords: string, targetMarket: string, targetCountry?: string): ViralPostTemplate[] {
   const kw = keywords.trim().toLowerCase();
+  const countryMeta = targetCountry && targetCountry !== "ALL" ? COUNTRY_NICHE_META[targetCountry] : null;
 
   // Detección del nicho SaaS / Software / Cloud
   if (
@@ -1498,6 +1517,9 @@ export function getNicheViralPosts(keywords: string, targetMarket: string): Vira
         viralityTier,
         viralityBadge,
         engagementRatio,
+        authorLocation: countryMeta ? countryMeta.location : (t.authorLocation || "San Francisco, CA, USA"),
+        authorCountry: countryMeta ? countryMeta.countryCode : (t.authorCountry || "US"),
+        marketOrigin: countryMeta ? countryMeta.location : (t.marketOrigin || "EE.UU. / Global"),
       };
     });
 
@@ -1506,5 +1528,5 @@ export function getNicheViralPosts(keywords: string, targetMarket: string): Vira
   }
 
   // Generador dinámico para cualquier otro término o industria
-  return generateDynamicNicheTemplates(keywords || "Social Selling", targetMarket);
+  return generateDynamicNicheTemplates(keywords || "Social Selling", targetMarket, targetCountry);
 }

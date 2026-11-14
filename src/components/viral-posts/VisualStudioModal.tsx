@@ -91,6 +91,8 @@ export interface VisualStudioModalProps {
   initialHighlight?: string;
   initialCategory?: string;
   initialMetric?: string;
+  initialText?: string;
+  aspectRatio?: string;
   authorName?: string;
   authorHandle?: string;
   authorAvatar?: string;
@@ -855,7 +857,7 @@ export default function VisualStudioModal({
       {isSuperAdmin && (
         <button
           type="button"
-          onClick={handleOpenSaveGlobalModal}
+          onClick={() => handleOpenSaveGlobalModal()}
           disabled={isExporting}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
           title="Guardar diseño actual como plantilla global para toda la plataforma (Solo Super Admin)"

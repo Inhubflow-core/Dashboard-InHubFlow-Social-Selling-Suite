@@ -18,7 +18,7 @@ interface HighlightPopoverProps {
 export function HighlightPopover({ close }: HighlightPopoverProps) {
   const editor = useEditor()
   const sel = useSelection()
-  const textObj = sel.objects[0] as IText | undefined
+  const textObj = sel.objects[0] as unknown as IText | undefined
 
   const [selectedStyleId, setSelectedStyleId] = useState<HighlightStyleId>('circle-hand')
   const [selectedColor, setSelectedColor] = useState<string>('#FFE600')

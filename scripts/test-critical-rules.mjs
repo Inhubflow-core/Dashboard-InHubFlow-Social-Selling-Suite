@@ -2737,7 +2737,7 @@ assert(editorAppSrc.includes('target.closest') && editorAppSrc.includes('data-fa
 
 const workspaceSrc = fs.readFileSync('src/visual-studio/editor/workspace/Workspace.tsx', 'utf8');
 assert(workspaceSrc.includes('onContextMenu={(e) => {\r\n        e.preventDefault()') || workspaceSrc.includes('onContextMenu={(e) => {\n        e.preventDefault()'), 'Workspace contenedor principal suprime el menú nativo del navegador');
-assert(workspaceSrc.includes('editor.onContextMenu(doc.pages[activePage]'), 'Workspace abre el menú contextual de lienzo al hacer clic derecho en fondo vacío');
+assert(workspaceSrc.includes('editor.onContextMenu(doc.pages[activePage]') || workspaceSrc.includes('editor.onContextMenu(activePageId || doc.pages[0]?.id'), 'Workspace abre el menú contextual de lienzo al hacer clic derecho en fondo vacío');
 
 const pageSlotSrc = fs.readFileSync('src/visual-studio/editor/workspace/PageSlot.tsx', 'utf8');
 assert(pageSlotSrc.includes('onContextMenu={(e) => {\r\n        e.preventDefault()') || pageSlotSrc.includes('onContextMenu={(e) => {\n        e.preventDefault()'), 'PageSlot previene contextmenu nativo en el slot del lienzo');
@@ -3094,6 +3094,33 @@ assert(viralRadarCode61.includes('generatingProgress'), 'Barra de progreso anima
 
 assert(calendarCode61.includes('accountFilter'), 'Calendario Editorial soporta filtro multi-cuenta');
 assert(calendarCode61.includes('post.targetLanguage'), 'Calendario Editorial muestra badge/bandera de idioma en posts');
+
+console.log("\n--- TEST: Filtro de País en Radar Viral con Verificación Real de Ubicación del Perfil ---");
+
+const searchRouteCode = fs.readFileSync('src/app/api/unipile/posts/search/route.ts', 'utf8');
+assert(searchRouteCode.includes('TARGET_COUNTRIES'), 'route.ts define diccionario TARGET_COUNTRIES con códigos y ciudades clave');
+assert(searchRouteCode.includes('authorLocationCache'), 'route.ts implementa authorLocationCache para evitar llamadas redundantes a LinkedIn');
+assert(searchRouteCode.includes('unipile.resolveProfile'), 'route.ts resuelve la ubicación real del perfil del autor vía Unipile');
+assert(searchRouteCode.includes('targetCountry'), 'route.ts recibe y procesa targetCountry');
+assert(searchRouteCode.includes('authorLocation: cached.location'), 'route.ts decora publicaciones con la ubicación verificada del autor');
+
+const viralTypesCodeCtry = fs.readFileSync('src/lib/viral-posts/types.ts', 'utf8');
+assert(viralTypesCodeCtry.includes('authorLocation?: string'), 'ViralPostTemplate incluye authorLocation');
+assert(viralTypesCodeCtry.includes('authorCountry?: string'), 'ViralPostTemplate incluye authorCountry');
+
+const viralRadarCodeCtry = fs.readFileSync('src/components/viral-posts/ViralRadarView.tsx', 'utf8');
+assert(viralRadarCodeCtry.includes('selectedCountry'), 'ViralRadarView gestiona el estado selectedCountry');
+assert(viralRadarCodeCtry.includes('target_country: targetCtry'), 'ViralRadarView envía target_country en la consulta de búsqueda');
+assert(viralRadarCodeCtry.includes('País del Autor:'), 'ViralRadarView muestra selector desplegable de países en la barra de búsqueda');
+assert(viralRadarCodeCtry.includes('🇧🇷 Brasil'), 'ViralRadarView incluye opción Brasil');
+assert(viralRadarCodeCtry.includes('🇺🇸 Estados Unidos'), 'ViralRadarView incluye opción Estados Unidos');
+assert(viralRadarCodeCtry.includes('🇪🇸 España'), 'ViralRadarView incluye opción España');
+assert(viralRadarCodeCtry.includes('authorLocation || post.marketOrigin'), 'ViralRadarView renderiza badge de ubicación verificada en cada tarjeta');
+assert(viralRadarCodeCtry.includes('Ubicación verificada del perfil en LinkedIn:'), 'Modal de detalle expone la ubicación verificada del autor');
+
+const nicheSearchCode = fs.readFileSync('src/lib/viral-posts/niche-search.ts', 'utf8');
+assert(nicheSearchCode.includes('targetCountry?: string'), 'niche-search.ts soporta targetCountry');
+assert(nicheSearchCode.includes('COUNTRY_NICHE_META'), 'niche-search.ts decora posts simulados/locales con ubicación coherente al país');
 
 // Limpieza de base de datos de test
 

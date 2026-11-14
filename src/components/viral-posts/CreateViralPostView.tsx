@@ -1282,7 +1282,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                       </div>
                       <div className="relative z-10 space-y-1">
                         <h4 className="text-sm font-extrabold leading-snug">
-                          {parseHighlightedTitle(slides[0]?.title || title, slides[0]?.highlightColor || "#f97316")}
+                          {parseHighlightedTitle(slides[0]?.title || topic, slides[0]?.highlightColor || "#f97316")}
                         </h4>
                         <p className="text-[11px] text-white/80">{slides[0]?.subtitle}</p>
                       </div>

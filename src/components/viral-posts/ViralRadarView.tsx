@@ -46,6 +46,7 @@ import {
   Check,
   Globe,
   UserCheck,
+  MapPin,
 } from "lucide-react";
 
 export type TargetMarket =
@@ -207,7 +208,8 @@ export default function ViralRadarView({
     setDetectedLocation(detectUserMarket());
   }, []);
 
-  // Filtros de Viralidad y Temporalidad
+  // Filtros de Viralidad, País del Autor y Temporalidad
+  const [selectedCountry, setSelectedCountry] = useState<string>("ALL");
   const [datePosted, setDatePosted] = useState<"PAST_MONTH" | "PAST_WEEK" | "PAST_24H" | "ANY">("PAST_MONTH");
   const [viralityTierFilter, setViralityTierFilter] = useState<"all" | "mega" | "high" | "trending">("all");
   const excludeJobs = true;
@@ -322,7 +324,8 @@ export default function ViralRadarView({
       accountIdOverride?: string,
       dateOverride?: string,
       marketOverride?: TargetMarket,
-      excludeJobsOverride?: boolean
+      excludeJobsOverride?: boolean,
+      countryOverride?: string
     ) => {
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
@@ -330,6 +333,7 @@ export default function ViralRadarView({
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
       const targetMkt = marketOverride || detectedLocation.market;
+      const targetCtry = countryOverride !== undefined ? countryOverride : selectedCountry;
       const shouldExcludeJobs =
         excludeJobsOverride !== undefined ? excludeJobsOverride : excludeJobs;
 
@@ -346,6 +350,7 @@ export default function ViralRadarView({
             limit: 50,
             date_posted: targetDate,
             target_market: targetMkt,
+            target_country: targetCtry,
             user_timezone: detectedLocation.timezone,
             user_country: detectedLocation.country,
             filter_zero: true,
@@ -435,7 +440,7 @@ export default function ViralRadarView({
         setIsSearchingLive(false);
       }
     },
-    [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs, viralityTierFilter, selectedFormat]
+    [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs, viralityTierFilter, selectedFormat, selectedCountry]
   );
 
   // Ejecutar búsqueda inicial en vivo SOLO si ya se verificó el caché Y no existía ninguna búsqueda previa guardada
@@ -943,6 +948,38 @@ export default function ViralRadarView({
                 </div>
               </div>
 
+              {/* Filtro por País del Creador (Verificación Real de Ubicación del Perfil) */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <Globe className="size-3.5 text-[#0099ff]" />
+                  País del Autor:
+                </span>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => {
+                    const country = e.target.value;
+                    setSelectedCountry(country);
+                    handleLiveSearch(searchKeyword, undefined, undefined, undefined, undefined, country);
+                  }}
+                  className="h-8 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0099ff] cursor-pointer"
+                  title="Filtrar por ubicación geográfica real del autor"
+                >
+                  <option value="ALL">🌐 Todos los países / Global</option>
+                  <option value="BR">🇧🇷 Brasil</option>
+                  <option value="US">🇺🇸 Estados Unidos</option>
+                  <option value="ES">🇪🇸 España</option>
+                  <option value="MX">🇲🇽 México</option>
+                  <option value="CO">🇨🇴 Colombia</option>
+                  <option value="AR">🇦🇷 Argentina</option>
+                  <option value="CL">🇨🇱 Chile</option>
+                  <option value="PE">🇵🇪 Perú</option>
+                  <option value="PA">🇵🇦 Panamá</option>
+                  <option value="PT">🇵🇹 Portugal</option>
+                  <option value="GB">🇬🇧 Reino Unido</option>
+                  <option value="AU">🇦🇺 Australia</option>
+                </select>
+              </div>
+
             </div>
           </div>
 
@@ -1205,13 +1242,13 @@ export default function ViralRadarView({
                           {t("scorePts", { score: post.viralityScore })}
                         </span>
                       )}
-                      {post.marketOrigin && (
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
-                          <svg className="w-2.5 h-2.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {post.marketOrigin}
+                      {(post.authorLocation || post.marketOrigin) && (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50"
+                          title={`Ubicación verificada del perfil en LinkedIn: ${post.authorLocation || post.marketOrigin}`}
+                        >
+                          <MapPin className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                          <span className="truncate max-w-[130px]">{post.authorLocation || post.marketOrigin}</span>
                         </span>
                       )}
                     </div>
@@ -1757,6 +1794,19 @@ export default function ViralRadarView({
               </div>
             )}
 
+            {/* Ubicación Verificada del Perfil del Autor */}
+            {(selectedPostForModal.authorLocation || selectedPostForModal.marketOrigin) && (
+              <div className="mb-4 flex items-center justify-between p-3 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900 text-xs">
+                <span className="text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1.5">
+                  <MapPin className="size-3.5 text-rose-500" />
+                  Ubicación verificada del perfil en LinkedIn:
+                </span>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                  {selectedPostForModal.authorLocation || selectedPostForModal.marketOrigin}
+                </span>
+              </div>
+            )}
+
             {/* Prompt Visual para IA (si aplica) */}
             {selectedPostForModal.format === "image" && selectedPostForModal.imagePrompt && (
               <div className="mb-4 rounded-lg border border-gray-300 p-4 bg-white dark:border-gray-800 dark:bg-gray-900">
@@ -1849,6 +1899,16 @@ export default function ViralRadarView({
                 <X className="size-5" />
               </button>
             </div>
+
+            {/* Indicador de Filtro Geográfico si está activo */}
+            {selectedCountry !== "ALL" && (
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-xs text-blue-700 dark:text-blue-300">
+                <Globe className="size-4 shrink-0 text-[#0099ff]" />
+                <span>
+                  Filtro geográfico activo: <strong>{selectedCountry}</strong> (Autores verificados en este país).
+                </span>
+              </div>
+            )}
 
             {/* 1. Selector de Cuenta de LinkedIn Destino */}
             <div className="space-y-1.5">

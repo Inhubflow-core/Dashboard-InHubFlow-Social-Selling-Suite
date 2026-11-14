@@ -9,6 +9,142 @@ import {
 } from "@/lib/viral-posts/filters";
 import { NextResponse } from "next/server";
 
+export interface TargetCountryConfig {
+  code: string;
+  name: string;
+  flag: string;
+  keywords: string[];
+}
+
+export const TARGET_COUNTRIES: Record<string, TargetCountryConfig> = {
+  ALL: { code: "ALL", name: "Todos los países / Global", flag: "🌐", keywords: [] },
+  BR: {
+    code: "BR",
+    name: "Brasil",
+    flag: "🇧🇷",
+    keywords: [
+      "brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro", "belo horizonte",
+      "curitiba", "porto alegre", "florianópolis", "florianopolis", "recife", "fortaleza",
+      "salvador", "brasília", "brasilia", "campinas", "goiânia", "goiania", "vitória",
+      "vitoria", "joinville", "blumenau", "londrina", "maringá", "maringa", "ribeirão preto",
+      "santos", "sorocaba", "manaus", "belém", "belem", "cuiabá", "cuiaba", "espirito santo",
+      "minas gerais", "santa catarina", "paraná", "parana", "rio grande do sul", "bahia",
+      "ceará", "ceara", "pernambuco", "distrito federal"
+    ],
+  },
+  US: {
+    code: "US",
+    name: "Estados Unidos",
+    flag: "🇺🇸",
+    keywords: [
+      "united states", "usa", "u.s.", "u.s.a.", "california", "new york", "texas",
+      "florida", "san francisco", "silicon valley", "los angeles", "austin", "chicago",
+      "seattle", "boston", "miami", "atlanta", "denver", "dallas", "houston", "phoenix",
+      "san diego", "las vegas", "washington dc", "philadelphia", "portland", "nashville"
+    ],
+  },
+  ES: {
+    code: "ES",
+    name: "España",
+    flag: "🇪🇸",
+    keywords: [
+      "españa", "spain", "madrid", "barcelona", "valencia", "sevilla", "zaragoza",
+      "málaga", "malaga", "bilbao", "alicante", "galicia", "andalucía", "andalucia",
+      "cataluña", "catalunya", "país vasco", "asturias", "murcia", "toledo", "vigo"
+    ],
+  },
+  MX: {
+    code: "MX",
+    name: "México",
+    flag: "🇲🇽",
+    keywords: [
+      "méxico", "mexico", "cdmx", "ciudad de méxico", "guadalajara", "monterrey",
+      "puebla", "querétaro", "queretaro", "tijuana", "cancún", "mérida", "león", "jalisco"
+    ],
+  },
+  CO: {
+    code: "CO",
+    name: "Colombia",
+    flag: "🇨🇴",
+    keywords: [
+      "colombia", "bogotá", "bogota", "medellín", "medellin", "cali", "barranquilla",
+      "cartagena", "bucaramanga", "pereira", "manizales", "antioquia"
+    ],
+  },
+  AR: {
+    code: "AR",
+    name: "Argentina",
+    flag: "🇦🇷",
+    keywords: [
+      "argentina", "buenos aires", "caba", "córdoba", "cordoba", "rosario", "mendoza",
+      "la plata", "mar del plata", "santa fe", "salta", "tucumán"
+    ],
+  },
+  CL: {
+    code: "CL",
+    name: "Chile",
+    flag: "🇨🇱",
+    keywords: [
+      "chile", "santiago", "valparaíso", "valparaiso", "viña del mar", "concepción",
+      "concepcion", "antofagasta", "temuco", "la serena"
+    ],
+  },
+  PE: {
+    code: "PE",
+    name: "Perú",
+    flag: "🇵🇪",
+    keywords: ["perú", "peru", "lima", "arequipa", "trujillo", "cusco", "chiclayo", "piura"],
+  },
+  PA: {
+    code: "PA",
+    name: "Panamá",
+    flag: "🇵🇦",
+    keywords: ["panamá", "panama", "ciudad de panamá", "panama city", "colón", "david"],
+  },
+  PT: {
+    code: "PT",
+    name: "Portugal",
+    flag: "🇵🇹",
+    keywords: ["portugal", "lisboa", "lisbon", "porto", "braga", "coimbra", "faro", "aveiro"],
+  },
+  GB: {
+    code: "GB",
+    name: "Reino Unido",
+    flag: "🇬🇧",
+    keywords: ["united kingdom", "uk", "london", "manchester", "birmingham", "edinburgh", "glasgow", "england"],
+  },
+  AU: {
+    code: "AU",
+    name: "Australia",
+    flag: "🇦🇺",
+    keywords: ["australia", "sydney", "melbourne", "brisbane", "perth", "adelaide", "new south wales", "victoria"],
+  },
+};
+
+// Cache de ubicación de perfiles de autores para evitar llamadas redundantes a LinkedIn
+const authorLocationCache = new Map<string, { location: string; countryCode: string; countryName: string }>();
+
+function detectCountryFromLocationString(loc: string, headline: string): { countryCode: string; countryName: string; locationLabel: string } {
+  const combined = (loc + " " + headline).toLowerCase();
+  for (const [code, def] of Object.entries(TARGET_COUNTRIES)) {
+    if (code === "ALL") continue;
+    for (const kw of def.keywords) {
+      if (combined.includes(kw)) {
+        return {
+          countryCode: code,
+          countryName: def.name,
+          locationLabel: loc.trim() || def.name,
+        };
+      }
+    }
+  }
+  return {
+    countryCode: "OTHER",
+    countryName: "Global",
+    locationLabel: loc.trim() || "Global",
+  };
+}
+
 function detectPostLanguage(text: string): "pt" | "es" | "en" | "other" {
   const lower = " " + text.toLowerCase().replace(/[^a-záéíóúüñãõçâêîôûàèìòù]/g, " ") + " ";
 
@@ -159,14 +295,37 @@ function resolveMarketFromTimezone(tz: string): string {
   return "latam_us";
 }
 
-function generateQueryVariations(rawKeywords: string, targetMarket: string): string[] {
+function generateQueryVariations(rawKeywords: string, targetMarket: string, targetCountry?: string): string[] {
   const kw = rawKeywords.trim();
   if (!kw) return ["Social Selling"];
 
   const lower = kw.toLowerCase();
   const variations: string[] = [kw];
 
-  // A. Normalización lingüística universal (sin acentos para matching amplio en LinkedIn)
+  // A. Inyección de País Objetivo para orientar resultados nativos en LinkedIn
+  if (targetCountry && targetCountry !== "ALL") {
+    const cDef = TARGET_COUNTRIES[targetCountry];
+    if (cDef) {
+      if (targetCountry === "BR") {
+        variations.push(`${kw} Brasil`);
+        variations.push(`${kw} São Paulo`);
+      } else if (targetCountry === "US") {
+        variations.push(`${kw} USA`);
+        variations.push(`${kw} United States`);
+      } else if (targetCountry === "ES") {
+        variations.push(`${kw} España`);
+        variations.push(`${kw} Madrid`);
+      } else if (targetCountry === "MX") {
+        variations.push(`${kw} México`);
+      } else if (targetCountry === "CO") {
+        variations.push(`${kw} Colombia`);
+      } else {
+        variations.push(`${kw} ${cDef.name}`);
+      }
+    }
+  }
+
+  // B. Normalización lingüística universal (sin acentos para matching amplio en LinkedIn)
   const unaccented = kw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   if (unaccented && unaccented.toLowerCase() !== lower) {
     variations.push(unaccented);
@@ -327,6 +486,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const keywords = (body.keywords || "Social Selling").trim();
+    const targetCountry = String(body.target_country || "ALL").toUpperCase();
     let requestedAccountId = body.account_id;
     const filterZero = body.filter_zero !== false;
     const excludeJobs = body.exclude_jobs !== false;
@@ -399,7 +559,7 @@ export async function POST(req: Request) {
     // 2. Cosecha Multi-Ángulo en Paralelo (Multi-Angle Expansion)
     // Para superar la limitación fija de 24 posts por consulta de LinkedIn y garantizar holgadamente
     // que tras los filtros de calidad queden al menos 12 posts virales, consultamos variantes complementarias en paralelo.
-    const queriesToRun = generateQueryVariations(keywords, targetMarket);
+    const queriesToRun = generateQueryVariations(keywords, targetMarket, targetCountry);
     console.log(`[Posts Search] Ejecutando búsqueda multi-ángulo paralela (${queriesToRun.length} variantes):`, queriesToRun);
 
     const rawItems: any[] = [];
@@ -465,7 +625,7 @@ export async function POST(req: Request) {
     // Fallback hiper-especializado por nicho e industria para localhost y desarrollo
     if (rawItems.length === 0) {
       const { getNicheViralPosts } = await import("@/lib/viral-posts/niche-search");
-      const nicheItems = getNicheViralPosts(keywords, targetMarket);
+      const nicheItems = getNicheViralPosts(keywords, targetMarket, targetCountry);
 
       return NextResponse.json({
         success: true,
@@ -773,6 +933,74 @@ export async function POST(req: Request) {
         qualifiedPosts = [...qualifiedPosts, ...additionalClean];
       } else if (qualifiedPosts.length === 0 && nonSpamPosts.length > 0) {
         qualifiedPosts = nonSpamPosts;
+      }
+    }
+
+    // 5.1. Verificación Real de Ubicación Geográfica del Autor en LinkedIn con Unipile
+    const candidateAuthors = qualifiedPosts.filter(
+      (item) => item.publicIdentifier && !authorLocationCache.has(item.publicIdentifier)
+    );
+
+    if (candidateAuthors.length > 0 && targetAccountId) {
+      const uniqueAuthorIds = Array.from(
+        new Set(candidateAuthors.map((p) => p.publicIdentifier).filter(Boolean))
+      ).slice(0, 15) as string[];
+
+      await Promise.allSettled(
+        uniqueAuthorIds.map(async (authorId) => {
+          try {
+            const profile = await unipile.resolveProfile(authorId, targetAccountId);
+            if (profile?.location) {
+              const detected = detectCountryFromLocationString(profile.location, profile.headline || "");
+              authorLocationCache.set(authorId, {
+                location: profile.location,
+                countryCode: detected.countryCode,
+                countryName: detected.countryName,
+              });
+            }
+          } catch {
+            // Silencioso: fallback a headline o bio
+          }
+        })
+      );
+    }
+
+    // Decorar cada publicación con la ubicación verificada del perfil del autor
+    qualifiedPosts = qualifiedPosts.map((item: any) => {
+      const cached = item.publicIdentifier ? authorLocationCache.get(item.publicIdentifier) : null;
+      if (cached) {
+        return {
+          ...item,
+          authorLocation: cached.location,
+          authorCountry: cached.countryCode,
+          marketOrigin: cached.location,
+        };
+      }
+      const detected = detectCountryFromLocationString(
+        item.marketOrigin || "",
+        item.authorHeadline || item.fullContent || ""
+      );
+      return {
+        ...item,
+        authorLocation: detected.locationLabel,
+        authorCountry: detected.countryCode,
+      };
+    });
+
+    // 5.2. Filtro Estricto por País de Residencia del Autor si el usuario seleccionó un país específico
+    if (targetCountry && targetCountry !== "ALL") {
+      const countryFiltered = qualifiedPosts.filter((item: any) => {
+        if (item.authorCountry === targetCountry) return true;
+        const countryDef = TARGET_COUNTRIES[targetCountry];
+        if (countryDef && countryDef.keywords.length > 0) {
+          const combined = `${item.authorLocation || ""} ${item.authorHeadline || ""} ${item.fullContent || ""}`.toLowerCase();
+          return countryDef.keywords.some((kw) => combined.includes(kw));
+        }
+        return false;
+      });
+
+      if (countryFiltered.length > 0) {
+        qualifiedPosts = countryFiltered;
       }
     }
 

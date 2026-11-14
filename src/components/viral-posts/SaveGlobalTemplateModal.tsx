@@ -453,7 +453,7 @@ export default function SaveGlobalTemplateModal({
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1.5 bg-white rounded-xl border border-slate-200">
-                      {document.pages.map((p, idx) => {
+                      {document?.pages?.map((p, idx) => {
                         const isChecked = selectedPages.includes(p.id);
                         const thumb = pageThumbnails[p.id] || thumbnailUrl;
                         const pName = p.name?.trim() || `Página ${idx + 1}`;

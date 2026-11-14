@@ -136,7 +136,7 @@ export function registerBuiltinCommands(): void {
     label: 'Mover a página siguiente',
     group: t.cmdGroup.arrange,
     icon: <ArrowRight size={18} />,
-    run: (e) => e.arrange.moveToNextPage(),
+    run: (e) => { e.arrange.moveToNextPage() },
     enabled: ({ editor, state }) => {
       const pages = state.doc.pages
       const idx = pages.findIndex((p) => p.id === state.activePageId)
@@ -148,7 +148,7 @@ export function registerBuiltinCommands(): void {
     label: 'Mover a página anterior',
     group: t.cmdGroup.arrange,
     icon: <ArrowLeft size={18} />,
-    run: (e) => e.arrange.moveToPrevPage(),
+    run: (e) => { e.arrange.moveToPrevPage() },
     enabled: ({ editor, state }) => {
       const pages = state.doc.pages
       const idx = pages.findIndex((p) => p.id === state.activePageId)

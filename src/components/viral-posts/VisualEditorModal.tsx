@@ -1785,7 +1785,8 @@ export default function VisualEditorModal({
 
   const handleApplyCustomTemplate = (tpl: CustomVisualTemplate) => {
     setSelectedTemplate(tpl.baseTemplate);
-    setAspectRatio(tpl.aspectRatio);
+    const validRatio: AspectRatio = tpl.aspectRatio === "1.91:1" ? "1:1" : (tpl.aspectRatio as AspectRatio);
+    setAspectRatio(validRatio);
     setEditorMode(tpl.editorMode);
     if (tpl.selectedBgUrl) setSelectedBgUrl(tpl.selectedBgUrl);
     if (typeof tpl.bgDim === "number") setBgDimming(Math.round(tpl.bgDim * 100));

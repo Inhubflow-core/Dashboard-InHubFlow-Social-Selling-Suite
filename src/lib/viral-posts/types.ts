@@ -43,6 +43,8 @@ export interface ViralPostTemplate {
   hasMedia?: boolean;
   marketOrigin?: string;
   detectedLanguage?: "es" | "pt" | "en" | "other";
+  authorLocation?: string;
+  authorCountry?: string;
 }
 
 export interface CreatedPost {

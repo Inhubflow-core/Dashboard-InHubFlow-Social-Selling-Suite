@@ -471,7 +471,7 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
           e.preventDefault()
           const target = e.target as HTMLElement | null
           if (target && !target.closest('[data-artboard]') && !target.closest('input:not([data-fabric]), textarea:not([data-fabric]), select')) {
-            editor.onContextMenu(doc.pages[activePage]?.id ?? doc.pages[0]?.id ?? '', e.clientX, e.clientY)
+            editor.onContextMenu(activePageId || doc.pages[0]?.id || '', e.clientX, e.clientY)
           }
         }}
       >
