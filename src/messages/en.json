@@ -2459,7 +2459,15 @@
     "messagesDay": "Direct messages / day: {count}",
     "profileVisitsDay": "Profile visits / day: {count}",
     "saveLimits": "Save Limits",
-    "unipileAccount": "Unipile Account ID: {id}"
+    "unipileAccount": "Unipile Account ID: {id}",
+    "noticeActiveUpdated": "Active account updated for outreach and automations.",
+    "confirmDisconnect": "Are you sure you want to disconnect this LinkedIn account?",
+    "noticeDisconnected": "Account disconnected successfully.",
+    "noticeAccountConnected": "Account {name} connected successfully.",
+    "noticeLimitsSaved": "Limits and profile data for {name} saved successfully.",
+    "noticeSyncCount": "Sync completed: {count} account(s) verified with LinkedIn Cloud.",
+    "noticeSyncSafe": "Sync completed in safe mode.",
+    "noticeSyncVerified": "Verification completed."
   },
   "plans": {
     "pageTitle": "Plans & SaaS Capacity",

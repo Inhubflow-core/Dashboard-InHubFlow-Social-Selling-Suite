@@ -40,15 +40,14 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
 ];
 
 export function getStoredAccounts(): ConnectedLinkedInAccount[] {
-  if (typeof window === "undefined") return initialLinkedInAccounts;
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLinkedInAccounts));
-      return initialLinkedInAccounts;
+      return [];
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return initialLinkedInAccounts;
+    if (!Array.isArray(parsed)) return [];
 
     // Purgar rigurosamente cualquier cuenta fake o mock remanente
     const fakeKeywords = [
@@ -150,63 +149,12 @@ export function getStoredAccounts(): ConnectedLinkedInAccount[] {
       }
     }
 
-    // Garantizar que las cuentas iniciales reales (RobertoOrse Agencia y ADS CASHGROW) siempre existan y estén actualizadas
-    for (const initAcc of initialLinkedInAccounts) {
-      const existsIdx = deduplicated.findIndex(
-        (d) =>
-          d.id === initAcc.id ||
-          d.unipileAccountId === initAcc.unipileAccountId ||
-          (d.name && initAcc.name && norm(d.name) === norm(initAcc.name)) ||
-          ((d.name || "").toLowerCase().includes("roberto") && (initAcc.name || "").toLowerCase().includes("roberto")) ||
-          false
-      );
-      if (existsIdx === -1) {
-        deduplicated.push(initAcc);
-      } else {
-        const targetStatus = deduplicated[existsIdx].status || initAcc.status;
-
-        // Preservar el nombre editado por el usuario; migrar el viejo valor por defecto o nombres antiguos
-        const existingName = deduplicated[existsIdx].name;
-        const resolvedName =
-          existingName &&
-          existingName !== "RobertoOrse Agencia" &&
-          !existingName.toLowerCase().includes("lynn") &&
-          !existingName.toLowerCase().includes("linn")
-            ? existingName
-            : initAcc.name;
-
-        deduplicated[existsIdx] = {
-          ...initAcc,
-          ...deduplicated[existsIdx],
-          id: initAcc.id,
-          name: resolvedName,
-          email:
-            deduplicated[existsIdx].email && !deduplicated[existsIdx].email.includes("linnmartinsson")
-              ? deduplicated[existsIdx].email
-              : initAcc.email,
-          unipileAccountId: initAcc.unipileAccountId || deduplicated[existsIdx].unipileAccountId,
-          profilePictureUrl:
-            resolvedName.toLowerCase().includes("agencia")
-              ? "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1794441600&v=beta&t=xum439MlKzB0k_HVMYYLyiSO61_WdqVb8ZRXBmTfuVY"
-              : (deduplicated[existsIdx].profilePictureUrl &&
-                 !deduplicated[existsIdx].profilePictureUrl.includes("owner.png") &&
-                 deduplicated[existsIdx].profilePictureUrl.startsWith("http"))
-                ? deduplicated[existsIdx].profilePictureUrl
-                : initAcc.profilePictureUrl,
-          status: targetStatus,
-          ownerId: initAcc.ownerId,
-          assignedUserId: initAcc.assignedUserId,
-          assignedUserName: initAcc.assignedUserName,
-        };
-      }
-    }
-
     if (deduplicated.length !== parsed.length) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(deduplicated));
     }
     return deduplicated;
   } catch {
-    return initialLinkedInAccounts;
+    return [];
   }
 }
 

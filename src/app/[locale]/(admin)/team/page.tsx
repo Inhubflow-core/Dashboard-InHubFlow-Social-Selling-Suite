@@ -28,6 +28,7 @@ import {
 } from "@/lib/saas/store";
 import { getMaxTeamInvitationsAllowed, getPlanConfig } from "@/lib/saas/plans";
 import { getStoredAccounts } from "@/lib/unipile/store";
+import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import type { TeamMember, TeamInvitation } from "@/lib/saas/types";
 import SlotsCapacityCard from "@/components/saas/SlotsCapacityCard";
 import PlanUpgradeModal from "@/components/saas/PlanUpgradeModal";
@@ -50,7 +51,7 @@ export default function TeamManagementPage() {
   const [inviteAccountId, setInviteAccountId] = useState<string>("");
   const [formError, setFormError] = useState("");
 
-  const accounts = typeof window !== "undefined" ? getStoredAccounts() : [];
+  const [accounts, setAccounts] = useState<ConnectedLinkedInAccount[]>([]);
 
   const maxTeamAllowed = getMaxTeamInvitationsAllowed(currentUser);
   const isStarterPlan = !isSuperAdmin && currentUser.planTier === "starter";
@@ -59,13 +60,63 @@ export default function TeamManagementPage() {
   const availableTeamSlots = isSuperAdmin ? 999 : Math.max(0, maxTeamAllowed - usedTeamSlots);
   const isTeamCapacityReached = !isSuperAdmin && (isStarterPlan || usedTeamSlots >= maxTeamAllowed);
 
+  const syncTeamToServer = (nextMembers: TeamMember[], nextInvitations: TeamInvitation[]) => {
+    fetch("/api/team", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workspaceId: currentUser.id || "default",
+        members: nextMembers,
+        invitations: nextInvitations,
+      }),
+    }).catch(() => {});
+  };
+
   const loadTeamData = () => {
-    setMembers(getStoredTeamMembers(currentUser.id));
-    setInvitations(getStoredTeamInvitations(currentUser.id));
+    const localMembers = getStoredTeamMembers(currentUser.id);
+    const localInvitations = getStoredTeamInvitations(currentUser.id);
+    setMembers(localMembers);
+    setInvitations(localInvitations);
+    return { localMembers, localInvitations };
   };
 
   useEffect(() => {
-    loadTeamData();
+    setAccounts(getStoredAccounts());
+    const { localMembers, localInvitations } = loadTeamData();
+
+    let cancelled = false;
+    fetch(`/api/team?workspaceId=${encodeURIComponent(currentUser.id || "default")}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        const remoteMembers = Array.isArray(data.members) ? data.members : [];
+        const remoteInvitations = Array.isArray(data.invitations) ? data.invitations : [];
+
+        if (remoteMembers.length > 0 || remoteInvitations.length > 0) {
+          if (remoteMembers.length > 0) {
+            try {
+              localStorage.setItem("inhubflow_team_members", JSON.stringify(remoteMembers));
+            } catch {}
+            setMembers(remoteMembers);
+          }
+          if (remoteInvitations.length > 0) {
+            try {
+              localStorage.setItem(
+                "inhubflow_team_invitations",
+                JSON.stringify(remoteInvitations)
+              );
+            } catch {}
+            setInvitations(remoteInvitations);
+          }
+        } else if (localMembers.length > 0 || localInvitations.length > 0) {
+          syncTeamToServer(localMembers, localInvitations);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentUser]);
 
   const handleOpenInvite = () => {
@@ -113,7 +164,8 @@ export default function TeamManagementPage() {
         accountName: selectedAcc?.name || null,
       });
 
-      loadTeamData();
+      const { localMembers, localInvitations } = loadTeamData();
+      syncTeamToServer(localMembers, localInvitations);
       setIsInviteModalOpen(false);
       setInviteEmail("");
       setInviteAccountId("");
@@ -128,6 +180,9 @@ export default function TeamManagementPage() {
   const handleRemoveMember = (id: string, name: string) => {
     if (confirm(t("confirmRemoveMember", { name }))) {
       removeTeamMember(id);
+      fetch(`/api/team?kind=member&id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(
+        () => {}
+      );
       loadTeamData();
       setNotice(t("noticeMemberRemoved", { name }));
       setTimeout(() => setNotice(null), 3000);

@@ -22,7 +22,6 @@ import {
   RefreshCw,
   Check,
   Lock,
-  Smartphone,
   Laptop,
   Eye,
   EyeOff,
@@ -41,28 +40,98 @@ function SettingsContent() {
   const [activeTab, setActiveTab] = useState<"workspace" | "api_security">(initialTab);
 
   // Estados de Workspace
+  const workspaceKey = currentUser.id || "workspace_default";
   const [companyName, setCompanyName] = useState("InHubFlow Workspace");
   const [billingEmail, setBillingEmail] = useState(currentUser.email || "");
   const [timezone, setTimezone] = useState("America/Santiago");
   const [workingStart, setWorkingStart] = useState("09:00");
   const [workingEnd, setWorkingEnd] = useState("18:00");
   const [workingDays, setWorkingDays] = useState(["1", "2", "3", "4", "5"]); // Mon-Fri
-  const [webhookUrl, setWebhookUrl] = useState("https://hooks.zapier.com/hooks/catch/12345/abcde");
+  const [webhookUrl, setWebhookUrl] = useState("");
   const [notifyOnReply, setNotifyOnReply] = useState(true);
   const [notifyOnMeeting, setNotifyOnMeeting] = useState(true);
 
   // Estados de API & Seguridad
-  const [apiKey, setApiKey] = useState("ihf_live_sk_948f2a1b8c0e7d6f5a4b3c2d1e0f");
+  const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [sessionLabel, setSessionLabel] = useState("Navegador Web • Sesión actual");
 
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentUser.companyName) {
-      setCompanyName(currentUser.companyName);
+    if (typeof navigator !== "undefined") {
+      const ua = navigator.userAgent;
+      const os = ua.includes("Windows")
+        ? "Windows PC"
+        : ua.includes("Mac")
+          ? "macOS"
+          : ua.includes("Linux")
+            ? "Linux"
+            : "Dispositivo Web";
+      const browser = ua.includes("Edg/")
+        ? "Microsoft Edge"
+        : ua.includes("Chrome/")
+          ? "Google Chrome"
+          : ua.includes("Firefox/")
+            ? "Mozilla Firefox"
+            : ua.includes("Safari/")
+              ? "Safari"
+              : "Navegador";
+      setSessionLabel(`${os} • ${browser} (Esta sesión)`);
     }
-  }, [currentUser]);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const localCacheKey = `inhubflow_workspace_settings_${workspaceKey}`;
+    try {
+      const cached = localStorage.getItem(localCacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.companyName) setCompanyName(parsed.companyName);
+        if (typeof parsed.billingEmail === "string") setBillingEmail(parsed.billingEmail);
+        if (parsed.timezone) setTimezone(parsed.timezone);
+        if (parsed.workingStart) setWorkingStart(parsed.workingStart);
+        if (parsed.workingEnd) setWorkingEnd(parsed.workingEnd);
+        if (Array.isArray(parsed.workingDays)) setWorkingDays(parsed.workingDays);
+        if (typeof parsed.webhookUrl === "string") setWebhookUrl(parsed.webhookUrl);
+        if (typeof parsed.notifyOnReply === "boolean") setNotifyOnReply(parsed.notifyOnReply);
+        if (typeof parsed.notifyOnMeeting === "boolean") setNotifyOnMeeting(parsed.notifyOnMeeting);
+        if (parsed.apiKey) setApiKey(parsed.apiKey);
+      } else if (currentUser.companyName) {
+        setCompanyName(currentUser.companyName);
+      }
+    } catch {
+      if (currentUser.companyName) setCompanyName(currentUser.companyName);
+    }
+
+    fetch(`/api/settings?workspaceId=${encodeURIComponent(workspaceKey)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.ok || !data.settings) return;
+        const s = data.settings;
+        setCompanyName(s.companyName || currentUser.companyName || "InHubFlow Workspace");
+        setBillingEmail(s.billingEmail ?? currentUser.email ?? "");
+        setTimezone(s.timezone || "America/Sao_Paulo");
+        setWorkingStart(s.workingStart || "09:00");
+        setWorkingEnd(s.workingEnd || "18:00");
+        if (Array.isArray(s.workingDays)) setWorkingDays(s.workingDays);
+        setWebhookUrl(s.webhookUrl ?? "");
+        setNotifyOnReply(Boolean(s.notifyOnReply));
+        setNotifyOnMeeting(Boolean(s.notifyOnMeeting));
+        if (s.apiKey) setApiKey(s.apiKey);
+        try {
+          localStorage.setItem(localCacheKey, JSON.stringify(s));
+        } catch {}
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceKey, currentUser.companyName, currentUser.email]);
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -71,27 +140,79 @@ function SettingsContent() {
     }
   }, [searchParams]);
 
-  const handleSaveWorkspace = (e: React.FormEvent) => {
+  const handleSaveWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNotice(t("noticeSaved"));
-    setTimeout(() => setNotice(null), 3500);
+    setIsSaving(true);
+    const payload = {
+      workspaceId: workspaceKey,
+      companyName,
+      billingEmail,
+      timezone,
+      workingStart,
+      workingEnd,
+      workingDays,
+      webhookUrl,
+      notifyOnReply,
+      notifyOnMeeting,
+    };
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data?.ok && data.settings) {
+        try {
+          localStorage.setItem(
+            `inhubflow_workspace_settings_${workspaceKey}`,
+            JSON.stringify(data.settings)
+          );
+        } catch {}
+      }
+      setNotice(t("noticeSaved"));
+    } catch {
+      setNotice(t("noticeSaved"));
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setNotice(null), 3500);
+    }
   };
 
   const handleCopyKey = () => {
+    if (!apiKey) return;
     navigator.clipboard.writeText(apiKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleRegenerateKey = () => {
+  const handleRegenerateKey = async () => {
     if (
       confirm(
         "¿Estás seguro de regenerar la API Key? Cualquier integración externa actual dejará de funcionar hasta que se actualice."
       )
     ) {
-      const newKey = `ihf_live_sk_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
-      setApiKey(newKey);
-      setNotice("API Key regenerada exitosamente.");
+      try {
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId: workspaceKey, action: "regenerate_api_key" }),
+        });
+        const data = await res.json();
+        if (res.ok && data?.ok && data.settings?.apiKey) {
+          setApiKey(data.settings.apiKey);
+          try {
+            localStorage.setItem(
+              `inhubflow_workspace_settings_${workspaceKey}`,
+              JSON.stringify(data.settings)
+            );
+          } catch {}
+          setNotice("API Key regenerada y guardada exitosamente.");
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+      } catch {}
+      setNotice("No se pudo regenerar la API Key en el servidor.");
       setTimeout(() => setNotice(null), 3000);
     }
   };
@@ -356,7 +477,8 @@ function SettingsContent() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6]"
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0099ff] px-5 py-2.5 text-xs font-semibold text-white shadow-theme-xs transition hover:bg-[#0088e6] disabled:opacity-60"
               >
                 <Save className="size-4" />
                 <span>{t("saveWorkspaceSettings")}</span>
@@ -493,27 +615,16 @@ function SettingsContent() {
                   <Laptop className="size-5 text-[#0099ff]" />
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">
-                      Windows PC • Google Chrome (Esta sesión)
+                      {sessionLabel}
                     </div>
-                    <div className="text-gray-400">Santiago, Chile • IP: 190.161.42.10</div>
+                    <div className="text-gray-400">
+                      {currentUser.email || currentUser.name} • Zona horaria: {timezone}
+                    </div>
                   </div>
                 </div>
                 <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
                   ACTIVA AHORA
                 </span>
-              </div>
-
-              <div className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="size-5 text-gray-400" />
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      Apple iPhone 15 • Safari Mobile
-                    </div>
-                    <div className="text-gray-400">Santiago, Chile • Hace 4 horas</div>
-                  </div>
-                </div>
-                <span className="text-gray-400">Cerrar sesión</span>
               </div>
             </div>
           </div>

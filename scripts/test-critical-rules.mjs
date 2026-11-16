@@ -3564,6 +3564,65 @@ assert(
   'sdr/page.tsx inicializa SSR determinísticamente, registra aprobaciones en Inbox y conecta simulador a /api/sdr/decide'
 );
 
+console.log('\n--- 18. MÓDULO 7: CUENTAS DE LINKEDIN, EQUIPO Y CONFIGURACIÓN (SQLITE + MULTI-TENANT) ---');
+const dbMod7 = fs.readFileSync('src/lib/persistence/db.ts', 'utf8');
+assert(
+  dbMod7.includes('workspace_settings_v2') &&
+    dbMod7.includes('team_members_v2') &&
+    dbMod7.includes('team_invitations_v2') &&
+    dbMod7.includes('linkedin_accounts_v2'),
+  'db.ts define las tablas SQLite workspace_settings_v2, team_members_v2, team_invitations_v2 y linkedin_accounts_v2'
+);
+
+const settingsApiMod7 = fs.readFileSync('src/app/api/settings/route.ts', 'utf8');
+assert(
+  settingsApiMod7.includes('workspace_settings_v2') &&
+    settingsApiMod7.includes('regenerate_api_key') &&
+    settingsApiMod7.includes('crypto.randomBytes'),
+  '/api/settings implementa persistencia SQLite y regeneración criptográfica de API Key'
+);
+
+const teamApiMod7 = fs.readFileSync('src/app/api/team/route.ts', 'utf8');
+assert(
+  teamApiMod7.includes('team_members_v2') && teamApiMod7.includes('team_invitations_v2'),
+  '/api/team implementa GET/POST/DELETE sobre SQLite'
+);
+
+const accountsApiMod7 = fs.readFileSync('src/app/api/accounts/route.ts', 'utf8');
+assert(
+  accountsApiMod7.includes('linkedin_accounts_v2'),
+  '/api/accounts implementa GET/PUT/DELETE sobre SQLite'
+);
+
+const settingsPageMod7 = fs.readFileSync('src/app/[locale]/(admin)/settings/page.tsx', 'utf8');
+assert(
+  settingsPageMod7.includes('/api/settings') &&
+    !settingsPageMod7.includes('190.161.42.10') &&
+    !settingsPageMod7.includes('hooks.zapier.com/hooks/catch/12345/abcde'),
+  'settings/page.tsx persiste configuración en /api/settings y elimina IPs y webhooks estáticos'
+);
+
+const teamPageMod7 = fs.readFileSync('src/app/[locale]/(admin)/team/page.tsx', 'utf8');
+assert(
+  teamPageMod7.includes('/api/team') &&
+    !teamPageMod7.includes('const accounts = typeof window !== "undefined"'),
+  'team/page.tsx sincroniza con /api/team y evita lectura de localStorage en render SSR'
+);
+
+const unipileStoreMod7 = fs.readFileSync('src/lib/unipile/store.ts', 'utf8');
+assert(
+  !unipileStoreMod7.includes('resolvedName.toLowerCase().includes("agencia")') &&
+    !unipileStoreMod7.includes('if (typeof window === "undefined") return initialLinkedInAccounts;'),
+  'unipile/store.ts elimina sobreescritura hardcoded por "agencia" y devuelve [] en SSR'
+);
+
+const accountsPageMod7 = fs.readFileSync('src/app/[locale]/(admin)/linkedin-accounts/page.tsx', 'utf8');
+assert(
+  accountsPageMod7.includes('/api/accounts') &&
+    accountsPageMod7.includes('t("noticeLimitsSaved"'),
+  'linkedin-accounts/page.tsx sincroniza cuentas/límites con /api/accounts y usa claves i18n'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

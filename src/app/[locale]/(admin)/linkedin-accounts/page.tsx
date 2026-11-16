@@ -72,6 +72,26 @@ export default function LinkedInAccountsPage() {
       setActiveId(loadedAccounts[0].id);
     }
 
+    // Hidratar primero desde SQLite (/api/accounts) para preservar límites e idioma entre sesiones
+    fetch("/api/accounts")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.ok && Array.isArray(data.accounts) && data.accounts.length > 0) {
+          data.accounts.forEach((savedAcc: ConnectedLinkedInAccount) => {
+            addStoredAccount(savedAcc);
+          });
+          const refreshed = getVisibleAccountsForUser(currentUser);
+          setAccounts(refreshed);
+          const currentActive = getActiveAccountId();
+          const targetActive = refreshed.find((a) => a.id === currentActive) || refreshed[0];
+          if (targetActive) {
+            setActiveId(targetActive.id);
+            setActiveAccountId(targetActive.id);
+          }
+        }
+      })
+      .catch(() => {});
+
     // Consultar estado de Unipile
     fetch("/api/unipile/status")
       .then((res) => res.json())
@@ -103,6 +123,11 @@ export default function LinkedInAccountsPage() {
           });
           const refreshed = getVisibleAccountsForUser(currentUser);
           setAccounts(refreshed);
+          fetch("/api/accounts", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accounts: refreshed }),
+          }).catch(() => {});
           const currentActive = getActiveAccountId();
           const targetActive = refreshed.find((a) => a.id === currentActive) || refreshed[0];
           if (targetActive) {
@@ -195,12 +220,12 @@ export default function LinkedInAccountsPage() {
   const handleSelectActive = (id: string) => {
     setActiveId(id);
     setActiveAccountId(id);
-    setNotice("Cuenta activa actualizada para envios y automatizaciones.");
+    setNotice(t("noticeActiveUpdated"));
     setTimeout(() => setNotice(null), 3000);
   };
 
   const handleDisconnect = async (id: string) => {
-    if (!confirm("Confirmas la desconexion de esta cuenta de LinkedIn?")) return;
+    if (!confirm(t("confirmDisconnect"))) return;
     const acc = accounts.find((a) => a.id === id);
     const targetRemoteId = acc?.unipileAccountId || id;
     try {
@@ -208,13 +233,14 @@ export default function LinkedInAccountsPage() {
     } catch {
       // Ignorar error si está en demo
     }
+    fetch(`/api/accounts?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
     removeStoredAccount(id);
     const visible = getVisibleAccountsForUser(currentUser);
     setAccounts(visible);
     const newActive = getActiveAccountId();
     setActiveId(newActive);
     refreshUserData();
-    setNotice("Cuenta desvinculada exitosamente.");
+    setNotice(t("noticeDisconnected"));
     setTimeout(() => setNotice(null), 3000);
   };
 
@@ -250,12 +276,17 @@ export default function LinkedInAccountsPage() {
           setActiveId(visible[0].id);
           setActiveAccountId(visible[0].id);
         }
-        setNotice(`Sincronización completada: ${data.accounts.length} cuenta(s) verificada(s) con LinkedIn Cloud.`);
+        setNotice(t("noticeSyncCount", { count: data.accounts.length }));
+        fetch("/api/accounts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accounts: visible }),
+        }).catch(() => {});
       } else {
-        setNotice("Sincronización completada en modo seguro.");
+        setNotice(t("noticeSyncSafe"));
       }
     } catch {
-      setNotice("Verificación completada.");
+      setNotice(t("noticeSyncVerified"));
     } finally {
       setIsSyncing(false);
       setTimeout(() => setNotice(null), 4000);
@@ -274,12 +305,17 @@ export default function LinkedInAccountsPage() {
 
   const handleAccountConnected = (newAcc: ConnectedLinkedInAccount) => {
     addStoredAccount(newAcc);
+    fetch("/api/accounts", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account: newAcc }),
+    }).catch(() => {});
     const visible = getVisibleAccountsForUser(currentUser);
     setAccounts(visible);
     setActiveId(newAcc.id);
     setActiveAccountId(newAcc.id);
     refreshUserData();
-    setNotice(`Cuenta ${newAcc.name} vinculada exitosamente.`);
+    setNotice(t("noticeAccountConnected", { name: newAcc.name }));
     setTimeout(() => setNotice(null), 4000);
   };
 
@@ -290,6 +326,11 @@ export default function LinkedInAccountsPage() {
 
   const handleSaveAccountLimits = (updated: ConnectedLinkedInAccount) => {
     updateStoredAccount(updated.id, updated);
+    fetch("/api/accounts", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account: updated }),
+    }).catch(() => {});
     if (accountMatchesUser(updated, currentUser)) {
       if (updated.name && updated.name !== currentUser.name) {
         updateSubscriber(currentUser.id, { name: updated.name });
@@ -298,7 +339,7 @@ export default function LinkedInAccountsPage() {
     }
     const visible = getVisibleAccountsForUser(currentUser);
     setAccounts(visible);
-    setNotice(`Límites y datos de ${updated.name} guardados correctamente.`);
+    setNotice(t("noticeLimitsSaved", { name: updated.name }));
     setTimeout(() => setNotice(null), 4000);
   };
 

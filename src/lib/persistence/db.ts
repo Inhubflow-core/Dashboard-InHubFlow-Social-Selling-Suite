@@ -29,6 +29,9 @@ function openDatabase(): Database.Database {
   ensureLinearCampaignsSchema(db);
   ensureInboxSchema(db);
   ensureSdrSchema(db);
+  ensureWorkspaceSettingsSchema(db);
+  ensureTeamSchema(db);
+  ensureLinkedInAccountsV2Schema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -299,6 +302,49 @@ function ensureSdrSchema(db: Database.Database): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS sdr_state_v2 (
       key TEXT PRIMARY KEY,
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
+  `);
+}
+
+function ensureWorkspaceSettingsSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS workspace_settings_v2 (
+      key TEXT PRIMARY KEY,
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
+  `);
+}
+
+function ensureTeamSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS team_members_v2 (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL DEFAULT 'default',
+      email TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS team_invitations_v2 (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL DEFAULT 'default',
+      email TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
+  `);
+}
+
+function ensureLinkedInAccountsV2Schema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS linkedin_accounts_v2 (
+      id TEXT PRIMARY KEY,
+      unipile_account_id TEXT,
+      name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'OK',
       updated_at TEXT NOT NULL,
       payload_json TEXT NOT NULL DEFAULT '{}'
     );
