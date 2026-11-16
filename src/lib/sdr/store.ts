@@ -12,6 +12,21 @@ const SDR_CONFIG_KEY = "inhubflow_sdr_config_v1";
 const SDR_KNOWLEDGE_KEY = "inhubflow_sdr_knowledge_v1";
 const SDR_PENDING_KEY = "inhubflow_sdr_pending_actions_v1";
 const SDR_LOGS_KEY = "inhubflow_sdr_decision_logs_v1";
+export const SDR_CHANGE_EVENT = "inhubflow:sdr-updated";
+
+function syncSdrStateToDb(key: "config" | "knowledge" | "pending" | "logs", data: unknown): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent(SDR_CHANGE_EVENT));
+    if (typeof fetch === "function") {
+      fetch("/api/sdr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, data }),
+      }).catch(() => {});
+    }
+  } catch {}
+}
 
 export const DEFAULT_SDR_CONFIG: SdrAgentConfig = {
   id: "sdr-default",
@@ -32,75 +47,7 @@ export const DEFAULT_SDR_CONFIG: SdrAgentConfig = {
   ctaPitchText: "Te comparto el enlace directo a nuestra presentación interactiva para que puedas evaluarla:",
 };
 
-export const INITIAL_PENDING_ACTIONS: SdrPendingAction[] = [
-  {
-    id: "action-101",
-    threadId: "th-carlos-arriaga",
-    accountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
-    accountName: "RobertoOrse Agencia (Fundador)",
-    prospectName: "Carlos Arriaga",
-    prospectTitle: "Head of Commercial Sales",
-    prospectCompany: "LatamTech Solutions",
-    prospectAvatar: "CA",
-    lastInboundMessage: "Hola Roberto, vi tu publicación sobre el Signal Radar. Me pareció muy interesante. ¿Cuánto cuesta la suscripción si quisiéramos conectar unas 4 o 5 cuentas de nuestros SDRs?",
-    intent: "pricing_question",
-    confidence: 0.94,
-    riskLevel: "low",
-    suggestedReply: `Hola Carlos, con gusto te comparto los detalles. Para un equipo de 5 cuentas de LinkedIn, el plan ideal es nuestro Plan Growth por $149/mes ($119/mes en facturación anual).
-
-Incluye 5 cuentas conectadas en simultáneo, hasta 100 invitaciones y 150 DMs diarios en total, además de gestión multi-usuario y este mismo Asistente SDR IA para responder a los prospectos.
-
-¿Te vendría bien coordinar una demo de 15 minutos para ver cómo quedaría configurado para tu equipo de SDRs?`,
-    citations: ["Estructura de Precios y Planes Oficiales", "Propuesta de Valor & Capacidades de InHubFlow"],
-    createdAt: "2026-10-09T09:12:00Z",
-    status: "pending",
-  },
-  {
-    id: "action-102",
-    threadId: "th-mariana-gomez",
-    accountId: "acc-li-6yecZUhYS1mvPOJJC7p-zQ",
-    accountName: "RobertoOrse Agencia (Fundador)",
-    prospectName: "Mariana Gomez",
-    prospectTitle: "Director of Marketing & Growth",
-    prospectCompany: "Kroma Consulting",
-    prospectAvatar: "MG",
-    lastInboundMessage: "Hola, actualmente usamos Waalaxy para prospección. ¿En qué se diferencia InHubFlow y cómo garantizan que no bloqueen los perfiles de LinkedIn?",
-    intent: "objection",
-    confidence: 0.92,
-    riskLevel: "low",
-    suggestedReply: `Hola Mariana, gusto en saludarte. La gran diferencia con Waalaxy es el enfoque: no hacemos prospección en frío ciega ni usamos extensiones de Chrome que LinkedIn detecta con facilidad.
-
-InHubFlow utiliza el Signal Radar para captar prospectos cuando comentan o reaccionan a publicaciones relevantes de tu sector (leads 'tibios'). Además, toda la conexión opera con emulación humana real y límites estrictos (máx. 25 invitaciones diarias por cuenta) para garantizar el 100% de seguridad del perfil.
-
-¿Te interesaría revisar una breve comparativa técnica de 10 minutos?`,
-    citations: ["Manejo de Objeciones Comunes", "Propuesta de Valor & Capacidades de InHubFlow"],
-    createdAt: "2026-10-09T08:45:00Z",
-    status: "pending",
-  },
-  {
-    id: "action-103",
-    threadId: "th-javier-morales",
-    accountId: "acc-li-7VSGKBGlTNGRbzZKuh6VpQ",
-    accountName: "ADS CASHGROW (Team)",
-    prospectName: "Javier Morales",
-    prospectTitle: "Managing Partner",
-    prospectCompany: "Morales & Asociados",
-    prospectAvatar: "JM",
-    lastInboundMessage: "Excelente, me gustaría tener una demo esta semana para ver la herramienta en acción con mi socio. ¿Cómo podemos agendar?",
-    intent: "meeting_request",
-    confidence: 0.97,
-    riskLevel: "low",
-    suggestedReply: `¡Excelente iniciativa, Javier! Con mucho gusto coordinamos la demostración para ti y tu socio.
-
-Puedes seleccionar el día y horario que mejor les convenga a través de este enlace directo (20 minutos):
-https://cal.inhubflow.com/demo-20min
-
-¿Te queda bien, o prefieres que busquemos una franja horaria en particular por aquí?`,
-    citations: ["Protocolo de Agendamiento de Reuniones"],
-    createdAt: "2026-10-09T07:30:00Z",
-    status: "pending",
-  },
-];
+export const INITIAL_PENDING_ACTIONS: SdrPendingAction[] = [];
 
 export const INITIAL_PROMOTION_GATES: PromotionGate[] = [
   {
@@ -236,6 +183,7 @@ export function getStoredSdrConfig(): SdrAgentConfig {
 export function saveStoredSdrConfig(config: SdrAgentConfig): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(SDR_CONFIG_KEY, JSON.stringify(config));
+  syncSdrStateToDb("config", config);
 }
 
 export function getStoredKnowledgeSources(): KnowledgeSource[] {
@@ -252,6 +200,7 @@ export function getStoredKnowledgeSources(): KnowledgeSource[] {
 export function saveStoredKnowledgeSources(sources: KnowledgeSource[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(SDR_KNOWLEDGE_KEY, JSON.stringify(sources));
+  syncSdrStateToDb("knowledge", sources);
 }
 
 export function getStoredPendingActions(accountId?: string): SdrPendingAction[] {
@@ -260,7 +209,12 @@ export function getStoredPendingActions(accountId?: string): SdrPendingAction[] 
   let list = INITIAL_PENDING_ACTIONS;
   if (raw) {
     try {
-      list = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        list = parsed.filter(
+          (a) => a && !String(a.accountName || "").includes("RobertoOrse Agencia")
+        );
+      }
     } catch {
       list = INITIAL_PENDING_ACTIONS;
     }
@@ -274,6 +228,7 @@ export function getStoredPendingActions(accountId?: string): SdrPendingAction[] 
 export function saveStoredPendingActions(actions: SdrPendingAction[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(SDR_PENDING_KEY, JSON.stringify(actions));
+  syncSdrStateToDb("pending", actions);
 }
 
 export function addStoredPendingAction(action: SdrPendingAction): void {
@@ -299,10 +254,58 @@ export function addStoredDecisionLog(log: SdrDecisionLog): void {
   const logs = getStoredDecisionLogs();
   const updated = [log, ...logs].slice(0, 50);
   localStorage.setItem(SDR_LOGS_KEY, JSON.stringify(updated));
+  syncSdrStateToDb("logs", updated);
 }
 
 export function getStoredPromotionGates(): PromotionGate[] {
-  return INITIAL_PROMOTION_GATES;
+  if (typeof window === "undefined") return INITIAL_PROMOTION_GATES;
+  const cfg = getStoredSdrConfig();
+  const kb = getStoredKnowledgeSources().filter((k) => k.status === "approved");
+  const logs = getStoredDecisionLogs();
+  const avgConf =
+    logs.length > 0
+      ? Math.round((logs.reduce((a, b) => a + b.confidence, 0) / logs.length) * 100)
+      : 0;
+
+  return [
+    {
+      key: "gate_provider_health",
+      label: "Motor de IA (LLM Engine) Activo",
+      description: "Motor de decisión IA listo con fallback determinista para respuestas en tiempo real.",
+      passed: Boolean(cfg.model),
+      evidence: `Modelo configurado: ${cfg.model}.`,
+    },
+    {
+      key: "gate_knowledge_approved",
+      label: "Base de Conocimiento Empresarial Aprobada",
+      description: "Mínimo de 3 documentos oficiales aprobados que cubran propuesta de valor, precios y objeciones.",
+      passed: kb.length >= 3,
+      evidence: `${kb.length} documento(s) aprobado(s) activo(s) en la base de conocimiento.`,
+    },
+    {
+      key: "gate_confidence_threshold",
+      label: "Umbral de Confianza Calibrado",
+      description: "El umbral de confianza mínimo está establecido en 80% o más para evitar alucinaciones.",
+      passed: cfg.confidenceThreshold >= 0.8,
+      evidence: `Umbral configurado en ${Math.round(cfg.confidenceThreshold * 100)}%.`,
+    },
+    {
+      key: "gate_handoff_policy",
+      label: "Políticas de Handoff & Seguridad Activas",
+      description: "Reglas claras de derivación a operadores humanos en caso de riesgo legal, queja o solicitud de llamada.",
+      passed: Boolean(cfg.handoffEmail && cfg.handoffEmail.includes("@")),
+      evidence: cfg.handoffEmail
+        ? `Correo de alerta asignado a ${cfg.handoffEmail}.`
+        : "Falta configurar correo de escalamiento humano.",
+    },
+    {
+      key: "gate_shadow_tested",
+      label: "Validación Previa en Modo Sombra / Supervisión",
+      description: "Se han procesado al menos 5 decisiones auditadas antes de liberar respuestas autónomas.",
+      passed: logs.length >= 5,
+      evidence: `${logs.length} decisión(es) auditada(s) (confianza media: ${avgConf}%).`,
+    },
+  ];
 }
 
 export function getSdrStats(): SdrStats {

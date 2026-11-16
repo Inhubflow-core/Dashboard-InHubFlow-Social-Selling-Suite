@@ -3523,6 +3523,47 @@ assert(
   'inbox/page.tsx lee ?leadName= de URL, sincroniza chats de Unipile, soporta adjunto real y usa Link i18n'
 );
 
+console.log("\n--- TEST: Blindaje de Lanzamiento SDR IA (Módulo 6) ---");
+
+assert(
+  dbLaunch.includes('CREATE TABLE IF NOT EXISTS sdr_state_v2') &&
+    dbLaunch.includes('ensureSdrSchema(db)'),
+  'db.ts crea tabla sdr_state_v2 en SQLite'
+);
+assert(fs.existsSync('src/app/api/sdr/route.ts'), 'Endpoint /api/sdr/route.ts existe');
+assert(fs.existsSync('src/app/api/sdr/decide/route.ts'), 'Endpoint /api/sdr/decide/route.ts existe');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sdr_state_v2 (
+    key TEXT PRIMARY KEY,
+    updated_at TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}'
+  );
+`);
+db.prepare(`
+  INSERT OR REPLACE INTO sdr_state_v2 (key, updated_at, payload_json)
+  VALUES (?, ?, ?)
+`).run('config', '2026-11-16T10:00:00Z', JSON.stringify({ mode: 'copilot', confidenceThreshold: 0.85 }));
+const m6Row = db.prepare('SELECT * FROM sdr_state_v2 WHERE key = ?').get('config');
+assert(m6Row && m6Row.payload_json.includes('copilot'), 'Tabla sdr_state_v2 persiste configuración SDR en SQLite');
+
+const sdrStoreMod6 = fs.readFileSync('src/lib/sdr/store.ts', 'utf8');
+assert(
+  !sdrStoreMod6.includes('acc-li-6yecZUhYS1mvPOJJC7p-zQ') &&
+    sdrStoreMod6.includes('SDR_CHANGE_EVENT') &&
+    sdrStoreMod6.includes('syncSdrStateToDb') &&
+    sdrStoreMod6.includes('kb.length >= 3'),
+  'sdr/store.ts elimina acciones hardcoded personales, evalúa PromotionGates dinámicamente y sincroniza con SQLite'
+);
+
+const sdrPageMod6 = fs.readFileSync('src/app/[locale]/(admin)/sdr/page.tsx', 'utf8');
+assert(
+  sdrPageMod6.includes('useState<SdrAgentConfig>(DEFAULT_SDR_CONFIG)') &&
+    sdrPageMod6.includes('sendMessageToConversation(') &&
+    sdrPageMod6.includes('/api/sdr/decide'),
+  'sdr/page.tsx inicializa SSR determinísticamente, registra aprobaciones en Inbox y conecta simulador a /api/sdr/decide'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

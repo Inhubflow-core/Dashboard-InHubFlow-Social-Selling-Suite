@@ -53,6 +53,9 @@ import {
   SdrStats,
 } from "@/lib/sdr/types";
 import {
+  DEFAULT_SDR_CONFIG,
+  INITIAL_PROMOTION_GATES,
+  SDR_CHANGE_EVENT,
   getStoredSdrConfig,
   saveStoredSdrConfig,
   getStoredKnowledgeSources,
@@ -64,6 +67,7 @@ import {
   getStoredPromotionGates,
   getSdrStats,
 } from "@/lib/sdr/store";
+import { INITIAL_KNOWLEDGE_SOURCES } from "@/lib/sdr/knowledge-data";
 import { runSdrDecision, SdrSimulationOutput } from "@/lib/sdr/simulation-engine";
 import { getVisibleAccountsForUser } from "@/lib/unipile/store";
 import { sendMessageToConversation } from "@/lib/inbox/store";
@@ -75,15 +79,21 @@ export default function SdrAgentPage() {
   const { currentUser, isSuperAdmin, isClientAdmin } = useAuth();
   const isMember = currentUser.role === "member";
 
-  // Data states
+  // Data states (inicialización determinista SSR para evitar Hydration Mismatch)
   const [activeTab, setActiveTab] = useState<SdrTab>("approvals");
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
-  const [config, setConfig] = useState<SdrAgentConfig>(getStoredSdrConfig());
-  const [knowledge, setKnowledge] = useState<KnowledgeSource[]>(getStoredKnowledgeSources());
+  const [config, setConfig] = useState<SdrAgentConfig>(DEFAULT_SDR_CONFIG);
+  const [knowledge, setKnowledge] = useState<KnowledgeSource[]>(INITIAL_KNOWLEDGE_SOURCES);
   const [pendingActions, setPendingActions] = useState<SdrPendingAction[]>([]);
   const [decisionLogs, setDecisionLogs] = useState<SdrDecisionLog[]>([]);
-  const [gates, setGates] = useState<PromotionGate[]>(getStoredPromotionGates());
-  const [stats, setStats] = useState<SdrStats>(getSdrStats());
+  const [gates, setGates] = useState<PromotionGate[]>(INITIAL_PROMOTION_GATES);
+  const [stats, setStats] = useState<SdrStats>({
+    totalDecisions: 0,
+    averageConfidence: 94,
+    pendingApprovals: 0,
+    handoffCount: 0,
+    autonomousRepliesSent: 0,
+  });
 
   // Editing state for approvals
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
@@ -134,6 +144,12 @@ export default function SdrAgentPage() {
 
   useEffect(() => {
     refreshData();
+    window.addEventListener(SDR_CHANGE_EVENT, refreshData);
+    window.addEventListener("storage", refreshData);
+    return () => {
+      window.removeEventListener(SDR_CHANGE_EVENT, refreshData);
+      window.removeEventListener("storage", refreshData);
+    };
   }, [currentUser]);
 
   const showToast = (msg: string) => {
@@ -183,16 +199,32 @@ export default function SdrAgentPage() {
       status: "executed",
     });
 
-    // Despachar a LinkedIn vía API / Unipile (modo sandbox o live)
+    // Registrar en Inbox Unificado y despachar a LinkedIn vía API / Unipile
+    if (action.threadId) {
+      sendMessageToConversation(
+        action.threadId,
+        replyToSend,
+        undefined,
+        action.accountName || currentUser?.name || "SDR IA"
+      );
+    }
+
     fetch('/api/unipile/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chatId: action.threadId || 'conv-1',
+        chatId: action.threadId || undefined,
+        leadName: action.prospectName,
         text: replyToSend,
         accountId: action.accountId,
       }),
-    }).catch((err) => console.warn('[SDR] Error despachando a Unipile:', err));
+    })
+      .then((res) => {
+        if (!res.ok) {
+          showToast("Respuesta aprobada y registrada en Inbox (entrega diferida en LinkedIn).");
+        }
+      })
+      .catch((err) => console.warn('[SDR] Error despachando a Unipile:', err));
 
     setEditingActionId(null);
     setEditedReply("");
@@ -297,23 +329,44 @@ export default function SdrAgentPage() {
     }
   };
 
-  // Run Simulator
-  const handleRunSimulation = (e?: React.FormEvent) => {
+  // Run Simulator (usa /api/sdr/decide con grounding en conocimiento + fallback determinista)
+  const handleRunSimulation = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!simText.trim()) return;
 
     setIsSimulating(true);
-    setTimeout(() => {
-      const output = runSdrDecision({
-        inboundText: simText,
-        senderName: simSender,
-        senderCompany: simCompany,
-        config,
-        knowledgeSources: knowledge.filter((k) => k.status === "approved"),
+    const approvedKnowledge = knowledge.filter((k) => k.status === "approved");
+    try {
+      const res = await fetch("/api/sdr/decide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inboundText: simText,
+          senderName: simSender,
+          senderCompany: simCompany,
+          config,
+          knowledgeSources: approvedKnowledge,
+        }),
       });
-      setSimResult(output);
-      setIsSimulating(false);
-    }, 320);
+      const data = await res.json();
+      if (data.ok && data.decision) {
+        setSimResult(data.decision);
+        setIsSimulating(false);
+        return;
+      }
+    } catch {
+      // Fallback al motor local
+    }
+
+    const output = runSdrDecision({
+      inboundText: simText,
+      senderName: simSender,
+      senderCompany: simCompany,
+      config,
+      knowledgeSources: approvedKnowledge,
+    });
+    setSimResult(output);
+    setIsSimulating(false);
   };
 
   // Filtered knowledge

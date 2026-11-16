@@ -28,6 +28,7 @@ function openDatabase(): Database.Database {
   ensureLeadsCrmSchema(db);
   ensureLinearCampaignsSchema(db);
   ensureInboxSchema(db);
+  ensureSdrSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -291,6 +292,16 @@ function ensureInboxSchema(db: Database.Database): void {
       metadata_json TEXT NOT NULL DEFAULT '{}'
     );
     CREATE INDEX IF NOT EXISTS idx_inbox_conv_v2_updated ON inbox_conversations_v2(updated_at DESC);
+  `);
+}
+
+function ensureSdrSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS sdr_state_v2 (
+      key TEXT PRIMARY KEY,
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
   `);
 }
 
