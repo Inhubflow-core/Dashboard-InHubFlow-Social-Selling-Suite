@@ -6,13 +6,16 @@ import { Link } from "@/i18n/navigation";
 import {
   addIncomingMessageToConversation,
   getInboxConversations,
+  INBOX_CHANGE_EVENT,
   markConversationAsRead,
-  saveInboxConversations,
+  openOrCreateConversationForLead,
   sendMessageToConversation,
   updateConversationStage,
   setConversationUnipileChatId,
 } from "@/lib/inbox/store";
 import type { ChatConversation } from "@/lib/inbox/types";
+import { useAuth } from "@/context/AuthContext";
+import { getActiveAccountForUser } from "@/lib/unipile/store";
 import {
   ArrowRight,
   Bot,
@@ -27,6 +30,7 @@ import {
   Mic,
   Paperclip,
   Play,
+  RefreshCw,
   Search,
   Send,
   Sparkles,
@@ -35,7 +39,7 @@ import {
   ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getStoredSdrConfig, setSdrMode } from "@/lib/sdr/store";
 import type { SdrMode } from "@/lib/sdr/types";
 import { useTranslations } from "next-intl";
@@ -52,22 +56,55 @@ const STAGES = [
 
 export default function InboxPage() {
   const t = useTranslations("inbox");
+  const { currentUser } = useAuth();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
-  const [activeConvId, setActiveConvId] = useState<string>("conv-1");
+  const [activeConvId, setActiveConvId] = useState<string>("");
   const [filterCampaign, setFilterCampaign] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [tabFilter, setTabFilter] = useState<"all" | "unread">("all");
   const [messageInput, setMessageInput] = useState<string>("");
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+  const [isSyncingChats, setIsSyncingChats] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   const [sdrMode, setLocalSdrMode] = useState<SdrMode>("copilot");
+  const pdfInputRef = useRef<HTMLInputElement | null>(null);
+
+  const activeAccount = useMemo(() => getActiveAccountForUser(currentUser), [currentUser]);
+  const currentSenderName = activeAccount?.name || currentUser?.name || "Mi Cuenta LinkedIn";
+  const currentAccountId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
 
   useEffect(() => {
-    const list = getInboxConversations();
-    setConversations(list);
-    if (list.length > 0 && !activeConvId) {
-      setActiveConvId(list[0].id);
+    setLocalSdrMode(getStoredSdrConfig().mode);
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const leadParam = params.get("leadName") || params.get("leadId");
+      if (leadParam && leadParam.trim()) {
+        const { conversations: nextList, targetConvId } = openOrCreateConversationForLead(leadParam.trim());
+        setConversations(nextList);
+        if (targetConvId) {
+          setActiveConvId(targetConvId);
+        } else if (nextList.length > 0) {
+          setActiveConvId(nextList[0].id);
+        }
+      } else {
+        const list = getInboxConversations();
+        setConversations(list);
+        if (list.length > 0) {
+          setActiveConvId(list[0].id);
+        }
+      }
     }
+
+    const syncInbox = () => {
+      setConversations(getInboxConversations());
+    };
+    window.addEventListener(INBOX_CHANGE_EVENT, syncInbox);
+    window.addEventListener("storage", syncInbox);
+    return () => {
+      window.removeEventListener(INBOX_CHANGE_EVENT, syncInbox);
+      window.removeEventListener("storage", syncInbox);
+    };
   }, []);
 
   const activeConversation = useMemo(() => {
@@ -109,7 +146,13 @@ export default function InboxPage() {
     const text = textToSend !== undefined ? textToSend : messageInput;
     if (!text.trim() || !activeConversation) return;
 
-    const updated = sendMessageToConversation(activeConversation.id, text.trim());
+    const targetConvId = activeConversation.id;
+    const updated = sendMessageToConversation(
+      targetConvId,
+      text.trim(),
+      undefined,
+      currentSenderName
+    );
     setConversations(updated);
     setMessageInput("");
 
@@ -118,7 +161,8 @@ export default function InboxPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chatId: activeConversation.unipileChatId || activeConversation.id,
+        accountId: currentAccountId || undefined,
+        chatId: activeConversation.unipileChatId || targetConvId,
         leadName: activeConversation.leadName,
         leadId: activeConversation.leadId,
         text: text.trim(),
@@ -128,15 +172,54 @@ export default function InboxPage() {
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           console.warn("[Inbox] Error enviando a Unipile:", errData);
+          showNotice("No se pudo entregar por LinkedIn en este momento; guardado en historial.");
         } else {
           const data = await res.json();
           if (data.chatId && data.chatId !== activeConversation.unipileChatId) {
-            setConversationUnipileChatId(activeConversation.id, data.chatId);
-            activeConversation.unipileChatId = data.chatId;
+            setConversationUnipileChatId(targetConvId, data.chatId);
+            setConversations((prev) =>
+              prev.map((c) => (c.id === targetConvId ? { ...c, unipileChatId: data.chatId } : c))
+            );
           }
         }
       })
-      .catch((err) => console.warn("[Inbox] Error enviando a Unipile:", err));
+      .catch((err) => {
+        console.warn("[Inbox] Error enviando a Unipile:", err);
+        showNotice("Error de red al enviar por LinkedIn; guardado localmente.");
+      });
+  };
+
+  const handleSyncUnipileChats = async () => {
+    if (!currentAccountId) {
+      showNotice("Conecta o selecciona una cuenta activa de LinkedIn para sincronizar chats.");
+      return;
+    }
+    setIsSyncingChats(true);
+    try {
+      const cleanAccId = String(currentAccountId).replace(/^acc-li-/, "");
+      const res = await fetch(`/api/unipile/messages?accountId=${encodeURIComponent(cleanAccId)}`);
+      const data = await res.json();
+      const chats = Array.isArray(data?.data) ? data.data : (data?.data?.items || []);
+      let imported = 0;
+      for (const chat of chats.slice(0, 15)) {
+        const sender = chat.name || chat.attendee_name;
+        const lastMsgText = chat.last_message?.text || chat.snippet || "";
+        if (sender && lastMsgText) {
+          addIncomingMessageToConversation(chat.id, lastMsgText, sender);
+          imported++;
+        }
+      }
+      setConversations(getInboxConversations());
+      showNotice(
+        imported > 0
+          ? `Sincronización completada: ${chats.length} chat(s) consultados.`
+          : "Chats sincronizados al día."
+      );
+    } catch {
+      showNotice("No se pudieron consultar chats en LinkedIn en este momento.");
+    } finally {
+      setIsSyncingChats(false);
+    }
   };
 
   const handleSelectAiSuggestion = (suggestion: string) => {
@@ -183,25 +266,38 @@ export default function InboxPage() {
         name: "Nota_de_voz_SDR.mp3",
         type: "audio",
         size: "0:42 seg",
-      }
+      },
+      currentSenderName
     );
     setConversations(updated);
     showNotice("Nota de voz de LinkedIn enviada");
   };
 
-  const handleSendPdfAttachment = () => {
-    if (!activeConversation) return;
+  const handleUploadPdfAttachment = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeConversation) return;
+    const sizeFormatted =
+      file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(file.size / 1024))} KB`;
     const updated = sendMessageToConversation(
       activeConversation.id,
-      "Aqui tienes el documento adjunto complementario con la metodologia:",
+      `Te comparto el documento adjunto "${file.name}":`,
       {
-        name: "InHubFlow_Social_Selling_Playbook.pdf",
+        name: file.name,
         type: "pdf",
-        size: "3.2 MB",
-      }
+        size: sizeFormatted,
+      },
+      currentSenderName
     );
     setConversations(updated);
-    showNotice("Documento PDF adjuntado y enviado al prospecto");
+    showNotice(`Documento "${file.name}" adjuntado y enviado.`);
+    e.target.value = "";
+  };
+
+  const handleSendPdfAttachment = () => {
+    if (!activeConversation) return;
+    pdfInputRef.current?.click();
   };
 
   const handleChangeStage = (newStageId: string) => {
@@ -251,12 +347,21 @@ export default function InboxPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={isSyncingChats}
+              onClick={handleSyncUnipileChats}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 shadow-theme-xs transition"
+            >
+              <RefreshCw className={`size-3.5 text-emerald-600 ${isSyncingChats ? "animate-spin" : ""}`} />
+              <span>{isSyncingChats ? "Sincronizando..." : "Sincronizar Chats"}</span>
+            </button>
             <Link
               href="/sdr"
               className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 shadow-theme-xs transition"
             >
               <Bot className="size-3.5 text-[#0099ff]" />
-              <span>SDR Copilot</span>
+              <span>SDR Copilot ({sdrMode === "auto" ? "Auto" : "Copiloto"})</span>
             </Link>
           </div>
         </div>
@@ -498,13 +603,13 @@ export default function InboxPage() {
                   </span>
                 )}
               </div>
-              <a
-                href={`/leads`}
+              <Link
+                href="/leads"
                 className="text-brand-600 hover:underline flex items-center gap-1 dark:text-brand-400"
               >
                 <span>{t("viewProfile")}</span>
                 <ChevronRight className="size-3" />
-              </a>
+              </Link>
             </div>
 
             {/* Flujo de Mensajes */}
@@ -697,6 +802,13 @@ export default function InboxPage() {
             {/* Barra de Entrada de Mensajes y Acciones Multimedia */}
             <div className="p-3 bg-white border-t border-gray-300 dark:border-gray-800 dark:bg-gray-900 space-y-2">
               <div className="flex items-center gap-2">
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf"
+                  onChange={handleUploadPdfAttachment}
+                  className="hidden"
+                />
                 <button
                   type="button"
                   onClick={handleSendPdfAttachment}

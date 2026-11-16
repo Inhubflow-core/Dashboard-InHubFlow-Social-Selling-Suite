@@ -10,6 +10,7 @@ import {
 } from "@/lib/sdr/store";
 
 const STORAGE_KEY = "inhubflow_inbox_conversations";
+export const INBOX_CHANGE_EVENT = "inhubflow:inbox-updated";
 
 /**
  * Busca si un remitente o prospecto pertenece a los leads captados/enrolados en las campañas.
@@ -81,11 +82,8 @@ function mapInboxStageToCrmStage(stageId: string): CrmStage {
  */
 function getInitialCampaignConversations(): ChatConversation[] {
   const leads = getStoredLeads();
-  // Tomar el lead verificado de campaña de prueba (Roberto OrSe) o leads en secuencia
   const activeLead = leads.find(
     (l) =>
-      l.id === "lead-roberto-orse" ||
-      l.fullName.toLowerCase().includes("roberto orse") ||
       l.sequenceStatus === "replied" ||
       l.stage === "active_conversation" ||
       (l.stage as string) === "interested"
@@ -100,50 +98,36 @@ function getInitialCampaignConversations(): ChatConversation[] {
     .slice(0, 2)
     .toUpperCase();
 
-  const isRoberto = activeLead.fullName.toLowerCase().includes("roberto orse") || activeLead.id.includes("roberto");
+  const firstName = activeLead.fullName.split(" ")[0] || "contacto";
   const sampleConv: ChatConversation = {
-    unipileChatId: isRoberto ? "ULc-ddfUXwuyJSDDXTpVGA" : undefined,
     id: `conv-${activeLead.id}`,
     leadId: activeLead.id,
     leadName: activeLead.fullName,
-    leadTitle: isRoberto ? "Empreendedor" : activeLead.title,
-    company: isRoberto ? "Roberto OrSe" : activeLead.company,
-    location: isRoberto ? "Vila Velha, Espírito Santo, Brazil" : (activeLead.location || "Brasil"),
+    leadTitle: activeLead.title || "Profesional B2B",
+    company: activeLead.company || "Empresa B2B",
+    location: activeLead.location || "Global",
     avatarInitials: initials,
-    avatarUrl: 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo',
+    avatarUrl: activeLead.avatarUrl,
     campaignSource: activeLead.listName || "02. Secuencia: Lead Magnet",
-    leadMagnetUsed: "SISTEMA",
+    leadMagnetUsed: activeLead.signalLevel === "level_1" ? "SISTEMA" : undefined,
     crmStage: "4. Conversacion Activa / Interesado",
     crmStageId: "interested",
     unread: false,
-    lastMessage: "¡Excelente Roberto! Me interesa mucho revisar el framework de Social Selling.",
-    lastMessageTime: "Hace 15 min",
+    lastMessage: activeLead.timeline?.[0]?.detail || "Conversación iniciada desde campaña.",
+    lastMessageTime: activeLead.lastActivityAt || "Reciente",
     aiSuggestions: [
-      `Hola ${activeLead.fullName.split(" ")[0]}, te acabo de enviar el framework completo en PDF. ¿Te viene bien una breve llamada de 15 min esta semana para ver cómo implementarlo en tu equipo?`,
-      `¡Genial ${activeLead.fullName.split(" ")[0]}! Te comparto mi enlace de Cal.com para coordinar directo: https://cal.inhubflow.com/demo-20min`,
-      `Perfecto ${activeLead.fullName.split(" ")[0]}, te dejo un audio explicándote los 3 pilares clave del método.`,
+      `Hola ${firstName}, ¿pudiste revisar el material que te compartí? ¿Te viene bien una breve llamada de 15 min esta semana?`,
+      `¡Genial ${firstName}! Te comparto mi enlace de agenda para coordinar directo: https://cal.inhubflow.com/demo-20min`,
+      `Perfecto ${firstName}, quedo atento a cualquier consulta para ayudarte a implementarlo en tu equipo.`,
     ],
     messages: [
       {
         id: "msg-init-1",
-        senderId: "user",
-        senderName: "RobertoOrse Agencia",
-        isSender: true,
-        text: `Hola ${activeLead.fullName.split(" ")[0]}, vi tu comentario en mi post sobre prospección con IA. Aquí tienes el framework SISTEMA que me pediste.`,
-        timestamp: "Ayer 18:30",
-        attachment: {
-          name: "Framework_SISTEMA_Social_Selling.pdf",
-          type: "pdf",
-          size: "2.4 MB",
-        },
-      },
-      {
-        id: "msg-init-2",
         senderId: "lead",
         senderName: activeLead.fullName,
         isSender: false,
-        text: "¡Excelente Roberto! Me interesa mucho revisar el framework de Social Selling.",
-        timestamp: "Hace 15 min",
+        text: activeLead.timeline?.[0]?.detail || "Hola, me interesa conocer más detalles.",
+        timestamp: "Reciente",
       },
     ],
   };
@@ -183,21 +167,7 @@ export function getInboxConversations(): ChatConversation[] {
       }
     }
 
-    let mutated = false;
-    for (const c of clean) {
-      if (!c.unipileChatId && c.leadName && c.leadName.toLowerCase().includes("roberto orse")) {
-        c.unipileChatId = "ULc-ddfUXwuyJSDDXTpVGA";
-        mutated = true;
-      }
-      if (c.leadName && c.leadName.toLowerCase().includes("roberto orse")) {
-        if (!c.avatarUrl || c.avatarUrl !== 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo') {
-          c.avatarUrl = 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo';
-          mutated = true;
-        }
-      }
-    }
-
-    if (mutated || clean.length !== parsed.length) {
+    if (clean.length !== parsed.length) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
     }
     return clean;
@@ -210,9 +180,80 @@ export function saveInboxConversations(conversations: ChatConversation[]): void 
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+    window.dispatchEvent(new CustomEvent(INBOX_CHANGE_EVENT));
+    if (typeof fetch === "function" && conversations.length > 0) {
+      fetch("/api/inbox", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversations }),
+      }).catch(() => {});
+    }
   } catch {
     // ignore
   }
+}
+
+export function openOrCreateConversationForLead(leadNameOrId: string): {
+  conversations: ChatConversation[];
+  targetConvId: string | null;
+} {
+  const list = getInboxConversations();
+  const targetLower = leadNameOrId.trim().toLowerCase();
+  if (!targetLower) {
+    return { conversations: list, targetConvId: list[0]?.id || null };
+  }
+
+  const existing = list.find(
+    (c) =>
+      c.id === leadNameOrId ||
+      c.leadId === leadNameOrId ||
+      c.leadName.toLowerCase().trim() === targetLower ||
+      c.leadName.toLowerCase().includes(targetLower)
+  );
+  if (existing) {
+    return { conversations: list, targetConvId: existing.id };
+  }
+
+  const crmLead = findCampaignLead({ leadId: leadNameOrId, senderName: leadNameOrId });
+  if (!crmLead) {
+    return { conversations: list, targetConvId: list[0]?.id || null };
+  }
+
+  const initials = crmLead.fullName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const firstName = crmLead.fullName.split(" ")[0] || "contacto";
+
+  const created: ChatConversation = {
+    id: `conv-${crmLead.id}`,
+    leadId: crmLead.id,
+    leadName: crmLead.fullName,
+    leadTitle: crmLead.title || "Profesional B2B",
+    company: crmLead.company || "Empresa en LinkedIn",
+    location: crmLead.location || "Remoto",
+    avatarInitials: initials,
+    avatarUrl: crmLead.avatarUrl,
+    campaignSource: crmLead.listName || crmLead.signalSource || "Directorio CRM",
+    leadMagnetUsed: crmLead.signalLevel === "level_1" ? "SISTEMA" : undefined,
+    crmStage: "2. En Secuencia",
+    crmStageId: crmLead.stage || "in_sequence",
+    unread: false,
+    lastMessage: crmLead.timeline?.[0]?.detail || "Conversación abierta desde CRM",
+    lastMessageTime: "Ahora",
+    messages: [],
+    aiSuggestions: [
+      `Hola ${firstName}, vi tu actividad reciente en LinkedIn. ¿Cómo están abordando la prospección B2B en ${crmLead.company || "tu equipo"}?`,
+      `Hola ${firstName}, te comparto este recurso breve sobre nuestro sistema. ¿Te gustaría revisarlo?`,
+      `¡Hola ${firstName}! Si te hace sentido conversar 15 min esta semana, te dejo mi agenda: https://cal.inhubflow.com/demo-20min`,
+    ],
+  };
+
+  const updated = [created, ...list];
+  saveInboxConversations(updated);
+  return { conversations: updated, targetConvId: created.id };
 }
 
 /**
@@ -221,7 +262,8 @@ export function saveInboxConversations(conversations: ChatConversation[]): void 
 export function sendMessageToConversation(
   conversationId: string,
   text: string,
-  attachment?: { name: string; type: "pdf" | "audio" | "image"; size?: string }
+  attachment?: { name: string; type: "pdf" | "audio" | "image"; size?: string },
+  senderName = "Mi Cuenta LinkedIn"
 ): ChatConversation[] {
   const list = getInboxConversations();
   const updated = list.map((c) => {
@@ -229,7 +271,7 @@ export function sendMessageToConversation(
       const newMsg: ChatMessage = {
         id: "msg-" + Date.now(),
         senderId: "user",
-        senderName: "Roberto",
+        senderName,
         isSender: true,
         text,
         timestamp: "Ahora",
@@ -263,6 +305,7 @@ export function recordOutgoingCampaignMessage(params: {
   campaignName: string;
   leadMagnetUsed?: string;
   messageText: string;
+  senderName?: string;
   attachment?: { name: string; type: "pdf" | "audio" | "image"; size?: string };
 }): ChatConversation[] {
   const list = getInboxConversations();
@@ -275,7 +318,7 @@ export function recordOutgoingCampaignMessage(params: {
   const newMsg: ChatMessage = {
     id: "msg-camp-" + Date.now(),
     senderId: "user",
-    senderName: "RobertoOrse Agencia",
+    senderName: params.senderName || "Campaña Automatizada",
     isSender: true,
     text: params.messageText,
     timestamp: "Ahora",
@@ -310,7 +353,7 @@ export function recordOutgoingCampaignMessage(params: {
     company: params.company || "Empresa",
     location: params.location || "Global",
     avatarInitials: initials,
-    avatarUrl: params.leadName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo' : undefined,
+    avatarUrl: undefined,
     campaignSource: params.campaignName,
     leadMagnetUsed: params.leadMagnetUsed,
     crmStage: "2. En Secuencia",
@@ -466,7 +509,7 @@ export function addIncomingMessageToConversation(
         id: "act-" + Date.now(),
         threadId: existing.id,
         accountId: "acc-main",
-        accountName: "RobertoOrse Agencia",
+        accountName: "Mi Cuenta LinkedIn",
         prospectName: existing.leadName,
         prospectTitle: existing.leadTitle,
         prospectCompany: existing.company,
@@ -598,7 +641,7 @@ export function addIncomingMessageToConversation(
       id: "act-" + Date.now(),
       threadId: `conv-${campaignLead.id}`,
       accountId: "acc-main",
-      accountName: "RobertoOrse Agencia",
+      accountName: "Mi Cuenta LinkedIn",
       prospectName: campaignLead.fullName,
       prospectTitle: campaignLead.title,
       prospectCompany: campaignLead.company,
@@ -627,7 +670,7 @@ export function addIncomingMessageToConversation(
     company: campaignLead.company || "Empresa B2B",
     location: campaignLead.location || "Global",
     avatarInitials: initials,
-    avatarUrl: campaignLead.avatarUrl || (campaignLead.fullName.toLowerCase().includes("roberto") ? 'https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo' : undefined),
+    avatarUrl: campaignLead.avatarUrl,
     campaignSource,
     leadMagnetUsed: campaignLead.signalLevel === "level_1" ? "SISTEMA" : undefined,
     crmStage: sdrDecision.intent === "meeting_request" ? "5. Reunion Agendada" : "4. Conversacion Activa / Interesado",

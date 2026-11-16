@@ -3469,6 +3469,60 @@ assert(
   'campaigns/page.tsx usa lead dinámico en simulaciones, pasa linkedListId al tracker y persiste notas de voz como DataURL'
 );
 
+console.log("\n--- TEST: Blindaje de Lanzamiento Inbox Unificado (Módulo 5) ---");
+
+assert(
+  dbLaunch.includes('CREATE TABLE IF NOT EXISTS inbox_conversations_v2') &&
+    dbLaunch.includes('ensureInboxSchema(db)'),
+  'db.ts crea tabla inbox_conversations_v2 en SQLite'
+);
+assert(fs.existsSync('src/app/api/inbox/route.ts'), 'Endpoint /api/inbox/route.ts existe');
+
+const inboxApiMod5 = fs.readFileSync('src/app/api/inbox/route.ts', 'utf8');
+assert(
+  inboxApiMod5.includes('export async function GET') &&
+    inboxApiMod5.includes('export async function POST'),
+  '/api/inbox implementa GET y POST para respaldo de conversaciones'
+);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS inbox_conversations_v2 (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT,
+    lead_name TEXT NOT NULL,
+    unipile_chat_id TEXT,
+    crm_stage_id TEXT,
+    unread INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+  );
+`);
+db.prepare(`
+  INSERT OR REPLACE INTO inbox_conversations_v2 (id, lead_id, lead_name, unipile_chat_id, crm_stage_id, unread, updated_at, metadata_json)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`).run('conv-test-m5', 'lead-test-m5', 'Laura Mendoza', 'chat-123', 'interested', 1, '2026-11-16T10:00:00Z', '{}');
+const m5Row = db.prepare('SELECT * FROM inbox_conversations_v2 WHERE id = ?').get('conv-test-m5');
+assert(m5Row && m5Row.lead_name === 'Laura Mendoza' && m5Row.unread === 1, 'Tabla inbox_conversations_v2 persiste hilos en SQLite');
+
+const inboxStoreMod5 = fs.readFileSync('src/lib/inbox/store.ts', 'utf8');
+assert(
+  !inboxStoreMod5.includes('RobertoOrse Agencia') &&
+    !inboxStoreMod5.includes('ULc-ddfUXwuyJSDDXTpVGA') &&
+    inboxStoreMod5.includes('INBOX_CHANGE_EVENT') &&
+    inboxStoreMod5.includes('openOrCreateConversationForLead'),
+  'inbox/store.ts elimina datos personales hardcoded, emite INBOX_CHANGE_EVENT y expone openOrCreateConversationForLead'
+);
+
+const inboxPageMod5 = fs.readFileSync('src/app/[locale]/(admin)/inbox/page.tsx', 'utf8');
+assert(
+  inboxPageMod5.includes('openOrCreateConversationForLead') &&
+    inboxPageMod5.includes('handleSyncUnipileChats') &&
+    inboxPageMod5.includes('pdfInputRef') &&
+    inboxPageMod5.includes('<Link') &&
+    inboxPageMod5.includes('href="/leads"'),
+  'inbox/page.tsx lee ?leadName= de URL, sincroniza chats de Unipile, soporta adjunto real y usa Link i18n'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

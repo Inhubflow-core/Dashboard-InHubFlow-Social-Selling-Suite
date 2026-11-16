@@ -27,6 +27,7 @@ function openDatabase(): Database.Database {
   ensureSignalMonitorsSchema(db);
   ensureLeadsCrmSchema(db);
   ensureLinearCampaignsSchema(db);
+  ensureInboxSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -274,6 +275,22 @@ function ensureLinearCampaignsSchema(db: Database.Database): void {
       details_json TEXT NOT NULL DEFAULT '{}'
     );
     CREATE INDEX IF NOT EXISTS idx_campaign_logs_v2_time ON campaign_execution_logs_v2(timestamp DESC);
+  `);
+}
+
+function ensureInboxSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS inbox_conversations_v2 (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT,
+      lead_name TEXT NOT NULL,
+      unipile_chat_id TEXT,
+      crm_stage_id TEXT,
+      unread INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_inbox_conv_v2_updated ON inbox_conversations_v2(updated_at DESC);
   `);
 }
 
