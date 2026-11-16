@@ -32,6 +32,7 @@ function openDatabase(): Database.Database {
   ensureWorkspaceSettingsSchema(db);
   ensureTeamSchema(db);
   ensureLinkedInAccountsV2Schema(db);
+  ensurePipelineSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -348,6 +349,19 @@ function ensureLinkedInAccountsV2Schema(db: Database.Database): void {
       updated_at TEXT NOT NULL,
       payload_json TEXT NOT NULL DEFAULT '{}'
     );
+  `);
+}
+
+function ensurePipelineSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS pipeline_deals_v2 (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT,
+      stage_id TEXT NOT NULL DEFAULT 'lead_captured',
+      updated_at TEXT NOT NULL,
+      payload_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_pipeline_deals_v2_stage ON pipeline_deals_v2(stage_id);
   `);
 }
 

@@ -121,11 +121,13 @@ function convertLeadToDeal(lead: Lead360Item): PipelineDeal {
  * los leads captados y activos en las campañas.
  */
 export function getPipelineDeals(): PipelineDeal[] {
-  if (typeof window === "undefined") return INITIAL_DEALS;
+  if (typeof window === "undefined") return [];
   try {
     const rawDeals = localStorage.getItem(DEALS_STORAGE_KEY);
     const existingDeals: PipelineDeal[] = rawDeals ? JSON.parse(rawDeals) : [];
     const campaignLeads = getStoredLeads();
+
+    let modified = false;
 
     // Crear mapa de deals existentes por leadId y limpiar valores monetarios residuales
     const dealsByLeadId = new Map<string, PipelineDeal>();
@@ -140,8 +142,6 @@ export function getPipelineDeals(): PipelineDeal[] {
         }
       });
     }
-
-    let modified = false;
 
     // Sincronizar o incorporar leads de campañas al Pipeline
     const deletedIds = getDeletedDealIds();
@@ -168,34 +168,6 @@ export function getPipelineDeals(): PipelineDeal[] {
 
     const unifiedDeals = Array.from(dealsByLeadId.values());
 
-    if (unifiedDeals.length === 0) {
-      // Si aún no hay leads en localStorage, poblar con el prospecto verificado de campaña
-      const sampleLead: Lead360Item = {
-        id: "lead-roberto-orse",
-        fullName: "Roberto OrSe",
-        firstName: "Roberto",
-        lastName: "OrSe",
-        title: "Founder & CEO | Social Selling B2B",
-        company: "InHubFlow / Agencia OrSe",
-        location: "Brasil",
-        linkedinUrl: "https://www.linkedin.com/in/robertoorse",
-        signalSource: "Mis Posts (Nivel 1)",
-        signalLevel: "level_1",
-        intentScore: 100,
-        stage: "active_conversation",
-        sequenceStatus: "replied",
-        listId: "list-l1-sistema",
-        listName: "02. Secuencia: Lead Magnet",
-        activeCampaignName: "02. Secuencia: Lead Magnet",
-        timeline: [],
-        createdAt: new Date().toISOString(),
-        lastActivityAt: "Ahora mismo",
-      };
-      const sampleDeal = convertLeadToDeal(sampleLead);
-      unifiedDeals.push(sampleDeal);
-      modified = true;
-    }
-
     if (modified || !rawDeals) {
       localStorage.setItem(DEALS_STORAGE_KEY, JSON.stringify(unifiedDeals));
     }
@@ -210,6 +182,11 @@ export function savePipelineDeals(deals: PipelineDeal[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(DEALS_STORAGE_KEY, JSON.stringify(deals));
+    fetch("/api/pipeline", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deals }),
+    }).catch(() => {});
   } catch {
     // ignore
   }

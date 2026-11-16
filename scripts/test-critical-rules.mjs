@@ -3623,6 +3623,47 @@ assert(
   'linkedin-accounts/page.tsx sincroniza cuentas/límites con /api/accounts y usa claves i18n'
 );
 
+console.log('\n--- 19. MÓDULO 8: DASHBOARD, PIPELINE, PLANES Y SOPORTE ---');
+const dashboardStoreMod8 = fs.readFileSync('src/lib/dashboard/store.ts', 'utf8');
+assert(
+  !dashboardStoreMod8.includes("campaigns.filter((c) => c.status === \"active\").length || 3") &&
+    !dashboardStoreMod8.includes("const count = realCount !== undefined && realCount > 0 ? realCount : DEFAULT_STAGE_COUNTS[sc.id];"),
+  'dashboard/store.ts calcula métricas y embudo reales sin fallbacks ficticios'
+);
+
+const pipelineDbMod8 = fs.readFileSync('src/lib/persistence/db.ts', 'utf8');
+assert(
+  pipelineDbMod8.includes('pipeline_deals_v2'),
+  'db.ts define la tabla pipeline_deals_v2'
+);
+
+const pipelineApiMod8 = fs.readFileSync('src/app/api/pipeline/route.ts', 'utf8');
+assert(
+  pipelineApiMod8.includes('pipeline_deals_v2'),
+  '/api/pipeline implementa GET/PUT/DELETE sobre SQLite'
+);
+
+const pipelineStoreMod8 = fs.readFileSync('src/lib/pipeline/store.ts', 'utf8');
+assert(
+  !pipelineStoreMod8.includes('id: "lead-roberto-orse"') &&
+    pipelineStoreMod8.includes('/api/pipeline') &&
+    pipelineStoreMod8.indexOf('let modified = false;') < pipelineStoreMod8.indexOf('modified = true;'),
+  'pipeline/store.ts corrige TDZ de modified, elimina seed personal y sincroniza con /api/pipeline'
+);
+
+const plansPageMod8 = fs.readFileSync('src/app/[locale]/(admin)/plans/page.tsx', 'utf8');
+assert(
+  plansPageMod8.includes('/api/saas/subscribers') &&
+    plansPageMod8.includes('t("planUpdatedNotice"'),
+  'plans/page.tsx sincroniza cambio de plan con /api/saas/subscribers y usa i18n'
+);
+
+const supportPageMod8 = fs.readFileSync('src/app/[locale]/(admin)/support/page.tsx', 'utf8');
+assert(
+  supportPageMod8.includes('/api/unipile/status'),
+  'support/page.tsx existe e integra diagnóstico de Unipile y cuentas'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

@@ -155,38 +155,36 @@ export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
 
   // Calculo de tasa de conversión global (Reuniones + Ganados vs Leads Totales)
   const effectiveConversionCount = scheduledMeetings + closedWon;
-  const conversionRate = totalLeads > 0 
-    ? Math.round((effectiveConversionCount / totalLeads) * 1000) / 10 
-    : 18.5;
+  const conversionRate = totalLeads > 0
+    ? Math.round((effectiveConversionCount / totalLeads) * 1000) / 10
+    : 0;
 
-  const activeCampaigns = campaigns.filter((c) => c.status === "active").length || 3;
-  const queuedPosts = posts.filter((p) => p.status === "scheduled" || p.status === "draft").length || 5;
-  const connectedAccounts = accounts.filter((a) => a.status === "OK").length || 2;
+  const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
+  const queuedPosts = posts.filter((p) => p.status === "scheduled" || p.status === "draft").length;
+  const connectedAccounts = accounts.filter((a) => a.status === "OK").length;
 
-  // 2. Distribución por Nivel de Señal
+  // 2. Distribución por Nivel de Señal (datos reales, 0 si está vacío)
   const level1Count = leads.filter((l: any) => l.signalLevel === "level_1").length;
   const level2Count = leads.filter((l: any) => l.signalLevel === "level_2").length;
   const level3Count = leads.filter((l: any) => l.signalLevel === "level_3" || l.signalLevel === "level_4").length;
 
-  // Fallback armónico si la base estuviera vacía en el primer render
-  const safeL1 = level1Count || 48;
-  const safeL2 = level2Count || 56;
-  const safeL3 = level3Count || 40;
+  const safeL1 = level1Count;
+  const safeL2 = level2Count;
+  const safeL3 = level3Count;
   const totalSignals = safeL1 + safeL2 + safeL3;
 
-  // 3. Etapas del Embudo
+  // 3. Etapas del Embudo (conteo real por etapa)
   const stageCounts = deals.reduce((acc, deal) => {
     acc[deal.stageId] = (acc[deal.stageId] || 0) + 1;
     return acc;
   }, {} as Record<PipelineStageId, number>);
 
   const funnelStages: FunnelStageData[] = STAGE_CONFIG.map((sc) => {
-    const realCount = stageCounts[sc.id];
-    const count = realCount !== undefined && realCount > 0 ? realCount : DEFAULT_STAGE_COUNTS[sc.id];
+    const realCount = stageCounts[sc.id] ?? 0;
     return {
       id: sc.id,
       label: sc.label,
-      count,
+      count: realCount,
       color: sc.color,
     };
   });

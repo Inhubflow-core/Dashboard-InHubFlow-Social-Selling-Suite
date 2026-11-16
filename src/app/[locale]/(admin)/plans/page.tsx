@@ -27,9 +27,21 @@ export default function PlansPricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
   const [notice, setNotice] = useState<string | null>(null);
 
-  const handleSelectPlan = (tier: PlanTier) => {
+  const handleSelectPlan = async (tier: PlanTier) => {
     updateUserPlan(tier);
-    setNotice(`Plan actualizado exitosamente a ${tier.toUpperCase()}. Tus nuevos slots ya estan habilitados.`);
+    const planCfg = getPlanConfig(tier);
+    try {
+      await fetch("/api/saas/subscribers", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: currentUser.id,
+          planTier: tier,
+          slotsLimit: planCfg.slots,
+        }),
+      });
+    } catch {}
+    setNotice(t("planUpdatedNotice", { plan: tier.toUpperCase() }));
     setTimeout(() => setNotice(null), 3500);
   };
 

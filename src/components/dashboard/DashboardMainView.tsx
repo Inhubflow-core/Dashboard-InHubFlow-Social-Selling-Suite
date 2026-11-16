@@ -71,10 +71,22 @@ export default function DashboardMainView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950/60"></span>
-          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-            LinkedIn Cloud Sincronizado
-          </span>
+          {analytics.overview.connectedAccounts > 0 ? (
+            <>
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950/60"></span>
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                LinkedIn Cloud Sincronizado ({analytics.overview.connectedAccounts})
+              </span>
+            </>
+          ) : (
+            <Link
+              href="/linkedin-accounts"
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-500/20 dark:text-amber-300"
+            >
+              <span className="flex h-2 w-2 rounded-full bg-amber-500"></span>
+              <span>Conectar cuenta de LinkedIn</span>
+            </Link>
+          )}
         </div>
       </div>
 

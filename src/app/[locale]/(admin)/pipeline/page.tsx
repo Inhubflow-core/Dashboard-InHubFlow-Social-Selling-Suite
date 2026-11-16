@@ -67,7 +67,32 @@ export default function PipelinePage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    setDeals(getPipelineDeals());
+    const localDeals = getPipelineDeals();
+    setDeals(localDeals);
+
+    let cancelled = false;
+    fetch("/api/pipeline")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.ok || !Array.isArray(data.deals)) return;
+        if (data.deals.length > 0 && localDeals.length === 0) {
+          try {
+            localStorage.setItem("inhubflow_pipeline_deals", JSON.stringify(data.deals));
+          } catch {}
+          setDeals(getPipelineDeals());
+        } else if (data.deals.length === 0 && localDeals.length > 0) {
+          fetch("/api/pipeline", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deals: localDeals }),
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const showToast = (msg: string) => {
