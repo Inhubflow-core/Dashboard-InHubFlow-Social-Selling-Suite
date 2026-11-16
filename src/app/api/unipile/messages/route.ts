@@ -14,22 +14,30 @@ export async function POST(req: NextRequest) {
     }
 
     let targetChatId = chatId;
+    let targetAccountId = typeof accountId === 'string' && accountId.trim() ? accountId.trim() : undefined;
+    if (targetAccountId && targetAccountId.startsWith('acc-li-')) {
+      targetAccountId = targetAccountId.replace(/^acc-li-/, '').trim() || undefined;
+    }
+
+    if (!targetAccountId) {
+      try {
+        const accounts = await unipile.listAccounts();
+        const accList = Array.isArray(accounts) ? accounts : ((accounts as any).items || []);
+        const activeAcc =
+          accList.find((a: any) => a.status === 'OK' || a.status === 'CONNECTED' || a.id) ||
+          accList[0];
+        if (activeAcc) targetAccountId = activeAcc.id;
+      } catch (err) {
+        console.warn('[api/unipile/messages] Error buscando cuenta Unipile:', err);
+      }
+    }
+
+    if (!targetAccountId && unipile.isSandboxMode()) {
+      targetAccountId = 'sandbox-account';
+    }
 
     // Si el chatId es un ID sintético interno (ej. 'conv-lead-roberto-orse') o falta:
     if (!targetChatId || targetChatId.startsWith('conv-')) {
-      // 1. Obtener accountId de Unipile
-      let targetAccountId = accountId;
-      if (!targetAccountId) {
-        try {
-          const accounts = await unipile.listAccounts();
-          const accList = Array.isArray(accounts) ? accounts : ((accounts as any).items || []);
-          const activeAcc = accList.find((a: any) => a.status === 'OK' || a.id) || accList[0];
-          if (activeAcc) targetAccountId = activeAcc.id;
-        } catch (err) {
-          console.warn('[api/unipile/messages] Error buscando cuenta Unipile:', err);
-        }
-      }
-
       const cacheKey = `${targetAccountId || 'default'}:${(leadName || '').toLowerCase().trim()}`;
       if (chatResolutionCache.has(cacheKey)) {
         targetChatId = chatResolutionCache.get(cacheKey)!;
@@ -93,10 +101,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Si no hay chatId pero hay attendeesIds y accountId, iniciar nuevo chat
-    if (accountId && attendeesIds && attendeesIds.length > 0) {
+    // Si no hay chatId pero hay attendeesIds y targetAccountId, iniciar nuevo chat
+    if (targetAccountId && attendeesIds && attendeesIds.length > 0) {
       const response = await unipile.startChat({
-        account_id: accountId,
+        account_id: targetAccountId,
         attendees_ids: attendeesIds,
         text: text.trim(),
       });
@@ -106,6 +114,22 @@ export async function POST(req: NextRequest) {
         chatId: response.chat_id,
         response,
         mode: unipile.isSandboxMode() ? 'sandbox' : 'live',
+      });
+    }
+
+    if (unipile.isSandboxMode()) {
+      const fallbackAttendee = (attendeesIds && attendeesIds[0]) || leadId || leadName || 'sandbox-attendee';
+      const response = await unipile.startChat({
+        account_id: targetAccountId || 'sandbox-account',
+        attendees_ids: attendeesIds?.length ? attendeesIds : [String(fallbackAttendee)],
+        text: text.trim(),
+      });
+      return NextResponse.json({
+        ok: true,
+        type: 'chat_started',
+        chatId: response.chat_id,
+        response,
+        mode: 'sandbox',
       });
     }
 

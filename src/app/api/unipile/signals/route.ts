@@ -57,6 +57,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (!cleanAccountId && unipile.isSandboxMode()) {
+      cleanAccountId = 'sandbox-account';
+    }
+
     if (!cleanAccountId) {
       return NextResponse.json({ error: 'No se encontro una cuenta activa de LinkedIn conectada' }, { status: 400 });
     }
@@ -106,6 +110,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const rawPostId = searchParams.get('postId');
     let cleanAccountId = (searchParams.get('accountId') || '').replace(/^acc-li-/, '').trim() || undefined;
+    const rawLimit = Number(searchParams.get('limit'));
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 500) : 100;
 
     if (!rawPostId) {
       return NextResponse.json({ error: 'Especifica el postId' }, { status: 400 });
@@ -199,7 +205,8 @@ export async function GET(req: NextRequest) {
       ok: true,
       postId,
       post: postDetails,
-      comments: normalizedComments,
+      totalCommentsCount: normalizedComments.length,
+      comments: normalizedComments.slice(0, limit),
       reactions,
       mode: unipile.isSandboxMode() ? 'sandbox' : 'live',
     });

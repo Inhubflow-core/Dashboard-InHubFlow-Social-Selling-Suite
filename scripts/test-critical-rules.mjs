@@ -3190,6 +3190,109 @@ assert(fs.existsSync('src/app/api/viral-posts/run-scheduled/route.ts'), 'Endpoin
 const viralPageLaunch = fs.readFileSync('src/app/[locale]/(admin)/viral-posts/page.tsx', 'utf8');
 assert(viralPageLaunch.includes('/api/viral-posts/run-scheduled'), 'viral-posts/page.tsx ejecuta despachador periódico de publicaciones programadas');
 
+console.log("\n--- TEST: Blindaje de Lanzamiento Signal Radar (Módulo 2: SQLite, Acciones L1, Estado Atómico y KPIs Dinámicos) ---");
+
+assert(dbLaunch.includes('CREATE TABLE IF NOT EXISTS signal_monitors'), 'db.ts crea tabla signal_monitors en SQLite');
+assert(dbLaunch.includes('ensureSignalMonitorsSchema(db)'), 'db.ts invoca ensureSignalMonitorsSchema en openDatabase');
+assert(fs.existsSync('src/app/api/signals/monitors/route.ts'), 'Endpoint /api/signals/monitors/route.ts existe');
+
+const signalMonitorsApiCode = fs.readFileSync('src/app/api/signals/monitors/route.ts', 'utf8');
+assert(
+  signalMonitorsApiCode.includes('export async function GET') &&
+    signalMonitorsApiCode.includes('export async function POST') &&
+    signalMonitorsApiCode.includes('export async function DELETE'),
+  '/api/signals/monitors implementa GET, POST y DELETE'
+);
+
+// Verificar round-trip real en SQLite para signal_monitors
+db.exec(`
+  CREATE TABLE IF NOT EXISTS signal_monitors (
+    id TEXT PRIMARY KEY,
+    level TEXT NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    leads_count INTEGER NOT NULL DEFAULT 0,
+    last_scan_at TEXT,
+    last_scan_at_iso TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+  );
+`);
+db.prepare(`
+  INSERT OR REPLACE INTO signal_monitors (id, level, title, status, leads_count, created_at, updated_at, metadata_json)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`).run('mon-test-l1', 'level_1', 'Post Lead Magnet Test', 'active', 12, '2026-11-16T10:00:00Z', '2026-11-16T10:05:00Z', JSON.stringify({ keyword: 'GUIA' }));
+const monRow = db.prepare('SELECT * FROM signal_monitors WHERE id = ?').get('mon-test-l1');
+assert(monRow && monRow.level === 'level_1' && monRow.leads_count === 12, 'Tabla signal_monitors inserta y recupera monitores correctamente en SQLite');
+
+assert(
+  signalsStoreLaunch.includes('L2_MONITORS_CHANGE_EVENT') &&
+    signalsStoreLaunch.includes('L3_GROUP_MONITORS_CHANGE_EVENT') &&
+    signalsStoreLaunch.includes('L4_GLOBAL_MONITORS_CHANGE_EVENT') &&
+    signalsStoreLaunch.includes('SIGNAL_LEADS_CHANGE_EVENT'),
+  'signals/store.ts exporta eventos reactivos para los niveles 2, 3, 4 y leads'
+);
+assert(
+  signalsStoreLaunch.includes('const current = getStoredLevel1Monitors()') &&
+    signalsStoreLaunch.includes('const current = getStoredLevel2Monitors()') &&
+    signalsStoreLaunch.includes('const current = getStoredLevel4GlobalMonitors()'),
+  'useSignalRadar lee estado atómico desde localStorage en mutadores para evitar stale closures'
+);
+
+const leadsStoreMod2 = fs.readFileSync('src/lib/leads/store.ts', 'utf8');
+assert(
+  leadsStoreMod2.includes('LEADS_STORE_CHANGE_EVENT') &&
+    leadsStoreMod2.includes('emitLeadsStoreChange()'),
+  'leads/store.ts exporta y dispara LEADS_STORE_CHANGE_EVENT al sincronizar listas y leads'
+);
+
+const signalsRouteMod2 = fs.readFileSync('src/app/api/unipile/signals/route.ts', 'utf8');
+assert(
+  signalsRouteMod2.includes("cleanAccountId = 'sandbox-account'") &&
+    signalsRouteMod2.includes("searchParams.get('limit')") &&
+    signalsRouteMod2.includes('normalizedComments.slice(0, limit)'),
+  '/api/unipile/signals soporta sandbox-account en POST y limit en GET'
+);
+
+const messagesRouteMod2 = fs.readFileSync('src/app/api/unipile/messages/route.ts', 'utf8');
+assert(
+  messagesRouteMod2.includes("targetAccountId = 'sandbox-account'") &&
+    messagesRouteMod2.includes('if (unipile.isSandboxMode())'),
+  '/api/unipile/messages resuelve cuenta activa y soporta fallback sandbox'
+);
+
+const myPostsMod2 = fs.readFileSync('src/components/signals/MyPostsSignalRadarView.tsx', 'utf8');
+assert(
+  myPostsMod2.includes('&limit=${effectiveBatch}') &&
+    myPostsMod2.includes('action: "react"') &&
+    myPostsMod2.includes('action: "comment"') &&
+    myPostsMod2.includes('fetch("/api/unipile/messages"') &&
+    myPostsMod2.includes('detectLeadLanguage'),
+  'MyPostsSignalRadarView respeta effectiveBatch, ejecuta react/comment/DM reales y detecta idioma'
+);
+assert(
+  !myPostsMod2.includes('robertoorse-agencia'),
+  'MyPostsSignalRadarView elimina URLs personales hardcodeadas multi-tenant'
+);
+
+const competitorsMod2 = fs.readFileSync('src/components/signals/CompetitorsSignalRadarView.tsx', 'utf8');
+assert(
+  competitorsMod2.includes('competitorName: comp.competitorName') &&
+    competitorsMod2.includes('highIntentCompetitorRate') &&
+    !competitorsMod2.includes('48.2%'),
+  'CompetitorsSignalRadarView pasa competitorName a detectLeadLanguage y reemplaza 48.2% por KPI dinámico'
+);
+
+const globalSignalsMod2 = fs.readFileSync('src/components/signals/GlobalSignalsView.tsx', 'utf8');
+assert(
+  globalSignalsMod2.includes('signalLevel: "level_4" as const') &&
+    globalSignalsMod2.includes('highIntentGlobalRate') &&
+    globalSignalsMod2.includes('crmLeads') &&
+    !globalSignalsMod2.includes('56.4%'),
+  'GlobalSignalsView unifica signalLevel level_4, combina crmLeads en getRuleLeads y reemplaza 56.4% por KPI dinámico'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

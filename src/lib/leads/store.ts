@@ -9,6 +9,14 @@ import { extractCompanyFromHeadline } from "@/lib/signals/employee-filter";
 
 const LEADS_STORAGE_KEY = "inhubflow_leads_360";
 const LISTS_STORAGE_KEY = "inhubflow_leads_lists";
+export const LEADS_STORE_CHANGE_EVENT = "inhubflow:leads-store-updated";
+
+function emitLeadsStoreChange(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent(LEADS_STORE_CHANGE_EVENT));
+  } catch {}
+}
 
 export function getStoredLeads(): Lead360Item[] {
   if (typeof window === "undefined") return initialLeadsData;
@@ -531,10 +539,23 @@ export function useLeadsStore() {
     setLeads(syncedLeads);
     setLists(syncedLists);
     setIsLoaded(true);
+
+    const syncFromStorage = () => {
+      setLeads(getStoredLeads());
+      setLists(getStoredLeadLists());
+    };
+
+    window.addEventListener(LEADS_STORE_CHANGE_EVENT, syncFromStorage);
+    window.addEventListener("storage", syncFromStorage);
+    return () => {
+      window.removeEventListener(LEADS_STORE_CHANGE_EVENT, syncFromStorage);
+      window.removeEventListener("storage", syncFromStorage);
+    };
   }, []);
 
-  const updateLeadStage = (leadId: string, newStage: CrmStage) => {
-    const updated = leads.map((l) => {
+  const updateLeadStage = useCallback((leadId: string, newStage: CrmStage) => {
+    const current = getStoredLeads();
+    const updated = current.map((l) => {
       if (l.id === leadId) {
         const newTimelineEvent = {
           id: `tl-${Date.now()}`,
@@ -553,37 +574,54 @@ export function useLeadsStore() {
       return l;
     });
     setLeads(updated);
-    if (typeof window !== "undefined") localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
-  };
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+    }
+  }, []);
 
-  const updateLeadSequenceStatus = (leadId: string, newStatus: SequenceStatus) => {
-    const updated = leads.map((l) => (l.id === leadId ? { ...l, sequenceStatus: newStatus } : l));
+  const updateLeadSequenceStatus = useCallback((leadId: string, newStatus: SequenceStatus) => {
+    const current = getStoredLeads();
+    const updated = current.map((l) => (l.id === leadId ? { ...l, sequenceStatus: newStatus } : l));
     setLeads(updated);
-    if (typeof window !== "undefined") localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
-  };
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+    }
+  }, []);
 
-  const deleteLead = (leadId: string) => {
-    const updated = leads.filter((l) => l.id !== leadId);
+  const deleteLead = useCallback((leadId: string) => {
+    const current = getStoredLeads();
+    const updated = current.filter((l) => l.id !== leadId);
     setLeads(updated);
-    if (typeof window !== "undefined") localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
-  };
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+    }
+  }, []);
 
-  const createList = (newList: LeadListGroup) => {
-    const updated = [newList, ...lists];
+  const createList = useCallback((newList: LeadListGroup) => {
+    const current = getStoredLeadLists();
+    const updated = [newList, ...current.filter((l) => l.id !== newList.id)];
     setLists(updated);
-    if (typeof window !== "undefined") localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
-  };
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+    }
+  }, []);
 
-  const deleteList = (listId: string) => {
-    const targetList = lists.find((l) => l.id === listId);
-    const updatedLists = lists.filter((l) => l.id !== listId);
+  const deleteList = useCallback((listId: string) => {
+    const currentLists = getStoredLeadLists();
+    const currentLeads = getStoredLeads();
+    const targetList = currentLists.find((l) => l.id === listId);
+    const updatedLists = currentLists.filter((l) => l.id !== listId);
     setLists(updatedLists);
     if (typeof window !== "undefined") {
       localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
     }
 
     // Borrado en cascada de todos los contactos dentro de la lista
-    const updatedLeads = leads.filter((lead) => {
+    const updatedLeads = currentLeads.filter((lead) => {
       if (lead.listId === listId) return false;
       if (targetList?.competitorName) {
         const matchesComp =
@@ -617,8 +655,10 @@ export function useLeadsStore() {
       } catch (err) {
         console.warn("[deleteList] Error limpiando signals storage:", err);
       }
+
+      emitLeadsStoreChange();
     }
-  };
+  }, []);
 
   const importSignalLeads = useCallback((targetList: LeadListGroup, signalLeads: SignalLeadItem[]) => {
     const result = importSignalLeadsToList(targetList, signalLeads);
@@ -629,7 +669,7 @@ export function useLeadsStore() {
     return result;
   }, []);
 
-  const batchUpdateLeadPhotos = (
+  const batchUpdateLeadPhotos = useCallback((
     updates: Record<
       string,
       | string
@@ -644,57 +684,59 @@ export function useLeadsStore() {
     >
   ) => {
     if (!updates || Object.keys(updates).length === 0) return;
-    setLeads((prev) => {
-      // 1. Filtrar cualquier lead detectado como empleado interno
-      const nonEmployees = prev.filter((l) => {
-        const val = updates[l.id];
-        if (val && typeof val === "object" && val.isEmployee === true) {
-          return false;
-        }
-        return true;
-      });
+    const prev = getStoredLeads();
 
-      // 2. Actualizar datos de los leads restantes válidos
-      const updated = nonEmployees.map((l) => {
-        const val = updates[l.id];
-        if (!val) return l;
-        if (typeof val === "string") {
-          return { ...l, avatarUrl: val };
-        }
-        return {
-          ...l,
-          avatarUrl: val.photoUrl || l.avatarUrl,
-          location: (val.location && !/no especificado/i.test(val.location)) ? val.location : l.location,
-          language: val.language || l.language,
-          title: val.headline || l.title,
-          company: (val.company && !/no especificado/i.test(val.company)) ? val.company : l.company,
-        };
-      });
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
-
-        // Si se eliminó algún empleado, recalibrar los contadores de listas de inmediato
-        if (nonEmployees.length !== prev.length) {
-          const storedLists = getStoredLeadLists();
-          const recalibrated = storedLists.map((lg) => ({
-            ...lg,
-            leadsCount: updated.filter(
-              (l) =>
-                l.listId === lg.id ||
-                (lg.competitorName && (
-                  l.company?.toLowerCase().includes(lg.competitorName.toLowerCase()) ||
-                  l.signalSource?.toLowerCase().includes(lg.competitorName.toLowerCase())
-                ))
-            ).length,
-          }));
-          localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibrated));
-          setLists(recalibrated);
-        }
+    // 1. Filtrar cualquier lead detectado como empleado interno
+    const nonEmployees = prev.filter((l) => {
+      const val = updates[l.id];
+      if (val && typeof val === "object" && val.isEmployee === true) {
+        return false;
       }
-      return updated;
+      return true;
     });
-  };
+
+    // 2. Actualizar datos de los leads restantes válidos
+    const updated = nonEmployees.map((l) => {
+      const val = updates[l.id];
+      if (!val) return l;
+      if (typeof val === "string") {
+        return { ...l, avatarUrl: val };
+      }
+      return {
+        ...l,
+        avatarUrl: val.photoUrl || l.avatarUrl,
+        location: (val.location && !/no especificado/i.test(val.location)) ? val.location : l.location,
+        language: val.language || l.language,
+        title: val.headline || l.title,
+        company: (val.company && !/no especificado/i.test(val.company)) ? val.company : l.company,
+      };
+    });
+
+    setLeads(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+
+      // Si se eliminó algún empleado, recalibrar los contadores de listas de inmediato
+      if (nonEmployees.length !== prev.length) {
+        const storedLists = getStoredLeadLists();
+        const recalibrated = storedLists.map((lg) => ({
+          ...lg,
+          leadsCount: updated.filter(
+            (l) =>
+              l.listId === lg.id ||
+              (lg.competitorName && (
+                l.company?.toLowerCase().includes(lg.competitorName.toLowerCase()) ||
+                l.signalSource?.toLowerCase().includes(lg.competitorName.toLowerCase())
+              ))
+          ).length,
+        }));
+        localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibrated));
+        setLists(recalibrated);
+      }
+
+      emitLeadsStoreChange();
+    }
+  }, []);
 
   const getOrCreateList = useCallback((params: { monitorId: string; competitorName: string; keywords?: string[] }) => {
     const prevLists = getStoredLeadLists();
@@ -736,22 +778,22 @@ export function useLeadsStore() {
   const markListMonitorAsDeleted = useCallback((monitorIdOrName: string) => {
     if (!monitorIdOrName) return;
     const searchLower = monitorIdOrName.trim().toLowerCase();
-    setLists((prev) => {
-      const updated = prev.map((lg) => {
-        const matchesId = lg.sourceMonitorId && lg.sourceMonitorId === monitorIdOrName;
-        const matchesComp = lg.competitorName && lg.competitorName.trim().toLowerCase() === searchLower;
-        const matchesGroup = lg.groupName && lg.groupName.trim().toLowerCase() === searchLower;
-        const matchesName = lg.name && lg.name.trim().toLowerCase() === searchLower;
-        if (matchesId || matchesComp || matchesGroup || matchesName) {
-          return { ...lg, isMonitorDeleted: true };
-        }
-        return lg;
-      });
-      if (typeof window !== "undefined") {
-        localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
+    const prev = getStoredLeadLists();
+    const updated = prev.map((lg) => {
+      const matchesId = lg.sourceMonitorId && lg.sourceMonitorId === monitorIdOrName;
+      const matchesComp = lg.competitorName && lg.competitorName.trim().toLowerCase() === searchLower;
+      const matchesGroup = lg.groupName && lg.groupName.trim().toLowerCase() === searchLower;
+      const matchesName = lg.name && lg.name.trim().toLowerCase() === searchLower;
+      if (matchesId || matchesComp || matchesGroup || matchesName) {
+        return { ...lg, isMonitorDeleted: true };
       }
-      return updated;
+      return lg;
     });
+    setLists(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+    }
   }, []);
 
   return {
@@ -776,6 +818,7 @@ export function saveStoredLeadLists(lists: LeadListGroup[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(lists));
+    emitLeadsStoreChange();
   } catch {}
 }
 
@@ -920,6 +963,7 @@ export function importSignalLeadsToList(
     updatedLists = [updatedList, ...currentLists];
   }
   localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+  emitLeadsStoreChange();
 
   return { list: updatedList, addedCount: convertedLeads.length };
 }
@@ -957,6 +1001,7 @@ export function getOrCreateMonitorList(params: {
   const updatedLists = [newList, ...currentLists];
   if (typeof window !== "undefined") {
     localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+    emitLeadsStoreChange();
   }
   return newList;
 }
@@ -1000,6 +1045,7 @@ export function getOrCreateGlobalMonitorList(params: {
   const updatedLists = [newList, ...currentLists];
   if (typeof window !== "undefined") {
     localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+    emitLeadsStoreChange();
   }
   return newList;
 }
@@ -1034,6 +1080,7 @@ export function getOrCreateLevel1MonitorList(params: {
   const updatedLists = [newList, ...currentLists];
   if (typeof window !== "undefined") {
     localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+    emitLeadsStoreChange();
   }
   return newList;
 }
@@ -1043,6 +1090,7 @@ export function saveStoredLeads(leads: Lead360Item[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+    emitLeadsStoreChange();
   } catch {}
 }
 

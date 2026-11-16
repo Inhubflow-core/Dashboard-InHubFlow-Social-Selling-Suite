@@ -4,7 +4,12 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { extractIdentifier } from "@/lib/signals/employee-filter";
 import { useSignalRadar } from "@/lib/signals/store";
-import type { Level2CompetitorMonitor, ScannedCompetitorPost, SignalLeadItem } from "@/lib/signals/types";
+import {
+  calculateSignalScore,
+  type Level2CompetitorMonitor,
+  type ScannedCompetitorPost,
+  type SignalLeadItem,
+} from "@/lib/signals/types";
 import {
   getActiveAccountForUser,
   getVisibleAccountsForUser,
@@ -280,6 +285,36 @@ export default function CompetitorsSignalRadarView({
     return acc + count;
   }, 0);
 
+  const highIntentCompetitorRate = useMemo(() => {
+    const monitorIds = new Set(l2Monitors.map((m) => m.id));
+    const compNames = new Set(l2Monitors.map((m) => m.competitorName.trim().toLowerCase()));
+    const l2SignalLeads = leads.filter(
+      (l) =>
+        l.signalLevel === "level_2" ||
+        monitorIds.has(l.monitorId) ||
+        (l.sourceAuthorName && compNames.has(l.sourceAuthorName.trim().toLowerCase()))
+    );
+
+    if (l2SignalLeads.length > 0) {
+      const highCount = l2SignalLeads.filter(
+        (l) =>
+          l.signalType === "comment" ||
+          l.intentLevel === "very_high" ||
+          l.intentLevel === "medium_high" ||
+          calculateSignalScore(l) >= 85
+      ).length;
+      return ((highCount / l2SignalLeads.length) * 100).toFixed(1);
+    }
+
+    const l2CrmLeads = crmLeads.filter((l) => l.signalLevel === "level_2");
+    if (l2CrmLeads.length > 0) {
+      const highCount = l2CrmLeads.filter((l) => (l.intentScore ?? 0) >= 85).length;
+      return ((highCount / l2CrmLeads.length) * 100).toFixed(1);
+    }
+
+    return "0.0";
+  }, [l2Monitors, leads, crmLeads]);
+
   const handleAddCompetitor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!competitorName.trim()) return;
@@ -398,9 +433,12 @@ export default function CompetitorsSignalRadarView({
         detectedAt: new Date().toISOString(),
         status: "new",
         language: lead.language || detectLeadLanguage({
+          fullName: lead.fullName,
           headline: lead.headline,
           location: lead.location,
+          linkedinUrl: lead.linkedinUrl,
           signalSnippet: lead.signalSnippet,
+          competitorName: comp.competitorName,
         }),
       }));
 
@@ -557,7 +595,7 @@ export default function CompetitorsSignalRadarView({
             {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            48.2%
+            {highIntentCompetitorRate}%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {t("kpiRateSub")}

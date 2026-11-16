@@ -438,7 +438,7 @@ export default function GlobalSignalsView({
     recordDiscoveredLeads,
   } = useSignalRadar();
 
-  const { importSignalLeads, getOrCreateGlobalList, lists, deleteList, markListMonitorAsDeleted } = useLeads();
+  const { leads: crmLeads, importSignalLeads, getOrCreateGlobalList, lists, deleteList, markListMonitorAsDeleted } = useLeads();
 
   const { currentUser } = useAuth();
   const [editingRule, setEditingRule] = useState<Level3GlobalMonitor | null>(null);
@@ -534,6 +534,38 @@ export default function GlobalSignalsView({
 
   const totalGlobalLeads = l3Monitors.reduce((acc, m) => acc + m.leadsIdentifiedCount, 0);
   const totalViralPostsCount = l3Monitors.reduce((acc, m) => acc + (m.lastScannedPosts?.length || 0), 0);
+
+  const highIntentGlobalRate = useMemo(() => {
+    const monitorIds = new Set(l3Monitors.map((m) => m.id));
+    const globalSignalLeads = leads.filter(
+      (l) =>
+        l.signalLevel === "level_4" ||
+        l.signalLevel === "level_3" ||
+        monitorIds.has(l.monitorId)
+    );
+
+    if (globalSignalLeads.length > 0) {
+      const highCount = globalSignalLeads.filter(
+        (l) =>
+          calculateSignalScore(l) >= 80 ||
+          l.intentLevel === "very_high" ||
+          l.intentLevel === "medium_high"
+      ).length;
+      return ((highCount / globalSignalLeads.length) * 100).toFixed(1);
+    }
+
+    const globalCrmLeads = crmLeads.filter(
+      (l) =>
+        l.signalLevel === "level_4" ||
+        ((l as any).monitorId && monitorIds.has((l as any).monitorId))
+    );
+    if (globalCrmLeads.length > 0) {
+      const highCount = globalCrmLeads.filter((l) => (l.intentScore ?? 0) >= 80).length;
+      return ((highCount / globalCrmLeads.length) * 100).toFixed(1);
+    }
+
+    return "0.0";
+  }, [l3Monitors, leads, crmLeads]);
 
   const filteredCountries = COUNTRY_OPTIONS.filter((c) =>
     c.name.toLowerCase().includes(countrySearch.toLowerCase())
@@ -638,7 +670,7 @@ export default function GlobalSignalsView({
         detectedAt: new Date().toISOString(),
         status: "new" as const,
         language: lead.language,
-        signalLevel: "level_3" as const,
+        signalLevel: "level_4" as const,
         sourcePostTitle: lead.sourcePostTitle,
         sourcePostUrl: lead.sourcePostUrl,
       }));
@@ -734,8 +766,61 @@ export default function GlobalSignalsView({
     });
   }, [isLoaded, l3Monitors.length, activeAccount?.id]);
 
+  const getListForRule = (rule: Level3GlobalMonitor) => {
+    const targetQuery = rule.searchQuery.trim().toLowerCase();
+    return lists.find(
+      (l: any) =>
+        l.sourceMonitorId === rule.id ||
+        l.id === `list-sig-n4-${rule.id}` ||
+        l.id === `list-sig-n3-${rule.id}` ||
+        l.name.trim().toLowerCase() === targetQuery ||
+        l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`) ||
+        l.name.toLowerCase().startsWith(`[signal n4] ${targetQuery.slice(0, 32)}`)
+    );
+  };
+
   const getRuleLeads = (monitorId: string): SignalLeadItem[] => {
-    return leads.filter((l) => l.monitorId === monitorId);
+    const matchingRule = l3Monitors.find((r) => r.id === monitorId);
+    const linkedList = matchingRule ? getListForRule(matchingRule) : undefined;
+    const signalMatches = leads.filter((l) => l.monitorId === monitorId);
+
+    const crmMatches: SignalLeadItem[] = crmLeads
+      .filter(
+        (l) =>
+          (l as any).monitorId === monitorId ||
+          l.listId === `list-sig-n4-${monitorId}` ||
+          (linkedList && l.listId === linkedList.id)
+      )
+      .map((l) => ({
+        id: l.id,
+        monitorId,
+        fullName: l.fullName,
+        headline: l.title || "Decisor en LinkedIn",
+        company: l.company || "",
+        location: l.location || "",
+        linkedinUrl: l.linkedinUrl || "",
+        avatarUrl: l.avatarUrl,
+        connectionDegree: "2nd",
+        intentLevel: (l.intentScore ?? 0) >= 90 ? "very_high" : "medium_high",
+        intentScore: l.intentScore,
+        signalLevel: "level_4",
+        signalSnippet: l.timeline?.[0]?.detail || `Captado en búsqueda global`,
+        detectedAt: l.createdAt || new Date().toISOString(),
+        status: "new",
+        language: l.language,
+      }));
+
+    const seen = new Set<string>();
+    const combined: SignalLeadItem[] = [];
+    for (const item of [...signalMatches, ...crmMatches]) {
+      const urlKey = (item.linkedinUrl || "").toLowerCase().trim();
+      const nameKey = (item.fullName || "").toLowerCase().trim();
+      const dedupeKey = urlKey || nameKey;
+      if (!dedupeKey || seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      combined.push(item);
+    }
+    return combined;
   };
 
   const getRuleScannedPosts = (rule: Level3GlobalMonitor) => {
@@ -762,15 +847,6 @@ export default function GlobalSignalsView({
     }
     if (country === "US") return verifiedUsaOutreachScannedPosts;
     return viralPostsB2B;
-  };
-
-  const getListForRule = (rule: Level3GlobalMonitor) => {
-    const targetQuery = rule.searchQuery.trim().toLowerCase();
-    return lists.find(
-      (l: any) =>
-        l.sourceMonitorId === rule.id ||
-        l.name.toLowerCase().startsWith(`[signal n3] ${targetQuery.slice(0, 32)}`)
-    );
   };
 
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
@@ -810,7 +886,7 @@ export default function GlobalSignalsView({
             {t("kpiRateTitle")}
           </span>
           <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            56.4%
+            {highIntentGlobalRate}%
           </p>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {t("kpiRateSub")}

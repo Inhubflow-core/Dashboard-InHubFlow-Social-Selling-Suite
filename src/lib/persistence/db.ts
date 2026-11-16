@@ -24,6 +24,7 @@ function openDatabase(): Database.Database {
   `);
   applyInitialSchema(db);
   ensureViralPostsSchema(db);
+  ensureSignalMonitorsSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -188,6 +189,24 @@ function ensureViralPostsSchema(db: Database.Database): void {
       metadata_json TEXT NOT NULL DEFAULT '{}'
     );
     CREATE INDEX IF NOT EXISTS idx_viral_posts_status_scheduled ON viral_posts(status, scheduled_at);
+  `);
+}
+
+function ensureSignalMonitorsSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS signal_monitors (
+      id TEXT PRIMARY KEY,
+      level TEXT NOT NULL,
+      title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      leads_count INTEGER NOT NULL DEFAULT 0,
+      last_scan_at TEXT,
+      last_scan_at_iso TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_signal_monitors_level_status ON signal_monitors(level, status);
   `);
 }
 

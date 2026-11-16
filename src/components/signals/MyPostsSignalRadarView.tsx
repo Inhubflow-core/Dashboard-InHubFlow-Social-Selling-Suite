@@ -18,6 +18,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "next-intl";
 import { useLeadsStore } from "@/lib/leads/store";
+import { detectLeadLanguage } from "@/lib/signals/language-detector";
 import { Pencil, X, Link2, ExternalLink } from "lucide-react";
 
 function parseCommentAuthor(c: any) {
@@ -116,6 +117,23 @@ function parseCommentAuthor(c: any) {
       ? "3rd"
       : "2nd";
 
+  // 7. Identificador y ubicación real
+  const rawAuthorId =
+    authorDetails.id ||
+    authorObj.id ||
+    c.author_id ||
+    authorDetails.public_identifier ||
+    authorObj.public_identifier ||
+    "";
+  const authorId = typeof rawAuthorId === "string" ? rawAuthorId.trim() : String(rawAuthorId || "").trim();
+
+  const rawLocation =
+    authorDetails.location ||
+    authorObj.location ||
+    c.location ||
+    "";
+  const location = typeof rawLocation === "string" ? rawLocation.trim() : "";
+
   return {
     fullName,
     headline,
@@ -123,6 +141,8 @@ function parseCommentAuthor(c: any) {
     avatarUrl,
     company: company || "Empresa en LinkedIn",
     connectionDegree,
+    authorId,
+    location,
   };
 }
 
@@ -347,49 +367,25 @@ export default function MyPostsSignalRadarView({
     setManualLinkedInUrlInput("");
   };
 
-  const handleScanMonitor = async (mon: Level1Monitor) => {
+  const handleScanMonitor = async (mon: Level1Monitor, batchOverride?: 25 | 50 | 100) => {
     setIsScanningId(mon.id);
     setScanFeedback(null);
+    const effectiveBatch = batchOverride || selectedBatchSize[mon.id] || 50;
     try {
       const rawAccId = (activeAccount as any)?.unipileAccountId || activeAccount?.id || "";
       const res = await fetch(
-        `/api/unipile/signals?postId=${encodeURIComponent(mon.postUrl)}&accountId=${encodeURIComponent(rawAccId)}`
+        `/api/unipile/signals?postId=${encodeURIComponent(mon.postUrl)}&accountId=${encodeURIComponent(rawAccId)}&limit=${effectiveBatch}`
       );
       const data = await res.json();
-      const rawComments = Array.isArray(data.comments) ? data.comments : [];
+      const rawComments: any[] = Array.isArray(data.comments) ? data.comments : [];
 
       const kw = mon.keyword.toUpperCase();
-      const matchingComments = rawComments.filter((c: any) => {
-        const text = String(c.text || "").toUpperCase();
-        return text.includes(kw);
-      });
-
-      const newLeadsToAdd: SignalLeadItem[] = matchingComments.map((c: any, idx: number) => {
-        const parsed = parseCommentAuthor(c);
-
-        return {
-          id: `sig-lead-${Date.now()}-${idx}`,
-          monitorId: mon.id,
-          fullName: parsed.fullName,
-          headline: parsed.headline,
-          company: parsed.company,
-          location: "España / Latam",
-          linkedinUrl: parsed.linkedinUrl,
-          avatarUrl: parsed.avatarUrl,
-          connectionDegree: parsed.connectionDegree,
-          intentLevel: "very_high",
-          intentScore: 100,
-          signalType: "keyword",
-          signalLevel: "level_1",
-          signalSnippet: `Comentó: "${c.text}"`,
-          detectedAt: new Date().toISOString(),
-          status: "dm_sent",
-          attachedResource: mon.attachedPdfName,
-          sourcePostId: mon.postUrl,
-          sourcePostUrl: mon.postUrl,
-          sourcePostTitle: mon.postTitle,
-        };
-      });
+      const matchingComments = rawComments
+        .filter((c: any) => {
+          const text = String(c.text || "").toUpperCase();
+          return text.includes(kw);
+        })
+        .slice(0, effectiveBatch);
 
       const targetList = getOrCreateLevel1List({
         monitorId: mon.id,
@@ -397,11 +393,184 @@ export default function MyPostsSignalRadarView({
         keyword: mon.keyword,
       });
 
+      // Detectar comentaristas ya registrados previamente para evitar envíos duplicados
+      const existingMonitorLeads = getMonitorLeads(mon.id);
+      const existingUrls = new Set(
+        existingMonitorLeads.map((l) => (l.linkedinUrl || "").toLowerCase().trim()).filter(Boolean)
+      );
+      const existingNames = new Set(
+        existingMonitorLeads.map((l) => (l.fullName || "").toLowerCase().trim()).filter(Boolean)
+      );
+
+      const interpolateTemplate = (
+        tpl: string,
+        firstName: string,
+        keyword: string,
+        resourceName: string
+      ) =>
+        tpl
+          .replace(/\{\{\s*firstName\s*\}\}/gi, firstName)
+          .replace(/\{\{\s*first_name\s*\}\}/gi, firstName)
+          .replace(/\{\{\s*keyword\s*\}\}/gi, keyword)
+          .replace(/\{\{\s*resourceUrl\s*\}\}/gi, resourceName)
+          .replace(/\{\{\s*resource\s*\}\}/gi, resourceName);
+
+      const publicVariants = (mon.publicReplyTemplate || "")
+        .split("|")
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+      const parsedMatches: Array<{ comment: any; parsed: ReturnType<typeof parseCommentAuthor> }> =
+        matchingComments.map((c: any) => ({
+          comment: c,
+          parsed: parseCommentAuthor(c),
+        }));
+
+      // Ejecutar acciones reales (Auto-Like, Respuesta Pública y DM/Invitación) sobre nuevos comentaristas (máx. 5 por barrido)
+      const newActionTargets = parsedMatches
+        .filter(({ parsed }) => {
+          const urlKey = (parsed.linkedinUrl || "").toLowerCase().trim();
+          const nameKey = (parsed.fullName || "").toLowerCase().trim();
+          if (urlKey && existingUrls.has(urlKey)) return false;
+          if (nameKey && existingNames.has(nameKey)) return false;
+          return true;
+        })
+        .slice(0, 5);
+
+      const dmOutcomeByKey = new Map<string, boolean>();
+
+      if (newActionTargets.length > 0 && mon.postUrl) {
+        await Promise.allSettled(
+          newActionTargets.map(async ({ parsed }) => {
+            const firstName = parsed.fullName.split(" ")[0] || "Hola";
+            const leadKey =
+              (parsed.linkedinUrl || "").toLowerCase().trim() ||
+              parsed.fullName.toLowerCase().trim();
+
+            if (mon.autoLikeComment) {
+              await fetch("/api/unipile/signals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "react",
+                  accountId: rawAccId,
+                  postId: mon.postUrl,
+                  reactionType: "like",
+                }),
+              }).catch(() => {});
+            }
+
+            if (publicVariants.length > 0) {
+              const rawVariant =
+                publicVariants[Math.floor(Math.random() * publicVariants.length)];
+              const replyText = interpolateTemplate(
+                rawVariant,
+                firstName,
+                mon.keyword,
+                mon.attachedPdfName
+              );
+              if (replyText.trim()) {
+                await fetch("/api/unipile/signals", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "comment",
+                    accountId: rawAccId,
+                    postId: mon.postUrl,
+                    text: replyText,
+                  }),
+                }).catch(() => {});
+              }
+            }
+
+            let dmOk = false;
+            if (mon.nonConnectedNoteTemplate?.trim()) {
+              const dmText = interpolateTemplate(
+                mon.nonConnectedNoteTemplate,
+                firstName,
+                mon.keyword,
+                mon.attachedPdfName
+              );
+              try {
+                const msgRes = await fetch("/api/unipile/messages", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    accountId: rawAccId,
+                    attendeesIds: parsed.authorId ? [parsed.authorId] : undefined,
+                    leadId: parsed.authorId || undefined,
+                    leadName: parsed.fullName,
+                    text: dmText,
+                  }),
+                });
+                const msgJson = await msgRes.json().catch(() => ({}));
+                dmOk = msgRes.ok && msgJson.ok !== false;
+              } catch {
+                dmOk = false;
+              }
+            }
+            if (leadKey) {
+              dmOutcomeByKey.set(leadKey, dmOk);
+            }
+          })
+        );
+      }
+
+      const newLeadsToAdd: SignalLeadItem[] = parsedMatches.map(({ comment: c, parsed }, idx: number) => {
+        const leadKey =
+          (parsed.linkedinUrl || "").toLowerCase().trim() ||
+          parsed.fullName.toLowerCase().trim();
+        const dmOk = dmOutcomeByKey.get(leadKey) === true;
+        const resolvedLocation = parsed.location || "Remoto";
+        const detectedLanguage = detectLeadLanguage({
+          fullName: parsed.fullName,
+          headline: parsed.headline,
+          location: resolvedLocation,
+          linkedinUrl: parsed.linkedinUrl,
+          signalSnippet: String(c.text || ""),
+        });
+
+        return {
+          id: `sig-lead-${Date.now()}-${idx}`,
+          monitorId: mon.id,
+          fullName: parsed.fullName,
+          headline: parsed.headline,
+          company: parsed.company,
+          location: resolvedLocation,
+          linkedinUrl: parsed.linkedinUrl,
+          avatarUrl: parsed.avatarUrl,
+          connectionDegree: parsed.connectionDegree as "1st" | "2nd" | "3rd",
+          intentLevel: "very_high",
+          intentScore: 100,
+          signalType: "keyword",
+          signalLevel: "level_1",
+          signalSnippet: `Comentó: "${c.text}"`,
+          detectedAt: new Date().toISOString(),
+          status: dmOk
+            ? "dm_sent"
+            : parsed.connectionDegree === "1st"
+            ? "dm_sent"
+            : "invitation_sent",
+          language: detectedLanguage,
+          attachedResource: mon.attachedPdfName,
+          sourcePostId: mon.postUrl,
+          sourcePostUrl: mon.postUrl,
+          sourcePostTitle: mon.postTitle,
+        };
+      });
+
       const added = recordDiscoveredLeads(newLeadsToAdd);
       importSignalLeads(targetList, newLeadsToAdd);
 
-      const newTotalScanned = Math.max(mon.scannedCommentsCount, rawComments.length);
-      const newCapturedCount = Math.max(mon.leadsCapturedCount, added.length, newLeadsToAdd.length);
+      const newTotalScanned = Math.max(
+        mon.scannedCommentsCount,
+        Number(data.totalCommentsCount || rawComments.length)
+      );
+      const newCapturedCount = Math.max(
+        mon.leadsCapturedCount,
+        existingMonitorLeads.length + added.length,
+        newLeadsToAdd.length
+      );
 
       updateLevel1Monitor(mon.id, {
         scannedCommentsCount: newTotalScanned,
@@ -516,18 +685,59 @@ export default function MyPostsSignalRadarView({
     }
   };
 
-  const getMonitorLeads = (monitorId: string): SignalLeadItem[] => {
-    return leads.filter((l) => l.monitorId === monitorId);
-  };
+  const getMonitorLeads = useCallback((monitorId: string): SignalLeadItem[] => {
+    const targetList = allLeadLists.find(
+      (l) => l.sourceMonitorId === monitorId || l.id === `list-sig-n1-${monitorId}`
+    );
+    const signalMatches = leads.filter((l) => l.monitorId === monitorId);
+    const crmMatches: SignalLeadItem[] = crmLeads
+      .filter(
+        (l) =>
+          (l as any).monitorId === monitorId ||
+          l.listId === `list-sig-n1-${monitorId}` ||
+          (targetList && l.listId === targetList.id)
+      )
+      .map((l) => ({
+        id: l.id,
+        monitorId,
+        fullName: l.fullName,
+        headline: l.title || "Profesional en LinkedIn",
+        company: l.company || "",
+        location: l.location || "",
+        linkedinUrl: l.linkedinUrl || "",
+        avatarUrl: l.avatarUrl,
+        connectionDegree: "2nd",
+        intentLevel: "very_high",
+        intentScore: l.intentScore || 100,
+        signalType: "keyword",
+        signalLevel: "level_1",
+        signalSnippet: l.timeline?.[0]?.detail || `Captado por monitor ${monitorId}`,
+        detectedAt: l.createdAt || new Date().toISOString(),
+        status: l.sequenceStatus === "replied" ? "replied" : "dm_sent",
+        language: l.language,
+      }));
+
+    const seen = new Set<string>();
+    const combined: SignalLeadItem[] = [];
+    for (const item of [...signalMatches, ...crmMatches]) {
+      const urlKey = (item.linkedinUrl || "").toLowerCase().trim();
+      const nameKey = (item.fullName || "").toLowerCase().trim();
+      const dedupeKey = urlKey || nameKey;
+      if (!dedupeKey || seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      combined.push(item);
+    }
+    return combined;
+  }, [allLeadLists, crmLeads, leads]);
 
   const currentDisplayName = activeAccount?.name || currentUser.name || "Cuenta Principal de LinkedIn";
   const currentUserPhoto =
     activeAccount?.profilePictureUrl ||
     (activeAccount as any)?.avatarUrl ||
     currentUser?.avatarUrl ||
-    "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U";
+    "";
   const currentUserProfileUrl =
-    activeAccount?.publicProfileUrl || "https://www.linkedin.com/in/robertoorse-agencia";
+    activeAccount?.publicProfileUrl || "https://www.linkedin.com";
 
   return (
     <div className="w-full space-y-6">
@@ -1159,7 +1369,7 @@ export default function MyPostsSignalRadarView({
                               <button
                                 type="button"
                                 disabled={isScanningId === mon.id}
-                                onClick={() => handleScanMonitor(mon)}
+                                onClick={() => handleScanMonitor(mon, activeBatch)}
                                 className="rounded-lg bg-brand-500 px-2.5 py-1 text-white hover:bg-brand-600 font-medium text-xs transition disabled:opacity-50 inline-flex items-center gap-1 shadow-2xs"
                                 title={t("scanBtnTooltip", { count: activeBatch })}
                               >
