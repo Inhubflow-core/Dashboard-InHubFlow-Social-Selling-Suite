@@ -26,6 +26,7 @@ function openDatabase(): Database.Database {
   ensureViralPostsSchema(db);
   ensureSignalMonitorsSchema(db);
   ensureLeadsCrmSchema(db);
+  ensureLinearCampaignsSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -237,6 +238,42 @@ function ensureLeadsCrmSchema(db: Database.Database): void {
       metadata_json TEXT NOT NULL DEFAULT '{}'
     );
     CREATE INDEX IF NOT EXISTS idx_crm_leads_list_stage ON crm_leads_360(list_id, stage);
+  `);
+}
+
+function ensureLinearCampaignsSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS linear_campaigns (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      code TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS campaign_daily_pacing_v2 (
+      account_id TEXT NOT NULL,
+      action_date TEXT NOT NULL,
+      invitations_sent INTEGER NOT NULL DEFAULT 0,
+      dms_sent INTEGER NOT NULL DEFAULT 0,
+      profiles_visited INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (account_id, action_date)
+    );
+    CREATE TABLE IF NOT EXISTS campaign_execution_logs_v2 (
+      id TEXT PRIMARY KEY,
+      campaign_id TEXT NOT NULL,
+      lead_id TEXT NOT NULL,
+      lead_name TEXT NOT NULL,
+      node_id TEXT NOT NULL,
+      node_label TEXT NOT NULL,
+      node_type TEXT NOT NULL,
+      timestamp TEXT NOT NULL,
+      status TEXT NOT NULL,
+      message TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_campaign_logs_v2_time ON campaign_execution_logs_v2(timestamp DESC);
   `);
 }
 

@@ -28,6 +28,7 @@ import type {
   SocialStepType,
 } from "@/lib/campaigns/types";
 import type { Lead360Item, LeadListGroup } from "@/lib/leads/types";
+import { LEADS_STORE_CHANGE_EVENT } from "@/lib/leads/store";
 import type { ConnectedLinkedInAccount } from "@/lib/unipile/types";
 import type { CampaignExecutionLog } from "@/lib/campaigns/runner";
 import { recordOutgoingCampaignMessage } from "@/lib/inbox/store";
@@ -73,34 +74,103 @@ const FAKE_NAMES = [
   "Sofía Valenzuela",
 ];
 
-// Lead real verificado de prueba
-const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [
-  {
-    id: "lead-roberto-orse",
-    fullName: "Roberto OrSe",
-    headline: "Founder & CEO | Empreendedor | Social Selling B2B",
-    company: "InHubFlow / Agencia OrSe",
-    location: "Brasil",
-    linkedinUrl: "https://www.linkedin.com/in/robertoorse",
-    avatarUrl: "https://media.licdn.com/dms/image/v2/D4D03AQFTx0yofVp5sA/profile-displayphoto-crop_800_800/B4DaBTR_lrK0AM-/0/1788103621663?e=1794441600&v=beta&t=5tHbRNEyG3BYYQDXvqkVyIeXM6VZKp9V9zECAVE1Hlo",
-    listId: "list-l1-sistema",
-    listName: "Leads Captados por Signal Radar",
-    monitorName: "Signal Radar N1: Lead Magnet SISTEMA",
-    monitorType: "lead_magnet",
-    currentStepIndex: 2, // Paso 3: Conectar (ya visitado y comentado)
-    completedStepIndices: [0, 1],
-    status: "in_progress",
-    lastActionTitle: "Like + Comentario",
-    lastActionAt: "Completado en vivo",
-    language: "pt",
-  },
-];
+// Estado inicial limpio multi-tenant (sin datos personales fijos)
+const INITIAL_TRACKER_LEADS: LeadCampaignTrackerItem[] = [];
+
+function resolveTrackerMonitorType(lead: Lead360Item): LeadCampaignTrackerItem["monitorType"] {
+  if (
+    lead.signalLevel === "level_1" ||
+    /n1|magnet/i.test(lead.listId || "") ||
+    /lead\s*magnet|mis posts/i.test(lead.signalSource || "")
+  ) {
+    return "lead_magnet";
+  }
+  if (lead.signalLevel === "level_2" || /competitor|competencia/i.test(lead.signalSource || "")) {
+    return "competitor";
+  }
+  if (lead.signalLevel === "level_4" || /global/i.test(lead.signalSource || "")) {
+    return "global";
+  }
+  return "custom";
+}
+
+function syncLeadProgressToCrm(params: {
+  leadId: string;
+  linkedinUrl?: string;
+  stepTitle: string;
+  stepType?: SocialStepType;
+  isSequenceCompleted: boolean;
+}) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem("inhubflow_leads_360");
+    if (!raw) return;
+    const parsed: Lead360Item[] = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+
+    let changedLead: Lead360Item | null = null;
+    const updated = parsed.map((l) => {
+      const matches =
+        l.id === params.leadId ||
+        (params.linkedinUrl && l.linkedinUrl && l.linkedinUrl === params.linkedinUrl);
+      if (!matches) return l;
+
+      const isMessageOrConnect =
+        params.stepType &&
+        ["connect", "connect_message", "message_icebreaker", "message_followup", "message_value_prop"].includes(
+          params.stepType
+        );
+      const nextStage: Lead360Item["stage"] =
+        params.isSequenceCompleted || params.stepType?.startsWith("message")
+          ? l.stage === "active_conversation" || l.stage === "meeting_scheduled" || l.stage === "closed_won"
+            ? l.stage
+            : "connected_material_sent"
+          : l.stage === "lead_captured" && isMessageOrConnect
+          ? "in_sequence"
+          : l.stage === "lead_captured"
+          ? "in_sequence"
+          : l.stage;
+
+      const ev = {
+        id: `tl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+        timestamp: "Ahora mismo",
+        title: `Campaña: ${params.stepTitle}`,
+        detail: params.isSequenceCompleted
+          ? "Secuencia de prospección completada exitosamente."
+          : `Paso "${params.stepTitle}" ejecutado en LinkedIn.`,
+        type: (params.stepType?.startsWith("message") ? "dm" : params.stepType === "visit" ? "visit" : "crm") as any,
+      };
+
+      changedLead = {
+        ...l,
+        stage: nextStage,
+        sequenceStatus: params.isSequenceCompleted ? "completed" : "in_progress",
+        lastActivityAt: "Ahora mismo",
+        timeline: [ev, ...(l.timeline || [])],
+      };
+      return changedLead;
+    });
+
+    if (changedLead) {
+      localStorage.setItem("inhubflow_leads_360", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent(LEADS_STORE_CHANGE_EVENT));
+      if (typeof fetch === "function") {
+        fetch("/api/leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leads: [changedLead] }),
+        }).catch(() => {});
+      }
+    }
+  } catch {}
+}
 
 interface CampaignLeadsTrackerProps {
   activeCampaign: LinearSequenceCampaign;
   leadLists: LeadListGroup[];
   allLeads: Lead360Item[];
   activeAccount: ConnectedLinkedInAccount | null;
+  linkedListId?: string | null;
   onLogGenerated?: (log: CampaignExecutionLog) => void;
 }
 
@@ -109,6 +179,7 @@ export function CampaignLeadsTracker({
   leadLists,
   allLeads,
   activeAccount,
+  linkedListId,
   onLogGenerated,
 }: CampaignLeadsTrackerProps) {
   const t = useTranslations("campaigns");
@@ -129,9 +200,16 @@ export function CampaignLeadsTracker({
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedListFilter, setSelectedListFilter] = useState("all");
+  const [selectedListFilter, setSelectedListFilter] = useState(linkedListId || "all");
   const [selectedMonitorFilter, setSelectedMonitorFilter] = useState("all");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("all");
+  const [isExecutingBatch, setIsExecutingBatch] = useState(false);
+
+  useEffect(() => {
+    if (linkedListId) {
+      setSelectedListFilter(linkedListId);
+    }
+  }, [linkedListId]);
 
   // Estado de ejecución por fila
   const [executingLeadId, setExecutingLeadId] = useState<string | null>(null);
@@ -161,7 +239,7 @@ export function CampaignLeadsTracker({
         }
       }
 
-      // Purgar rigurosamente los datos fake
+      // Purgar datos fake antiguos
       let cleanList = loadedList.filter((item) => {
         if (!item || !item.id) return false;
         if (FAKE_MOCK_IDS.has(item.id)) return false;
@@ -180,24 +258,9 @@ export function CampaignLeadsTracker({
         return item;
       });
 
-      // Si la lista quedó vacía y no hay leads reales aún, inicializar con Roberto OrSe (perfil real de pruebas)
-      if (cleanList.length === 0) {
-        cleanList = [...INITIAL_TRACKER_LEADS];
-      }
-
-      // Asegurar que Roberto OrSe tenga la URL limpia y verificada
-      const robertoIdx = cleanList.findIndex(
-        (l) => l.fullName === "Roberto OrSe" || l.linkedinUrl?.includes("robertoorse")
-      );
-      if (robertoIdx !== -1) {
-        cleanList[robertoIdx].linkedinUrl = "https://www.linkedin.com/in/robertoorse";
-        if (!cleanList[robertoIdx].location) {
-          cleanList[robertoIdx].location = "Brasil";
-        }
-      }
-
       // Integrar leads reales de allLeads si no existen en el tracker (o enriquecer los existentes)
       for (const realLead of allLeads) {
+        const resolvedType = resolveTrackerMonitorType(realLead);
         const existingIdx = cleanList.findIndex(
           (t) => t.id === realLead.id || (realLead.linkedinUrl && t.linkedinUrl === realLead.linkedinUrl)
         );
@@ -207,6 +270,7 @@ export function CampaignLeadsTracker({
             avatarUrl: cleanList[existingIdx].avatarUrl || realLead.avatarUrl,
             location: cleanList[existingIdx].location || realLead.location || "Remoto",
             language: cleanList[existingIdx].language || realLead.language || "es",
+            monitorType: cleanList[existingIdx].monitorType === "custom" ? resolvedType : cleanList[existingIdx].monitorType,
           };
         } else if (realLead.fullName) {
           cleanList.push({
@@ -220,7 +284,7 @@ export function CampaignLeadsTracker({
             listId: realLead.listId || "list-general",
             listName: realLead.listName || "Leads Importados de Signal Radar",
             monitorName: realLead.signalSource || "Signal Radar B2B",
-            monitorType: "custom",
+            monitorType: resolvedType,
             currentStepIndex: realLead.sequenceStatus === "completed" ? activeCampaign.steps.length : 0,
             completedStepIndices: realLead.sequenceStatus === "completed" ? activeCampaign.steps.map((_, i) => i) : [],
             status:
@@ -339,9 +403,22 @@ export function CampaignLeadsTracker({
     return Array.from(set);
   }, [leadsTracker]);
 
-  // Filtrado de prospectos
-  const filteredLeads = useMemo(() => {
+  // Filtrado de prospectos (alineado a la secuencia activa)
+  const sequenceLeads = useMemo(() => {
+    const isMagnetCampaign =
+      activeCampaign.code === "02_lead_magnet" ||
+      activeCampaign.id.includes("magnet");
     return leadsTracker.filter((l) => {
+      const isMagnetLead =
+        l.monitorType === "lead_magnet" ||
+        /n1|magnet/i.test(l.listId || "") ||
+        /lead\s*magnet|mis posts/i.test(l.monitorName || "");
+      return isMagnetCampaign ? isMagnetLead : !isMagnetLead;
+    });
+  }, [leadsTracker, activeCampaign.code, activeCampaign.id]);
+
+  const filteredLeads = useMemo(() => {
+    return sequenceLeads.filter((l) => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -363,17 +440,17 @@ export function CampaignLeadsTracker({
 
       return matchesSearch && matchesList && matchesMonitor && matchesStatus;
     });
-  }, [leadsTracker, searchQuery, selectedListFilter, selectedMonitorFilter, selectedStatusFilter]);
+  }, [sequenceLeads, searchQuery, selectedListFilter, selectedMonitorFilter, selectedStatusFilter]);
 
-  // Contadores KPI rápidos
+  // Contadores KPI rápidos sobre la secuencia activa
   const kpiStats = useMemo(() => {
-    const total = leadsTracker.length;
-    const inProgress = leadsTracker.filter((l) => l.status === "in_progress").length;
-    const waiting = leadsTracker.filter((l) => l.status === "waiting_delay").length;
-    const completed = leadsTracker.filter((l) => l.status === "completed").length;
-    const replied = leadsTracker.filter((l) => l.status === "replied").length;
+    const total = sequenceLeads.length;
+    const inProgress = sequenceLeads.filter((l) => l.status === "in_progress").length;
+    const waiting = sequenceLeads.filter((l) => l.status === "waiting_delay").length;
+    const completed = sequenceLeads.filter((l) => l.status === "completed").length;
+    const replied = sequenceLeads.filter((l) => l.status === "replied").length;
     return { total, inProgress, waiting, completed, replied };
-  }, [leadsTracker]);
+  }, [sequenceLeads]);
 
   // Función para obtener icono según tipo de paso
   const getStepMiniIcon = (type: SocialStepType) => {
@@ -467,6 +544,14 @@ export function CampaignLeadsTracker({
 
         saveTrackerList(updatedList);
 
+        syncLeadProgressToCrm({
+          leadId: lead.id,
+          linkedinUrl: lead.linkedinUrl,
+          stepTitle: stepDef?.title || "Paso",
+          stepType: stepDef?.type,
+          isSequenceCompleted: Boolean(isDone),
+        });
+
         // Si el paso fue un mensaje o invitación con nota, registrar de inmediato en el Inbox
         if (
           stepDef &&
@@ -543,6 +628,98 @@ export function CampaignLeadsTracker({
     saveTrackerList(updated);
   };
 
+  // Ejecutar siguiente paso en lote para prospectos elegibles (retardo vencido)
+  const handleExecuteEligibleBatch = async () => {
+    if (isExecutingBatch) return;
+    const now = Date.now();
+    const eligible = filteredLeads
+      .filter(
+        (l) =>
+          l.status === "in_progress" &&
+          l.currentStepIndex < activeCampaign.steps.length &&
+          (!l.nextStepAtIso || new Date(l.nextStepAtIso).getTime() <= now)
+      )
+      .slice(0, 5);
+
+    if (eligible.length === 0) {
+      setRowNotice({
+        leadId: "batch",
+        message: "No hay prospectos elegibles listos para ejecutar en este momento (verifica retardos o estado).",
+        ok: true,
+      });
+      setTimeout(() => setRowNotice(null), 4000);
+      return;
+    }
+
+    setIsExecutingBatch(true);
+    let successCount = 0;
+    let currentList = [...leadsTracker];
+
+    for (const lead of eligible) {
+      const stepIndexToRun = lead.currentStepIndex;
+      const stepDef = activeCampaign.steps[stepIndexToRun];
+      try {
+        const res = await fetch("/api/campaigns/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaign: activeCampaign,
+            stepIndex: stepIndexToRun,
+            leadName: lead.fullName,
+            linkedinUrl: lead.linkedinUrl,
+            company: lead.company,
+            language: lead.language,
+            dryRun: false,
+            accountId: activeAccount?.unipileAccountId || activeAccount?.id,
+          }),
+        });
+        const data = await res.json();
+        if (data.ok && data.result?.success !== false) {
+          successCount++;
+          const nextIdx = data.result?.nextStepIndex ?? stepIndexToRun + 1;
+          const isDone = data.result?.isSequenceCompleted || nextIdx >= activeCampaign.steps.length;
+
+          currentList = currentList.map((item) => {
+            if (item.id !== lead.id) return item;
+            return {
+              ...item,
+              currentStepIndex: isDone ? activeCampaign.steps.length : nextIdx,
+              completedStepIndices: Array.from(new Set([...item.completedStepIndices, stepIndexToRun])),
+              status: isDone ? "completed" : "in_progress",
+              lastActionTitle: `Paso ${stepIndexToRun + 1} (${stepDef?.title || "Paso"}) ejecutado en lote`,
+              lastActionAt: "Ahora mismo",
+              nextStepAtIso: isDone
+                ? undefined
+                : new Date(Date.now() + (activeCampaign.steps[nextIdx]?.delayDaysBefore ?? 0) * 86400000).toISOString(),
+            };
+          });
+
+          syncLeadProgressToCrm({
+            leadId: lead.id,
+            linkedinUrl: lead.linkedinUrl,
+            stepTitle: stepDef?.title || "Paso",
+            stepType: stepDef?.type,
+            isSequenceCompleted: Boolean(isDone),
+          });
+          if (data.result?.log && onLogGenerated) {
+            onLogGenerated(data.result.log);
+          }
+        }
+      } catch {
+        // Continuar con el resto del lote
+      }
+    }
+
+    saveTrackerList(currentList);
+    setIsExecutingBatch(false);
+    setRowNotice({
+      leadId: "batch",
+      message: `✓ Ejecución en lote completada: ${successCount}/${eligible.length} prospectos avanzaron de paso.`,
+      ok: successCount > 0,
+    });
+    setTimeout(() => setRowNotice(null), 5000);
+  };
+
   return (
     <div className="rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs overflow-hidden">
       {/* Cabecera de la Sección */}
@@ -568,6 +745,16 @@ export function CampaignLeadsTracker({
 
           {/* Resumen Estadístico de Avance y Sincronización */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            <button
+              type="button"
+              disabled={isExecutingBatch || sequenceLeads.length === 0}
+              onClick={handleExecuteEligibleBatch}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0099ff] hover:bg-[#0088e6] text-white text-xs font-semibold transition disabled:opacity-40 shadow-2xs"
+              title="Ejecutar el siguiente paso para hasta 5 prospectos elegibles"
+            >
+              <Play className="size-3" />
+              <span>{isExecutingBatch ? "Ejecutando lote..." : "Ejecutar Elegibles (Lote)"}</span>
+            </button>
             {allLeads.length > 0 && (
               <button
                 type="button"
@@ -698,18 +885,7 @@ export function CampaignLeadsTracker({
                 <RefreshCw className="size-3.5" />
                 <span>{t("tracker.syncLeadsBtn", { count: allLeads.length })}</span>
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  const roberto = INITIAL_TRACKER_LEADS[0];
-                  saveTrackerList([roberto]);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold hover:border-brand-500 hover:text-brand-600 transition"
-              >
-                <span>{t("tracker.addTestLeadBtn")}</span>
-              </button>
-            )}
+            ) : null}
           </div>
         ) : filteredLeads.length === 0 ? (
           <div className="p-8 text-center text-xs text-gray-400">

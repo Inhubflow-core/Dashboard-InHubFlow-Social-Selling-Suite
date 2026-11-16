@@ -3393,6 +3393,82 @@ assert(
   'leads/lists/[id]/page.tsx usa Link i18n con contexto a Inbox, filtros completos y regex [signal n1-4]'
 );
 
+console.log("\n--- TEST: Blindaje de Lanzamiento Secuencias y Campañas (Módulo 4) ---");
+
+assert(
+  dbLaunch.includes('CREATE TABLE IF NOT EXISTS linear_campaigns') &&
+    dbLaunch.includes('CREATE TABLE IF NOT EXISTS campaign_daily_pacing_v2') &&
+    dbLaunch.includes('CREATE TABLE IF NOT EXISTS campaign_execution_logs_v2') &&
+    dbLaunch.includes('ensureLinearCampaignsSchema(db)'),
+  'db.ts crea tablas linear_campaigns, campaign_daily_pacing_v2 y campaign_execution_logs_v2 en SQLite'
+);
+assert(fs.existsSync('src/app/api/campaigns/route.ts'), 'Endpoint /api/campaigns/route.ts existe');
+
+const campaignsApiMod4 = fs.readFileSync('src/app/api/campaigns/route.ts', 'utf8');
+assert(
+  campaignsApiMod4.includes('export async function GET') &&
+    campaignsApiMod4.includes('export async function POST'),
+  '/api/campaigns implementa GET y POST para secuencias lineales'
+);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS linear_campaigns (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+  );
+`);
+db.prepare(`
+  INSERT OR REPLACE INTO linear_campaigns (id, name, code, status, created_at, updated_at, metadata_json)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`).run('seq-test-m4', 'Secuencia Test', '01_lists', 'active', '2026-11-16T10:00:00Z', '2026-11-16T10:00:00Z', '{}');
+const m4Row = db.prepare('SELECT * FROM linear_campaigns WHERE id = ?').get('seq-test-m4');
+assert(m4Row && m4Row.code === '01_lists', 'Tabla linear_campaigns persiste secuencias en SQLite');
+
+const runnerMod4 = fs.readFileSync('src/lib/campaigns/runner.ts', 'utf8');
+assert(
+  !runnerMod4.includes('HfrdagEmSrONX8jqE9IYjQ') &&
+    runnerMod4.includes('campaign.status === "paused"') &&
+    runnerMod4.includes('campaign.workingHoursOnly') &&
+    runnerMod4.includes('resolvedProfileInPreflight') &&
+    runnerMod4.includes('hydrateAccountDailyPacing') &&
+    runnerMod4.includes('leadState.sourceAuthorName || "el autor"'),
+  'runner.ts elimina cuenta hardcoded, valida status paused, horario laboral, evita doble resolveProfile y soporta hydrateAccountDailyPacing'
+);
+
+const runApiMod4 = fs.readFileSync('src/app/api/campaigns/run/route.ts', 'utf8');
+assert(
+  !runApiMod4.includes('robertoorse-agencia') &&
+    runApiMod4.includes('hydratePacingFromDb') &&
+    runApiMod4.includes('persistPacingToDb') &&
+    runApiMod4.includes('persistExecutionLogs'),
+  '/api/campaigns/run elimina datos personales hardcoded y persiste pacing y logs en SQLite'
+);
+
+const trackerMod4 = fs.readFileSync('src/components/campaigns/CampaignLeadsTracker.tsx', 'utf8');
+assert(
+  !trackerMod4.includes('id: "lead-roberto-orse"') &&
+    trackerMod4.includes('resolveTrackerMonitorType') &&
+    trackerMod4.includes('syncLeadProgressToCrm') &&
+    trackerMod4.includes('handleExecuteEligibleBatch') &&
+    trackerMod4.includes('sequenceLeads') &&
+    trackerMod4.includes('linkedListId'),
+  'CampaignLeadsTracker elimina mock personal, filtra por secuencia activa, sincroniza avance con CRM 360 y permite ejecución en lote'
+);
+
+const campaignsPageMod4 = fs.readFileSync('src/app/[locale]/(admin)/campaigns/page.tsx', 'utf8');
+assert(
+  !campaignsPageMod4.includes('targetName = "Roberto OrSe"') &&
+    campaignsPageMod4.includes('getSimulationTargetLead') &&
+    campaignsPageMod4.includes('linkedListId={linkedList?.id || null}') &&
+    campaignsPageMod4.includes('reader.readAsDataURL(audioBlob)'),
+  'campaigns/page.tsx usa lead dinámico en simulaciones, pasa linkedListId al tracker y persiste notas de voz como DataURL'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

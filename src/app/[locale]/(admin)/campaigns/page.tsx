@@ -300,21 +300,27 @@ export default function CampaignsPage() {
 
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setEditingStep((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            step: {
-              ...prev.step,
-              attachmentType: "voice_note",
-              attachmentName: `nota-voz-${Date.now()}.webm`,
-              attachmentUrl: audioUrl,
-              voiceNoteDurationSec: Math.max(1, recordingSeconds),
-              attachmentSize: `${Math.round(audioBlob.size / 1024)} KB`,
-            },
-          };
-        });
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = typeof ev.target?.result === "string" ? ev.target.result : "";
+          if (dataUrl) {
+            setEditingStep((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                step: {
+                  ...prev.step,
+                  attachmentType: "voice_note",
+                  attachmentName: `nota-voz-${Date.now()}.webm`,
+                  attachmentUrl: dataUrl,
+                  voiceNoteDurationSec: Math.max(1, recordingSeconds),
+                  attachmentSize: `${Math.round(audioBlob.size / 1024)} KB`,
+                },
+              };
+            });
+          }
+        };
+        reader.readAsDataURL(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -462,6 +468,8 @@ export default function CampaignsPage() {
     let title = "Nuevo Paso";
     let description = "Paso adicional en la secuencia.";
     let messageTemplate = "";
+    let commentTemplate = "";
+    let connectNote = "";
 
     if (type === "visit") {
       title = "Visitar Perfil";
@@ -469,11 +477,11 @@ export default function CampaignsPage() {
     } else if (type === "like_comment") {
       title = "Like + Comentario";
       description = "Interactúa con la publicación más reciente con un Like y Comentario de valor.";
-      messageTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
+      commentTemplate = "Excelente perspectiva {{first_name}}, totalmente de acuerdo.";
     } else if (type === "connect") {
       title = "Seguir + Conectar";
       description = "Acción 2-en-1: sigue el perfil y envía solicitud de conexión con nota previa.";
-      messageTemplate = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.";
+      connectNote = "Hola {{first_name}}, vi tu actividad sobre {{topic}} y me pareció muy interesante. Me encantaría conectar por aquí.";
     } else if (type === "message_icebreaker") {
       title = "Mensaje DM 01 'Icebreakers'";
       description = "Mensaje inicial contextualizado desde el monitor inteligente de Signal Radar.";
@@ -495,7 +503,9 @@ export default function CampaignsPage() {
       title,
       description,
       delayDaysBefore: 1,
-      messageTemplate,
+      messageTemplate: messageTemplate || undefined,
+      commentTemplate: commentTemplate || undefined,
+      connectNote: connectNote || undefined,
     };
 
     updateActiveCampaign((c) => ({
@@ -524,14 +534,31 @@ export default function CampaignsPage() {
     }
   };
 
+  const getSimulationTargetLead = () => {
+    const firstLead = allLeads[0];
+    if (firstLead && firstLead.fullName) {
+      return {
+        name: firstLead.fullName,
+        url: firstLead.linkedinUrl || "https://www.linkedin.com",
+        company: firstLead.company || "Empresa B2B",
+      };
+    }
+    return {
+      name: "Prospecto de Prueba",
+      url: "https://www.linkedin.com/in/demo-prospect",
+      company: "Empresa B2B",
+    };
+  };
+
   const handleExecuteRunnerSim = async () => {
     setIsExecutingRunner(true);
     setRunnerNotice(null);
     try {
       const stepToExecute = simulatedStepIndex < activeCampaign.steps.length ? simulatedStepIndex : 0;
-      const targetName = "Roberto OrSe";
-      const targetUrl = "https://www.linkedin.com/in/robertoorse";
-      const targetCompany = "InHubFlow";
+      const target = getSimulationTargetLead();
+      const targetName = target.name;
+      const targetUrl = target.url;
+      const targetCompany = target.company;
 
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
@@ -577,9 +604,10 @@ export default function CampaignsPage() {
     setIsExecutingRunner(true);
     setRunnerNotice(null);
     try {
-      const targetName = "Roberto OrSe";
-      const targetUrl = "https://www.linkedin.com/in/robertoorse";
-      const targetCompany = "InHubFlow";
+      const target = getSimulationTargetLead();
+      const targetName = target.name;
+      const targetUrl = target.url;
+      const targetCompany = target.company;
 
       const res = await fetch("/api/campaigns/run", {
         method: "POST",
@@ -1197,6 +1225,7 @@ export default function CampaignsPage() {
           leadLists={leadLists}
           allLeads={allLeads}
           activeAccount={activeAccount}
+          linkedListId={linkedList?.id || null}
           onLogGenerated={(log) => {
             setRunnerLogs((prev) => [log, ...prev]);
           }}

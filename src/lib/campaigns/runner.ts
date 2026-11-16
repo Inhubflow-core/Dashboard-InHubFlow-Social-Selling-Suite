@@ -109,6 +109,19 @@ export function incrementAccountPacing(
   if (type === "visit") state.profilesVisited += 1;
 }
 
+export function hydrateAccountDailyPacing(
+  accountId: string,
+  counts: { invitationsSent: number; dmsSent: number; profilesVisited: number }
+) {
+  const today = getTodayString();
+  pacingMap.set(accountId, {
+    date: today,
+    invitationsSent: Math.max(0, Number(counts.invitationsSent) || 0),
+    dmsSent: Math.max(0, Number(counts.dmsSent) || 0),
+    profilesVisited: Math.max(0, Number(counts.profilesVisited) || 0),
+  });
+}
+
 /**
  * Ejecutor de Campañas: Procesa un paso del flujo visual para un lead
  */
@@ -125,7 +138,7 @@ export async function executeCampaignStepForLead(params: {
   let accountId = (
     params.accountId ||
     (typeof window !== "undefined" ? getActiveAccountId() : "") ||
-    "HfrdagEmSrONX8jqE9IYjQ"
+    "sandbox-account"
   ).replace(/^acc-li-/, "");
 
   let nodes: Node[] = [];
@@ -907,9 +920,60 @@ export async function executeLinearSequenceStepForLead(params: {
   const accountId = (
     params.accountId ||
     (typeof window !== "undefined" ? getActiveAccountId() : "") ||
-    "HfrdagEmSrONX8jqE9IYjQ"
+    "sandbox-account"
   ).replace(/^acc-li-/, "");
   const pacing = getAccountDailyPacing(accountId);
+
+  // 0. Validar si la campaña está pausada
+  if (campaign.status === "paused") {
+    const log: CampaignExecutionLog = {
+      id: generateLogId("log-seq"),
+      campaignId: campaign.id,
+      leadId: leadState.leadId,
+      leadName: leadState.leadName,
+      nodeId: `step-${stepIndex + 1}`,
+      nodeLabel: "Secuencia Pausada",
+      nodeType: "control_pause",
+      timestamp: new Date().toISOString(),
+      status: "paused",
+      message: `La secuencia '${campaign.name}' está pausada. Actívala para ejecutar acciones sobre ${leadState.leadName}.`,
+    };
+    recordExecutionLog(log);
+    return {
+      success: false,
+      newState: { ...leadState, state: "waiting_delay" },
+      log,
+      isSequenceCompleted: false,
+      nextStepIndex: stepIndex,
+    };
+  }
+
+  // 0b. Validar horario comercial si workingHoursOnly está activo en modo Live
+  if (!isDry && campaign.workingHoursOnly) {
+    const currentHour = new Date().getHours();
+    if (currentHour < 8 || currentHour >= 20) {
+      const log: CampaignExecutionLog = {
+        id: generateLogId("log-seq"),
+        campaignId: campaign.id,
+        leadId: leadState.leadId,
+        leadName: leadState.leadName,
+        nodeId: `step-${stepIndex + 1}`,
+        nodeLabel: "Horario Comercial",
+        nodeType: "control_schedule",
+        timestamp: new Date().toISOString(),
+        status: "delayed",
+        message: `Acción pospuesta para ${leadState.leadName}: fuera de horario laboral (08:00–20:00).`,
+      };
+      recordExecutionLog(log);
+      return {
+        success: false,
+        newState: { ...leadState, state: "waiting_delay" },
+        log,
+        isSequenceCompleted: false,
+        nextStepIndex: stepIndex,
+      };
+    }
+  }
 
   // 1. Validar regla 'Stop on Reply' (detención inmediata ante respuesta)
   if (campaign.stopOnReply && leadState.hasReplied) {
@@ -961,11 +1025,13 @@ export async function executeLinearSequenceStepForLead(params: {
   }
 
   // 3. Resolución proactiva de perfil en LinkedIn si no es simulación (Live)
+  let resolvedProfileInPreflight = false;
   if (!isDry && !leadState.providerId && leadState.linkedinUrl) {
     try {
       const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
       if (profile?.provider_id) {
         leadState.providerId = profile.provider_id;
+        resolvedProfileInPreflight = true;
         if (profile.network_distance === "FIRST_DEGREE" || profile.is_relationship) {
           leadState.connectionDegree = "1st";
           leadState.hasAcceptedInvite = true;
@@ -1036,38 +1102,40 @@ export async function executeLinearSequenceStepForLead(params: {
           };
         }
 
-        try {
-          const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
-          if (profile?.provider_id && !leadState.providerId) {
-            leadState.providerId = profile.provider_id;
+        if (!resolvedProfileInPreflight) {
+          try {
+            const profile = await unipile.resolveProfile(leadState.linkedinUrl, accountId);
+            if (profile?.provider_id && !leadState.providerId) {
+              leadState.providerId = profile.provider_id;
+            }
+            if (profile?.network_distance === "FIRST_DEGREE" || profile?.is_relationship) {
+              leadState.connectionDegree = "1st";
+              leadState.hasAcceptedInvite = true;
+            }
+          } catch (err: any) {
+            const errorMsg = err?.message || String(err);
+            const log: CampaignExecutionLog = {
+              id: generateLogId("log-seq"),
+              campaignId: campaign.id,
+              leadId: leadState.leadId,
+              leadName: leadState.leadName,
+              nodeId: currentStep.id,
+              nodeLabel: currentStep.title,
+              nodeType: currentStep.type,
+              timestamp: new Date().toISOString(),
+              status: "error",
+              message: `Error al visitar el perfil de ${leadState.leadName}: ${errorMsg}`,
+              details: { error: errorMsg, dryRun: isDry },
+            };
+            recordExecutionLog(log);
+            return {
+              success: false,
+              newState: { ...leadState, state: "failed" },
+              log,
+              isSequenceCompleted: false,
+              nextStepIndex: stepIndex,
+            };
           }
-          if (profile?.network_distance === "FIRST_DEGREE" || profile?.is_relationship) {
-            leadState.connectionDegree = "1st";
-            leadState.hasAcceptedInvite = true;
-          }
-        } catch (err: any) {
-          const errorMsg = err?.message || String(err);
-          const log: CampaignExecutionLog = {
-            id: generateLogId("log-seq"),
-            campaignId: campaign.id,
-            leadId: leadState.leadId,
-            leadName: leadState.leadName,
-            nodeId: currentStep.id,
-            nodeLabel: currentStep.title,
-            nodeType: currentStep.type,
-            timestamp: new Date().toISOString(),
-            status: "error",
-            message: `Error al visitar el perfil de ${leadState.leadName}: ${errorMsg}`,
-            details: { error: errorMsg, dryRun: isDry },
-          };
-          recordExecutionLog(log);
-          return {
-            success: false,
-            newState: { ...leadState, state: "failed" },
-            log,
-            isSequenceCompleted: false,
-            nextStepIndex: stepIndex,
-          };
         }
 
         incrementAccountPacing(accountId, "visit");
@@ -1493,7 +1561,7 @@ export async function executeLinearSequenceStepForLead(params: {
         .replace(/{{first_name}}/gi, leadState.leadName.split(" ")[0])
         .replace(/{{company}}/gi, companyVal)
         .replace(/{{topic}}/gi, topicVal)
-        .replace(/{{author_name}}/gi, "Roberto")
+        .replace(/{{author_name}}/gi, leadState.sourceAuthorName || "el autor")
         .replace(/{{keyword}}/gi, keywordVal)
         .replace(/{{attached_resource}}/gi, resourceName);
 

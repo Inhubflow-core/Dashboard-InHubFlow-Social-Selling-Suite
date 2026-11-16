@@ -306,6 +306,13 @@ export function saveStoredLinearCampaigns(campaigns: LinearSequenceCampaign[]): 
   try {
     const sanitized = campaigns.map(sanitizeLinearCampaign);
     localStorage.setItem(LINEAR_CAMPAIGNS_KEY, JSON.stringify(sanitized));
+    if (typeof fetch === "function") {
+      fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaigns: sanitized }),
+      }).catch(() => {});
+    }
   } catch {}
 }
 
