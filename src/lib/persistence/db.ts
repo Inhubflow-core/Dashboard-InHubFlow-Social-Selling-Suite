@@ -23,6 +23,7 @@ function openDatabase(): Database.Database {
     );
   `);
   applyInitialSchema(db);
+  ensureViralPostsSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -162,6 +163,32 @@ function applyInitialSchema(db: Database.Database): void {
     `);
     db.prepare("INSERT INTO app_schema_migrations(version) VALUES (1)").run();
   })();
+}
+
+function ensureViralPostsSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS viral_posts (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL DEFAULT 'default',
+      title TEXT NOT NULL,
+      format TEXT NOT NULL DEFAULT 'text',
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      scheduled_at TEXT,
+      published_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      target_account_id TEXT,
+      target_language TEXT,
+      linkedin_post_id TEXT,
+      post_url TEXT,
+      lead_magnet_keyword TEXT,
+      auto_dm_enabled INTEGER NOT NULL DEFAULT 0,
+      auto_dm_message TEXT,
+      auto_like_comment INTEGER NOT NULL DEFAULT 1,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_viral_posts_status_scheduled ON viral_posts(status, scheduled_at);
+  `);
 }
 
 export function getSocialSellingDb(): Database.Database {

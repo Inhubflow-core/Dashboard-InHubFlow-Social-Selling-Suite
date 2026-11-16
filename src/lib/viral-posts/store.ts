@@ -7,6 +7,7 @@ import type { CreatedPost, PostFormat, ViralPostTemplate } from "./types";
 const TEMPLATES_KEY = "inhubflow_viral_templates";
 const CREATED_POSTS_KEY = "inhubflow_created_posts";
 const SELECTED_FOR_MODELING_KEY = "inhubflow_modeling_template";
+export const CREATED_POSTS_CHANGE_EVENT = "inhubflow_created_posts_changed";
 
 function enrichTemplateWithVirality(t: ViralPostTemplate): ViralPostTemplate {
   const viralityScore = t.viralityScore ?? Math.round((t.likes * 1) + (t.comments * 3.5) + (t.shares * 5));
@@ -110,7 +111,38 @@ export function getStoredCreatedPosts(): CreatedPost[] {
 
 export function saveCreatedPosts(posts: CreatedPost[]): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(posts));
+  try {
+    localStorage.setItem(CREATED_POSTS_KEY, JSON.stringify(posts));
+  } catch (err) {
+    console.warn("[saveCreatedPosts] Error guardando en localStorage:", err);
+  }
+  window.dispatchEvent(new Event(CREATED_POSTS_CHANGE_EVENT));
+  fetch("/api/viral-posts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ posts }),
+  }).catch(() => {});
+}
+
+export function addStoredCreatedPost(post: CreatedPost): CreatedPost[] {
+  const current = getStoredCreatedPosts();
+  const updated = [post, ...current.filter((p) => p.id !== post.id)];
+  saveCreatedPosts(updated);
+  return updated;
+}
+
+export function updateStoredCreatedPost(id: string, updates: Partial<CreatedPost>): CreatedPost[] {
+  const current = getStoredCreatedPosts();
+  const updated = current.map((p) => (p.id === id ? { ...p, ...updates } : p));
+  saveCreatedPosts(updated);
+  return updated;
+}
+
+export function deleteStoredCreatedPost(id: string): CreatedPost[] {
+  const current = getStoredCreatedPosts();
+  const updated = current.filter((p) => p.id !== id);
+  saveCreatedPosts(updated);
+  return updated;
 }
 
 export function setSelectedTemplateForModeling(template: ViralPostTemplate | null): void {
@@ -196,51 +228,78 @@ export function useCreatedPosts() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setPosts(getStoredCreatedPosts());
+    const syncPosts = () => {
+      setPosts(getStoredCreatedPosts());
+    };
+    syncPosts();
     setIsLoaded(true);
+
+    window.addEventListener(CREATED_POSTS_CHANGE_EVENT, syncPosts);
+    window.addEventListener("storage", syncPosts);
+    return () => {
+      window.removeEventListener(CREATED_POSTS_CHANGE_EVENT, syncPosts);
+      window.removeEventListener("storage", syncPosts);
+    };
   }, []);
 
   const addPost = (post: CreatedPost) => {
-    const updated = [post, ...posts];
+    const updated = addStoredCreatedPost(post);
     setPosts(updated);
-    saveCreatedPosts(updated);
   };
 
   const addBatchPosts = (newPosts: CreatedPost[]) => {
-    const updated = [...newPosts, ...posts];
+    const updated = addBatchCreatedPosts(newPosts);
     setPosts(updated);
-    saveCreatedPosts(updated);
   };
 
   const updatePost = (id: string, updates: Partial<CreatedPost>) => {
-    const updated = posts.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    const updated = updateStoredCreatedPost(id, updates);
     setPosts(updated);
-    saveCreatedPosts(updated);
   };
 
   const deletePost = (id: string) => {
-    const updated = posts.filter((p) => p.id !== id);
+    const updated = deleteStoredCreatedPost(id);
     setPosts(updated);
-    saveCreatedPosts(updated);
   };
 
   return { posts, isLoaded, addPost, addBatchPosts, updatePost, deletePost };
 }
 
 /**
- * Genera 12 fechas consecutivas en 4 semanas en días Lunes (1), Miércoles (3) y Viernes (5) a las 09:30 AM
+ * Genera 12 fechas consecutivas en 4 semanas en días Lunes (1), Miércoles (3) y Viernes (5) a las 09:30 AM,
+ * evitando fechas ya ocupadas por otras publicaciones programadas.
  */
-export function generateMonthScheduleDates(startDate: Date = new Date()): Date[] {
+export function generateMonthScheduleDates(
+  startDate: Date = new Date(),
+  occupiedIsoDates: string[] = []
+): Date[] {
+  const occupiedKeys = new Set<string>();
+  for (const iso of occupiedIsoDates) {
+    if (!iso) continue;
+    occupiedKeys.add(iso.slice(0, 10));
+    const parsed = new Date(iso);
+    if (!Number.isNaN(parsed.getTime())) {
+      const localKey = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+      occupiedKeys.add(localKey);
+    }
+  }
+
   const dates: Date[] = [];
   const current = new Date(startDate);
   // Comenzar desde el día siguiente
   current.setDate(current.getDate() + 1);
   current.setHours(9, 30, 0, 0);
 
-  while (dates.length < 12) {
+  let guard = 0;
+  while (dates.length < 12 && guard < 365) {
+    guard++;
     const day = current.getDay(); // 1 = Lunes, 3 = Miércoles, 5 = Viernes
     if (day === 1 || day === 3 || day === 5) {
-      dates.push(new Date(current));
+      const localKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
+      const utcKey = current.toISOString().slice(0, 10);
+      if (!occupiedKeys.has(localKey) && !occupiedKeys.has(utcKey)) {
+        dates.push(new Date(current));
+      }
     }
     current.setDate(current.getDate() + 1);
   }

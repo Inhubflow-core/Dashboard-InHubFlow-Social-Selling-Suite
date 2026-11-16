@@ -3139,6 +3139,57 @@ assert(competitorScanCode.includes('Promise.race') && competitorScanCode.include
 assert(competitorScanCode.includes('category: "posts"') && competitorScanCode.includes('keywords: competitorName'), 'competitors/scan recurre a búsqueda de posts si el slug no es un ID numérico');
 assert(competitorScanCode.includes('Sin interacciones directas en publicaciones vivas de'), 'competitors/scan inyecta decisores de debate de mercado si no hay leads en vivo');
 
+console.log("\n--- TEST: Blindaje de Lanzamiento Viral Post Engine (SQLite, Scheduler, Nivel 1, PDF y Slides IA) ---");
+
+const viralStoreLaunch = fs.readFileSync('src/lib/viral-posts/store.ts', 'utf8');
+assert(viralStoreLaunch.includes('CREATED_POSTS_CHANGE_EVENT'), 'viral-posts/store.ts exporta CREATED_POSTS_CHANGE_EVENT para sincronización reactiva');
+assert(
+  viralStoreLaunch.includes('export function addStoredCreatedPost') &&
+    viralStoreLaunch.includes('export function updateStoredCreatedPost') &&
+    viralStoreLaunch.includes('export function deleteStoredCreatedPost'),
+  'viral-posts/store.ts expone operaciones atómicas sin stale closures'
+);
+assert(viralStoreLaunch.includes('occupiedIsoDates: string[] = []'), 'generateMonthScheduleDates evita colisiones con fechas ya ocupadas');
+
+const signalsStoreLaunch = fs.readFileSync('src/lib/signals/store.ts', 'utf8');
+assert(signalsStoreLaunch.includes('export function upsertLevel1MonitorFromPost'), 'signals/store.ts exporta upsertLevel1MonitorFromPost para puente directo con Signal Radar Nivel 1');
+assert(signalsStoreLaunch.includes('L1_MONITORS_CHANGE_EVENT'), 'signals/store.ts emite eventos reactivos al actualizar monitores L1');
+
+const postsListLaunch = fs.readFileSync('src/components/viral-posts/PostsListView.tsx', 'utf8');
+assert(
+  postsListLaunch.includes('post.format === "carousel" && post.carouselPdfUrl') &&
+    postsListLaunch.includes('application/pdf'),
+  'PostsListView soporta publicación de carruseles PDF (application/pdf) hacia Unipile'
+);
+assert(postsListLaunch.includes('upsertLevel1MonitorFromPost'), 'PostsListView sincroniza el monitor de Nivel 1 tras publicar');
+
+const calendarLaunch = fs.readFileSync('src/components/viral-posts/EditorialCalendarView.tsx', 'utf8');
+assert(calendarLaunch.includes('handlePublishFromCalendar'), 'EditorialCalendarView permite publicar directamente desde el modal de detalle');
+assert(
+  calendarLaunch.includes('selectedPostDetails.format === "carousel" && selectedPostDetails.carouselPdfUrl') &&
+    calendarLaunch.includes('application/pdf'),
+  'EditorialCalendarView soporta publicación de carruseles PDF desde el calendario'
+);
+assert(calendarLaunch.includes('deletePost(selectedPostDetails.id)'), 'EditorialCalendarView permite eliminar publicaciones desde el modal');
+
+const vsModalLaunch = fs.readFileSync('src/components/viral-posts/VisualStudioModal.tsx', 'utf8');
+assert(vsModalLaunch.includes('initialSlides?: CarouselSlide[]'), 'VisualStudioModal acepta diapositivas estructuradas initialSlides');
+assert(vsModalLaunch.includes('buildCarouselPagesFromSlides'), 'VisualStudioModal hidrata páginas del estudio visual desde initialSlides');
+
+const createPostLaunch = fs.readFileSync('src/components/viral-posts/CreateViralPostView.tsx', 'utf8');
+assert(createPostLaunch.includes('initialSlides={slides}'), 'CreateViralPostView transfiere slides IA hacia VisualStudioModal');
+assert(createPostLaunch.includes('suggestedHashtags'), 'CreateViralPostView expone hashtags sugeridos clicables');
+assert(createPostLaunch.includes('hookVariants'), 'CreateViralPostView ofrece variantes de gancho IA');
+assert(createPostLaunch.includes('upsertLevel1MonitorFromPost(newPost)'), 'CreateViralPostView registra automáticamente el monitor Nivel 1 cuando Auto-DM está activo');
+
+const dbLaunch = fs.readFileSync('src/lib/persistence/db.ts', 'utf8');
+assert(dbLaunch.includes('CREATE TABLE IF NOT EXISTS viral_posts'), 'db.ts crea tabla viral_posts en SQLite');
+assert(fs.existsSync('src/app/api/viral-posts/route.ts'), 'Endpoint /api/viral-posts/route.ts existe');
+assert(fs.existsSync('src/app/api/viral-posts/run-scheduled/route.ts'), 'Endpoint /api/viral-posts/run-scheduled/route.ts existe');
+
+const viralPageLaunch = fs.readFileSync('src/app/[locale]/(admin)/viral-posts/page.tsx', 'utf8');
+assert(viralPageLaunch.includes('/api/viral-posts/run-scheduled'), 'viral-posts/page.tsx ejecuta despachador periódico de publicaciones programadas');
+
 // Limpieza de base de datos de test
 
 db.close();

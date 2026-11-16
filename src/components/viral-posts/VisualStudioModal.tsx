@@ -22,6 +22,7 @@ import { createMemoryAdapter } from "@visual-studio/editor/dev/memoryAdapter";
 import { createBlankDemo } from "@visual-studio/editor/dev/demoDocument";
 import { newId } from "@visual-studio/lib/document";
 import { useAuth } from "@/context/AuthContext";
+import type { CarouselSlide } from "@/lib/viral-posts/types";
 import SaveGlobalTemplateModal from "./SaveGlobalTemplateModal";
 
 export type LinkedInAspectRatio = "4:5" | "1:1" | "4:3" | "1.91:1";
@@ -96,8 +97,148 @@ export interface VisualStudioModalProps {
   authorName?: string;
   authorHandle?: string;
   authorAvatar?: string;
+  initialSlides?: CarouselSlide[];
   onApplyImage?: (dataUrl: string) => void;
   onApplyCarousel?: (result: { pdfDataUrl: string; pageCount: number; thumbnail: string }) => void;
+}
+
+function createStudioTextbox(params: {
+  name: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  text: string;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight?: string;
+  fill: string;
+  lineHeight?: number;
+  opacity?: number;
+}) {
+  return {
+    id: newId(),
+    type: "Textbox",
+    kind: "text",
+    name: params.name,
+    left: params.left,
+    top: params.top,
+    originX: "center",
+    originY: "center",
+    width: params.width,
+    height: params.height,
+    rotation: 0,
+    flipX: false,
+    flipY: false,
+    opacity: params.opacity ?? 1,
+    locked: false,
+    text: params.text,
+    fontFamily: params.fontFamily,
+    fontSize: params.fontSize,
+    fontWeight: params.fontWeight || "normal",
+    fontStyle: "normal",
+    fill: params.fill,
+    textAlign: "center",
+    lineHeight: params.lineHeight ?? 1.3,
+    letterSpacing: 0,
+    textTransform: "none",
+    listStyle: "none",
+    curveAmount: 0,
+    autoFit: false,
+    effects: null,
+  } as any;
+}
+
+function buildCarouselPagesFromSlides(
+  slides: CarouselSlide[],
+  dimensions: { width: number; height: number },
+  isHorizontal: boolean,
+  isSquare: boolean,
+  fallbackTitle?: string,
+  fallbackSubtitle?: string
+) {
+  return slides.map((slide, idx) => {
+    const isCover = Boolean(slide.isCover || idx === 0);
+    const isCta = Boolean(slide.isCta || (!isCover && idx === slides.length - 1));
+    const isDark = isCover || isCta;
+    const bgColor = isDark ? "#0f172a" : idx % 2 === 1 ? "#f8fafc" : "#ffffff";
+    const titleColor = isDark ? "#ffffff" : "#0f172a";
+    const bodyColor = isDark ? "#cbd5e1" : "#475569";
+
+    const rawTitle = (slide.title || (isCover ? fallbackTitle : "") || `Diapositiva ${idx + 1}`)
+      .replace(/\*\*/g, "")
+      .replace(/__/g, "")
+      .replace(/[{}]/g, "");
+
+    const bullets = Array.isArray(slide.content)
+      ? slide.content.filter(Boolean).map((line) => (line.startsWith("•") ? line : `• ${line}`)).join("\n\n")
+      : "";
+    const bodyText =
+      (isCover ? slide.subtitle || fallbackSubtitle || bullets : [slide.subtitle, bullets].filter(Boolean).join("\n\n")) || "";
+
+    const objects: any[] = [
+      createStudioTextbox({
+        name: isCover ? "Portada Título" : isCta ? "CTA Título" : `Slide ${idx + 1} Título`,
+        left: Math.round(dimensions.width / 2),
+        top: Math.round(dimensions.height * (isCover ? 0.30 : isCta ? 0.34 : 0.22)),
+        width: Math.round(dimensions.width * 0.82),
+        height: isHorizontal ? 120 : 160,
+        text: rawTitle,
+        fontFamily: "Outfit",
+        fontSize: isCover
+          ? isHorizontal ? 42 : isSquare ? 50 : 54
+          : isHorizontal ? 34 : isSquare ? 40 : 44,
+        fontWeight: "bold",
+        fill: titleColor,
+        lineHeight: 1.2,
+      }),
+    ];
+
+    if (bodyText) {
+      objects.push(
+        createStudioTextbox({
+          name: isCover ? "Portada Subtítulo" : `Slide ${idx + 1} Contenido`,
+          left: Math.round(dimensions.width / 2),
+          top: Math.round(dimensions.height * (isCover ? 0.56 : isCta ? 0.58 : 0.52)),
+          width: Math.round(dimensions.width * 0.78),
+          height: 220,
+          text: bodyText,
+          fontFamily: "Inter",
+          fontSize: isHorizontal ? 20 : isSquare ? 24 : 26,
+          fontWeight: "normal",
+          fill: bodyColor,
+          lineHeight: 1.4,
+          opacity: 0.95,
+        })
+      );
+    }
+
+    if (slide.footerText) {
+      objects.push(
+        createStudioTextbox({
+          name: `Slide ${idx + 1} Pie`,
+          left: Math.round(dimensions.width / 2),
+          top: Math.round(dimensions.height * 0.88),
+          width: Math.round(dimensions.width * 0.7),
+          height: 44,
+          text: slide.footerText,
+          fontFamily: "Inter",
+          fontSize: isHorizontal ? 15 : 18,
+          fontWeight: "bold",
+          fill: isDark ? "#38bdf8" : "#64748b",
+          opacity: 0.9,
+        })
+      );
+    }
+
+    return {
+      id: newId(),
+      width: dimensions.width,
+      height: dimensions.height,
+      background: { type: "solid", color: bgColor },
+      objects,
+    } as any;
+  });
 }
 
 export default function VisualStudioModal({
@@ -109,6 +250,7 @@ export default function VisualStudioModal({
   initialHighlight,
   authorName,
   authorHandle,
+  initialSlides,
   onApplyImage,
   onApplyCarousel,
 }: VisualStudioModalProps) {
@@ -220,13 +362,26 @@ export default function VisualStudioModal({
     }
 
     const blank = createBlankDemo(dimensions.width, dimensions.height);
-    
+    const isHorizontal = aspectRatio === "4:3" || aspectRatio === "1.91:1";
+    const isSquare = aspectRatio === "1:1";
+
+    // Si es carrusel y la IA o el compositor proveyeron slides estructurados, hidratar páginas dinámicamente
+    if (mode === "carousel" && Array.isArray(initialSlides) && initialSlides.length > 0) {
+      blank.pages = buildCarouselPagesFromSlides(
+        initialSlides,
+        dimensions,
+        isHorizontal,
+        isSquare,
+        initialTitle,
+        initialSubtitle
+      );
+      return blank;
+    }
+
     // If we have an initial title, add a clean initial heading object adapted to the aspect ratio
     if (initialTitle && blank.pages[0]) {
       const page = blank.pages[0];
       const headingId = newId();
-      const isHorizontal = aspectRatio === "4:3" || aspectRatio === "1.91:1";
-      const isSquare = aspectRatio === "1:1";
 
       page.objects.push({
         id: headingId,
@@ -438,7 +593,7 @@ export default function VisualStudioModal({
     }
 
     return blank;
-  }, [docKey, initialTitle, initialSubtitle, mode]);
+  }, [docKey, initialTitle, initialSubtitle, mode, initialSlides]);
 
   // Create in-memory adapter con auto-persistencia en localStorage para que no se pierda al recargar (F5)
   const adapterPackage = useMemo(() => {

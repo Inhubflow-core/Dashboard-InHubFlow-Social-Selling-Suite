@@ -2,6 +2,7 @@
 
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
+import { upsertLevel1MonitorFromPost } from "@/lib/signals/store";
 import type { CreatedPost } from "@/lib/viral-posts/types";
 import { useMemo, useState, useEffect } from "react";
 import { getStoredAccounts } from "@/lib/unipile/store";
@@ -19,6 +20,9 @@ import {
   Check,
   Edit3,
   X,
+  Send,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -35,7 +39,7 @@ export default function EditorialCalendarView({
   const t = useTranslations("viralPosts.calendar");
   const locale = useLocale();
   const WEEKDAYS = [t("mon"), t("tue"), t("wed"), t("thu"), t("fri"), t("sat"), t("sun")];
-  const { posts, updatePost } = useCreatedPosts();
+  const { posts, updatePost, deletePost } = useCreatedPosts();
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "published">("all");
@@ -59,12 +63,15 @@ export default function EditorialCalendarView({
   const [visualStudioMode, setVisualStudioMode] = useState<"single" | "carousel">("single");
   const [editContentText, setEditContentText] = useState("");
   const [contentSaveSuccess, setContentSaveSuccess] = useState(false);
+  const [isPublishingModalPost, setIsPublishingModalPost] = useState(false);
+  const [publishModalError, setPublishModalError] = useState<string | null>(null);
 
   // Sincronizar fecha y hora al abrir el modal de detalle del post
   const openPostDetails = (post: CreatedPost) => {
     setSelectedPostDetails(post);
     setEditContentText(post.content || "");
     setContentSaveSuccess(false);
+    setPublishModalError(null);
     if (post.scheduledAt) {
       const d = new Date(post.scheduledAt);
       const year = d.getFullYear();
@@ -102,6 +109,74 @@ export default function EditorialCalendarView({
     setSelectedPostDetails((prev) => prev ? { ...prev, scheduledAt: newScheduledAt, status: "scheduled" } : null);
     setScheduleSaveSuccess(true);
     setTimeout(() => setScheduleSaveSuccess(false), 3000);
+  };
+
+  const handlePublishFromCalendar = async () => {
+    if (!selectedPostDetails) return;
+    setIsPublishingModalPost(true);
+    setPublishModalError(null);
+
+    const effectiveContent = (editContentText || selectedPostDetails.content || "").trim();
+    try {
+      let attachments: any[] | undefined = undefined;
+      if (selectedPostDetails.format === "carousel" && selectedPostDetails.carouselPdfUrl) {
+        attachments = [
+          {
+            content: selectedPostDetails.carouselPdfUrl,
+            filename: "carrusel.pdf",
+            content_type: "application/pdf",
+          },
+        ];
+      } else if (selectedPostDetails.coverImage || selectedPostDetails.mediaUrl) {
+        attachments = [
+          {
+            content: selectedPostDetails.coverImage || selectedPostDetails.mediaUrl,
+            filename: "post-cover.png",
+            content_type: "image/png",
+          },
+        ];
+      }
+
+      const res = await fetch("/api/unipile/posts/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          account_id: selectedPostDetails.targetAccountId,
+          text: effectiveContent,
+          attachments,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo publicar el post en LinkedIn.");
+      }
+
+      const publishedAt = new Date().toISOString();
+      const updatedFields: Partial<CreatedPost> = {
+        content: effectiveContent,
+        status: "published",
+        publishedAt,
+        linkedinPostId: data.postId,
+        metrics: selectedPostDetails.metrics || {
+          likes: 0,
+          comments: 0,
+          impressions: 0,
+          leadsCaptured: 0,
+        },
+      };
+
+      updatePost(selectedPostDetails.id, updatedFields);
+      upsertLevel1MonitorFromPost({
+        ...selectedPostDetails,
+        ...updatedFields,
+      });
+      setSelectedPostDetails((prev) => (prev ? { ...prev, ...updatedFields } : null));
+    } catch (err: any) {
+      setPublishModalError(err.message || "Error al publicar en LinkedIn.");
+    } finally {
+      setIsPublishingModalPost(false);
+    }
   };
 
   // Navegación de periodos (Anterior, Siguiente, Hoy): en vista semanal avanza o retrocede 1 día exacto
@@ -1049,14 +1124,57 @@ export default function EditorialCalendarView({
               </p>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {publishModalError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+                {publishModalError}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setSelectedPostDetails(null)}
-                className="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+                onClick={() => {
+                  if (confirm(`¿Eliminar la publicación "${selectedPostDetails.title}"?`)) {
+                    deletePost(selectedPostDetails.id);
+                    setSelectedPostDetails(null);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/70 px-3.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 cursor-pointer transition"
               >
-                Cerrar
+                <Trash2 className="size-3.5" />
+                <span>Eliminar</span>
               </button>
+
+              <div className="flex items-center gap-2">
+                {selectedPostDetails.status !== "published" && (
+                  <button
+                    type="button"
+                    disabled={isPublishingModalPost}
+                    onClick={() => void handlePublishFromCalendar()}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] px-4 py-2 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {isPublishingModalPost ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        <span>Publicando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="size-3.5" />
+                        <span>Publicar Ahora en LinkedIn</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedPostDetails(null)}
+                  className="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>

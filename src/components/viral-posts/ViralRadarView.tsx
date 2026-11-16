@@ -26,6 +26,7 @@ import {
   saveStoredRadarState,
   generateMonthScheduleDates,
   addBatchCreatedPosts,
+  getStoredCreatedPosts,
 } from "@/lib/viral-posts/store";
 import { SAMPLE_B2B_BACKGROUNDS } from "./CreateViralPostView";
 import type { CreatedPost, PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
@@ -657,8 +658,11 @@ export default function ViralRadarView({
         updateAccountLanguage(monthPlanTargetAccountId, targetLang);
       }
 
-      // 2. Obtener exactamente 12 fechas en días Lun, Mié y Vie de las próximas 4 semanas
-      const dates = generateMonthScheduleDates(new Date());
+      // 2. Obtener exactamente 12 fechas en días Lun, Mié y Vie evitando fechas ya ocupadas
+      const occupiedDates = getStoredCreatedPosts()
+        .filter((p) => p.status === "scheduled" && p.scheduledAt)
+        .map((p) => p.scheduledAt as string);
+      const dates = generateMonthScheduleDates(new Date(), occupiedDates);
 
       // 3. Tomar los mejores posts virales (o ciclar sobre el Top 12)
       const targetSourcePosts: ViralPostTemplate[] = [];

@@ -12,6 +12,7 @@ import {
 import type { UnipileAccount } from "@/lib/unipile/types";
 import { exportCarouselToPdf } from "@/lib/viral-posts/carousel-exporter";
 import { getStoredKnowledgeSources } from "@/lib/sdr/store";
+import { upsertLevel1MonitorFromPost } from "@/lib/signals/store";
 import {
   getSelectedTemplateForModeling,
   setSelectedTemplateForModeling,
@@ -193,6 +194,13 @@ export default function CreateViralPostView({
   }, []);
   const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isExpandedPreview, setIsExpandedPreview] = useState(false);
+  const [suggestedHashtags, setSuggestedHashtags] = useState<string[]>([
+    "#SocialSelling",
+    "#B2B",
+    "#LinkedIn",
+    "#Estrategia",
+  ]);
+  const [hookVariants, setHookVariants] = useState<string[]>([]);
 
   // Compatibilidad con estructura legacy de slides si se requiere
   const [slides, setSlides] = useState<CarouselSlide[]>([
@@ -364,6 +372,28 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
       const generated = data.result;
       if (generated.content) setContent(generated.content);
       if (format === "image" && generated.imagePrompt) setImagePrompt(generated.imagePrompt);
+      if (Array.isArray(generated.slides) && generated.slides.length > 0) {
+        setSlides(generated.slides);
+      }
+      if (Array.isArray(generated.suggestedHashtags) && generated.suggestedHashtags.length > 0) {
+        setSuggestedHashtags(generated.suggestedHashtags);
+      }
+
+      const cleanTopic = (topic || "tu sector B2B").trim();
+      const baseHook = (
+        generated.hook ||
+        (typeof generated.content === "string" ? generated.content.split("\n")[0] : "") ||
+        `Cómo escalar resultados en ${cleanTopic}`
+      ).trim();
+
+      const generatedHooks = Array.from(
+        new Set([
+          baseHook,
+          `El mayor error que la mayoría comete en ${cleanTopic} (y cómo evitarlo):`,
+          `El framework exacto en 3 pasos para dominar ${cleanTopic} sin improvisar:`,
+        ])
+      ).filter(Boolean);
+      setHookVariants(generatedHooks);
 
       setPublishFeedback({
         type: "success",
@@ -504,6 +534,9 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
     };
 
     addPost(newPost);
+    if (autoDmEnabled) {
+      upsertLevel1MonitorFromPost(newPost);
+    }
     setSelectedTemplateForModeling(null);
 
     if (onTabChange) {
@@ -829,6 +862,90 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
                   placeholder="Escribe o afina el texto de tu publicación..."
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 text-xs text-slate-900 dark:text-white leading-relaxed focus:outline-hidden focus:border-[#0099ff] font-sans"
                 />
+
+                {/* Indicador de corte "...ver más", Variantes de Gancho IA y Hashtags Sugeridos */}
+                {(() => {
+                  const firstLineLength = (content.split("\n")[0] || "").length;
+                  const isOptimalHook = firstLineLength > 0 && firstLineLength <= 140;
+                  return (
+                    <div className="mt-2.5 space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        <span
+                          className={`font-semibold ${
+                            firstLineLength === 0
+                              ? "text-slate-400"
+                              : isOptimalHook
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-amber-600 dark:text-amber-400"
+                          }`}
+                        >
+                          Gancho visible antes de &quot;...ver más&quot;: {firstLineLength} / 140 caracteres ·{" "}
+                          {firstLineLength === 0 ? "Vacío" : isOptimalHook ? "Óptimo" : "Extenso"}
+                        </span>
+                      </div>
+
+                      {hookVariants.length > 0 && (
+                        <div className="p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/50 space-y-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#0099ff] block">
+                            Variantes de Gancho IA (1 clic para reemplazar la primera línea):
+                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            {hookVariants.map((variant, idx) => {
+                              const angleLabels = ["Directo", "Contrarian", "Framework"];
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    const lines = content.split("\n");
+                                    lines[0] = variant;
+                                    setContent(lines.join("\n"));
+                                  }}
+                                  className="text-left px-2.5 py-1.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-[#0099ff] text-[11px] text-slate-700 dark:text-slate-200 transition flex items-center gap-2"
+                                >
+                                  <span className="shrink-0 px-1.5 py-0.5 rounded bg-[#0099ff]/10 text-[#0099ff] font-bold text-[10px]">
+                                    {angleLabels[idx] || `Opción ${idx + 1}`}
+                                  </span>
+                                  <span className="truncate">{variant}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {suggestedHashtags.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+                            Hashtags sugeridos:
+                          </span>
+                          {suggestedHashtags.map((tag) => {
+                            const normalizedTag = tag.startsWith("#") ? tag : `#${tag}`;
+                            const alreadyAdded = content.toLowerCase().includes(normalizedTag.toLowerCase());
+                            return (
+                              <button
+                                key={normalizedTag}
+                                type="button"
+                                onClick={() => {
+                                  if (alreadyAdded) return;
+                                  setContent((prev) => `${prev.trimEnd()}\n\n${normalizedTag}`);
+                                }}
+                                disabled={alreadyAdded}
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border transition ${
+                                  alreadyAdded
+                                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                    : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-[#0099ff] hover:text-[#0099ff]"
+                                }`}
+                              >
+                                {alreadyAdded ? `✓ ${normalizedTag}` : `+ ${normalizedTag}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* 3. Contenedor de Recurso Visual (Solo para Modelo 2: Con Imagen o Modelo 3: Carrusel) */}
@@ -1369,6 +1486,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
         initialTitle={parsePostHeader(content, referenceHook || topic).hook}
         initialSubtitle={parsePostHeader(content, referenceHook || topic).subtitle}
         initialHighlight={parsePostHeader(content, referenceHook || topic).highlight}
+        initialSlides={slides}
         authorName={activeAccObj?.name || currentUser.name}
         authorHandle={`@${(activeAccObj?.name || currentUser.name).toLowerCase().replace(/[^a-z0-9]/g, "")}`}
         onApplyImage={(dataUrl) => {

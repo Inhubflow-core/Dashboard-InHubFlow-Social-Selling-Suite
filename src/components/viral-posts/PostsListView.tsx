@@ -4,7 +4,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useCreatedPosts } from "@/lib/viral-posts/store";
 import type { CreatedPost, PostFormat, PostStatus } from "@/lib/viral-posts/types";
-import { useSignalRadar } from "@/lib/signals/store";
+import { useSignalRadar, upsertLevel1MonitorFromPost } from "@/lib/signals/store";
 import type { SignalLeadItem } from "@/lib/signals/types";
 import { useLeadsStore } from "@/lib/leads/store";
 import { useAuth } from "@/context/AuthContext";
@@ -310,21 +310,32 @@ export default function PostsListView({
     setFeedback(null);
 
     try {
+      let attachments: any[] | undefined = undefined;
+      if (post.format === "carousel" && post.carouselPdfUrl) {
+        attachments = [
+          {
+            content: post.carouselPdfUrl,
+            filename: "carrusel.pdf",
+            content_type: "application/pdf",
+          },
+        ];
+      } else if (post.coverImage || post.mediaUrl) {
+        attachments = [
+          {
+            content: post.coverImage || post.mediaUrl,
+            filename: "post-cover.png",
+            content_type: "image/png",
+          },
+        ];
+      }
+
       const res = await fetch("/api/unipile/posts/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           account_id: post.targetAccountId,
           text: post.content,
-          attachments: post.mediaUrl
-            ? [
-                {
-                  content: post.mediaUrl,
-                  filename: "post-cover.png",
-                  content_type: "image/png",
-                },
-              ]
-            : undefined,
+          attachments,
         }),
       });
 
@@ -334,11 +345,19 @@ export default function PostsListView({
         throw new Error(data.error || "No se pudo despachar el post a LinkedIn.");
       }
 
+      const publishedAt = new Date().toISOString();
       updatePost(post.id, {
         status: "published",
-        publishedAt: new Date().toISOString(),
+        publishedAt,
         linkedinPostId: data.postId,
         metrics: { likes: 0, comments: 0, impressions: 0, leadsCaptured: 0 },
+      });
+
+      upsertLevel1MonitorFromPost({
+        ...post,
+        status: "published",
+        publishedAt,
+        linkedinPostId: data.postId,
       });
 
       setFeedback({

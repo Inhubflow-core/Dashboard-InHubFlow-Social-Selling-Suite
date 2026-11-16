@@ -20,9 +20,11 @@ import type {
   Level3GlobalMonitor,
   SignalLeadItem,
 } from "./types";
+import type { CreatedPost } from "@/lib/viral-posts/types";
 import { isAuthorEmployeeOrAffiliate } from "./employee-filter";
 
 const L1_KEY = "inhubflow_signals_l1";
+export const L1_MONITORS_CHANGE_EVENT = "inhubflow_signals_l1_changed";
 const L1_DELETED_KEY = "inhubflow_signals_l1_deleted";
 const L2_KEY = "inhubflow_signals_l2";
 const L3_GROUPS_KEY = "inhubflow_signals_l3_groups";
@@ -182,7 +184,91 @@ export function saveStoredLevel1Monitors(monitors: Level1Monitor[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(L1_KEY, JSON.stringify(monitors));
+    window.dispatchEvent(new Event(L1_MONITORS_CHANGE_EVENT));
   } catch {}
+}
+
+export function upsertLevel1MonitorFromPost(post: CreatedPost): Level1Monitor | null {
+  if (!post.leadMagnetKeyword && !post.autoDmEnabled) return null;
+
+  const current = getStoredLevel1Monitors();
+  const normalizedTitle = (post.title || "").trim().toLowerCase();
+  const existingIdx = current.findIndex(
+    (m) =>
+      m.originPostId === post.id ||
+      (normalizedTitle && m.postTitle.trim().toLowerCase() === normalizedTitle)
+  );
+
+  let resolvedPostUrl = "";
+  if (post.status === "published") {
+    if (post.postUrl && post.postUrl.startsWith("http")) {
+      resolvedPostUrl = post.postUrl;
+    } else if (post.linkedinPostId) {
+      const rawId = post.linkedinPostId.trim();
+      resolvedPostUrl = rawId.startsWith("http")
+        ? rawId
+        : `https://www.linkedin.com/feed/update/urn:li:activity:${rawId.replace(/^urn:li:activity:/, "")}`;
+    }
+  }
+
+  const nextStatus: Level1Monitor["status"] =
+    post.status === "published" ? "active" : "pending_publish";
+
+  if (existingIdx !== -1) {
+    const existing = current[existingIdx];
+    const keyword = (post.leadMagnetKeyword || existing.keyword || "SISTEMA").trim().toUpperCase();
+    const updatedMonitor: Level1Monitor = {
+      ...existing,
+      postTitle: post.title || existing.postTitle,
+      postUrl: resolvedPostUrl || existing.postUrl || "",
+      keyword,
+      status: nextStatus,
+      autoLikeComment: post.autoLikeComment ?? existing.autoLikeComment ?? true,
+      nonConnectedNoteTemplate: post.autoDmMessage || existing.nonConnectedNoteTemplate,
+      originPostId: post.id,
+      originPostStatus: post.status,
+      scheduledAt: post.scheduledAt ?? existing.scheduledAt,
+      lastScanAt:
+        post.status === "published" && existing.lastScanAt === "Pendiente de publicación"
+          ? "Recién creado"
+          : existing.lastScanAt,
+      lastScanAtIso:
+        post.status === "published"
+          ? existing.lastScanAtIso || new Date().toISOString()
+          : existing.lastScanAtIso,
+    };
+    const updated = [...current];
+    updated[existingIdx] = updatedMonitor;
+    saveStoredLevel1Monitors(updated);
+    return updatedMonitor;
+  }
+
+  const keyword = (post.leadMagnetKeyword || "SISTEMA").trim().toUpperCase();
+  const createdMonitor: Level1Monitor = {
+    id: `mon-l1-${post.id}`,
+    postTitle: post.title,
+    postUrl: resolvedPostUrl,
+    keyword,
+    status: nextStatus,
+    autoLikeComment: post.autoLikeComment ?? true,
+    publicReplyTemplate: "Te lo acabo de enviar por privado, revisa tus mensajes",
+    nonConnectedNoteTemplate:
+      post.autoDmMessage ||
+      "Hola {{first_name}}, vi que comentaste en mi post. Te envío la invitación para entregarte el recurso por privado.",
+    attachedPdfName: "Guia_Oficial_Social_Selling.pdf",
+    scannedCommentsCount: 0,
+    leadsCapturedCount: 0,
+    lastScanAt: post.status === "published" ? "Recién creado" : "Pendiente de publicación",
+    lastScanAtIso: post.status === "published" ? new Date().toISOString() : undefined,
+    scanFrequency: "daily",
+    createdAt: new Date().toISOString(),
+    originPostId: post.id,
+    originPostStatus: post.status,
+    scheduledAt: post.scheduledAt,
+  };
+
+  saveStoredLevel1Monitors([createdMonitor, ...current]);
+  return createdMonitor;
 }
 
 export function getStoredLevel2Monitors(): Level2CompetitorMonitor[] {
@@ -540,12 +626,20 @@ export function useSignalRadar() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setL1Monitors(getStoredLevel1Monitors());
+    const syncL1 = () => setL1Monitors(getStoredLevel1Monitors());
+    syncL1();
     setL2Monitors(getStoredLevel2Monitors());
     setL3GroupMonitors(getStoredLevel3GroupMonitors());
     setL4GlobalMonitors(getStoredLevel4GlobalMonitors());
     setLeads(getStoredSignalLeads());
     setIsLoaded(true);
+
+    window.addEventListener(L1_MONITORS_CHANGE_EVENT, syncL1);
+    window.addEventListener("storage", syncL1);
+    return () => {
+      window.removeEventListener(L1_MONITORS_CHANGE_EVENT, syncL1);
+      window.removeEventListener("storage", syncL1);
+    };
   }, []);
 
   const addLevel1Monitor = (monitor: Level1Monitor) => {
