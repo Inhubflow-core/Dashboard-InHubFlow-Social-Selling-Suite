@@ -25,6 +25,7 @@ function openDatabase(): Database.Database {
   applyInitialSchema(db);
   ensureViralPostsSchema(db);
   ensureSignalMonitorsSchema(db);
+  ensureLeadsCrmSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -207,6 +208,35 @@ function ensureSignalMonitorsSchema(db: Database.Database): void {
       metadata_json TEXT NOT NULL DEFAULT '{}'
     );
     CREATE INDEX IF NOT EXISTS idx_signal_monitors_level_status ON signal_monitors(level, status);
+  `);
+}
+
+function ensureLeadsCrmSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS crm_lead_lists (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      signal_level TEXT NOT NULL DEFAULT 'level_1',
+      leads_count INTEGER NOT NULL DEFAULT 0,
+      assigned_campaign TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS crm_leads_360 (
+      id TEXT PRIMARY KEY,
+      list_id TEXT,
+      full_name TEXT NOT NULL,
+      linkedin_url TEXT,
+      stage TEXT NOT NULL DEFAULT 'lead_captured',
+      sequence_status TEXT NOT NULL DEFAULT 'in_progress',
+      intent_score INTEGER NOT NULL DEFAULT 80,
+      language TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_crm_leads_list_stage ON crm_leads_360(list_id, stage);
   `);
 }
 

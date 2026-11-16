@@ -48,7 +48,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Resolver cuenta de LinkedIn conectada
+    const requestedAccountId =
+      typeof body.accountId === "string" && body.accountId.trim()
+        ? body.accountId.replace(/^acc-li-/, "").trim()
+        : "";
+
+    // Resolver cuenta de LinkedIn conectada (respetando aislamiento multi-tenant)
     let accountId = "";
     try {
       const list = await unipile.listAccounts();
@@ -56,9 +61,12 @@ export async function POST(req: NextRequest) {
         (a: any) => String(a.type || a.provider || "").toUpperCase() === "LINKEDIN"
       );
       const healthyAccounts = linkedinAccounts.filter(isAccountHealthy);
-      const roberto = healthyAccounts.find((a: any) => (a.name || "").toLowerCase().includes("roberto"));
-      if (roberto) {
-        accountId = roberto.id;
+      const matchedRequested = requestedAccountId
+        ? healthyAccounts.find((a: any) => a.id === requestedAccountId)
+        : undefined;
+
+      if (matchedRequested) {
+        accountId = matchedRequested.id;
       } else if (healthyAccounts.length > 0) {
         accountId = healthyAccounts[0].id;
       }

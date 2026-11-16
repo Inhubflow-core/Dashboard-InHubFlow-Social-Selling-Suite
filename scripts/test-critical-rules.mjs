@@ -3293,6 +3293,106 @@ assert(
   'GlobalSignalsView unifica signalLevel level_4, combina crmLeads en getRuleLeads y reemplaza 56.4% por KPI dinámico'
 );
 
+console.log("\n--- TEST: Blindaje de Lanzamiento Directorio de Leads 360 & Listas Inteligentes (Módulo 3) ---");
+
+assert(
+  dbLaunch.includes('CREATE TABLE IF NOT EXISTS crm_lead_lists') &&
+    dbLaunch.includes('CREATE TABLE IF NOT EXISTS crm_leads_360') &&
+    dbLaunch.includes('ensureLeadsCrmSchema(db)'),
+  'db.ts crea tablas crm_lead_lists y crm_leads_360 en SQLite'
+);
+assert(fs.existsSync('src/app/api/leads/route.ts'), 'Endpoint /api/leads/route.ts existe');
+
+const leadsApiMod3 = fs.readFileSync('src/app/api/leads/route.ts', 'utf8');
+assert(
+  leadsApiMod3.includes('export async function GET') &&
+    leadsApiMod3.includes('export async function POST') &&
+    leadsApiMod3.includes('export async function DELETE'),
+  '/api/leads implementa GET, POST y DELETE'
+);
+
+// Verificar round-trip SQLite de crm_lead_lists y crm_leads_360
+db.exec(`
+  CREATE TABLE IF NOT EXISTS crm_lead_lists (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    signal_level TEXT NOT NULL DEFAULT 'level_1',
+    leads_count INTEGER NOT NULL DEFAULT 0,
+    assigned_campaign TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+  );
+  CREATE TABLE IF NOT EXISTS crm_leads_360 (
+    id TEXT PRIMARY KEY,
+    list_id TEXT,
+    full_name TEXT NOT NULL,
+    linkedin_url TEXT,
+    stage TEXT NOT NULL DEFAULT 'lead_captured',
+    sequence_status TEXT NOT NULL DEFAULT 'in_progress',
+    intent_score INTEGER NOT NULL DEFAULT 80,
+    language TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+  );
+`);
+db.prepare(`
+  INSERT OR REPLACE INTO crm_lead_lists (id, name, signal_level, leads_count, assigned_campaign, created_at, updated_at, metadata_json)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`).run('list-test-m3', 'Lista Test M3', 'level_2', 1, '01. Secuencia: Listas de Leads', '2026-11-16T10:00:00Z', '2026-11-16T10:00:00Z', '{}');
+db.prepare(`
+  INSERT OR REPLACE INTO crm_leads_360 (id, list_id, full_name, linkedin_url, stage, sequence_status, intent_score, language, created_at, updated_at, metadata_json)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`).run('lead-test-m3', 'list-test-m3', 'Laura Mendoza', 'https://www.linkedin.com/in/laura-mendoza', 'lead_captured', 'in_progress', 90, 'es', '2026-11-16T10:00:00Z', '2026-11-16T10:00:00Z', '{}');
+const m3LeadRow = db.prepare('SELECT * FROM crm_leads_360 WHERE id = ?').get('lead-test-m3');
+assert(m3LeadRow && m3LeadRow.list_id === 'list-test-m3' && m3LeadRow.intent_score === 90, 'Tablas crm_lead_lists y crm_leads_360 persisten datos en SQLite correctamente');
+
+const leadsListsRedirectMod3 = fs.readFileSync('src/app/[locale]/(admin)/leads/lists/page.tsx', 'utf8');
+assert(
+  leadsListsRedirectMod3.includes('useSearchParams') &&
+    leadsListsRedirectMod3.includes("nextParams.set(\"tab\", \"lists\")"),
+  'leads/lists/page.tsx preserva query params (listId, competitor) al redirigir a /leads?tab=lists'
+);
+
+const syncPhotosMod3 = fs.readFileSync('src/app/api/leads/sync-photos/route.ts', 'utf8');
+assert(
+  syncPhotosMod3.includes('requestedAccountId') &&
+    !syncPhotosMod3.includes('.includes("roberto")'),
+  '/api/leads/sync-photos respeta body.accountId y elimina filtro personal hardcoded'
+);
+
+assert(
+  leadsStoreMod2.includes('addManualLead') &&
+    leadsStoreMod2.includes('bulkUpdateLeadsStage') &&
+    leadsStoreMod2.includes('bulkMoveLeadsToList') &&
+    leadsStoreMod2.includes('bulkDeleteLeads'),
+  'leads/store.ts expone addManualLead y acciones masivas de etapa, lista y eliminación'
+);
+
+const dirViewMod3 = fs.readFileSync('src/components/leads/LeadsDirectoryView.tsx', 'utf8');
+assert(
+  dirViewMod3.includes('from "@/i18n/navigation"') &&
+    dirViewMod3.includes('/inbox?leadName=') &&
+    dirViewMod3.includes('closed_lost') &&
+    dirViewMod3.includes('selectedLangFilter') &&
+    dirViewMod3.includes('selectedScoreFilter') &&
+    dirViewMod3.includes('selectedLeadIds') &&
+    dirViewMod3.includes('isAddingManualLead'),
+  'LeadsDirectoryView usa Link i18n con contexto a Inbox, filtros completos, acciones masivas y alta manual'
+);
+
+const listDetailMod3 = fs.readFileSync('src/app/[locale]/(admin)/leads/lists/[id]/page.tsx', 'utf8');
+assert(
+  listDetailMod3.includes('from "@/i18n/navigation"') &&
+    listDetailMod3.includes('/inbox?leadName=') &&
+    listDetailMod3.includes('closed_lost') &&
+    listDetailMod3.includes('selectedLangFilter') &&
+    listDetailMod3.includes('selectedScoreFilter') &&
+    listDetailMod3.includes('n[1-4]'),
+  'leads/lists/[id]/page.tsx usa Link i18n con contexto a Inbox, filtros completos y regex [signal n1-4]'
+);
+
 // Limpieza de base de datos de test
 
 db.close();

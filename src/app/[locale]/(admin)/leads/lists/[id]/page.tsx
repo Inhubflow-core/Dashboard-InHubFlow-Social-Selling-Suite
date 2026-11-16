@@ -8,7 +8,7 @@ import LeadLanguageBadge from "@/components/leads/LeadLanguageBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import { useSignalRadar } from "@/lib/signals/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -40,13 +40,33 @@ export default function DynamicListDetailPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
+  const [selectedLangFilter, setSelectedLangFilter] = useState<string>("all");
+  const [selectedScoreFilter, setSelectedScoreFilter] = useState<string>("all");
   const [selectedLeadFor360, setSelectedLeadFor360] = useState<Lead360Item | null>(null);
 
-  // Auto-sync de fotos oficiales de LinkedIn en segundo plano (estilo #b2b)
+  // Encontrar la lista por id o por sourceMonitorId
+  const currentList = useMemo(() => {
+    if (!listId) return null;
+    return (
+      lists.find((l) => l.id === listId) ||
+      lists.find((l) => l.sourceMonitorId === listId) ||
+      null
+    );
+  }, [lists, listId]);
+
+  // Auto-sync de fotos oficiales de LinkedIn en segundo plano (priorizando leads de la lista actual)
   const isSyncingPhotosRef = useRef(false);
   useEffect(() => {
     if (!isLoaded || leads.length === 0 || isSyncingPhotosRef.current) return;
-    const leadsToEnrich = leads
+    const targetPool = currentList
+      ? leads.filter(
+          (l) =>
+            l.listId === currentList.id ||
+            (currentList.sourceMonitorId && (l as any).monitorId === currentList.sourceMonitorId)
+        )
+      : leads;
+    const pool = targetPool.length > 0 ? targetPool : leads;
+    const leadsToEnrich = pool
       .filter((l) => (!l.avatarUrl || !l.location || /no especificado/i.test(l.location) || !l.company || /no especificado/i.test(l.company)) && Boolean(l.linkedinUrl))
       .slice(0, 15);
 
@@ -57,6 +77,7 @@ export default function DynamicListDetailPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        accountId: typeof window !== "undefined" ? localStorage.getItem("inhubflow_active_linkedin_account_id") || undefined : undefined,
         targets: leadsToEnrich.map((l) => ({
           id: l.id,
           linkedinUrl: l.linkedinUrl,
@@ -76,17 +97,7 @@ export default function DynamicListDetailPage() {
       .finally(() => {
         isSyncingPhotosRef.current = false;
       });
-  }, [isLoaded, leads.length, batchUpdateLeadPhotos]);
-
-  // Encontrar la lista por id o por sourceMonitorId
-  const currentList = useMemo(() => {
-    if (!listId) return null;
-    return (
-      lists.find((l) => l.id === listId) ||
-      lists.find((l) => l.sourceMonitorId === listId) ||
-      null
-    );
-  }, [lists, listId]);
+  }, [isLoaded, leads, currentList, batchUpdateLeadPhotos]);
 
   const isMonitorDeleted = useMemo(() => {
     if (!currentList) return false;
@@ -158,10 +169,17 @@ export default function DynamicListDetailPage() {
 
       const matchesStage =
         selectedStageFilter === "all" || l.stage === selectedStageFilter;
+      const matchesLang =
+        selectedLangFilter === "all" || (l.language || "es") === selectedLangFilter;
+      const matchesScore =
+        selectedScoreFilter === "all" ||
+        (selectedScoreFilter === "100" && l.intentScore >= 100) ||
+        (selectedScoreFilter === "90" && l.intentScore >= 90) ||
+        (selectedScoreFilter === "80" && l.intentScore >= 80);
 
-      return matchesSearch && matchesStage;
+      return matchesSearch && matchesStage && matchesLang && matchesScore;
     });
-  }, [leads, currentList, searchTerm, selectedStageFilter]);
+  }, [leads, currentList, searchTerm, selectedStageFilter, selectedLangFilter, selectedScoreFilter]);
 
   const handleDeleteThisList = () => {
     if (!currentList) return;
@@ -263,7 +281,7 @@ export default function DynamicListDetailPage() {
 
   const cleanListName =
     currentList?.competitorName?.trim() ||
-    currentList?.name.replace(/^\[signal\s*n[1-3]\]\s*/i, "").split(" • ")[0].trim() ||
+    currentList?.name.replace(/^\[signal\s*n[1-4]\]\s*/i, "").split(" • ")[0].trim() ||
     t("dynamicListDefault");
 
   return (
@@ -396,7 +414,7 @@ export default function DynamicListDetailPage() {
       </div>
 
       {/* Filtros Internos de la Lista */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800">
         <div>
           <input
             type="text"
@@ -421,6 +439,33 @@ export default function DynamicListDetailPage() {
             <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
             <option value="proposal_presented">{t("stageProposalPresented")}</option>
             <option value="closed_won">{t("stageClosedWon")}</option>
+            <option value="closed_lost">{t("stageClosedLost")}</option>
+          </select>
+        </div>
+
+        <div>
+          <select
+            value={selectedLangFilter}
+            onChange={(e) => setSelectedLangFilter(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="all">Todos los idiomas</option>
+            <option value="es">Español (ES)</option>
+            <option value="pt">Portugués (PT)</option>
+            <option value="en">Inglés (EN)</option>
+          </select>
+        </div>
+
+        <div>
+          <select
+            value={selectedScoreFilter}
+            onChange={(e) => setSelectedScoreFilter(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="all">Todas las puntuaciones</option>
+            <option value="100">🔥 100 (Lead Magnet)</option>
+            <option value="90">🥇 90+ (Comentarios)</option>
+            <option value="80">🥈 80+ (Reacciones)</option>
           </select>
         </div>
       </div>
@@ -521,13 +566,13 @@ export default function DynamicListDetailPage() {
                         >
                           {t("actionRecord")}
                         </button>
-                        <a
-                          href="/inbox"
+                        <Link
+                          href={`/inbox?leadName=${encodeURIComponent(lead.fullName)}`}
                           className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                           title={t("openChatInInbox")}
                         >
                           {t("actionChat")}
-                        </a>
+                        </Link>
                       </td>
                     </tr>
                   );
@@ -555,20 +600,7 @@ export default function DynamicListDetailPage() {
                     <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
                       {selectedLeadFor360.fullName}
                     </h3>
-                    {selectedLeadFor360.language && (
-                      <span
-                        className={`rounded-lg px-1.5 py-0.5 text-xs font-bold border shrink-0 ${
-                          selectedLeadFor360.language === "en"
-                            ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
-                            : selectedLeadFor360.language === "pt"
-                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                        }`}
-                        title={`Idioma detectado: ${selectedLeadFor360.language.toUpperCase()}`}
-                      >
-                        {selectedLeadFor360.language.toUpperCase()}
-                      </span>
-                    )}
+                    <LeadLanguageBadge language={selectedLeadFor360.language} />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {selectedLeadFor360.company && !/no especificado/i.test(selectedLeadFor360.company)
@@ -727,12 +759,12 @@ export default function DynamicListDetailPage() {
                 >
                   {t("close")}
                 </button>
-                <a
-                  href="/inbox"
+                <Link
+                  href={`/inbox?leadName=${encodeURIComponent(selectedLeadFor360.fullName)}`}
                   className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
                   {t("openChatInInbox")}
-                </a>
+                </Link>
               </div>
             </div>
           </div>

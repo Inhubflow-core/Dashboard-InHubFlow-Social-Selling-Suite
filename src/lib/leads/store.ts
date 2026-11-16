@@ -18,6 +18,24 @@ function emitLeadsStoreChange(): void {
   } catch {}
 }
 
+function syncLeadsCrmToDbInBackground(payload: { leads?: Lead360Item[]; lists?: LeadListGroup[] }): void {
+  if (typeof window === "undefined" || typeof fetch !== "function") return;
+  if ((!payload.leads || payload.leads.length === 0) && (!payload.lists || payload.lists.length === 0)) return;
+  fetch("/api/leads", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
+function deleteLeadOrListFromDbInBackground(params: { leadId?: string; listId?: string }): void {
+  if (typeof window === "undefined" || typeof fetch !== "function") return;
+  const q = new URLSearchParams();
+  if (params.leadId) q.set("leadId", params.leadId);
+  if (params.listId) q.set("listId", params.listId);
+  fetch(`/api/leads?${q.toString()}`, { method: "DELETE" }).catch(() => {});
+}
+
 export function getStoredLeads(): Lead360Item[] {
   if (typeof window === "undefined") return initialLeadsData;
   try {
@@ -577,6 +595,8 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
       emitLeadsStoreChange();
+      const changedLead = updated.find((l) => l.id === leadId);
+      if (changedLead) syncLeadsCrmToDbInBackground({ leads: [changedLead] });
     }
   }, []);
 
@@ -587,6 +607,8 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
       emitLeadsStoreChange();
+      const changedLead = updated.find((l) => l.id === leadId);
+      if (changedLead) syncLeadsCrmToDbInBackground({ leads: [changedLead] });
     }
   }, []);
 
@@ -597,6 +619,7 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") {
       localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
       emitLeadsStoreChange();
+      deleteLeadOrListFromDbInBackground({ leadId });
     }
   }, []);
 
@@ -607,6 +630,7 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") {
       localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
       emitLeadsStoreChange();
+      syncLeadsCrmToDbInBackground({ lists: [newList] });
     }
   }, []);
 
@@ -657,6 +681,7 @@ export function useLeadsStore() {
       }
 
       emitLeadsStoreChange();
+      deleteLeadOrListFromDbInBackground({ listId });
     }
   }, []);
 
@@ -793,6 +818,173 @@ export function useLeadsStore() {
     if (typeof window !== "undefined") {
       localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updated));
       emitLeadsStoreChange();
+      syncLeadsCrmToDbInBackground({ lists: updated });
+    }
+  }, []);
+
+  const addManualLead = useCallback((params: {
+    fullName: string;
+    title: string;
+    company?: string;
+    location?: string;
+    linkedinUrl?: string;
+    email?: string;
+    language?: "es" | "pt" | "en";
+    listId?: string;
+  }) => {
+    const currentLeads = getStoredLeads();
+    const currentLists = getStoredLeadLists();
+    const targetList = params.listId ? currentLists.find((l) => l.id === params.listId) : undefined;
+    const cleanName = params.fullName.trim();
+    const parts = cleanName.split(/\s+/);
+    const newLead: Lead360Item = {
+      id: `lead-manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      fullName: cleanName,
+      firstName: parts[0] || cleanName,
+      lastName: parts.slice(1).join(" "),
+      title: params.title.trim() || "Profesional B2B",
+      company: params.company?.trim() || "Empresa en LinkedIn",
+      location: params.location?.trim() || "Remoto",
+      email: params.email?.trim() || undefined,
+      linkedinUrl: params.linkedinUrl?.trim() || "",
+      signalSource: targetList ? targetList.signalSource : "Ingreso Manual CRM",
+      signalLevel: targetList ? targetList.signalLevel : "level_1",
+      intentScore: 90,
+      stage: "lead_captured",
+      sequenceStatus: "in_progress",
+      listId: targetList ? targetList.id : "manual-crm",
+      listName: targetList ? targetList.name : "Alta Manual CRM",
+      activeCampaignName: targetList?.assignedCampaign || "01. Secuencia: Listas de Leads",
+      language: params.language || detectLeadLanguage({
+        fullName: cleanName,
+        headline: params.title,
+        location: params.location,
+        linkedinUrl: params.linkedinUrl,
+      }),
+      timeline: [
+        {
+          id: `tl-${Date.now()}`,
+          timestamp: "Ahora mismo",
+          title: "Alta Manual en CRM",
+          detail: "Prospecto agregado manualmente desde el Directorio 360.",
+          type: "crm",
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      lastActivityAt: "Ahora mismo",
+    };
+
+    const updatedLeads = [newLead, ...currentLeads];
+    setLeads(updatedLeads);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
+      if (targetList) {
+        const updatedLists = currentLists.map((lg) =>
+          lg.id === targetList.id
+            ? { ...lg, leadsCount: updatedLeads.filter((l) => l.listId === targetList.id).length }
+            : lg
+        );
+        localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
+        setLists(updatedLists);
+        syncLeadsCrmToDbInBackground({ leads: [newLead], lists: updatedLists });
+      } else {
+        syncLeadsCrmToDbInBackground({ leads: [newLead] });
+      }
+      emitLeadsStoreChange();
+    }
+    return newLead;
+  }, []);
+
+  const bulkUpdateLeadsStage = useCallback((leadIds: string[], newStage: CrmStage) => {
+    if (!leadIds || leadIds.length === 0) return;
+    const idSet = new Set(leadIds);
+    const current = getStoredLeads();
+    const changedLeads: Lead360Item[] = [];
+    const updated = current.map((l) => {
+      if (!idSet.has(l.id)) return l;
+      const ev = {
+        id: `tl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+        timestamp: "Justo ahora",
+        title: "Actualización Masiva de Etapa",
+        detail: `Mover a etapa: ${newStage}.`,
+        type: "crm" as const,
+      };
+      const next = {
+        ...l,
+        stage: newStage,
+        lastActivityAt: "Reciente",
+        timeline: [ev, ...(l.timeline || [])],
+      };
+      changedLeads.push(next);
+      return next;
+    });
+    setLeads(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updated));
+      emitLeadsStoreChange();
+      syncLeadsCrmToDbInBackground({ leads: changedLeads });
+    }
+  }, []);
+
+  const bulkMoveLeadsToList = useCallback((leadIds: string[], targetListId: string) => {
+    if (!leadIds || leadIds.length === 0 || !targetListId) return;
+    const idSet = new Set(leadIds);
+    const currentLeads = getStoredLeads();
+    const currentLists = getStoredLeadLists();
+    const targetList = currentLists.find((lg) => lg.id === targetListId);
+    if (!targetList) return;
+
+    const changedLeads: Lead360Item[] = [];
+    const updatedLeads = currentLeads.map((l) => {
+      if (!idSet.has(l.id)) return l;
+      const next: Lead360Item = {
+        ...l,
+        listId: targetList.id,
+        listName: targetList.name,
+        signalLevel: targetList.signalLevel,
+        activeCampaignName: targetList.assignedCampaign || l.activeCampaignName,
+        lastActivityAt: "Reciente",
+      };
+      changedLeads.push(next);
+      return next;
+    });
+
+    const recalibratedLists = currentLists.map((lg) => ({
+      ...lg,
+      leadsCount: updatedLeads.filter((l) => l.listId === lg.id).length,
+    }));
+
+    setLeads(updatedLeads);
+    setLists(recalibratedLists);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibratedLists));
+      emitLeadsStoreChange();
+      syncLeadsCrmToDbInBackground({ leads: changedLeads, lists: recalibratedLists });
+    }
+  }, []);
+
+  const bulkDeleteLeads = useCallback((leadIds: string[]) => {
+    if (!leadIds || leadIds.length === 0) return;
+    const idSet = new Set(leadIds);
+    const currentLeads = getStoredLeads();
+    const currentLists = getStoredLeadLists();
+    const updatedLeads = currentLeads.filter((l) => !idSet.has(l.id));
+    const recalibratedLists = currentLists.map((lg) => ({
+      ...lg,
+      leadsCount: updatedLeads.filter((l) => l.listId === lg.id).length,
+    }));
+
+    setLeads(updatedLeads);
+    setLists(recalibratedLists);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(updatedLeads));
+      localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(recalibratedLists));
+      emitLeadsStoreChange();
+      for (const id of leadIds) {
+        deleteLeadOrListFromDbInBackground({ leadId: id });
+      }
+      syncLeadsCrmToDbInBackground({ lists: recalibratedLists });
     }
   }, []);
 
@@ -811,6 +1003,10 @@ export function useLeadsStore() {
     getOrCreateGlobalList,
     getOrCreateLevel1List,
     markListMonitorAsDeleted,
+    addManualLead,
+    bulkUpdateLeadsStage,
+    bulkMoveLeadsToList,
+    bulkDeleteLeads,
   };
 }
 
@@ -964,6 +1160,7 @@ export function importSignalLeadsToList(
   }
   localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(updatedLists));
   emitLeadsStoreChange();
+  syncLeadsCrmToDbInBackground({ leads: convertedLeads, lists: [updatedList] });
 
   return { list: updatedList, addedCount: convertedLeads.length };
 }

@@ -7,6 +7,7 @@ import LeadScoreBadge from "@/components/leads/LeadScoreBadge";
 import LeadLanguageBadge from "@/components/leads/LeadLanguageBadge";
 import { exportLeadsToCsv, useLeadsStore } from "@/lib/leads/store";
 import type { CrmStage, Lead360Item, SequenceStatus } from "@/lib/leads/types";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -33,11 +34,29 @@ export default function LeadsDirectoryView({
     updateLeadSequenceStatus,
     deleteLead,
     batchUpdateLeadPhotos,
+    addManualLead,
+    bulkUpdateLeadsStage,
+    bulkMoveLeadsToList,
+    bulkDeleteLeads,
   } = useLeadsStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedListFilter, setSelectedListFilter] = useState<string>("all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
+  const [selectedLangFilter, setSelectedLangFilter] = useState<string>("all");
+  const [selectedScoreFilter, setSelectedScoreFilter] = useState<string>("all");
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [bulkStageTarget, setBulkStageTarget] = useState<CrmStage>("in_sequence");
+  const [bulkListTarget, setBulkListTarget] = useState<string>("");
+  const [isAddingManualLead, setIsAddingManualLead] = useState(false);
+  const [manualFullName, setManualFullName] = useState("");
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualCompany, setManualCompany] = useState("");
+  const [manualLocation, setManualLocation] = useState("");
+  const [manualLinkedinUrl, setManualLinkedinUrl] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [manualLanguage, setManualLanguage] = useState<"es" | "pt" | "en">("es");
+  const [manualListId, setManualListId] = useState("");
   const [selectedLeadFor360, setSelectedLeadFor360] = useState<Lead360Item | null>(null);
 
   // Sincronización automática de fotos oficiales de LinkedIn en segundo plano (estilo #b2b)
@@ -94,10 +113,59 @@ export default function LeadsDirectoryView({
           lead.signalSource?.toLowerCase().includes(targetListObj.competitorName.toLowerCase())
         ));
       const matchesStage = selectedStageFilter === "all" || lead.stage === selectedStageFilter;
+      const matchesLang =
+        selectedLangFilter === "all" || (lead.language || "es") === selectedLangFilter;
+      const matchesScore =
+        selectedScoreFilter === "all" ||
+        (selectedScoreFilter === "100" && lead.intentScore >= 100) ||
+        (selectedScoreFilter === "90" && lead.intentScore >= 90) ||
+        (selectedScoreFilter === "80" && lead.intentScore >= 80);
 
-      return matchesSearch && matchesList && matchesStage;
+      return matchesSearch && matchesList && matchesStage && matchesLang && matchesScore;
     });
-  }, [leads, lists, searchTerm, selectedListFilter, selectedStageFilter]);
+  }, [leads, lists, searchTerm, selectedListFilter, selectedStageFilter, selectedLangFilter, selectedScoreFilter]);
+
+  const allFilteredSelected =
+    filteredLeads.length > 0 && filteredLeads.every((l) => selectedLeadIds.includes(l.id));
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      const filteredSet = new Set(filteredLeads.map((l) => l.id));
+      setSelectedLeadIds((prev) => prev.filter((id) => !filteredSet.has(id)));
+    } else {
+      const next = new Set(selectedLeadIds);
+      for (const l of filteredLeads) next.add(l.id);
+      setSelectedLeadIds(Array.from(next));
+    }
+  };
+
+  const toggleSelectOne = (leadId: string) => {
+    setSelectedLeadIds((prev) =>
+      prev.includes(leadId) ? prev.filter((id) => id !== leadId) : [...prev, leadId]
+    );
+  };
+
+  const handleCreateManualLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualFullName.trim()) return;
+    addManualLead({
+      fullName: manualFullName,
+      title: manualTitle,
+      company: manualCompany,
+      location: manualLocation,
+      linkedinUrl: manualLinkedinUrl,
+      email: manualEmail,
+      language: manualLanguage,
+      listId: manualListId || undefined,
+    });
+    setIsAddingManualLead(false);
+    setManualFullName("");
+    setManualTitle("");
+    setManualCompany("");
+    setManualLocation("");
+    setManualLinkedinUrl("");
+    setManualEmail("");
+  };
 
   const getStageLabel = (stage: CrmStage) => {
     switch (stage) {
@@ -162,13 +230,26 @@ export default function LeadsDirectoryView({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <a
-              href="/leads?tab=lists" onClick={(e) => { if (onTabChange) { e.preventDefault(); onTabChange("lists"); } }}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAddingManualLead(true)}
+              className="rounded-lg border border-brand-500 px-3 py-2 text-xs font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/20 transition"
+            >
+              + Nuevo Lead
+            </button>
+            <Link
+              href="/leads?tab=lists"
+              onClick={(e) => {
+                if (onTabChange) {
+                  e.preventDefault();
+                  onTabChange("lists");
+                }
+              }}
               className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
             >
               {t("viewSignalLists", { count: lists.length })}
-            </a>
+            </Link>
             <button
               type="button"
               onClick={() => exportLeadsToCsv(filteredLeads)}
@@ -180,7 +261,7 @@ export default function LeadsDirectoryView({
         </div>
 
         {/* Filtros de Búsqueda y Segmentación */}
-        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="border-t border-gray-300 px-6 py-5 sm:p-6 dark:border-gray-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
           <input
             type="text"
@@ -220,9 +301,124 @@ export default function LeadsDirectoryView({
             <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
             <option value="proposal_presented">{t("stageProposalPresented")}</option>
             <option value="closed_won">{t("stageClosedWon")}</option>
+            <option value="closed_lost">{t("stageClosedLost")}</option>
+          </select>
+        </div>
+
+        <div>
+          <select
+            value={selectedLangFilter}
+            onChange={(e) => setSelectedLangFilter(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="all">Todos los idiomas</option>
+            <option value="es">Español (ES)</option>
+            <option value="pt">Portugués (PT)</option>
+            <option value="en">Inglés (EN)</option>
+          </select>
+        </div>
+
+        <div>
+          <select
+            value={selectedScoreFilter}
+            onChange={(e) => setSelectedScoreFilter(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="all">Todas las puntuaciones</option>
+            <option value="100">🔥 100 (Lead Magnet)</option>
+            <option value="90">🥇 90+ (Comentarios)</option>
+            <option value="80">🥈 80+ (Reacciones)</option>
           </select>
         </div>
         </div>
+
+        {selectedLeadIds.length > 0 && (
+          <div className="border-t border-brand-200 bg-brand-50/60 dark:border-brand-900/40 dark:bg-brand-950/20 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <span className="font-bold text-brand-700 dark:text-brand-300">
+              {selectedLeadIds.length} lead(s) seleccionado(s)
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={bulkStageTarget}
+                onChange={(e) => setBulkStageTarget(e.target.value as CrmStage)}
+                className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              >
+                <option value="lead_captured">{t("stageLeadCaptured")}</option>
+                <option value="in_sequence">{t("stageInSequence")}</option>
+                <option value="connected_material_sent">{t("stageMaterialSent")}</option>
+                <option value="active_conversation">{t("stageActiveConversation")}</option>
+                <option value="meeting_scheduled">{t("stageMeetingScheduled")}</option>
+                <option value="proposal_presented">{t("stageProposalPresented")}</option>
+                <option value="closed_won">{t("stageClosedWon")}</option>
+                <option value="closed_lost">{t("stageClosedLost")}</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  bulkUpdateLeadsStage(selectedLeadIds, bulkStageTarget);
+                  setSelectedLeadIds([]);
+                }}
+                className="rounded-lg bg-brand-500 px-3 py-1.5 font-semibold text-white hover:bg-brand-600 transition"
+              >
+                Aplicar Etapa
+              </button>
+
+              {lists.length > 0 && (
+                <>
+                  <select
+                    value={bulkListTarget}
+                    onChange={(e) => setBulkListTarget(e.target.value)}
+                    className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  >
+                    <option value="">Mover a lista...</option>
+                    {lists.map((lg) => (
+                      <option key={lg.id} value={lg.id}>
+                        {lg.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={!bulkListTarget}
+                    onClick={() => {
+                      if (!bulkListTarget) return;
+                      bulkMoveLeadsToList(selectedLeadIds, bulkListTarget);
+                      setSelectedLeadIds([]);
+                      setBulkListTarget("");
+                    }}
+                    className="rounded-lg border border-brand-500 px-3 py-1.5 font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-40 dark:text-brand-400 transition"
+                  >
+                    Mover
+                  </button>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const idSet = new Set(selectedLeadIds);
+                  exportLeadsToCsv(filteredLeads.filter((l) => idSet.has(l.id)));
+                }}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 transition"
+              >
+                Exportar Selección
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`¿Eliminar ${selectedLeadIds.length} lead(s) seleccionado(s)?`)) {
+                    bulkDeleteLeads(selectedLeadIds);
+                    setSelectedLeadIds([]);
+                  }
+                }}
+                className="rounded-lg border border-red-200 bg-white px-3 py-1.5 font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:bg-gray-900 dark:text-red-400 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabla de Directorio 360 */}
@@ -241,6 +437,15 @@ export default function LeadsDirectoryView({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-200 text-xs leading-5 font-medium tracking-wider uppercase text-gray-400 [&_th]:font-semibold dark:border-gray-800">
                 <tr>
+                  <th className="pb-3 w-[34px] pr-2">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={toggleSelectAllFiltered}
+                      aria-label="Seleccionar todos"
+                      className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="pb-3 w-[210px] min-w-[195px] pr-5">{t("colProspect")}</th>
                   <th className="pb-3 w-[240px] min-w-[210px] pr-6">{t("colJob")}</th>
                   <th className="pb-3 w-[170px] min-w-[155px] pr-6 whitespace-nowrap">{t("colSignalSource")}</th>
@@ -255,6 +460,16 @@ export default function LeadsDirectoryView({
 
                   return (
                     <tr key={lead.id} className="hover:bg-gray-50/50 dark:hover:bg-white/2 transition">
+                      {/* Checkbox selección múltiple */}
+                      <td className="py-3.5 pr-2 w-[34px]">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIds.includes(lead.id)}
+                          onChange={() => toggleSelectOne(lead.id)}
+                          aria-label={`Seleccionar ${lead.fullName}`}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 cursor-pointer"
+                        />
+                      </td>
                       {/* Columna: Prospecto */}
                       <td className="py-3.5 pr-5 w-[210px] min-w-[195px]">
                         <div className="flex items-center gap-3">
@@ -321,13 +536,13 @@ export default function LeadsDirectoryView({
                         >
                           {t("actionRecord")}
                         </button>
-                        <a
-                          href="/inbox"
+                        <Link
+                          href={`/inbox?leadName=${encodeURIComponent(lead.fullName)}`}
                           className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 transition"
                           title={t("openChatInInbox")}
                         >
                           {t("actionChat")}
-                        </a>
+                        </Link>
                       </td>
                     </tr>
                   );
@@ -514,14 +729,147 @@ export default function LeadsDirectoryView({
                 >
                   {t("close")}
                 </button>
-                <a
-                  href="/inbox"
+                <Link
+                  href={`/inbox?leadName=${encodeURIComponent(selectedLeadFor360.fullName)}`}
                   className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition"
                 >
                   {t("openChatInInbox")}
-                </a>
+                </Link>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Nuevo Lead Manual */}
+      {isAddingManualLead && (
+        <div className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-theme-xl dark:bg-gray-900 border border-gray-300 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-300 pb-3 dark:border-gray-800">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                Agregar Prospecto Manualmente
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddingManualLead(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateManualLead} className="space-y-3 text-xs">
+              <div>
+                <label className="block uppercase text-gray-400 mb-1">Nombre completo *</label>
+                <input
+                  type="text"
+                  required
+                  value={manualFullName}
+                  onChange={(e) => setManualFullName(e.target.value)}
+                  placeholder="Ej. Laura Mendoza"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Cargo / Titular</label>
+                  <input
+                    type="text"
+                    value={manualTitle}
+                    onChange={(e) => setManualTitle(e.target.value)}
+                    placeholder="Ej. Head of Growth"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Empresa</label>
+                  <input
+                    type="text"
+                    value={manualCompany}
+                    onChange={(e) => setManualCompany(e.target.value)}
+                    placeholder="Ej. ScaleFlow B2B"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Ubicación</label>
+                  <input
+                    type="text"
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    placeholder="Ej. Madrid, España"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Email corporativo</label>
+                  <input
+                    type="email"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder="laura@empresa.com"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block uppercase text-gray-400 mb-1">URL de LinkedIn</label>
+                <input
+                  type="url"
+                  value={manualLinkedinUrl}
+                  onChange={(e) => setManualLinkedinUrl(e.target.value)}
+                  placeholder="https://www.linkedin.com/in/..."
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Idioma</label>
+                  <select
+                    value={manualLanguage}
+                    onChange={(e) => setManualLanguage(e.target.value as "es" | "pt" | "en")}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  >
+                    <option value="es">Español (ES)</option>
+                    <option value="pt">Portugués (PT)</option>
+                    <option value="en">Inglés (EN)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block uppercase text-gray-400 mb-1">Lista destino</label>
+                  <select
+                    value={manualListId}
+                    onChange={(e) => setManualListId(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  >
+                    <option value="">Alta Manual CRM (sin lista)</option>
+                    {lists.map((lg) => (
+                      <option key={lg.id} value={lg.id}>
+                        {lg.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-300 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingManualLead(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-brand-500 px-5 py-2 font-semibold text-white hover:bg-brand-600 transition"
+                >
+                  Guardar Lead
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
