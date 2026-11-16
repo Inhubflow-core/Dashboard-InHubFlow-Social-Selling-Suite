@@ -135,17 +135,8 @@ export default function CreateViralPostView({
   const { currentUser } = useAuth();
   const { addPost } = useCreatedPosts();
 
-  // 1. Selector de 3 Vías de Entrada (Origen del Post)
-  const [sourceMode, setSourceMode] = useState<"viral" | "external" | "scratch">(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab")?.toLowerCase();
-      if (tab === "personal" || tab === "scratch") return "scratch";
-      if (tab === "external") return "external";
-    }
-    const selected = getSelectedTemplateForModeling();
-    return selected ? "viral" : "scratch";
-  });
+  // 1. Selector de 3 Vías de Entrada (Origen del Post) — inicialización determinista SSR/cliente
+  const [sourceMode, setSourceMode] = useState<"viral" | "external" | "scratch">("scratch");
 
   // 2. Selector de 3 Formatos de Salida (Modelos de Post)
   const [format, setFormat] = useState<PostFormat>("text"); // "text" | "image" | "carousel"
@@ -190,11 +181,16 @@ export default function CreateViralPostView({
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState(() => {
-    const tomorrow = new Date(Date.now() + 86400000);
-    return tomorrow.toISOString().split("T")[0];
-  });
+  const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("09:30");
+
+  useEffect(() => {
+    setScheduledDate((prev) => {
+      if (prev) return prev;
+      const tomorrow = new Date(Date.now() + 86400000);
+      return tomorrow.toISOString().split("T")[0];
+    });
+  }, []);
   const [publishFeedback, setPublishFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isExpandedPreview, setIsExpandedPreview] = useState(false);
 
@@ -251,10 +247,20 @@ export default function CreateViralPostView({
     return () => window.removeEventListener("storage", syncAccounts);
   }, [currentUser]);
 
-  // Carga inicial según plantilla de Radar o borrador previo
+  // Carga inicial según URL, plantilla de Radar o borrador previo (evita hydration mismatch)
   useEffect(() => {
+    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const tab = params?.get("tab")?.toLowerCase();
+    const hasExplicitTabOverride = tab === "personal" || tab === "scratch" || tab === "external";
+
+    if (tab === "personal" || tab === "scratch") {
+      setSourceMode("scratch");
+    } else if (tab === "external") {
+      setSourceMode("external");
+    }
+
     const selected = getSelectedTemplateForModeling();
-    if (selected) {
+    if (!hasExplicitTabOverride && selected) {
       setSourceMode("viral");
       setFormat(selected.format || "text");
       setTopic(selected.topic || "Social Selling B2B");

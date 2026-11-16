@@ -201,8 +201,13 @@ export default function ViralRadarView({
   const [showMonthPlanModal, setShowMonthPlanModal] = useState(false);
   const [generatedMonthPosts, setGeneratedMonthPosts] = useState<CreatedPost[]>([]);
 
-  // Detección 100% Automática de Ubicación y Mercado (Sin selección manual de botones)
-  const [detectedLocation, setDetectedLocation] = useState<DetectedMarketInfo>(() => detectUserMarket());
+  // Detección 100% Automática de Ubicación y Mercado (estado determinista en SSR, detección en cliente al montar)
+  const [detectedLocation, setDetectedLocation] = useState<DetectedMarketInfo>({
+    country: "Hispanoamérica",
+    market: "latam_us",
+    label: "Hispanoamérica + EE.UU.",
+    timezone: "",
+  });
 
   useEffect(() => {
     setDetectedLocation(detectUserMarket());
