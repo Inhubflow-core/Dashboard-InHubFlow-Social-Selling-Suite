@@ -5,6 +5,7 @@ export type SubscriptionStatus = "active" | "trial" | "past_due" | "canceled";
 export type UserRole = "super_admin" | "client_admin" | "member";
 
 export interface PlanFeature {
+  key?: string;
   text: string;
   included: boolean;
   highlight?: boolean;

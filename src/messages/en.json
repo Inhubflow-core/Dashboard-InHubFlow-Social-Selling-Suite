@@ -2501,7 +2501,20 @@
     "faq3Q": "What daily safety limits apply to each account?",
     "faq3A": "Each profile operates independently with human pacing (random pauses of 3 to 12 minutes) and a safe cap of 20-25 connection invites and 30-40 direct messages daily to prevent restrictions.",
     "faq4Q": "How does multi-operator management and the 3 roles work?",
-    "faq4A": "The platform provides 3 roles: Super Admin, Admin, and Team. On the Starter Plan (1 slot), access is exclusive to Admin. On Growth Plan (5 slots), Admin can invite collaborators. On Business Plan (10 slots), Admin can invite up to 9 operators."
+    "faq4A": "The platform provides 3 roles: Super Admin, Admin, and Team. On the Starter Plan (1 slot), access is exclusive to Admin. On Growth Plan (5 slots), Admin can invite collaborators. On Business Plan (10 slots), Admin can invite up to 9 operators.",
+    "openingCheckout": "Opening secure Lemon Squeezy checkout for {name}...",
+    "featSlots1": "1 Connected LinkedIn Account (1 Exclusive Admin Slot)",
+    "featSlots5": "5 Connected LinkedIn Accounts (1 Admin + up to 4 Team members)",
+    "featSlots10": "10 Connected LinkedIn Accounts (1 Admin + up to 9 Team members)",
+    "featInteractions1": "Up to 20 commercial interactions / day (400/month · Mon to Fri)",
+    "featInteractions5": "Up to 100 commercial interactions / day (2,000/month · Mon to Fri)",
+    "featInteractions10": "Up to 200 commercial interactions / day (4,000/month · Mon to Fri)",
+    "featViralPosts": "Unlimited Viral Posts: create 1 month of content in minutes (text, images & PDF carousels)",
+    "featSignals": "Unlimited Real-Time Intent Signal Monitors (Levels 1, 2 & 3)",
+    "featCampaigns": "Prospecting Sequences & Campaigns with smart delays",
+    "featSdr": "Unlimited 24/7 AI SDR Assistant (Replies & Qualification)",
+    "featInboxCrm": "Unified Smart Inbox, 8-Stage CRM Pipeline & CSV Export",
+    "featProtection": "Anti-ban Protection: Humanized pacing and smart rotation"
   },
   "team": {
     "pageTitle": "Team & Operators",

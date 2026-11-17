@@ -2501,7 +2501,20 @@
     "faq3Q": "Quais limites diários de segurança cada conta possui?",
     "faq3A": "Cada perfil opera de forma independente com pacing humano (pausas aleatórias de 3 a 12 minutos) e limite seguro de 20-25 convites de conexão e 30-40 mensagens diretas diárias para garantir zero restrições.",
     "faq4Q": "Como funciona a administração multi-operador e os 3 papéis?",
-    "faq4A": "A plataforma gerencia 3 papéis: Super Admin, Admin e Team. No Plano Starter (1 slot), o uso é exclusivo para o Admin. No Plano Growth (5 slots), o Admin pode convidar colaboradores. No Plano Business (10 slots), o Admin pode convidar até 9 operadores."
+    "faq4A": "A plataforma gerencia 3 papéis: Super Admin, Admin e Team. No Plano Starter (1 slot), o uso é exclusivo para o Admin. No Plano Growth (5 slots), o Admin pode convidar colaboradores. No Plano Business (10 slots), o Admin pode convidar até 9 operadores.",
+    "openingCheckout": "Abrindo checkout seguro da Lemon Squeezy para {name}...",
+    "featSlots1": "1 Conta do LinkedIn conectada (1 Slot exclusivo de Administrador)",
+    "featSlots5": "5 Contas do LinkedIn conectadas (1 Admin + até 4 membros Team)",
+    "featSlots10": "10 Contas do LinkedIn conectadas (1 Admin + até 9 membros Team)",
+    "featInteractions1": "Até 20 interações comerciais / dia (400 por mês · Seg a Sex)",
+    "featInteractions5": "Até 100 interações comerciais / dia (2.000 por mês · Seg a Sex)",
+    "featInteractions10": "Até 200 interações comerciais / dia (4.000 por mês · Seg a Sex)",
+    "featViralPosts": "Posts Virais Ilimitados: crie conteúdo para 1 mês em minutos (texto, imagem e carrosséis PDF)",
+    "featSignals": "Monitores de Sinais de Intenção Ilimitados em tempo real (Nível 1, 2 e 3)",
+    "featCampaigns": "Sequências e Campanhas de Prospecção com delays inteligentes",
+    "featSdr": "Assistente SDR de IA 24/7 Ilimitado (Respostas e Qualificação)",
+    "featInboxCrm": "Smart Inbox Unificado, Pipeline CRM de 8 Etapas e Exportação CSV",
+    "featProtection": "Proteção Anti-bloqueio: Ritmos humanizados e rotação inteligente"
   },
   "team": {
     "pageTitle": "Equipe & Operadores",

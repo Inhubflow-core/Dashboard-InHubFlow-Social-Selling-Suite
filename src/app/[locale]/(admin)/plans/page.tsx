@@ -46,7 +46,7 @@ export default function PlansPricingPage() {
         checkoutUrl.searchParams.set("checkout[custom][plan_id]", tier);
         checkoutUrl.searchParams.set("checkout[custom][billing_period]", billingCycle === "annual" ? "yearly" : "monthly");
         window.open(checkoutUrl.toString(), "_blank", "noopener,noreferrer");
-        setNotice(`Abriendo pasarela segura de Lemon Squeezy para ${planCfg.name}...`);
+        setNotice(t("openingCheckout", { name: planCfg.name }));
         setTimeout(() => setNotice(null), 4000);
         return;
       } catch {}
@@ -235,7 +235,7 @@ export default function PlansPricingPage() {
                           : "text-gray-400 line-through dark:text-gray-600"
                       }`}
                     >
-                      {feat.text}
+                      {feat.key ? t(feat.key) : feat.text}
                     </span>
                   </div>
                 ))}

@@ -1,12 +1,12 @@
 import type { SaaSPlanConfig, PlanTier, PlanFeature } from "./types";
 
 const COMMON_SOCIAL_FEATURES: PlanFeature[] = [
-  { text: "Posts Virales Ilimitados: crea contenido para 1 mes en minutos (texto, imagen y carruseles PDF)", included: true, highlight: true },
-  { text: "Monitores de Senales de Intencion Ilimitados en tiempo real (Nivel 1, 2 y 3)", included: true, highlight: true },
-  { text: "Secuencias y Campanas de Prospeccion con delays inteligentes", included: true },
-  { text: "Asistente SDR de IA 24/7 Ilimitado (Respuestas y Calificacion)", included: true },
-  { text: "Smart Inbox Unificado, Pipeline CRM de 8 Etapas y Exportacion CSV", included: true },
-  { text: "Proteccion Anti-bloqueos: Ritmos humanizados y rotacion inteligente", included: true },
+  { key: "featViralPosts", text: "Posts Virales Ilimitados: crea contenido para 1 mes en minutos (texto, imagen y carruseles PDF)", included: true, highlight: true },
+  { key: "featSignals", text: "Monitores de Senales de Intencion Ilimitados en tiempo real (Nivel 1, 2 y 3)", included: true, highlight: true },
+  { key: "featCampaigns", text: "Secuencias y Campanas de Prospeccion con delays inteligentes", included: true },
+  { key: "featSdr", text: "Asistente SDR de IA 24/7 Ilimitado (Respuestas y Calificacion)", included: true },
+  { key: "featInboxCrm", text: "Smart Inbox Unificado, Pipeline CRM de 8 Etapas y Exportacion CSV", included: true },
+  { key: "featProtection", text: "Proteccion Anti-bloqueos: Ritmos humanizados y rotacion inteligente", included: true },
 ];
 
 /**
@@ -27,8 +27,8 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/1c4e9363-186e-40e7-a74e-f9d89117ba3a",
     lemonVariantId: "2088572",
     features: [
-      { text: "1 Cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)", included: true, highlight: true },
-      { text: "Hasta 20 interacciones comerciales / dia (400 al mes · Lun a Vie)", included: true, highlight: true },
+      { key: "featSlots1", text: "1 Cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)", included: true, highlight: true },
+      { key: "featInteractions1", text: "Hasta 20 interacciones comerciales / dia (400 al mes · Lun a Vie)", included: true, highlight: true },
       ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {
@@ -51,8 +51,8 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/46fd950f-5631-4e6c-bd2e-a15da16d97cc",
     lemonVariantId: "2088578",
     features: [
-      { text: "5 Cuentas de LinkedIn conectadas (1 Admin + hasta 4 miembros Team)", included: true, highlight: true },
-      { text: "Hasta 100 interacciones comerciales / dia (2.000 al mes · Lun a Vie)", included: true, highlight: true },
+      { key: "featSlots5", text: "5 Cuentas de LinkedIn conectadas (1 Admin + hasta 4 miembros Team)", included: true, highlight: true },
+      { key: "featInteractions5", text: "Hasta 100 interacciones comerciales / dia (2.000 al mes · Lun a Vie)", included: true, highlight: true },
       ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {
@@ -74,8 +74,8 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/3ea48412-43ed-4330-97c5-c06073d1d00d",
     lemonVariantId: "2088581",
     features: [
-      { text: "10 Cuentas de LinkedIn conectadas (1 Admin + hasta 9 miembros Team)", included: true, highlight: true },
-      { text: "Hasta 200 interacciones comerciales / dia (4.000 al mes · Lun a Vie)", included: true, highlight: true },
+      { key: "featSlots10", text: "10 Cuentas de LinkedIn conectadas (1 Admin + hasta 9 miembros Team)", included: true, highlight: true },
+      { key: "featInteractions10", text: "Hasta 200 interacciones comerciales / dia (4.000 al mes · Lun a Vie)", included: true, highlight: true },
       ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {

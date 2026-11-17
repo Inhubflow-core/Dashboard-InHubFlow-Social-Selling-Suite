@@ -2501,7 +2501,20 @@
     "faq3Q": "¿Qué límites diarios de seguridad tiene cada cuenta?",
     "faq3A": "Cada perfil opera de forma independiente con pacing humano (pausas aleatorias de 3 a 12 minutos) y un tope seguro de 20-25 invitaciones de conexión y 30-40 mensajes directos diarios para garantizar cero restricciones.",
     "faq4Q": "¿Cómo funciona la administración multi-operador y los 3 roles?",
-    "faq4A": "La plataforma maneja 3 roles: Super Admin, Admin y Team. En el Plan Starter (1 slot) el uso es exclusivo para el Admin. En el Plan Growth (5 slots), el Admin puede invitar a colaboradores. En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores."
+    "faq4A": "La plataforma maneja 3 roles: Super Admin, Admin y Team. En el Plan Starter (1 slot) el uso es exclusivo para el Admin. En el Plan Growth (5 slots), el Admin puede invitar a colaboradores. En el Plan Business (10 slots), el Admin puede invitar a hasta 9 operadores.",
+    "openingCheckout": "Abriendo pasarela segura de Lemon Squeezy para {name}...",
+    "featSlots1": "1 Cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)",
+    "featSlots5": "5 Cuentas de LinkedIn conectadas (1 Admin + hasta 4 miembros Team)",
+    "featSlots10": "10 Cuentas de LinkedIn conectadas (1 Admin + hasta 9 miembros Team)",
+    "featInteractions1": "Hasta 20 interacciones comerciales / día (400 al mes · Lun a Vie)",
+    "featInteractions5": "Hasta 100 interacciones comerciales / día (2.000 al mes · Lun a Vie)",
+    "featInteractions10": "Hasta 200 interacciones comerciales / día (4.000 al mes · Lun a Vie)",
+    "featViralPosts": "Posts Virales Ilimitados: crea contenido para 1 mes en minutos (texto, imagen y carruseles PDF)",
+    "featSignals": "Monitores de Señales de Intención Ilimitados en tiempo real (Nivel 1, 2 y 3)",
+    "featCampaigns": "Secuencias y Campañas de Prospección con delays inteligentes",
+    "featSdr": "Asistente SDR de IA 24/7 Ilimitado (Respuestas y Calificación)",
+    "featInboxCrm": "Smart Inbox Unificado, Pipeline CRM de 8 Etapas y Exportación CSV",
+    "featProtection": "Protección Anti-bloqueos: Ritmos humanizados y rotación inteligente"
   },
   "team": {
     "pageTitle": "Equipo & Operadores",
