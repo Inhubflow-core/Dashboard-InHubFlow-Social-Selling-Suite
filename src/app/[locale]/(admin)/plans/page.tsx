@@ -28,8 +28,32 @@ export default function PlansPricingPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const handleSelectPlan = async (tier: PlanTier) => {
-    updateUserPlan(tier);
     const planCfg = getPlanConfig(tier);
+
+    // Si es un cliente normal y el plan tiene URL de Lemon Squeezy, abrir el checkout oficial
+    if (!isSuperAdmin && planCfg.lemonCheckoutUrl) {
+      try {
+        const checkoutUrl = new URL(planCfg.lemonCheckoutUrl);
+        if (currentUser.email) {
+          checkoutUrl.searchParams.set("checkout[email]", currentUser.email.trim().toLowerCase());
+          checkoutUrl.searchParams.set("checkout[custom][admin_email]", currentUser.email.trim().toLowerCase());
+        }
+        if (currentUser.companyName || currentUser.name) {
+          const company = (currentUser.companyName || currentUser.name).trim();
+          checkoutUrl.searchParams.set("checkout[name]", company);
+          checkoutUrl.searchParams.set("checkout[custom][company_name]", company);
+        }
+        checkoutUrl.searchParams.set("checkout[custom][plan_id]", tier);
+        checkoutUrl.searchParams.set("checkout[custom][billing_period]", billingCycle === "annual" ? "yearly" : "monthly");
+        window.open(checkoutUrl.toString(), "_blank", "noopener,noreferrer");
+        setNotice(`Abriendo pasarela segura de Lemon Squeezy para ${planCfg.name}...`);
+        setTimeout(() => setNotice(null), 4000);
+        return;
+      } catch {}
+    }
+
+    // SuperAdmin: actualización directa para administración o pruebas
+    updateUserPlan(tier);
     try {
       await fetch("/api/saas/subscribers", {
         method: "PUT",

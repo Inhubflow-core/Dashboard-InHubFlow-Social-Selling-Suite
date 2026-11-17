@@ -66,13 +66,27 @@ export default function AdminSubscribersPage() {
   const [editSlots, setEditSlots] = useState<number>(1);
   const [editStatus, setEditStatus] = useState<SubscriptionStatus>("active");
 
-  const loadData = () => {
+  const loadData = async () => {
+    try {
+      const res = await fetch("/api/saas/subscribers", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.subscribers)) {
+          setUsers(data.subscribers);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("inhubflow_saas_users", JSON.stringify(data.subscribers));
+          }
+          if (data.stats) setStats(data.stats);
+          return;
+        }
+      }
+    } catch {}
     setUsers(getStoredUsers());
     setStats(getGlobalSaaSStats());
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
   // Al cambiar el plan en el formulario de creación, autocalcular slots sugeridos
@@ -95,7 +109,7 @@ export default function AdminSubscribersPage() {
     });
   }, [users, search, planFilter, statusFilter]);
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
 
@@ -105,15 +119,23 @@ export default function AdminSubscribersPage() {
     }
 
     try {
-      addSubscriber({
-        email: newEmail,
-        name: newName || undefined,
-        companyName: newCompany,
-        planTier: newPlan,
-        slotsLimit: newSlots,
+      const res = await fetch("/api/saas/subscribers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newEmail,
+          name: newName || undefined,
+          companyName: newCompany,
+          planTier: newPlan,
+          slotsLimit: newSlots,
+        }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || t("errorGeneric"));
+      }
 
-      loadData();
+      await loadData();
       refreshUserData();
       setIsCreateModalOpen(false);
       setNewEmail("");
@@ -137,29 +159,56 @@ export default function AdminSubscribersPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
 
-    updateSubscriber(selectedUser.id, {
-      companyName: editCompany,
-      planTier: editPlan,
-      slotsLimit: editSlots,
-      subscriptionStatus: editStatus,
-    });
+    try {
+      await fetch("/api/saas/subscribers", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedUser.id,
+          companyName: editCompany,
+          planTier: editPlan,
+          slotsLimit: editSlots,
+          subscriptionStatus: editStatus,
+        }),
+      });
+    } catch {
+      updateSubscriber(selectedUser.id, {
+        companyName: editCompany,
+        planTier: editPlan,
+        slotsLimit: editSlots,
+        subscriptionStatus: editStatus,
+      });
+    }
 
-    loadData();
+    await loadData();
     refreshUserData();
     setIsEditModalOpen(false);
     setNotice(t("noticeUpdated", { email: selectedUser.email }));
     setTimeout(() => setNotice(null), 3500);
   };
 
-  const handleDelete = (id: string, email: string) => {
+  const handleDelete = async (id: string, email: string) => {
     if (confirm(t("confirmDelete", { email }))) {
+      try {
+        const res = await fetch(`/api/saas/subscribers?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          await loadData();
+          refreshUserData();
+          setNotice(t("noticeDeleted", { email }));
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+      } catch {}
+
       const ok = deleteSubscriber(id);
       if (ok) {
-        loadData();
+        await loadData();
         refreshUserData();
         setNotice(t("noticeDeleted", { email }));
         setTimeout(() => setNotice(null), 3000);

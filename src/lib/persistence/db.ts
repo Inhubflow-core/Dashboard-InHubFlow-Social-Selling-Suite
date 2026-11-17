@@ -33,6 +33,7 @@ function openDatabase(): Database.Database {
   ensureTeamSchema(db);
   ensureLinkedInAccountsV2Schema(db);
   ensurePipelineSchema(db);
+  ensureSaasSubscribersSchema(db);
   if (process.env.INHUBFLOW_DEMO_PERSISTENCE === "true") {
     const { seedDemoWorkspace } = require("./demo-seed") as typeof import("./demo-seed");
     seedDemoWorkspace(db);
@@ -363,6 +364,68 @@ function ensurePipelineSchema(db: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_pipeline_deals_v2_stage ON pipeline_deals_v2(stage_id);
   `);
+}
+
+function ensureSaasSubscribersSchema(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS saas_subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'client_admin' CHECK(role IN ('super_admin', 'client_admin', 'member')),
+      company_name TEXT,
+      plan_tier TEXT NOT NULL DEFAULT 'starter',
+      slots_limit INTEGER NOT NULL DEFAULT 1,
+      subscription_status TEXT NOT NULL DEFAULT 'active',
+      lemon_subscription_id TEXT,
+      lemon_customer_id TEXT,
+      billing_period TEXT DEFAULT 'monthly',
+      avatar_url TEXT,
+      assigned_account_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_saas_subscribers_email ON saas_subscribers(email);
+    CREATE INDEX IF NOT EXISTS idx_saas_subscribers_lemon_sub ON saas_subscribers(lemon_subscription_id);
+  `);
+
+  const countRow = db.prepare("SELECT COUNT(*) as total FROM saas_subscribers").get() as { total: number };
+  if (countRow.total === 0) {
+    const insert = db.prepare(`
+      INSERT INTO saas_subscribers (
+        id, email, name, role, company_name, plan_tier, slots_limit,
+        subscription_status, avatar_url, assigned_account_id, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    insert.run(
+      "usr-super-admin-01",
+      "inhubflow@gmail.com",
+      "SuperAdmin",
+      "super_admin",
+      "InHubFlow Headquarters",
+      "custom",
+      999,
+      "active",
+      "/images/user/owner.png",
+      null,
+      "2026-09-01T08:00:00.000Z",
+      "2026-10-19T08:00:00.000Z"
+    );
+    insert.run(
+      "usr-client-roberto-agencia",
+      "robertoorse.agencia@gmail.com",
+      "Roberto OrSe Agencia",
+      "client_admin",
+      "Roberto OrSe Agencia",
+      "business",
+      10,
+      "active",
+      "https://media.licdn.com/dms/image/v2/D4E03AQETqM_x3Dg7UA/profile-displayphoto-shrink_800_800/B4EZkzyXuFGwAc-/0/1757510466710?e=1793836800&v=beta&t=ti_Vff5L4ZlFHs8iYo8trtcyT1hKT4EikEtlwieUi0U",
+      "acc-li-acc_01m7mmyew9f69bk7z5kxse2bzp",
+      "2026-10-01T08:00:00.000Z",
+      "2026-11-17T08:00:00.000Z"
+    );
+  }
 }
 
 export function getSocialSellingDb(): Database.Database {

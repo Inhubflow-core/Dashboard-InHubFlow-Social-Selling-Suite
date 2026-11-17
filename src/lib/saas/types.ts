@@ -18,6 +18,8 @@ export interface SaaSPlanConfig {
   monthlyPrice: number;
   annualPrice: number; // Por mes pagando anualmente
   popular?: boolean;
+  lemonCheckoutUrl?: string;
+  lemonVariantId?: string;
   features: PlanFeature[];
   limits: {
     dailyInvitationsPerAccount: number;
@@ -41,6 +43,8 @@ export interface SaaSUser {
   avatarUrl?: string;
   ownerId?: string | null;
   assignedAccountId?: string | null;
+  lemonSubscriptionId?: string | null;
+  billingPeriod?: "monthly" | "yearly" | "annual";
   createdAt: string;
   updatedAt: string;
 }

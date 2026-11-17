@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  initialSaaSUsers,
-  addSubscriber,
-  updateSubscriber,
-  deleteSubscriber,
-  getGlobalSaaSStats,
-  getStoredUsers,
-} from "@/lib/saas/store";
+  listSaasSubscribers,
+  createSaasSubscriber,
+  updateSaasSubscriber,
+  deleteSaasSubscriber,
+  getGlobalSaaSStatsFromDb,
+} from "@/lib/saas/subscribers-db";
 import { getPlanConfig } from "@/lib/saas/plans";
 import type { PlanTier, SubscriptionStatus } from "@/lib/saas/types";
 
 export async function GET() {
   try {
-    const subscribers = getStoredUsers();
-    const stats = getGlobalSaaSStats();
+    const subscribers = listSaasSubscribers();
+    const stats = getGlobalSaaSStatsFromDb();
 
     return NextResponse.json({
       success: true,
@@ -34,7 +33,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, name, companyName, planTier, slotsLimit } = body;
+    const { email, name, companyName, planTier, slotsLimit, subscriptionStatus } = body;
 
     if (!email || !companyName) {
       return NextResponse.json(
@@ -43,15 +42,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const plan = getPlanConfig(planTier || "starter");
+    const plan = getPlanConfig((planTier as PlanTier) || "starter");
     const slots = typeof slotsLimit === "number" ? Math.max(1, slotsLimit) : plan.slots;
 
-    const newSubscriber = addSubscriber({
+    const newSubscriber = createSaasSubscriber({
       email,
       name,
       companyName,
-      planTier: planTier || "starter",
+      planTier: (planTier as PlanTier) || "starter",
       slotsLimit: slots,
+      subscriptionStatus: (subscriptionStatus as SubscriptionStatus) || "active",
     });
 
     return NextResponse.json(
@@ -62,12 +62,14 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const status = message.includes("Ya existe") ? 409 : 500;
     return NextResponse.json(
       {
         error: "Error al crear suscriptor",
-        message: error instanceof Error ? error.message : String(error),
+        message,
       },
-      { status: 500 }
+      { status }
     );
   }
 }
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, companyName, planTier, slotsLimit, subscriptionStatus } = body;
+    const { id, companyName, name, planTier, slotsLimit, subscriptionStatus } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -84,8 +86,9 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const updated = updateSubscriber(id, {
+    const updated = updateSaasSubscriber(id, {
       companyName,
+      name,
       planTier: planTier as PlanTier,
       slotsLimit,
       subscriptionStatus: subscriptionStatus as SubscriptionStatus,
@@ -125,10 +128,10 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const success = deleteSubscriber(id);
+    const success = deleteSaasSubscriber(id);
     if (!success) {
       return NextResponse.json(
-        { error: "No se puede eliminar la cuenta principal de Super Administrador." },
+        { error: "No se puede eliminar la cuenta principal de Super Administrador o el suscriptor no existe." },
         { status: 400 }
       );
     }
