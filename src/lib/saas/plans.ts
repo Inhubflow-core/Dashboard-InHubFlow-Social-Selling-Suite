@@ -1,4 +1,14 @@
-import type { SaaSPlanConfig, PlanTier } from "./types";
+import type { SaaSPlanConfig, PlanTier, PlanFeature } from "./types";
+
+const COMMON_SOCIAL_FEATURES: PlanFeature[] = [
+  { text: "Posts Virales Ilimitados: crea contenido para 1 mes en minutos (texto, imagen y carruseles PDF)", included: true, highlight: true },
+  { text: "Monitores de Senales de Intencion en Tiempo Real (Nivel 1, 2 y 3)", included: true, highlight: true },
+  { text: "Secuencias y Campanas Visuales Automatizadas con Pausas Inteligentes", included: true },
+  { text: "Asistente SDR de IA 24/7 Ilimitado (Respuestas y Calificacion)", included: true },
+  { text: "Agendamiento Automatico de Reuniones en Cal.com y Google Calendar", included: true },
+  { text: "Smart Inbox Unificado, Pipeline CRM de 8 Etapas y Exportacion CSV", included: true },
+  { text: "Proteccion Anti-bloqueos: Ritmos humanizados y rotacion inteligente", included: true },
+];
 
 /**
  * 3 Planes oficiales del SaaS InHubFlow | Social Selling Suite:
@@ -18,17 +28,9 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/1c4e9363-186e-40e7-a74e-f9d89117ba3a",
     lemonVariantId: "2088572",
     features: [
-      { text: "1 cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)", included: true, highlight: true },
-      { text: "Viral Post Engine: Generador de texto, imagen y carruseles PDF", included: true },
-      { text: "Calendario Editorial con reprogramacion Drag & Drop", included: true },
-      { text: "Signal Radar Nivel 1: Automatizacion de comentarios y Lead Magnet", included: true },
-      { text: "Signal Radar Nivel 2 y 3 (Monitoreo de competencia y red)", included: true },
-      { text: "Constructor de Campanas Visuales en Canvas (React Flow)", included: true },
-      { text: "Lanza hasta 3 campanas simultaneas", included: true },
-      { text: "CRM Pipeline y Tablero Kanban comercial", included: true },
-      { text: "Bandeja Inbox unificada sin ruido", included: true },
-      { text: "Gestion de equipo: 0 invitaciones adicionales (Plan Monousuario)", included: false },
-      { text: "Soporte prioritario 24/7 y SLA garantizado", included: false },
+      { text: "1 Cuenta de LinkedIn conectada (1 Slot exclusivo de Administrador)", included: true, highlight: true },
+      { text: "Hasta 20 interacciones comerciales / dia (400 al mes · Lun a Vie)", included: true, highlight: true },
+      ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {
       dailyInvitationsPerAccount: 20,
@@ -50,16 +52,9 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/46fd950f-5631-4e6c-bd2e-a15da16d97cc",
     lemonVariantId: "2088578",
     features: [
-      { text: "5 cuentas de LinkedIn conectadas (5 Slots en total)", included: true, highlight: true },
-      { text: "Estructura de equipo: 1 Administrador + hasta 4 miembros Team", included: true, highlight: true },
-      { text: "Todo lo incluido en el Plan Starter", included: true },
-      { text: "Asignacion individual de cuentas de LinkedIn por operador Team", included: true },
-      { text: "Viral Post Engine sin limite de publicaciones", included: true },
-      { text: "Campanas ilimitadas con pacing humano y anti-deteccion", included: true },
-      { text: "Signal Radar con monitoreo continuo en tiempo real", included: true },
-      { text: "Rotacion inteligente de cuentas para distribucion de carga", included: true },
-      { text: "Exportacion de leads y analiticas avanzadas", included: true },
-      { text: "Soporte prioritario por WhatsApp y correo electronico", included: true },
+      { text: "5 Cuentas de LinkedIn conectadas (1 Admin + hasta 4 miembros Team)", included: true, highlight: true },
+      { text: "Hasta 100 interacciones comerciales / dia (2.000 al mes · Lun a Vie)", included: true, highlight: true },
+      ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {
       dailyInvitationsPerAccount: 25,
@@ -80,16 +75,9 @@ export const SAAS_PLANS: Record<PlanTier, SaaSPlanConfig> = {
     lemonCheckoutUrl: "https://inhubflow.lemonsqueezy.com/checkout/buy/3ea48412-43ed-4330-97c5-c06073d1d00d",
     lemonVariantId: "2088581",
     features: [
-      { text: "10 cuentas de LinkedIn conectadas (10 Slots en total)", included: true, highlight: true },
-      { text: "Estructura de equipo: 1 Administrador + hasta 9 miembros Team", included: true, highlight: true },
-      { text: "Todo lo incluido en el Plan Growth", included: true },
-      { text: "Capacidad para escalar outreach a gran escala (hasta 200 invitaciones/dia en total)", included: true, highlight: true },
-      { text: "Monitores de senales de intencion ilimitados (Nivel 1, 2 y 3)", included: true },
-      { text: "SDR Co-Pilot con sugerencias de respuesta en tiempo real", included: true },
-      { text: "Webhooks e integraciones personalizadas", included: true },
-      { text: "Auditoria y logs de actividad multi-cuenta", included: true },
-      { text: "Gerente de cuenta dedicado y onboarding personalizado", included: true },
-      { text: "SLA corporativo del 99.9%", included: true },
+      { text: "10 Cuentas de LinkedIn conectadas (1 Admin + hasta 9 miembros Team)", included: true, highlight: true },
+      { text: "Hasta 200 interacciones comerciales / dia (4.000 al mes · Lun a Vie)", included: true, highlight: true },
+      ...COMMON_SOCIAL_FEATURES,
     ],
     limits: {
       dailyInvitationsPerAccount: 25,
