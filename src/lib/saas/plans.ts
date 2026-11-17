@@ -3,7 +3,7 @@ import type { SaaSPlanConfig, PlanTier, PlanFeature } from "./types";
 const COMMON_SOCIAL_FEATURES: PlanFeature[] = [
   { text: "Posts Virales Ilimitados: crea contenido para 1 mes en minutos (texto, imagen y carruseles PDF)", included: true, highlight: true },
   { text: "Monitores de Senales de Intencion en Tiempo Real (Nivel 1, 2 y 3)", included: true, highlight: true },
-  { text: "Secuencias y Campanas Visuales Automatizadas con Pausas Inteligentes", included: true },
+  { text: "Secuencias y Campanas de Prospeccion con delays inteligentes", included: true },
   { text: "Asistente SDR de IA 24/7 Ilimitado (Respuestas y Calificacion)", included: true },
   { text: "Smart Inbox Unificado, Pipeline CRM de 8 Etapas y Exportacion CSV", included: true },
   { text: "Proteccion Anti-bloqueos: Ritmos humanizados y rotacion inteligente", included: true },
