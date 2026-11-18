@@ -145,23 +145,18 @@ export function InHubLiveAvatar({
           />
         </div>
 
-        {/* Glowing #0099ff chest badge pulse when talking or thinking */}
-        {(emotion === "talking" || emotion === "thinking" || isHappyPose) && (
-          <span className="pointer-events-none absolute top-[60.5%] left-[41%] w-2 h-2 rounded-full bg-[#0099ff] shadow-[0_0_10px_#0099ff] animate-ping" />
+        {/* Subtle #0099ff glow on chest dot only when actively processing */}
+        {emotion === "thinking" && (
+          <span className="pointer-events-none absolute top-[60.5%] left-[41%] w-1.5 h-1.5 rounded-full bg-[#0099ff] opacity-80 animate-pulse" />
         )}
       </div>
 
-      {/* Live 24/7 Green Dot or Pending Step Notification Badge */}
+      {/* Subtle status dot (no aggressive bounce/ping) */}
       {!hideStatusDot &&
         (hasNotification ? (
-          <span className="absolute top-0 right-0 z-20 flex h-5 w-5 items-center justify-center rounded-full bg-[#0099ff] text-[10px] font-extrabold text-white ring-2 ring-white dark:ring-gray-900 shadow-sm animate-bounce">
-            1
-          </span>
+          <span className="absolute top-1 right-1 z-20 h-3 w-3 rounded-full bg-[#0099ff] ring-2 ring-white dark:ring-gray-900 shadow-xs" />
         ) : (
-          <span className="absolute bottom-1 right-1 z-20 flex h-3.5 w-3.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 ring-2 ring-white dark:ring-gray-900" />
-          </span>
+          <span className="absolute bottom-1.5 right-1.5 z-20 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-gray-900" />
         ))}
 
       <style jsx>{`

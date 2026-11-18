@@ -10,12 +10,10 @@ import {
   type CopilotLocale,
 } from "@/lib/copilot/platform-manual";
 import {
-  ArrowUpRight,
   CheckCircle2,
+  ChevronDown,
   Circle,
-  MessageSquareText,
   Send,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useLocale } from "next-intl";
@@ -33,8 +31,7 @@ const UI_LABELS: Record<
   CopilotLocale,
   {
     assistantTitle: string;
-    activeBadge: string;
-    progressLabel: string;
+    subtitlePrefix: string;
     stepLinkedIn: string;
     stepTrain: string;
     stepPosts: string;
@@ -52,70 +49,67 @@ const UI_LABELS: Record<
   }
 > = {
   es: {
-    assistantTitle: "InHub · Asistente SDR IA",
-    activeBadge: "Activo 24/7",
-    progressLabel: "Estado de tu cuenta",
-    stepLinkedIn: "1. LinkedIn",
-    stepTrain: "2. Entrenarme",
-    stepPosts: "3. Posts",
-    stepSignals: "4. Radar",
-    stepCampaigns: "5. Campañas",
-    yesExplainBtn: "Sí, explícame esta sección →",
-    startNowBtn: "Conectar mi LinkedIn →",
-    trainNowBtn: "Entrenar a InHub ahora ✦",
-    inputPlaceholder: "Pregúntale a InHub cómo usar la plataforma...",
-    trainingPlaceholder: "Escribe tu respuesta para entrenar a InHub...",
-    typingText: "InHub está escribiendo...",
+    assistantTitle: "InHub",
+    subtitlePrefix: "Asistente IA",
+    stepLinkedIn: "Conectar LinkedIn",
+    stepTrain: "Entrenar empresa",
+    stepPosts: "Crear posts",
+    stepSignals: "Signal Radar",
+    stepCampaigns: "Campañas",
+    yesExplainBtn: "Explícame esta sección →",
+    startNowBtn: "Conectar LinkedIn →",
+    trainNowBtn: "Entrenar ahora →",
+    inputPlaceholder: "Escribe tu pregunta...",
+    trainingPlaceholder: "Escribe tu respuesta...",
+    typingText: "Escribiendo...",
     onboardingMissingLinkedIn:
-      "¡Hola! Soy InHub 👋 Vi que primero debes conectar tu cuenta de LinkedIn para empezar, y después entrenarme con los datos de tu empresa.",
+      "Hola, soy InHub. Primero conecta tu cuenta de LinkedIn para empezar.",
     onboardingMissingKnowledge:
-      "¡Ya conectaste tu LinkedIn! ✅ Ahora debes entrenarme dándome la información de tu empresa (nombre, productos o servicios y link de agenda).",
+      "LinkedIn listo. ¿Me entrenas en 1 minuto con los datos de tu empresa?",
     welcomeIntro:
-      "¡Hola! Soy **InHub**, tu Asistente SDR IA y copiloto dentro de la plataforma. Conozco el estado de tu cuenta y cada herramienta del Dashboard. ¿En qué te ayudo hoy?",
+      "Hola, soy **InHub**. Puedo ayudarte a configurar tu cuenta o explicarte cómo usar cualquier sección.",
   },
   en: {
-    assistantTitle: "InHub · AI SDR Assistant",
-    activeBadge: "Active 24/7",
-    progressLabel: "Your account progress",
-    stepLinkedIn: "1. LinkedIn",
-    stepTrain: "2. Train Me",
-    stepPosts: "3. Posts",
-    stepSignals: "4. Radar",
-    stepCampaigns: "5. Campaigns",
-    yesExplainBtn: "Yes, explain this section →",
-    startNowBtn: "Connect my LinkedIn →",
-    trainNowBtn: "Train InHub now ✦",
-    inputPlaceholder: "Ask InHub how to use the platform...",
-    trainingPlaceholder: "Type your answer to train InHub...",
-    typingText: "InHub is typing...",
+    assistantTitle: "InHub",
+    subtitlePrefix: "AI Assistant",
+    stepLinkedIn: "Connect LinkedIn",
+    stepTrain: "Train company",
+    stepPosts: "Create posts",
+    stepSignals: "Signal Radar",
+    stepCampaigns: "Campaigns",
+    yesExplainBtn: "Explain this section →",
+    startNowBtn: "Connect LinkedIn →",
+    trainNowBtn: "Train now →",
+    inputPlaceholder: "Ask anything...",
+    trainingPlaceholder: "Type your answer...",
+    typingText: "Typing...",
     onboardingMissingLinkedIn:
-      "Hi! I'm InHub 👋 First you need to connect your LinkedIn account to get started, and then train me on your company info.",
+      "Hi, I'm InHub. Connect your LinkedIn account first to get started.",
     onboardingMissingKnowledge:
-      "Your LinkedIn is connected! ✅ Now let's train me with your company details (name, products/services, and booking link).",
+      "LinkedIn is ready. Want to train me on your company in 1 minute?",
     welcomeIntro:
-      "Hi! I'm **InHub**, your AI SDR Assistant and in-app copilot. I can check your live account status and guide you through every tool. How can I help today?",
+      "Hi, I'm **InHub**. I can help you set up your account or walk you through any section.",
   },
   "pt-BR": {
-    assistantTitle: "InHub · Assistente SDR IA",
-    activeBadge: "Ativo 24/7",
-    progressLabel: "Progresso da sua conta",
-    stepLinkedIn: "1. LinkedIn",
-    stepTrain: "2. Me Treinar",
-    stepPosts: "3. Posts",
-    stepSignals: "4. Radar",
-    stepCampaigns: "5. Campanhas",
-    yesExplainBtn: "Sim, me explique esta seção →",
-    startNowBtn: "Conectar meu LinkedIn →",
-    trainNowBtn: "Treinar o InHub agora ✦",
-    inputPlaceholder: "Pergunte ao InHub como usar a plataforma...",
-    trainingPlaceholder: "Digite sua resposta para treinar o InHub...",
-    typingText: "InHub está digitando...",
+    assistantTitle: "InHub",
+    subtitlePrefix: "Assistente IA",
+    stepLinkedIn: "Conectar LinkedIn",
+    stepTrain: "Treinar empresa",
+    stepPosts: "Criar posts",
+    stepSignals: "Signal Radar",
+    stepCampaigns: "Campanhas",
+    yesExplainBtn: "Explicar esta seção →",
+    startNowBtn: "Conectar LinkedIn →",
+    trainNowBtn: "Treinar agora →",
+    inputPlaceholder: "Digite sua pergunta...",
+    trainingPlaceholder: "Digite sua resposta...",
+    typingText: "Digitando...",
     onboardingMissingLinkedIn:
-      "Olá! Sou o InHub 👋 Vi que primeiro você deve conectar sua conta do LinkedIn e depois me treinar com os dados da sua empresa.",
+      "Olá, sou o InHub. Primeiro conecte sua conta do LinkedIn para começar.",
     onboardingMissingKnowledge:
-      "LinkedIn conectado! ✅ Agora você deve me treinar com as informações da sua empresa (nome, produtos ou serviços e link de agenda).",
+      "LinkedIn pronto. Quer me treinar em 1 minuto com os dados da sua empresa?",
     welcomeIntro:
-      "Olá! Sou o **InHub**, seu Assistente SDR IA e copiloto da plataforma. Conheço o status da sua conta e cada ferramenta do Dashboard. Como posso ajudar hoje?",
+      "Olá, sou o **InHub**. Posso ajudar a configurar sua conta ou explicar qualquer seção da plataforma.",
   },
 };
 
@@ -129,7 +123,7 @@ function renderFormattedText(text: string) {
         {parts.map((part, partIdx) => {
           if (part.startsWith("**") && part.endsWith("**")) {
             return (
-              <strong key={partIdx} className="font-bold text-slate-900 dark:text-white">
+              <strong key={partIdx} className="font-semibold text-slate-900 dark:text-white">
                 {part.slice(2, -2)}
               </strong>
             );
@@ -154,6 +148,7 @@ export default function InHubCopilotWidget() {
   );
 
   const [isOpen, setIsOpen] = useState(false);
+  const [showProgressMenu, setShowProgressMenu] = useState(false);
   const [showProactiveBubble, setShowProactiveBubble] = useState(false);
   const [dismissedRoutes, setDismissedRoutes] = useState<Record<string, boolean>>({});
   const [accountStatus, setAccountStatus] = useState<CopilotAccountStatus | null>(null);
@@ -180,7 +175,7 @@ export default function InHubCopilotWidget() {
     fetchAccountStatus();
   }, [fetchAccountStatus, pathname]);
 
-  // Initialize welcome message when locale or status first loads
+  // Clean welcome message once on mount
   useEffect(() => {
     setMessages((prev) => {
       if (prev.length > 0) return prev;
@@ -189,28 +184,21 @@ export default function InHubCopilotWidget() {
           id: "welcome-0",
           sender: "inhub",
           text: labels.welcomeIntro,
-          actions: routeCtx.defaultActions,
         },
       ];
     });
-  }, [labels.welcomeIntro, routeCtx.defaultActions]);
+  }, [labels.welcomeIntro]);
 
-  // Show contextual proactive bubble when entering a route (unless dismissed in this session)
+  // Show subtle proactive bubble when entering a new section (unless dismissed)
   useEffect(() => {
-    if (isOpen) {
-      setShowProactiveBubble(false);
-      return;
-    }
-    if (dismissedRoutes[routeCtx.routeKey]) {
+    if (isOpen || dismissedRoutes[routeCtx.routeKey]) {
       setShowProactiveBubble(false);
       return;
     }
 
     const timer = setTimeout(() => {
       setShowProactiveBubble(true);
-      setEmotion("excited");
-      setTimeout(() => setEmotion("idle"), 1600);
-    }, 1100);
+    }, 1400);
 
     return () => clearTimeout(timer);
   }, [routeCtx.routeKey, isOpen, dismissedRoutes]);
@@ -226,7 +214,6 @@ export default function InHubCopilotWidget() {
       text: string,
       options?: {
         triggerAction?: "start_training" | "check_account";
-        silentUserMessage?: boolean;
       }
     ) => {
       const trimmed = text.trim();
@@ -234,8 +221,9 @@ export default function InHubCopilotWidget() {
 
       setIsOpen(true);
       setShowProactiveBubble(false);
+      setShowProgressMenu(false);
 
-      if (trimmed && !options?.silentUserMessage) {
+      if (trimmed) {
         setMessages((prev) => [
           ...prev,
           {
@@ -276,7 +264,7 @@ export default function InHubCopilotWidget() {
               id: `b-${Date.now()}`,
               sender: "inhub",
               text: data.reply,
-              actions: data.actions || [],
+              actions: Array.isArray(data.actions) ? data.actions.slice(0, 2) : [],
             },
           ]);
 
@@ -284,7 +272,7 @@ export default function InHubCopilotWidget() {
             fetchAccountStatus();
           }
 
-          setTimeout(() => setEmotion("idle"), 2400);
+          setTimeout(() => setEmotion("idle"), 1800);
         }
       } catch {
         setEmotion("idle");
@@ -297,7 +285,9 @@ export default function InHubCopilotWidget() {
 
   const handleActionClick = (act: CopilotActionLink) => {
     if (act.actionType === "start_training" || act.href === "#train") {
-      sendMessage(labels.trainNowBtn, { triggerAction: "start_training" });
+      sendMessage(labels.trainNowBtn.replace(" →", ""), {
+        triggerAction: "start_training",
+      });
       return;
     }
     router.push(act.href);
@@ -309,7 +299,6 @@ export default function InHubCopilotWidget() {
     setDismissedRoutes((prev) => ({ ...prev, [routeCtx.routeKey]: true }));
   };
 
-  // Decide what proactive message to show in the bottom-right corner bubble
   const proactiveConfig = useMemo(() => {
     if (accountStatus && !accountStatus.hasLinkedInAccount && routeCtx.routeKey === "dashboard") {
       return {
@@ -318,10 +307,6 @@ export default function InHubCopilotWidget() {
         onCta: () => {
           setShowProactiveBubble(false);
           router.push("/linkedin-accounts");
-        },
-        secondaryLabel: labels.trainNowBtn,
-        onSecondary: () => {
-          sendMessage(labels.trainNowBtn, { triggerAction: "start_training" });
         },
       };
     }
@@ -336,7 +321,9 @@ export default function InHubCopilotWidget() {
         text: labels.onboardingMissingKnowledge,
         ctaLabel: labels.trainNowBtn,
         onCta: () => {
-          sendMessage(labels.trainNowBtn, { triggerAction: "start_training" });
+          sendMessage(labels.trainNowBtn.replace(" →", ""), {
+            triggerAction: "start_training",
+          });
         },
       };
     }
@@ -348,164 +335,144 @@ export default function InHubCopilotWidget() {
         sendMessage(routeCtx.quickChips[0] || "¿Cómo funciona esta sección?");
       },
     };
-  }, [
-    accountStatus,
-    routeCtx,
-    labels,
-    router,
-    sendMessage,
-  ]);
+  }, [accountStatus, routeCtx, labels, router, sendMessage]);
 
   const hasPendingOnboarding =
     accountStatus !== null &&
     (!accountStatus.hasLinkedInAccount || !accountStatus.hasCustomKnowledge);
 
+  const checklistItems = accountStatus
+    ? [
+        {
+          label: labels.stepLinkedIn,
+          done: accountStatus.hasLinkedInAccount,
+          onClick: () => {
+            setShowProgressMenu(false);
+            router.push("/linkedin-accounts");
+          },
+        },
+        {
+          label: labels.stepTrain,
+          done: accountStatus.hasCustomKnowledge,
+          onClick: () =>
+            sendMessage(labels.trainNowBtn.replace(" →", ""), {
+              triggerAction: "start_training",
+            }),
+        },
+        {
+          label: labels.stepPosts,
+          done: accountStatus.viralPostsCount > 0,
+          onClick: () => {
+            setShowProgressMenu(false);
+            router.push("/viral-posts");
+          },
+        },
+        {
+          label: labels.stepSignals,
+          done: accountStatus.signalMonitorsCount > 0,
+          onClick: () => {
+            setShowProgressMenu(false);
+            router.push("/signals");
+          },
+        },
+        {
+          label: labels.stepCampaigns,
+          done: accountStatus.campaignsCount > 0,
+          onClick: () => {
+            setShowProgressMenu(false);
+            router.push("/campaigns");
+          },
+        },
+      ]
+    : [];
+
   return (
     <div className="fixed bottom-4 right-4 z-[999999] flex flex-col items-end">
       {/* ===================================================================== */}
-      {/* 1. EXPANDED INTERACTIVE COPILOT DRAWER                                */}
+      {/* 1. CLEAN MINIMAL CHAT PANEL                                           */}
       {/* ===================================================================== */}
       {isOpen && (
-        <div className="mb-2.5 w-[350px] sm:w-[400px] max-h-[min(540px,calc(100dvh-140px))] rounded-3xl border border-[#222222] bg-white dark:bg-gray-900 shadow-2xl shadow-slate-950/35 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
-          {/* Top Dark Header with the Same Living InHub Bot (No video) */}
-          <div className="bg-[#000000] text-white p-3.5 border-b border-[#222222] shrink-0">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="shrink-0 flex items-center justify-center">
+        <div className="mb-2.5 w-[340px] sm:w-[375px] max-h-[min(510px,calc(100dvh-135px))] rounded-2xl border border-slate-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl shadow-slate-900/15 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-3 duration-200">
+          {/* Clean Light Header */}
+          <div className="px-4 py-3 bg-white dark:bg-gray-900 border-b border-slate-100 dark:border-gray-800 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="shrink-0">
                   <InHubLiveAvatar emotion={emotion} size="sm" hideStatusDot />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-bold text-white truncate">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-none">
                       {labels.assistantTitle}
                     </h4>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                   </div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      {labels.activeBadge}
-                    </span>
-                    <span className="text-[11px] text-gray-400 truncate">
-                      · {routeCtx.sectionTitle}
-                    </span>
-                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-gray-400 truncate mt-0.5">
+                    {labels.subtitlePrefix} · {routeCtx.sectionTitle}
+                  </p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                aria-label="Cerrar asistente"
-                className="p-1.5 rounded-xl bg-[#111111] border border-[#222222] text-gray-400 hover:text-white hover:border-[#0099ff] transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {accountStatus && (
+                  <button
+                    type="button"
+                    onClick={() => setShowProgressMenu((prev) => !prev)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 dark:bg-gray-800 hover:bg-slate-200/70 dark:hover:bg-gray-700 text-[11px] font-semibold text-slate-700 dark:text-gray-200 transition cursor-pointer"
+                  >
+                    <span className="text-[#0099ff]">
+                      {accountStatus.completedStepsCount}/{accountStatus.totalStepsCount}
+                    </span>
+                    <ChevronDown
+                      className={`w-3 h-3 text-slate-400 transition-transform ${
+                        showProgressMenu ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Cerrar"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-800 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Live Account Onboarding Stepper Bar */}
-            {accountStatus && (
-              <div className="mt-3.5 pt-3 border-t border-[#222222]">
-                <div className="flex items-center justify-between text-[11px] mb-2">
-                  <span className="text-gray-400 font-medium">{labels.progressLabel}:</span>
-                  <span className="text-[#0099ff] font-bold">
-                    {accountStatus.completedStepsCount} / {accountStatus.totalStepsCount}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5">
+            {/* Collapsible Progress Checklist (hidden by default for clean look) */}
+            {showProgressMenu && checklistItems.length > 0 && (
+              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-gray-800 space-y-1">
+                {checklistItems.map((item, idx) => (
                   <button
+                    key={idx}
                     type="button"
-                    onClick={() => router.push("/linkedin-accounts")}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
-                      accountStatus.hasLinkedInAccount
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                        : "bg-[#111111] border-[#0099ff] text-white"
-                    }`}
+                    onClick={item.onClick}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-800/80 text-xs transition cursor-pointer text-left"
                   >
-                    {accountStatus.hasLinkedInAccount ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Circle className="w-3 h-3 text-[#0099ff]" />
+                    <span className="flex items-center gap-2 text-slate-700 dark:text-gray-200">
+                      {item.done ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      ) : (
+                        <Circle className="w-3.5 h-3.5 text-slate-300 dark:text-gray-600 shrink-0" />
+                      )}
+                      <span className={item.done ? "line-through text-slate-400" : "font-medium"}>
+                        {item.label}
+                      </span>
+                    </span>
+                    {!item.done && (
+                      <span className="text-[11px] font-semibold text-[#0099ff]">→</span>
                     )}
-                    {labels.stepLinkedIn}
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      sendMessage(labels.trainNowBtn, { triggerAction: "start_training" })
-                    }
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
-                      accountStatus.hasCustomKnowledge
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                        : "bg-[#111111] border-[#0099ff] text-white"
-                    }`}
-                  >
-                    {accountStatus.hasCustomKnowledge ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 text-[#0099ff]" />
-                    )}
-                    {labels.stepTrain}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push("/viral-posts")}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
-                      accountStatus.viralPostsCount > 0
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                        : "bg-[#111111] border-[#222222] text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {accountStatus.viralPostsCount > 0 ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Circle className="w-3 h-3 text-gray-500" />
-                    )}
-                    {labels.stepPosts}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push("/signals")}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
-                      accountStatus.signalMonitorsCount > 0
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                        : "bg-[#111111] border-[#222222] text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {accountStatus.signalMonitorsCount > 0 ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Circle className="w-3 h-3 text-gray-500" />
-                    )}
-                    {labels.stepSignals}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push("/campaigns")}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
-                      accountStatus.campaignsCount > 0
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                        : "bg-[#111111] border-[#222222] text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {accountStatus.campaignsCount > 0 ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Circle className="w-3 h-3 text-gray-500" />
-                    )}
-                    {labels.stepCampaigns}
-                  </button>
-                </div>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Messages Scroll Area */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#E9F0F7]/60 dark:bg-gray-950">
+          {/* Messages Area */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/70 dark:bg-gray-950">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -514,30 +481,25 @@ export default function InHubCopilotWidget() {
                 }`}
               >
                 <div
-                  className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
+                  className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-[12.5px] leading-relaxed ${
                     msg.sender === "user"
-                      ? "bg-[#0099ff] text-white font-medium rounded-br-xs shadow-xs"
-                      : "bg-white dark:bg-gray-900 text-slate-700 dark:text-gray-200 border border-slate-200/90 dark:border-gray-800 rounded-bl-xs shadow-xs"
+                      ? "bg-[#0099ff] text-white rounded-br-sm"
+                      : "bg-white dark:bg-gray-900 text-slate-700 dark:text-gray-200 border border-slate-200/70 dark:border-gray-800 rounded-bl-sm"
                   }`}
                 >
                   {msg.sender === "inhub" ? renderFormattedText(msg.text) : msg.text}
                 </div>
 
-                {/* Direct Action Buttons inside InHub's Reply */}
                 {msg.sender === "inhub" && msg.actions && msg.actions.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5 max-w-[92%]">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5 max-w-[90%]">
                     {msg.actions.map((act, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleActionClick(act)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition cursor-pointer shadow-2xs ${
-                          act.actionType === "start_training"
-                            ? "bg-[#0099ff] text-white hover:bg-[#0082db]"
-                            : "bg-white dark:bg-gray-800 text-[#0099ff] border border-[#0099ff]/30 hover:bg-[#e6f4fe]/60"
-                        }`}
+                        className="px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 text-[#0099ff] border border-[#0099ff]/25 hover:bg-[#e6f4fe]/70 text-[11px] font-semibold transition cursor-pointer"
                       >
-                        <span>{act.label}</span>
+                        {act.label}
                       </button>
                     ))}
                   </div>
@@ -545,44 +507,35 @@ export default function InHubCopilotWidget() {
               </div>
             ))}
 
-            {isSending && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 px-2">
-                <span className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-bounce" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-bounce [animation-delay:150ms]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-bounce [animation-delay:300ms]" />
-                </span>
-                <span>{labels.typingText}</span>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Contextual Quick Chips for the Active Page */}
-          {trainingStep === "idle" && (
-            <div className="px-3.5 py-2.5 bg-white dark:bg-gray-900 border-t border-slate-200/80 dark:border-gray-800">
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                {routeCtx.quickChips.map((chip, idx) => (
+            {/* Clean inline starter suggestions only before conversation grows */}
+            {messages.length <= 1 && trainingStep === "idle" && !isSending && (
+              <div className="pt-1 flex flex-wrap gap-1.5">
+                {routeCtx.quickChips.slice(0, 3).map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => sendMessage(chip)}
-                    className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-gray-800 hover:bg-[#e6f4fe] dark:hover:bg-[#0099ff]/20 text-slate-700 dark:text-gray-200 hover:text-[#0099ff] text-[11px] font-medium border border-slate-200/80 dark:border-gray-700 transition cursor-pointer"
+                    className="px-3 py-1.5 rounded-full bg-white dark:bg-gray-900 hover:bg-[#e6f4fe]/70 dark:hover:bg-[#0099ff]/15 text-slate-600 dark:text-gray-300 hover:text-[#0099ff] text-[11px] font-medium border border-slate-200/80 dark:border-gray-800 transition cursor-pointer"
                   >
                     {chip}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Chat Input Form */}
+            {isSending && (
+              <div className="text-[11px] text-slate-400 px-1">{labels.typingText}</div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Minimal Input Bar */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               sendMessage(inputValue);
             }}
-            className="p-3 bg-white dark:bg-gray-900 border-t border-slate-200/80 dark:border-gray-800 flex items-center gap-2"
+            className="p-3 bg-white dark:bg-gray-900 border-t border-slate-100 dark:border-gray-800 flex items-center gap-2 shrink-0"
           >
             <input
               type="text"
@@ -593,13 +546,13 @@ export default function InHubCopilotWidget() {
                   ? labels.trainingPlaceholder
                   : labels.inputPlaceholder
               }
-              className="flex-1 bg-slate-100 dark:bg-gray-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200/80 dark:border-gray-700 focus:outline-none focus:border-[#0099ff]"
+              className="flex-1 bg-slate-100/80 dark:bg-gray-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0099ff]/25"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || isSending}
               aria-label="Enviar"
-              className="w-9 h-9 rounded-xl bg-[#0099ff] hover:bg-[#0082db] disabled:opacity-40 text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
+              className="w-9 h-9 rounded-full bg-[#0099ff] hover:bg-[#0082db] disabled:opacity-35 text-white flex items-center justify-center transition cursor-pointer shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
             </button>
@@ -608,53 +561,37 @@ export default function InHubCopilotWidget() {
       )}
 
       {/* ===================================================================== */}
-      {/* 2. PROACTIVE CONTEXTUAL SPEECH BUBBLE + LIVE MOVING INHUB AVATAR       */}
+      {/* 2. MINIMAL SPEECH BUBBLE + FLOATING INHUB AVATAR                      */}
       {/* ===================================================================== */}
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-2.5">
         {showProactiveBubble && !isOpen && (
-          <div className="relative max-w-[295px] sm:max-w-[330px] rounded-2xl rounded-br-xs bg-white dark:bg-gray-900 border-2 border-[#0099ff]/40 p-3.5 shadow-xl shadow-slate-900/15 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div
+            onClick={proactiveConfig.onCta}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") proactiveConfig.onCta();
+            }}
+            className="relative max-w-[260px] rounded-2xl rounded-br-sm bg-white dark:bg-gray-900 border border-slate-200/80 dark:border-gray-800 px-3.5 py-3 shadow-lg shadow-slate-900/10 cursor-pointer hover:border-[#0099ff]/40 transition animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
             <button
               type="button"
               onClick={handleDismissBubble}
-              aria-label="Minimizar sugerencia"
-              className="absolute top-2 right-2 p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-800 transition cursor-pointer"
+              aria-label="Cerrar"
+              className="absolute top-2 right-2 p-0.5 rounded-md text-slate-300 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" />
             </button>
 
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#0099ff] mb-1 pr-5">
-              <MessageSquareText className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{routeCtx.sectionTitle}</span>
-            </div>
-
-            <p className="text-xs text-slate-700 dark:text-gray-200 leading-snug mb-2.5">
+            <p className="text-xs text-slate-600 dark:text-gray-300 leading-snug pr-4">
               {proactiveConfig.text}
             </p>
-
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={proactiveConfig.onCta}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0099ff] hover:bg-[#0082db] text-white text-[11px] font-bold transition cursor-pointer shadow-xs"
-              >
-                <span>{proactiveConfig.ctaLabel}</span>
-              </button>
-
-              {proactiveConfig.secondaryLabel && proactiveConfig.onSecondary && (
-                <button
-                  type="button"
-                  onClick={proactiveConfig.onSecondary}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#e6f4fe] text-[#0099ff] hover:bg-[#cce9fd] text-[11px] font-bold transition cursor-pointer"
-                >
-                  <span>{proactiveConfig.secondaryLabel}</span>
-                  <ArrowUpRight className="w-3 h-3" />
-                </button>
-              )}
-            </div>
+            <span className="mt-1.5 inline-block text-[11px] font-semibold text-[#0099ff]">
+              {proactiveConfig.ctaLabel}
+            </span>
           </div>
         )}
 
-        {/* Living 3D InHub Avatar Button */}
         <InHubLiveAvatar
           emotion={emotion}
           hasNotification={hasPendingOnboarding}
