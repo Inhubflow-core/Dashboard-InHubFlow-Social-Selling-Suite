@@ -32,7 +32,7 @@ import { SAMPLE_B2B_BACKGROUNDS } from "./CreateViralPostView";
 import type { CreatedPost, PostFormat, ViralPostTemplate } from "@/lib/viral-posts/types";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Sparkles,
   Calendar,
@@ -323,7 +323,10 @@ export default function ViralRadarView({
     };
   }, [currentUser]);
 
-  // Función de búsqueda en vivo en LinkedIn a través de Unipile (filtrando cirílico, ofertas de empleo y seleccionando el Top 12)
+  // Bloqueo en vuelo para evitar búsquedas concurrentes o duplicadas hacia LinkedIn
+  const isSearchingRef = useRef(false);
+
+  // Función de búsqueda en vivo en LinkedIn a través de Unipile (solo bajo acción explícita del usuario)
   const handleLiveSearch = useCallback(
     async (
       keywordToSearch?: string,
@@ -333,9 +336,11 @@ export default function ViralRadarView({
       excludeJobsOverride?: boolean,
       countryOverride?: string
     ) => {
+      if (isSearchingRef.current) return;
       const kw = (keywordToSearch !== undefined ? keywordToSearch : searchKeyword).trim();
       if (!kw) return;
 
+      isSearchingRef.current = true;
       const targetId = accountIdOverride || activeAccount?.id;
       const targetDate = dateOverride || datePosted;
       const targetMkt = marketOverride || detectedLocation.market;
@@ -443,18 +448,14 @@ export default function ViralRadarView({
         }
         setSearchError(msg);
       } finally {
+        isSearchingRef.current = false;
         setIsSearchingLive(false);
       }
     },
     [searchKeyword, activeAccount?.id, datePosted, detectedLocation, excludeJobs, viralityTierFilter, selectedFormat, selectedCountry]
   );
 
-  // Ejecutar búsqueda inicial en vivo SOLO si ya se verificó el caché Y no existía ninguna búsqueda previa guardada
-  useEffect(() => {
-    if (isCacheRestored && activeAccount && !hasSearchedOnce && livePosts.length === 0) {
-      handleLiveSearch(searchKeyword || "B2B Outbound", undefined, undefined, detectedLocation.market);
-    }
-  }, [isCacheRestored, activeAccount, hasSearchedOnce, livePosts.length, handleLiveSearch, searchKeyword, detectedLocation.market]);
+  // Sin auto-búsqueda al montar: las consultas en vivo a LinkedIn solo se ejecutan cuando el usuario lo solicita explícitamente.
 
   // Filtrado reactivo por formato y tier de viralidad (Mega Viral, Alta Tracción, En Tendencia)
   const filteredPosts = useMemo(() => {
@@ -943,7 +944,9 @@ export default function ViralRadarView({
                       type="button"
                       onClick={() => {
                         setDatePosted(opt.id as any);
-                        handleLiveSearch(searchKeyword, undefined, opt.id);
+                        if (hasSearchedOnce) {
+                          handleLiveSearch(searchKeyword, undefined, opt.id);
+                        }
                       }}
                       className={`px-2.5 py-1 text-xs font-medium rounded-lg transition ${
                         datePosted === opt.id
@@ -968,7 +971,9 @@ export default function ViralRadarView({
                   onChange={(e) => {
                     const country = e.target.value;
                     setSelectedCountry(country);
-                    handleLiveSearch(searchKeyword, undefined, undefined, undefined, undefined, country);
+                    if (hasSearchedOnce) {
+                      handleLiveSearch(searchKeyword, undefined, undefined, undefined, undefined, country);
+                    }
                   }}
                   className="h-8 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0099ff] cursor-pointer"
                   title="Filtrar por ubicación geográfica real del autor"
@@ -1138,6 +1143,28 @@ export default function ViralRadarView({
             <p className="text-xs text-gray-400">
               {t("scanningFullDesc")}
             </p>
+          </div>
+        ) : !hasSearchedOnce && livePosts.length === 0 ? (
+          <div className="py-16 text-center space-y-4 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800 p-6">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-950/50">
+              <Sparkles className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                {t("cardTitle")}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                {t("searchPlaceholder")}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isSearchingLive}
+              onClick={() => handleLiveSearch(searchKeyword || "B2B Outbound", undefined, undefined, detectedLocation.market)}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition cursor-pointer"
+            >
+              {t("searchBtn")}
+            </button>
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="py-16 text-center space-y-3 bg-white rounded-lg border border-gray-300 dark:bg-gray-900 dark:border-gray-800 p-6">

@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { unipile } from '@/lib/unipile/client';
 import type { ConnectedLinkedInAccount } from '@/lib/unipile/types';
 
-export async function GET() {
-  try {
-    if (!unipile.isConfigured()) {
-      return NextResponse.json({
-        configured: false,
-        items: [],
-        accounts: [],
-      });
-    }
+// Caché corta e in-flight deduplication para evitar consultar getOwnProfile en cada navegación o recarga
+const ACCOUNTS_CACHE_TTL_MS = 2 * 60 * 1000;
+let cachedAccountsPayload: { expiresAt: number; payload: any } | null = null;
+let inFlightAccountsFetch: Promise<any> | null = null;
 
-    const res = await unipile.listAccounts();
+async function fetchLiveAccountsPayload() {
+  const res = await unipile.listAccounts();
     const linkedinAccounts = (res.items || []).filter(
       (acc) => String(acc.type || acc.provider || '').toUpperCase() === 'LINKEDIN'
     );
@@ -145,11 +141,41 @@ export async function GET() {
     linkedinAccounts.sort((a, b) => (isRoberto(b) ? 1 : 0) - (isRoberto(a) ? 1 : 0));
     deduplicatedAccounts.sort((a, b) => (isRoberto(b) ? 1 : 0) - (isRoberto(a) ? 1 : 0));
 
-    return NextResponse.json({
+    return {
       configured: true,
       items: linkedinAccounts,
       accounts: deduplicatedAccounts,
-    });
+    };
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    if (!unipile.isConfigured()) {
+      return NextResponse.json({
+        configured: false,
+        items: [],
+        accounts: [],
+      });
+    }
+
+    const forceRefresh = req.nextUrl.searchParams.get('refresh') === '1';
+    if (!forceRefresh && cachedAccountsPayload && cachedAccountsPayload.expiresAt > Date.now()) {
+      return NextResponse.json(cachedAccountsPayload.payload);
+    }
+
+    if (!inFlightAccountsFetch) {
+      inFlightAccountsFetch = fetchLiveAccountsPayload().finally(() => {
+        inFlightAccountsFetch = null;
+      });
+    }
+
+    const payload = await inFlightAccountsFetch;
+    cachedAccountsPayload = {
+      expiresAt: Date.now() + ACCOUNTS_CACHE_TTL_MS,
+      payload,
+    };
+
+    return NextResponse.json(payload);
   } catch (error: unknown) {
     console.error('[api/unipile/accounts] Error listando cuentas:', error);
     return NextResponse.json(

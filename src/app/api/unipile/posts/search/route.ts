@@ -121,8 +121,10 @@ export const TARGET_COUNTRIES: Record<string, TargetCountryConfig> = {
   },
 };
 
-// Cache de ubicación de perfiles de autores para evitar llamadas redundantes a LinkedIn
-const authorLocationCache = new Map<string, { location: string; countryCode: string; countryName: string }>();
+// Caché de respuestas e in-flight deduplication para evitar ráfagas o búsquedas duplicadas a LinkedIn
+const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
+const searchResponseCache = new Map<string, { expiresAt: number; payload: any }>();
+const inFlightSearches = new Map<string, Promise<any>>();
 
 function detectCountryFromLocationString(loc: string, headline: string): { countryCode: string; countryName: string; locationLabel: string } {
   const combined = (loc + " " + headline).toLowerCase();
@@ -501,14 +503,37 @@ export async function POST(req: Request) {
       targetMarket = resolveMarketFromTimezone(userTimezone);
     }
 
-    // 1. Obtener estado en vivo de las cuentas directamente de Unipile
-    let liveAccounts: any[] = [];
-    try {
-      const res = await unipile.listAccounts();
-      liveAccounts = res.items || [];
-    } catch (err) {
-      console.warn("[Posts Search] Error consultando cuentas Unipile:", err);
+    const cacheKey = JSON.stringify({
+      keywords: keywords.toLowerCase(),
+      targetMarket,
+      targetCountry,
+      datePosted,
+      excludeJobs,
+      filterZero,
+      sortBy,
+      requestedAccountId: requestedAccountId || "default",
+    });
+
+    const cachedEntry = searchResponseCache.get(cacheKey);
+    if (cachedEntry && cachedEntry.expiresAt > Date.now()) {
+      return NextResponse.json(cachedEntry.payload);
     }
+
+    const existingPromise = inFlightSearches.get(cacheKey);
+    if (existingPromise) {
+      const sharedPayload = await existingPromise;
+      return NextResponse.json(sharedPayload);
+    }
+
+    const runSearch = async () => {
+      // 1. Obtener estado en vivo de las cuentas directamente de Unipile
+      let liveAccounts: any[] = [];
+      try {
+        const res = await unipile.listAccounts();
+        liveAccounts = res.items || [];
+      } catch (err) {
+        console.warn("[Posts Search] Error consultando cuentas Unipile:", err);
+      }
 
     // Identificar cuenta activa y saludable (status === "OK" o fuente "OK" o "running")
     const isAccountHealthy = (acc: any) => {
@@ -547,20 +572,20 @@ export async function POST(req: Request) {
     }
 
     if (!targetAccountId) {
-      return NextResponse.json(
-        {
+      return {
+        status: 400,
+        body: {
           error: "No hay cuentas de LinkedIn conectadas y con sesión activa (OK) para realizar la búsqueda.",
           items: [],
         },
-        { status: 400 }
-      );
+      };
     }
 
-    // 2. Cosecha Multi-Ángulo en Paralelo (Multi-Angle Expansion)
-    // Para superar la limitación fija de 24 posts por consulta de LinkedIn y garantizar holgadamente
-    // que tras los filtros de calidad queden al menos 12 posts virales, consultamos variantes complementarias en paralelo.
+    // 2. Búsqueda secuencial controlada (Anti-bloqueos LinkedIn):
+    // Evita disparar múltiples búsquedas paralelas simultáneas; consulta primero la variante principal
+    // y solo realiza como máximo una consulta complementaria secuencial si faltan resultados.
     const queriesToRun = generateQueryVariations(keywords, targetMarket, targetCountry);
-    console.log(`[Posts Search] Ejecutando búsqueda multi-ángulo paralela (${queriesToRun.length} variantes):`, queriesToRun);
+    console.log(`[Posts Search] Ejecutando búsqueda secuencial controlada (principal: "${queriesToRun[0]}")`);
 
     const rawItems: any[] = [];
     const seenPostIds = new Set<string>();
@@ -579,46 +604,35 @@ export async function POST(req: Request) {
       }
     };
 
-    const searchPromises = queriesToRun.map(async (queryText) => {
+    const runSingleSearch = async (accId: string, queryText: string) => {
       try {
         const res = await unipile.searchLinkedIn({
-          account_id: targetAccountId,
+          account_id: accId,
           category: "posts",
           keywords: queryText,
           limit: 25,
         });
         return res?.items || [];
       } catch (err: any) {
-        console.warn(`[Posts Search] Sub-consulta para "${queryText}" con cuenta ${targetAccountId} falló:`, err?.message || err);
+        console.warn(`[Posts Search] Consulta para "${queryText}" con cuenta ${accId} falló:`, err?.message || err);
         return [];
       }
-    });
+    };
 
-    const searchResults = await Promise.all(searchPromises);
-    searchResults.forEach((items) => appendItems(items));
+    appendItems(await runSingleSearch(targetAccountId, queriesToRun[0]));
 
-    // Si todas las subconsultas fallaron (por ejemplo expiración de sesión), reintentar con cuenta alternativa saludable
+    if (rawItems.length < 15 && queriesToRun[1]) {
+      appendItems(await runSingleSearch(targetAccountId, queriesToRun[1]));
+    }
+
+    // Si falló con la cuenta principal, reintentar solo la consulta principal con cuenta alternativa saludable
     if (rawItems.length === 0) {
       const alternative = liveAccounts.find((a) => a.id !== targetAccountId && isAccountHealthy(a));
       if (alternative) {
         console.log(`[Posts Search] Reintentando con cuenta alternativa saludable: ${alternative.name} (${alternative.id})`);
         targetAccountId = alternative.id;
         selectedAccountObj = alternative;
-        const retryPromises = queriesToRun.map(async (queryText) => {
-          try {
-            const res = await unipile.searchLinkedIn({
-              account_id: targetAccountId,
-              category: "posts",
-              keywords: queryText,
-              limit: 25,
-            });
-            return res?.items || [];
-          } catch {
-            return [];
-          }
-        });
-        const retryResults = await Promise.all(retryPromises);
-        retryResults.forEach((items) => appendItems(items));
+        appendItems(await runSingleSearch(targetAccountId, queriesToRun[0]));
       }
     }
 
@@ -627,19 +641,22 @@ export async function POST(req: Request) {
       const { getNicheViralPosts } = await import("@/lib/viral-posts/niche-search");
       const nicheItems = getNicheViralPosts(keywords, targetMarket, targetCountry);
 
-      return NextResponse.json({
-        success: true,
-        keywords,
-        targetMarket,
-        accountId: targetAccountId || "local-dev-account",
-        accountName: selectedAccountObj?.name || "Cuenta Local (InHubFlow Demo)",
-        totalFound: nicheItems.length,
-        filteredCyrillicCount: 0,
-        filteredJobsCount: 0,
-        count: nicheItems.length,
-        filteredOutZeroCount: 0,
-        items: nicheItems,
-      });
+      return {
+        status: 200,
+        body: {
+          success: true,
+          keywords,
+          targetMarket,
+          accountId: targetAccountId || "local-dev-account",
+          accountName: selectedAccountObj?.name || "Cuenta Local (InHubFlow Demo)",
+          totalFound: nicheItems.length,
+          filteredCyrillicCount: 0,
+          filteredJobsCount: 0,
+          count: nicheItems.length,
+          filteredOutZeroCount: 0,
+          items: nicheItems,
+        },
+      };
     }
 
     // Normalizar items y calcular métricas de viralidad ponderadas
@@ -866,6 +883,7 @@ export async function POST(req: Request) {
         author: item.author?.display_name || item.author?.name || "Líder de Industria B2B",
         authorHeadline: item.author?.description || item.author?.headline || "Especialista en LinkedIn & B2B",
         authorAvatar: item.author?.public_picture_url || item.author?.picture_url || null,
+        authorRawLocation: item.author?.location || item.author?.country || "",
         publicIdentifier: item.author?.public_identifier || null,
         publishedDate: item.created_at || item.date || "Reciente",
         topic: keywords,
@@ -936,48 +954,11 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5.1. Verificación Real de Ubicación Geográfica del Autor en LinkedIn con Unipile
-    const candidateAuthors = qualifiedPosts.filter(
-      (item) => item.publicIdentifier && !authorLocationCache.has(item.publicIdentifier)
-    );
-
-    if (candidateAuthors.length > 0 && targetAccountId) {
-      const uniqueAuthorIds = Array.from(
-        new Set(candidateAuthors.map((p) => p.publicIdentifier).filter(Boolean))
-      ).slice(0, 15) as string[];
-
-      await Promise.allSettled(
-        uniqueAuthorIds.map(async (authorId) => {
-          try {
-            const profile = await unipile.resolveProfile(authorId, targetAccountId);
-            if (profile?.location) {
-              const detected = detectCountryFromLocationString(profile.location, profile.headline || "");
-              authorLocationCache.set(authorId, {
-                location: profile.location,
-                countryCode: detected.countryCode,
-                countryName: detected.countryName,
-              });
-            }
-          } catch {
-            // Silencioso: fallback a headline o bio
-          }
-        })
-      );
-    }
-
-    // Decorar cada publicación con la ubicación verificada del perfil del autor
+    // 5.1. Inferencia de Ubicación Geográfica del Autor sin scraping paralelo de perfiles
+    // (Evita ráfagas de resolveProfile en LinkedIn que activan restricciones anti-scraping)
     qualifiedPosts = qualifiedPosts.map((item: any) => {
-      const cached = item.publicIdentifier ? authorLocationCache.get(item.publicIdentifier) : null;
-      if (cached) {
-        return {
-          ...item,
-          authorLocation: cached.location,
-          authorCountry: cached.countryCode,
-          marketOrigin: cached.location,
-        };
-      }
       const detected = detectCountryFromLocationString(
-        item.marketOrigin || "",
+        item.authorRawLocation || item.marketOrigin || "",
         item.authorHeadline || item.fullContent || ""
       );
       return {
@@ -1071,19 +1052,38 @@ export async function POST(req: Request) {
     // 8. Limitar estrictamente a los 12 mejores posts (Top 12)
     const top12Posts = marketMatchedPosts.slice(0, 12);
 
-    return NextResponse.json({
-      success: true,
-      keywords,
-      targetMarket,
-      accountId: targetAccountId,
-      accountName: selectedAccountObj?.name || "LinkedIn Account",
-      totalFound: normalized.length,
-      filteredCyrillicCount: normalized.length - nonRussianPosts.length,
-      filteredJobsCount,
-      count: top12Posts.length,
-      filteredOutZeroCount: normalized.length - qualifiedPosts.length,
-      items: top12Posts,
-    });
+      return {
+        status: 200,
+        body: {
+          success: true,
+          keywords,
+          targetMarket,
+          accountId: targetAccountId,
+          accountName: selectedAccountObj?.name || "LinkedIn Account",
+          totalFound: normalized.length,
+          filteredCyrillicCount: normalized.length - nonRussianPosts.length,
+          filteredJobsCount,
+          count: top12Posts.length,
+          filteredOutZeroCount: normalized.length - qualifiedPosts.length,
+          items: top12Posts,
+        },
+      };
+    };
+
+    const searchPromise = runSearch();
+    inFlightSearches.set(cacheKey, searchPromise);
+    try {
+      const result = await searchPromise;
+      if (result.status === 200 && result.body?.success) {
+        searchResponseCache.set(cacheKey, {
+          expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+          payload: result.body,
+        });
+      }
+      return NextResponse.json(result.body, { status: result.status });
+    } finally {
+      inFlightSearches.delete(cacheKey);
+    }
   } catch (error: any) {
     console.error("[Posts Search API] Error:", error);
     let errorMessage = error.message || "Error al buscar publicaciones en LinkedIn";
