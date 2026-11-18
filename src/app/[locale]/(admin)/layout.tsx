@@ -1,6 +1,7 @@
 "use client";
 
 import { useSidebar } from "@/context/SidebarContext";
+import InHubCopilotWidget from "@/components/copilot/InHubCopilotWidget";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
@@ -35,6 +36,8 @@ export default function AdminLayout({
         <main className="w-full p-4 md:p-6 min-w-0 flex-1 bg-[#E9F0F7] dark:bg-gray-900">
           {children}
         </main>
+        {/* InHub Interactive AI SDR Copilot */}
+        <InHubCopilotWidget />
       </div>
     </div>
   );
