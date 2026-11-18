@@ -367,20 +367,12 @@ export default function InHubCopilotWidget() {
       {/* ===================================================================== */}
       {isOpen && (
         <div className="mb-3 w-[360px] sm:w-[410px] max-h-[82vh] rounded-3xl border border-[#222222] bg-white dark:bg-gray-900 shadow-2xl shadow-slate-950/35 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
-          {/* Top Dark Header with Live 3D InHub Video Loop */}
+          {/* Top Dark Header with the Same Living InHub Bot (No video) */}
           <div className="bg-[#000000] text-white p-4 border-b border-[#222222]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-14 h-14 rounded-2xl border border-[#222222] bg-[#000000] overflow-hidden shrink-0 shadow-md">
-                  <video
-                    src="/videos/inhub-showcase.mp4"
-                    poster="/images/inhub-front.png"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover scale-125"
-                  />
+                <div className="shrink-0 flex items-center justify-center">
+                  <InHubLiveAvatar emotion={emotion} size="sm" hideStatusDot />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
