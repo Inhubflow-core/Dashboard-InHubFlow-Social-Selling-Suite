@@ -361,14 +361,14 @@ export default function InHubCopilotWidget() {
     (!accountStatus.hasLinkedInAccount || !accountStatus.hasCustomKnowledge);
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+    <div className="fixed bottom-4 right-4 z-[999999] flex flex-col items-end">
       {/* ===================================================================== */}
       {/* 1. EXPANDED INTERACTIVE COPILOT DRAWER                                */}
       {/* ===================================================================== */}
       {isOpen && (
-        <div className="mb-3 w-[360px] sm:w-[410px] max-h-[82vh] rounded-3xl border border-[#222222] bg-white dark:bg-gray-900 shadow-2xl shadow-slate-950/35 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="mb-2.5 w-[350px] sm:w-[400px] max-h-[min(540px,calc(100dvh-140px))] rounded-3xl border border-[#222222] bg-white dark:bg-gray-900 shadow-2xl shadow-slate-950/35 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Top Dark Header with the Same Living InHub Bot (No video) */}
-          <div className="bg-[#000000] text-white p-4 border-b border-[#222222]">
+          <div className="bg-[#000000] text-white p-3.5 border-b border-[#222222] shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="shrink-0 flex items-center justify-center">
@@ -505,7 +505,7 @@ export default function InHubCopilotWidget() {
           </div>
 
           {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#E9F0F7]/60 dark:bg-gray-950 max-h-[340px]">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#E9F0F7]/60 dark:bg-gray-950">
             {messages.map((msg) => (
               <div
                 key={msg.id}
