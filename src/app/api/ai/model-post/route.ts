@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         )
         .join("\n\n");
     } else if (topic.toLowerCase().includes("social selling") || topic.toLowerCase().includes("b2b outbound")) {
-      // Solo inyectar demo de InHubFlow si el tema es explícitamente Social Selling / Outreach B2B
+      // Solo inyectar demo de InhubFlow si el tema es explícitamente Social Selling / Outreach B2B
       ragContext = INITIAL_KNOWLEDGE_SOURCES.filter((k) => k.status === "approved")
         .map(
           (k: any) =>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
@@ -122,7 +122,7 @@ export default function SupportTicketsPage() {
               Asistencia & Tickets de Soporte
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Comunícate directamente con los ingenieros y especialistas de soporte de InHubFlow.
+              Comunícate directamente con los ingenieros y especialistas de soporte de InhubFlow.
             </p>
           </div>
 

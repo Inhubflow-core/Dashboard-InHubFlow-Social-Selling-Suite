@@ -1,6 +1,6 @@
 /*
- * InHubFlow design tokens — styled for InHubFlow Social Selling Suite.
- * Primary brand: InHubFlow Electric Blue (#0099ff).
+ * InhubFlow design tokens — styled for InhubFlow Social Selling Suite.
+ * Primary brand: InhubFlow Electric Blue (#0099ff).
  * Canvas workspace: Neutral slate (#d0d5dd) with dot pattern.
  * Typography: Outfit (var(--font-outfit)) across all chrome, sidebar titles, and dialogs.
  */
@@ -31,7 +31,7 @@
   --violet-900: #003a66;
   --violet-950: #00223d;
 
-  /* Ink and neutrals — InHubFlow slate theme */
+  /* Ink and neutrals — InhubFlow slate theme */
   --ink: #0f172a;
   --paper: #ffffff;
   --pastel-lilac: #e0e7ff;
@@ -41,7 +41,7 @@
   --pastel-mint: #dcfce7;
   --pastel-sky: #e0f2fe;
 
-  /* Semantic — InHubFlow Blue primary & slate neutrals */
+  /* Semantic — InhubFlow Blue primary & slate neutrals */
   --color-brand: #0099ff;
   --color-brand-hover: #0082db;
   --color-brand-active: #006bb8;
@@ -87,7 +87,7 @@
   --selection-color: #0099ff; /* canvas selection handles & guides */
   --guide-color: #ec4899;
 
-  /* Typography — InHubFlow Outfit font across chrome and headers */
+  /* Typography — InhubFlow Outfit font across chrome and headers */
   --font-sans: var(--font-outfit), 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-display: var(--font-outfit), 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-hand: var(--font-outfit), 'Outfit', cursive, sans-serif;

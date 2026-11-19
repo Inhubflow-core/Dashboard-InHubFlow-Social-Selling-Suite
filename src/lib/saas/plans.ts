@@ -10,7 +10,7 @@ const COMMON_SOCIAL_FEATURES: PlanFeature[] = [
 ];
 
 /**
- * 3 Planes oficiales del SaaS InHubFlow | Social Selling Suite:
+ * 3 Planes oficiales del SaaS InhubFlow | Social Selling Suite:
  * 1. Plan Starter: 1 cuenta conectada (1 slot)
  * 2. Plan Growth: 5 cuentas conectadas (5 slots)
  * 3. Plan Business: 10 cuentas conectadas (10 slots)

@@ -1596,10 +1596,10 @@ export default function CampaignsPage() {
                                     ? "demo-sistema-b2b.mp4"
                                     : type === "voice_note"
                                     ? "nota-de-voz-personalizada.m4a"
-                                    : "Framework-Prospeccion-B2B-InHubFlow.pdf"),
+                                    : "Framework-Prospeccion-B2B-InhubFlow.pdf"),
                                 attachedResource:
                                   type === "document"
-                                    ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InHubFlow.pdf"
+                                    ? editingStep.step.attachedResource || "Framework-Prospeccion-B2B-InhubFlow.pdf"
                                     : undefined,
                               },
                             });
@@ -1981,7 +1981,7 @@ export default function CampaignsPage() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs text-gray-400">{t("leadMagnetPresets")}</span>
                       {[
-                        "Framework-Prospeccion-B2B-InHubFlow.pdf",
+                        "Framework-Prospeccion-B2B-InhubFlow.pdf",
                         "Playbook-Secuencias-LinkedIn-2026.pdf",
                         "Plantilla-Social-Selling-SISTEMA.pdf",
                       ].map((doc) => (
@@ -2014,7 +2014,7 @@ export default function CampaignsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                            {editingStep.step.attachedResource || editingStep.step.attachmentName || "Framework-Prospeccion-B2B-InHubFlow.pdf"}
+                            {editingStep.step.attachedResource || editingStep.step.attachmentName || "Framework-Prospeccion-B2B-InhubFlow.pdf"}
                           </div>
                           <div className="text-xs text-gray-400">
                             {editingStep.step.attachmentSize || "Documento PDF"} listo para entrega automática al prospecto.

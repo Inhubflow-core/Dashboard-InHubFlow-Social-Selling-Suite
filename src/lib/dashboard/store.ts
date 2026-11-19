@@ -200,7 +200,7 @@ export function getDashboardAnalytics(forceSsr = false): DashboardAnalytics {
       {
         name: "Señales Detectadas",
         data: [65, 80, 95, 110, 130, 155, 170, 210, 245, 280, 310, 345],
-        color: "#0099ff", // Azul InHubFlow
+        color: "#0099ff", // Azul InhubFlow
       },
       {
         name: "Conexiones & Conversaciones",

@@ -68,7 +68,7 @@ export const FabricStudioCanvas = forwardRef<
   {
     aspectRatio,
     accentColor = "#0099ff",
-    authorName = "Roberto InHubFlow",
+    authorName = "Roberto InhubFlow",
     authorHandle = "@roberto.b2b",
     onSelectObject,
     onCanvasModified,

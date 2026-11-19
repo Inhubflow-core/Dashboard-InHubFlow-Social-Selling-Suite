@@ -481,7 +481,7 @@ export function addIncomingMessageToConversation(
       const autoReplyMsg: ChatMessage = {
         id: "msg-sdr-auto-" + Date.now(),
         senderId: "sdr_ai",
-        senderName: "InHubFlow SDR IA (Autopilot)",
+        senderName: "InhubFlow SDR IA (Autopilot)",
         isSender: true,
         text: sdrDecision.replyDraft,
         timestamp: "Ahora mismo (Automático)",
@@ -613,7 +613,7 @@ export function addIncomingMessageToConversation(
     const autoReplyMsg: ChatMessage = {
       id: "msg-sdr-auto-" + Date.now(),
       senderId: "sdr_ai",
-      senderName: "InHubFlow SDR IA (Autopilot)",
+      senderName: "InhubFlow SDR IA (Autopilot)",
       isSender: true,
       text: sdrDecision.replyDraft,
       timestamp: "Ahora mismo (Automático)",

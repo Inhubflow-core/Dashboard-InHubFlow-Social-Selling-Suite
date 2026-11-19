@@ -18,7 +18,7 @@ export const DEFAULT_BRAND_KIT: BrandKit = {
   name: 'Mi Marca Personal',
   is_default: true,
   colors: [
-    { id: 'brand-c1', name: 'Púrpura InHubFlow', hex: '#702FFC' },
+    { id: 'brand-c1', name: 'Púrpura InhubFlow', hex: '#702FFC' },
     { id: 'brand-c2', name: 'Azul Eléctrico', hex: '#0047FF' },
     { id: 'brand-c3', name: 'Esmeralda', hex: '#10B981' },
     { id: 'brand-c4', name: 'Pizarra Oscura', hex: '#0F172A' },

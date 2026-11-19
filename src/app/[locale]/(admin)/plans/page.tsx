@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
@@ -107,7 +107,7 @@ export default function PlansPricingPage() {
       <div className="text-center">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-[#0099ff]/30 bg-[#0099ff]/10 px-3.5 py-1 text-xs font-semibold text-[#0099ff]">
           <Layers className="size-3.5" />
-          <span>InHubFlow | Social Selling Suite</span>
+          <span>InhubFlow | Social Selling Suite</span>
         </div>
         <h2 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
           {t("choosePlanTitle")}

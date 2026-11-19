@@ -393,7 +393,7 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
             fontFamily: "Outfit",
             fontWeight: 400,
             fill: "#94a3b8",
-            text: "Datos extraídos de más de 120,000 interacciones multicanal B2B en el ecosistema InHubFlow.",
+            text: "Datos extraídos de más de 120,000 interacciones multicanal B2B en el ecosistema InhubFlow.",
             originX: "left",
             originY: "top",
           },
@@ -469,7 +469,7 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     orientation: "portrait",
     thumbnail_url: svgThumb1,
     document_json: JSON.stringify(doc1),
-    created_by: "Sistema InHubFlow",
+    created_by: "Sistema InhubFlow",
     use_count: 85,
     is_featured: 1,
   });
@@ -486,7 +486,7 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     orientation: "square",
     thumbnail_url: svgThumb2,
     document_json: JSON.stringify(doc2),
-    created_by: "Sistema InHubFlow",
+    created_by: "Sistema InhubFlow",
     use_count: 64,
     is_featured: 1,
   });
@@ -503,7 +503,7 @@ function seedInitialTemplates(db: ReturnType<typeof getSocialSellingDb>) {
     orientation: "landscape",
     thumbnail_url: svgThumb3,
     document_json: JSON.stringify(doc3),
-    created_by: "Sistema InHubFlow",
+    created_by: "Sistema InhubFlow",
     use_count: 51,
     is_featured: 1,
   });

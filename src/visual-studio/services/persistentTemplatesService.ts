@@ -3,7 +3,7 @@ import type { Page, TemplateCategory, TemplateDetail, TemplateQuery, TemplateSum
 import { createTemplatesService } from '../editor/dev/fakeCatalog'
 
 /**
- * Servicio persistente de plantillas de InHubFlow.
+ * Servicio persistente de plantillas de InhubFlow.
  * Consulta la base de datos central (/api/templates) para que todas las plantillas
  * guardadas por el Super Admin estén disponibles globalmente para todos los clientes y usuarios.
  * Si la red o el servidor fallan, utiliza un fallback seguro de plantillas locales.

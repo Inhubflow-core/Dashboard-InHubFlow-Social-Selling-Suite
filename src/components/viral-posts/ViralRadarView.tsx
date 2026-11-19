@@ -864,7 +864,7 @@ export default function ViralRadarView({
     "Cold Email",
   ];
 
-  const currentDisplayName = activeAccountName || activeAccount?.name || currentUser.name || "InHubFlow Creator";
+  const currentDisplayName = activeAccountName || activeAccount?.name || currentUser.name || "InhubFlow Creator";
 
   return (
     <div className="w-full space-y-6">

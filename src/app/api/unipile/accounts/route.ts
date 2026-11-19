@@ -69,7 +69,7 @@ async function fetchLiveAccountsPayload() {
           status,
           authMode: (im?.connection_method === 'credentials' ? 'credentials' : 'hosted') as ConnectedLinkedInAccount['authMode'],
           connectedAt: acc.created_at || new Date().toISOString(),
-          lastSyncAt: 'Sincronizado con InHubFlow Cloud (Unipile v2)',
+          lastSyncAt: 'Sincronizado con InhubFlow Cloud (Unipile v2)',
           dailyActionsCount: {
             invitationsSent: 0,
             messagesSent: 0,

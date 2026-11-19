@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) InHubFlow/1.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) InhubFlow/1.0",
       },
     });
 

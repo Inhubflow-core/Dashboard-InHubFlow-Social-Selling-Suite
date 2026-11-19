@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
@@ -81,7 +81,7 @@ const AppHeader: React.FC = () => {
               height={32}
               className="dark:hidden"
               src="/images/logo/inhubflow-logo-dark.png"
-              alt="InHubFlow"
+              alt="InhubFlow"
               style={{ width: "auto", height: "32px" }}
             />
             <Image
@@ -89,7 +89,7 @@ const AppHeader: React.FC = () => {
               height={32}
               className="hidden dark:block"
               src="/images/logo/inhubflow-logo-light.png"
-              alt="InHubFlow"
+              alt="InhubFlow"
               style={{ width: "auto", height: "32px" }}
             />
           </Link>

@@ -36,7 +36,7 @@ export default function AdminLayout({
         <main className="w-full p-4 md:p-6 min-w-0 flex-1 bg-[#E9F0F7] dark:bg-gray-900">
           {children}
         </main>
-        {/* InHub Interactive AI SDR Copilot */}
+        {/* Inhub Interactive AI SDR Copilot */}
         <InHubCopilotWidget />
       </div>
     </div>

@@ -49,7 +49,7 @@ const UI_LABELS: Record<
   }
 > = {
   es: {
-    assistantTitle: "InHub",
+    assistantTitle: "Inhub",
     subtitlePrefix: "Asistente IA",
     stepLinkedIn: "Conectar LinkedIn",
     stepTrain: "Entrenar empresa",
@@ -63,14 +63,14 @@ const UI_LABELS: Record<
     trainingPlaceholder: "Escribe tu respuesta...",
     typingText: "Escribiendo...",
     onboardingMissingLinkedIn:
-      "Hola, soy InHub. Primero conecta tu cuenta de LinkedIn para empezar.",
+      "Hola, soy Inhub. Primero conecta tu cuenta de LinkedIn para empezar.",
     onboardingMissingKnowledge:
       "LinkedIn listo. ¿Me entrenas en 1 minuto con los datos de tu empresa?",
     welcomeIntro:
-      "Hola, soy **InHub**. Puedo ayudarte a configurar tu cuenta o explicarte cómo usar cualquier sección.",
+      "Hola, soy **Inhub**. Puedo ayudarte a configurar tu cuenta o explicarte cómo usar cualquier sección.",
   },
   en: {
-    assistantTitle: "InHub",
+    assistantTitle: "Inhub",
     subtitlePrefix: "AI Assistant",
     stepLinkedIn: "Connect LinkedIn",
     stepTrain: "Train company",
@@ -84,14 +84,14 @@ const UI_LABELS: Record<
     trainingPlaceholder: "Type your answer...",
     typingText: "Typing...",
     onboardingMissingLinkedIn:
-      "Hi, I'm InHub. Connect your LinkedIn account first to get started.",
+      "Hi, I'm Inhub. Connect your LinkedIn account first to get started.",
     onboardingMissingKnowledge:
       "LinkedIn is ready. Want to train me on your company in 1 minute?",
     welcomeIntro:
-      "Hi, I'm **InHub**. I can help you set up your account or walk you through any section.",
+      "Hi, I'm **Inhub**. I can help you set up your account or walk you through any section.",
   },
   "pt-BR": {
-    assistantTitle: "InHub",
+    assistantTitle: "Inhub",
     subtitlePrefix: "Assistente IA",
     stepLinkedIn: "Conectar LinkedIn",
     stepTrain: "Treinar empresa",
@@ -105,11 +105,11 @@ const UI_LABELS: Record<
     trainingPlaceholder: "Digite sua resposta...",
     typingText: "Digitando...",
     onboardingMissingLinkedIn:
-      "Olá, sou o InHub. Primeiro conecte sua conta do LinkedIn para começar.",
+      "Olá, sou o Inhub. Primeiro conecte sua conta do LinkedIn para começar.",
     onboardingMissingKnowledge:
       "LinkedIn pronto. Quer me treinar em 1 minuto com os dados da sua empresa?",
     welcomeIntro:
-      "Olá, sou o **InHub**. Posso ajudar a configurar sua conta ou explicar qualquer seção da plataforma.",
+      "Olá, sou o **Inhub**. Posso ajudar a configurar sua conta ou explicar qualquer seção da plataforma.",
   },
 };
 

@@ -594,7 +594,7 @@ export class UnipileClient {
         public_profile_url: 'https://www.linkedin.com/in/roberto-orse',
         first_name: 'Roberto',
         last_name: 'OrSe',
-        headline: 'Founder & CEO en InHubFlow | Social Selling & Automatizacion B2B con IA',
+        headline: 'Founder & CEO en InhubFlow | Social Selling & Automatizacion B2B con IA',
         picture_url: '/images/user/owner.png',
         profile_picture_url: '/images/user/owner.png',
       };
@@ -693,7 +693,7 @@ export class UnipileClient {
           author: {
             id: 'urn:li:member:roberto-orse',
             name: 'Roberto OrSe',
-            headline: 'Founder & CEO en InHubFlow',
+            headline: 'Founder & CEO en InhubFlow',
           },
         },
       ];
@@ -1143,7 +1143,7 @@ export class UnipileClient {
         author: {
           id: 'urn:li:member:roberto-orse',
           name: 'Roberto OrSe',
-          headline: 'Founder & CEO en InHubFlow',
+          headline: 'Founder & CEO en InhubFlow',
         },
       };
     }

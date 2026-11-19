@@ -30,14 +30,14 @@ function syncSdrStateToDb(key: "config" | "knowledge" | "pending" | "logs", data
 
 export const DEFAULT_SDR_CONFIG: SdrAgentConfig = {
   id: "sdr-default",
-  name: "InHubFlow Virtual SDR",
+  name: "InhubFlow Virtual SDR",
   mode: "approval", // Modo supervisión con aprobación humana por defecto
   model: "gemini-3.6-flash",
   confidenceThreshold: 0.85,
   maxAutoTurns: 3,
   handoffEmail: "inhubflow@gmail.com",
-  companyContext: "InHubFlow | Social Selling Suite es una plataforma B2B que combina Signal Radar, secuencias visuales de Canvas y Asistente SDR IA con soporte multislots para generar prospectos calificados y conversiones de alto valor.",
-  systemPrompt: "Eres un SDR virtual senior de InHubFlow. Tu objetivo es mantener conversaciones ejecutivas, concisas y naturales en LinkedIn. Responde dudas fundamentándote únicamente en el conocimiento aprobado y guía al prospecto calificado hacia el objetivo final de conversión.",
+  companyContext: "InhubFlow | Social Selling Suite es una plataforma B2B que combina Signal Radar, secuencias visuales de Canvas y Asistente SDR IA con soporte multislots para generar prospectos calificados y conversiones de alto valor.",
+  systemPrompt: "Eres un SDR virtual senior de InhubFlow. Tu objetivo es mantener conversaciones ejecutivas, concisas y naturales en LinkedIn. Responde dudas fundamentándote únicamente en el conocimiento aprobado y guía al prospecto calificado hacia el objetivo final de conversión.",
   customInstructions: "Nunca inventes funcionalidades ni tarifas que no estén en el documento de precios oficiales. Sé empático, saluda por el nombre y ofrece el enlace de conversión correspondiente cuando haya interés claro.",
   calendarEnabled: true,
   bookingLink: "https://cal.inhubflow.com/demo-20min",

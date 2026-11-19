@@ -51,7 +51,7 @@ export const AVAILABLE_FONTS: { family: string; category: FontCategory; label: s
 export const ACCENT_COLOR_PRESETS = [
   { color: '#6366f1', label: 'Violeta Eléctrico' },
   { color: '#d97706', label: 'Dorado / Ámbar' },
-  { color: '#0099ff', label: 'Azul InHubFlow' },
+  { color: '#0099ff', label: 'Azul InhubFlow' },
   { color: '#ec4899', label: 'Rosa Neón' },
   { color: '#10b981', label: 'Verde Esmeralda' },
   { color: '#ef4444', label: 'Rojo Coral' },

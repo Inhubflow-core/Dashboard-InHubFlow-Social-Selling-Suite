@@ -423,7 +423,7 @@ export async function GET(req: NextRequest) {
     const pixabayRes = await fetch(pixabayUrl, {
       next: { revalidate: 3600 },
       headers: {
-        "User-Agent": "InHubFlow-Social-Selling-Suite/2.4",
+        "User-Agent": "InhubFlow-Social-Selling-Suite/2.4",
       },
     });
 

@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Error al autenticar la cuenta de LinkedIn con InHubFlow Cloud.",
+        error: "Error al autenticar la cuenta de LinkedIn con InhubFlow Cloud.",
         message: error instanceof Error ? error.message : String(error),
       },
       { status: errStatus || 500 }

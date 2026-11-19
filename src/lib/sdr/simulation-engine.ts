@@ -195,7 +195,7 @@ export function runSdrDecision(input: SdrSimulationInput): SdrSimulationOutput {
       goalType === "schedule_meeting"
         ? "Protocolo de Agendamiento de Reuniones"
         : "Presentación Oficial y Demostración en Video",
-      "Propuesta de Valor & Capacidades de InHubFlow"
+      "Propuesta de Valor & Capacidades de InhubFlow"
     );
 
     if (goalType === "schedule_meeting") {
@@ -285,7 +285,7 @@ Desde esa misma página puedes evaluar las funcionalidades y activar tu acceso s
     citations.push("Estructura de Precios y Planes Oficiales");
 
     if (lang === "pt") {
-      replyDraft = `Olá ${sender}, com certeza! A InHubFlow conta com a seguinte estrutura de planos conforme a quantidade de contas do LinkedIn conectadas:
+      replyDraft = `Olá ${sender}, com certeza! A InhubFlow conta com a seguinte estrutura de planos conforme a quantidade de contas do LinkedIn conectadas:
 
 - Plano Starter: $49/mês (1 conta de LinkedIn, 20 inv/dia, 30 DMs/dia, Viral Engine).
 - Plano Growth: $149/mês (5 contas em simultâneo, 100 inv/dia, 150 DMs/dia, gestão de equipe multislot).
@@ -293,7 +293,7 @@ Desde esa misma página puedes evaluar las funcionalidades y activar tu acceso s
 
 Todos os planos incluem 20% de desconto no faturamento anual. Quantas contas ou pessoas da sua equipe têm interesse em prospectar?`;
     } else if (lang === "en") {
-      replyDraft = `Hi ${sender}, glad to share InHubFlow's plan structure based on how many LinkedIn accounts you want to connect:
+      replyDraft = `Hi ${sender}, glad to share InhubFlow's plan structure based on how many LinkedIn accounts you want to connect:
 
 - Starter Plan: $49/mo (1 LinkedIn account, 20 inv/day, 30 DMs/day, Viral Engine).
 - Growth Plan: $149/mo (5 simultaneous accounts, 100 inv/day, 150 DMs/day, multislot team management).
@@ -301,7 +301,7 @@ Todos os planos incluem 20% de desconto no faturamento anual. Quantas contas ou 
 
 All plans include a 20% discount on annual billing. How many accounts or SDRs in your team are looking to prospect?`;
     } else {
-      replyDraft = `Hola ${sender}, con gusto te comparto la estructura de planes de InHubFlow según la cantidad de cuentas de LinkedIn que desees conectar:
+      replyDraft = `Hola ${sender}, con gusto te comparto la estructura de planes de InhubFlow según la cantidad de cuentas de LinkedIn que desees conectar:
 
 - Plan Starter: $49/mes (1 cuenta de LinkedIn, 20 inv/día, 30 DMs/día, Viral Engine).
 - Plan Growth: $149/mes (5 cuentas en simultáneo, 100 inv/día, 150 DMs/día, gestión de equipo multislot).
@@ -339,41 +339,41 @@ Todos los planes incluyen 20% de descuento en suscripción anual y garantía de 
     requiresHuman = false;
     reasonCode = "objection_handled_with_approved_framework";
     reasoningSummary = "Se detectó una objeción común de prospección. Se aplica el marco de diferenciación y seguridad de la base de conocimiento.";
-    citations.push("Manejo de Objeciones Comunes", "Propuesta de Valor & Capacidades de InHubFlow");
+    citations.push("Manejo de Objeciones Comunes", "Propuesta de Valor & Capacidades de InhubFlow");
 
     if (lang === "pt") {
       if (text.includes("waalaxy") || text.includes("lemlist") || text.includes("já usamos") || text.includes("concorrente")) {
-        replyDraft = `Totalmente compreensível, ${sender}. Muitas agências e empresas que hoje usam a InHubFlow já utilizavam ferramentas de prospecção em massa.
+        replyDraft = `Totalmente compreensível, ${sender}. Muitas agências e empresas que hoje usam a InhubFlow já utilizavam ferramentas de prospecção em massa.
 
 A grande diferença é que não enviamos mensagens no escuro: nosso Signal Radar identifica quando um prospect interage com conteúdo do seu nicho (leads aquecidos), alcançando taxas de resposta superiores a 40% e protegendo suas contas do LinkedIn com emulação humana real.
 
 Teria interesse em ver uma breve comparação de 5 minutos sobre como potencializamos o que vocês já utilizam?`;
       } else {
-        replyDraft = `Essa é uma preocupação muito válida, ${sender}. Exatamente por isso na InHubFlow não usamos extensões de navegador arriscadas. Todas as conexões operam com emulação humana segura e limites prudentes.
+        replyDraft = `Essa é uma preocupação muito válida, ${sender}. Exatamente por isso na InhubFlow não usamos extensões de navegador arriscadas. Todas as conexões operam com emulação humana segura e limites prudentes.
 
 Sua segurança é a prioridade número um. Gostaria de conhecer mais sobre nossas camadas de proteção?`;
       }
     } else if (lang === "en") {
       if (text.includes("waalaxy") || text.includes("lemlist") || text.includes("already use")) {
-        replyDraft = `Totally understandable, ${sender}. Many agencies and sales teams using InHubFlow today previously used mass cold outreach tools.
+        replyDraft = `Totally understandable, ${sender}. Many agencies and sales teams using InhubFlow today previously used mass cold outreach tools.
 
 The key difference is we don't message cold contacts blindly: our Signal Radar detects warm prospects engaging with industry content, delivering response rates above 40% while protecting your LinkedIn reputation with real human emulation.
 
 Would you be open to a quick 5-minute comparison on how we complement or amplify your current setup?`;
       } else {
-        replyDraft = `A very valid concern, ${sender}. That's precisely why InHubFlow doesn't rely on risky browser extensions. All outreach runs with safe human emulation and conservative daily pacing.
+        replyDraft = `A very valid concern, ${sender}. That's precisely why InhubFlow doesn't rely on risky browser extensions. All outreach runs with safe human emulation and conservative daily pacing.
 
 Account safety is our top priority. Would you like to see how our protection framework works?`;
       }
     } else {
       if (text.includes("waalaxy") || text.includes("lemlist") || text.includes("expandi") || text.includes("ya usamos")) {
-        replyDraft = `Totalmente comprensible, ${sender}. Muchas agencias y empresas que hoy usan InHubFlow venían de herramientas de prospección masiva en frío.
+        replyDraft = `Totalmente comprensible, ${sender}. Muchas agencias y empresas que hoy usan InhubFlow venían de herramientas de prospección masiva en frío.
 
 La gran diferencia es que nosotros no enviamos mensajes a ciegas; nuestro Signal Radar detecta cuando un prospecto comenta o interactúa con contenido de tu sector (leads 'tibios'), logrando tasas de respuesta de más del 40% y protegiendo tu reputación en LinkedIn con emulación humana real.
 
 ¿Te interesaría ver una breve comparativa de 5 minutos sobre cómo complementamos o potenciamos lo que ya tienen?`;
       } else {
-        replyDraft = `Esa es una preocupación muy válida, ${sender}. Justamente por eso en InHubFlow no usamos extensiones de Chrome riesgosas. Toda la conexión opera con emulación humana segura, respetando rotación de IPs residenciales y límites prudentes de 20 a 25 invitaciones diarias por cuenta.
+        replyDraft = `Esa es una preocupación muy válida, ${sender}. Justamente por eso en InhubFlow no usamos extensiones de Chrome riesgosas. Toda la conexión opera con emulación humana segura, respetando rotación de IPs residenciales y límites prudentes de 20 a 25 invitaciones diarias por cuenta.
 
 Tu seguridad es la prioridad número uno. ¿Te gustaría conocer más sobre nuestras capas de protección?`;
       }
@@ -419,10 +419,10 @@ Tu seguridad es la prioridad número uno. ¿Te gustaría conocer más sobre nues
     requiresHuman = false;
     reasonCode = "positive_intent_nurtured";
     reasoningSummary = "Interés abierto en la solución. Se resume la propuesta de valor con llamado a la acción enfocado.";
-    citations.push("Propuesta de Valor & Capacidades de InHubFlow");
+    citations.push("Propuesta de Valor & Capacidades de InhubFlow");
 
     if (lang === "pt") {
-      replyDraft = `Com muito prazer, ${sender}! A InHubFlow é uma suite de Social Selling projetada para gerar reuniões qualificadas no LinkedIn combinando 3 motores:
+      replyDraft = `Com muito prazer, ${sender}! A InhubFlow é uma suite de Social Selling projetada para gerar reuniões qualificadas no LinkedIn combinando 3 motores:
 
 1. Signal Radar: Detecta tomadores de decisão ativos comentando publicações do seu mercado.
 2. Interação Automatizada: Visitas, curtidas e comentários inteligentes em posts recentes.
@@ -430,7 +430,7 @@ Tu seguridad es la prioridad número uno. ¿Te gustaría conocer más sobre nues
 
 Você teria 15 minutos esta semana para vermos uma demonstração rápida adaptada ao seu time?`;
     } else if (lang === "en") {
-      replyDraft = `With pleasure, ${sender}! InHubFlow is a Social Selling suite designed to generate qualified sales meetings on LinkedIn combining 3 engines:
+      replyDraft = `With pleasure, ${sender}! InhubFlow is a Social Selling suite designed to generate qualified sales meetings on LinkedIn combining 3 engines:
 
 1. Signal Radar: Identifies active decision-makers engaging with industry content.
 2. Smart Engagement: Automated visits, likes, and contextual comments on prospects' posts.
@@ -438,7 +438,7 @@ Você teria 15 minutos esta semana para vermos uma demonstração rápida adapta
 
 Would you have 15 minutes this week for a quick walkthrough tailored to your team?`;
     } else {
-      replyDraft = `¡Con mucho gusto, ${sender}! InHubFlow es una suite de Social Selling diseñada para generar reuniones comerciales en LinkedIn combinando 3 motores:
+      replyDraft = `¡Con mucho gusto, ${sender}! InhubFlow es una suite de Social Selling diseñada para generar reuniones comerciales en LinkedIn combinando 3 motores:
 
 1. Signal Radar: Detecta prospectos activos comentando en publicaciones de tu sector.
 2. Interacción Automatizada: Visitas, likes y comentarios contextuales en sus publicaciones.

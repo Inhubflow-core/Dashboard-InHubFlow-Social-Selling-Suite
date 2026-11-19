@@ -648,7 +648,7 @@ export async function POST(req: Request) {
           keywords,
           targetMarket,
           accountId: targetAccountId || "local-dev-account",
-          accountName: selectedAccountObj?.name || "Cuenta Local (InHubFlow Demo)",
+          accountName: selectedAccountObj?.name || "Cuenta Local (InhubFlow Demo)",
           totalFound: nicheItems.length,
           filteredCyrillicCount: 0,
           filteredJobsCount: 0,
@@ -842,7 +842,7 @@ export async function POST(req: Request) {
       const comments = item.comments_counter ?? item.comment_counter ?? 0;
       const shares = item.reposts_counter ?? item.repost_counter ?? 0;
 
-      // Algoritmo Ponderado de Viralidad InHubFlow:
+      // Algoritmo Ponderado de Viralidad InhubFlow:
       // - Likes (x1): Reacciones de lectura rápida en el feed
       // - Comentarios (x3.5): Retención y distribución exponencial por algoritmo de LinkedIn
       // - Reposts (x5): Máxima amplificación orgánica y difusión externa

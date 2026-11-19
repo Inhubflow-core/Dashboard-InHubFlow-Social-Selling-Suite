@@ -209,7 +209,7 @@ export default function CreateViralPostView({
       isCover: true,
       title: "La mayoría de líderes B2B cometen **el mismo error** al prospectar en LinkedIn",
       subtitle: "Hablan de su producto antes de entender el dolor del decisor.",
-      content: ["InHubFlow Social Selling", `Por ${currentUser.name}`],
+      content: ["InhubFlow Social Selling", `Por ${currentUser.name}`],
       footerText: `@${currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
       coverLayout: "bottom",
       backgroundImageUrl: SAMPLE_B2B_BACKGROUNDS[0].url,
@@ -227,7 +227,7 @@ export default function CreateViralPostView({
       title: "¿Quieres Implementar Este Sistema?",
       subtitle: "Recibe el documento de trabajo completo en PDF",
       content: ["Comenta SISTEMA en esta publicación", "Te envío la guía por mensaje privado."],
-      footerText: "InHubFlow Social Selling",
+      footerText: "InhubFlow Social Selling",
     },
   ]);
 
@@ -489,7 +489,7 @@ Aquí tienes el framework exacto que usamos para cerrar reuniones cualificadas:
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InHubFlow.");
+        if (!res.ok) throw new Error(data.error || "Error al publicar en LinkedIn a través del motor InhubFlow.");
         linkedinPostId = data.postId;
       } catch (err: any) {
         console.error("[Publish Post Error]:", err);

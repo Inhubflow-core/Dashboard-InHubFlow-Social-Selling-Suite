@@ -10,8 +10,8 @@ export interface LogoProps {
   title?: string
 }
 
-/** InHubFlow Visual Studio mark */
-export function Logo({ variant = 'full', height = 28, className, title = 'InHubFlow Studio' }: LogoProps) {
+/** InhubFlow Visual Studio mark */
+export function Logo({ variant = 'full', height = 28, className, title = 'InhubFlow Studio' }: LogoProps) {
   return (
     <span
       className={cx(styles.logo, className)}
@@ -33,7 +33,7 @@ export function Logo({ variant = 'full', height = 28, className, title = 'InHubF
       </span>
       {variant === 'full' ? (
         <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '-0.02em', color: 'var(--color-text, #0f172a)' }} aria-hidden="true">
-          InHubFlow Studio
+          InhubFlow Studio
         </span>
       ) : null}
     </span>

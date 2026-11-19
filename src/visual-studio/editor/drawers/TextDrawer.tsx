@@ -61,7 +61,7 @@ export function TextDrawer({ close }: PanelProps) {
   const rawHook =
     editor.meta?.postTitle?.trim() ||
     (typeof window !== 'undefined' ? window.sessionStorage?.getItem('inhubflow_active_post_hook')?.trim() : '') ||
-    (editor.meta?.title && editor.meta.title !== 'Diseño Social InHubFlow' ? editor.meta.title.trim() : '')
+    (editor.meta?.title && editor.meta.title !== 'Diseño Social InhubFlow' ? editor.meta.title.trim() : '')
   const rawIntro =
     editor.meta?.postSubtitle?.trim() ||
     (typeof window !== 'undefined' ? window.sessionStorage?.getItem('inhubflow_active_post_intro')?.trim() : '')

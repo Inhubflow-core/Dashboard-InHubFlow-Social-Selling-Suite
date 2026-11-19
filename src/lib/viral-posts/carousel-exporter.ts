@@ -18,9 +18,9 @@ export async function exportCarouselToPdf(
   options: CarouselExportOptions = {}
 ): Promise<void> {
   const primaryColor = options.primaryColor || "#0099ff";
-  const authorName = options.authorName || "InHubFlow Social Selling";
+  const authorName = options.authorName || "InhubFlow Social Selling";
   const authorHandle = options.authorHandle || "@inhubflow";
-  const filename = options.filename || "InHubFlow_Carrusel_LinkedIn.pdf";
+  const filename = options.filename || "InhubFlow_Carrusel_LinkedIn.pdf";
 
   // Dimensiones en mm (200x200 mm formato cuadrado ideal para LinkedIn)
   const size = 200;

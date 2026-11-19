@@ -402,7 +402,7 @@ function ensureSaasSubscribersSchema(db: Database.Database): void {
       "inhubflow@gmail.com",
       "SuperAdmin",
       "super_admin",
-      "InHubFlow Headquarters",
+      "InhubFlow Headquarters",
       "custom",
       999,
       "active",

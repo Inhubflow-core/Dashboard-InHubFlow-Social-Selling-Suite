@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import React from "react";
@@ -25,7 +25,7 @@ interface ServiceStatus {
 
 const SERVICES: ServiceStatus[] = [
   {
-    name: "InHubFlow LinkedIn Cloud Bridge",
+    name: "InhubFlow LinkedIn Cloud Bridge",
     category: "Mensajería & Conexión",
     uptime: "99.98%",
     latency: "142 ms",
@@ -85,7 +85,7 @@ export default function SystemStatusPage() {
               Todos los Sistemas Operando con Normalidad
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              La infraestructura de InHubFlow y los conectores de LinkedIn operan al 100% de disponibilidad.
+              La infraestructura de InhubFlow y los conectores de LinkedIn operan al 100% de disponibilidad.
             </p>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function SystemStatusPage() {
       <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="border-b border-gray-300 p-5 dark:border-gray-800">
           <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-            Componentes del Ecosistema InHubFlow
+            Componentes del Ecosistema InhubFlow
           </h3>
         </div>
 

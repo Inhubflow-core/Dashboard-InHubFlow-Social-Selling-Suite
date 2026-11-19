@@ -23,7 +23,7 @@ export function InHubLiveAvatar({
   const [lookOffset, setLookOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // Natural random blinking of InHub's glossy black eyes every 2.2s - 4.8s
+  // Natural random blinking of Inhub's glossy black eyes every 2.2s - 4.8s
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
     let blinkResetId: ReturnType<typeof setTimeout>;
@@ -52,7 +52,7 @@ export function InHubLiveAvatar({
     };
   }, []);
 
-  // Subtle mouse-tracking so InHub turns slightly toward the user's cursor
+  // Subtle mouse-tracking so Inhub turns slightly toward the user's cursor
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (typeof window === "undefined") return;
@@ -87,17 +87,17 @@ export function InHubLiveAvatar({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      aria-label="InHub AI SDR Assistant"
+      aria-label="Inhub AI SDR Assistant"
       className={`group relative ${dims} bg-transparent border-0 p-0 flex items-center justify-center cursor-pointer transition-transform duration-300 select-none overflow-visible focus:outline-none`}
     >
-      {/* Subtle floating floor shadow under InHub's feet */}
+      {/* Subtle floating floor shadow under Inhub's feet */}
       <span
         className={`pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 w-3/4 h-2.5 rounded-full bg-[#0099ff]/30 blur-md transition-all duration-300 ${
           isHappyPose ? "scale-110 opacity-100" : "scale-95 opacity-70"
         }`}
       />
 
-      {/* Floating + tilting 3D InHub body (No dark box behind) */}
+      {/* Floating + tilting 3D Inhub body (No dark box behind) */}
       <div
         className="relative w-full h-full flex items-center justify-center transition-transform duration-200 ease-out"
         style={{
@@ -112,7 +112,7 @@ export function InHubLiveAvatar({
       >
         <img
           src="/images/inhub-front.png"
-          alt="InHub"
+          alt="Inhub"
           className="w-full h-full object-contain drop-shadow-[0_10px_18px_rgba(15,23,42,0.22)]"
         />
 

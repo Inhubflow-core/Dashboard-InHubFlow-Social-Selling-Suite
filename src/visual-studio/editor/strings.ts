@@ -1390,7 +1390,7 @@ export const t = {
     addAll: (n: number) => `Add all ${n} pages`,
   },
   brand: {
-    gateTitle: 'Marca Personal InHubFlow',
+    gateTitle: 'Marca Personal InhubFlow',
     gateBody: 'Centraliza tus colores, tipografías, logotipos e íconos en un solo lugar para diseñar siempre bajo tu identidad de marca personal.',
     gateAction: 'Crear kit de marca',
     palette: (name: string) => `Color Brand${name ? ` · ${name}` : ''}`,

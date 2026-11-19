@@ -38,7 +38,7 @@ export interface HighlightStyleDef {
 export const HIGHLIGHT_PALETTE = [
   { name: 'Amarillo Neón', hex: '#FFE600' },
   { name: 'Verde Neón', hex: '#00E676' },
-  { name: 'Púrpura InHubFlow', hex: '#702FFC' },
+  { name: 'Púrpura InhubFlow', hex: '#702FFC' },
   { name: 'Celeste Eléctrico', hex: '#00D2FF' },
   { name: 'Naranja Vibrante', hex: '#FF6B00' },
   { name: 'Rosa Neón', hex: '#FF1493' },

@@ -44,10 +44,10 @@ export function getRouteCopilotContext(
           "¿Cómo funciona esta sección?",
           "¿Cómo genero 12 posts para 1 mes?",
           "¿Cómo creo imágenes y carruseles PDF?",
-          "Entrenar a InHub con mi empresa",
+          "Entrenar a Inhub con mi empresa",
         ],
         sectionExplanation:
-          "En **Viral Post Engine** construyes tu autoridad en LinkedIn en minutos:\n\n1. **Buscador Viral (Radar):** escribe tu temática y encuentra publicaciones con alta tracción real.\n2. **Modelado con IA (12 posts/mes):** selecciona un post o pega cualquier enlace para que yo lo reescriba con la voz de tu empresa y programe tu calendario Lunes, Miércoles y Viernes.\n3. **Editor Visual Integrado:** diseña imágenes y carruseles PDF diapositiva por diapositiva sin salir de InHubFlow.",
+          "En **Viral Post Engine** construyes tu autoridad en LinkedIn en minutos:\n\n1. **Buscador Viral (Radar):** escribe tu temática y encuentra publicaciones con alta tracción real.\n2. **Modelado con IA (12 posts/mes):** selecciona un post o pega cualquier enlace para que yo lo reescriba con la voz de tu empresa y programe tu calendario Lunes, Miércoles y Viernes.\n3. **Editor Visual Integrado:** diseña imágenes y carruseles PDF diapositiva por diapositiva sin salir de InhubFlow.",
         defaultActions: [
           { label: "Abrir Radar Viral →", href: "/viral-posts/radar" },
           { label: "Crear Post / Carrusel →", href: "/viral-posts/create" },
@@ -63,10 +63,10 @@ export function getRouteCopilotContext(
           "How does this section work?",
           "How do I generate 12 posts for 1 month?",
           "How do I build images & PDF carousels?",
-          "Train InHub on my company",
+          "Train Inhub on my company",
         ],
         sectionExplanation:
-          "In **Viral Post Engine** you build LinkedIn authority in minutes:\n\n1. **Viral Finder (Radar):** enter your niche to discover top-performing LinkedIn posts.\n2. **AI Modeling (12 posts/month):** pick any viral post or paste a link so I can rewrite it in your brand voice and schedule your Mon/Wed/Fri calendar.\n3. **Built-in Visual Editor:** design images and multi-slide PDF carousels right inside InHubFlow.",
+          "In **Viral Post Engine** you build LinkedIn authority in minutes:\n\n1. **Viral Finder (Radar):** enter your niche to discover top-performing LinkedIn posts.\n2. **AI Modeling (12 posts/month):** pick any viral post or paste a link so I can rewrite it in your brand voice and schedule your Mon/Wed/Fri calendar.\n3. **Built-in Visual Editor:** design images and multi-slide PDF carousels right inside InhubFlow.",
         defaultActions: [
           { label: "Open Viral Radar →", href: "/viral-posts/radar" },
           { label: "Create Post / Carousel →", href: "/viral-posts/create" },
@@ -82,7 +82,7 @@ export function getRouteCopilotContext(
           "Como funciona esta seção?",
           "Como gero 12 posts para 1 mês?",
           "Como crio imagens e carrosséis PDF?",
-          "Treinar o InHub com minha empresa",
+          "Treinar o Inhub com minha empresa",
         ],
         sectionExplanation:
           "No **Viral Post Engine** você constrói autoridade no LinkedIn em minutos:\n\n1. **Buscador Viral (Radar):** digite seu tema e encontre publicações com alto engajamento.\n2. **Modelagem com IA (12 posts/mês):** escolha um post ou cole um link para eu reescrever com a voz da sua empresa e agendar Seg, Qua e Sex.\n3. **Editor Visual Integrado:** crie imagens e carrosséis PDF slide por slide sem sair da plataforma.",
@@ -170,7 +170,7 @@ export function getRouteCopilotContext(
           "¿Qué pasa cuando un prospecto responde?",
         ],
         sectionExplanation:
-          "En **Campañas** automatizas tu acercamiento en LinkedIn con ritmo 100% humano:\n\n1. **Calentamiento previo:** Visitar perfil → Dar Like y comentar su último post → Seguir y enviar solicitud de conexión.\n2. **Conversación:** Mensaje DM *Icebreaker* contextualizado con la señal detectada + Follow-ups con esperas de 1 a 3 días.\n3. **Seguridad y Stop on Reply:** opera de lunes a viernes respetando el límite seguro (hasta 20 interacciones/día por cuenta). Apenas el prospecto responde, la secuencia se detiene y yo (InHub SDR IA) tomo la conversación.",
+          "En **Campañas** automatizas tu acercamiento en LinkedIn con ritmo 100% humano:\n\n1. **Calentamiento previo:** Visitar perfil → Dar Like y comentar su último post → Seguir y enviar solicitud de conexión.\n2. **Conversación:** Mensaje DM *Icebreaker* contextualizado con la señal detectada + Follow-ups con esperas de 1 a 3 días.\n3. **Seguridad y Stop on Reply:** opera de lunes a viernes respetando el límite seguro (hasta 20 interacciones/día por cuenta). Apenas el prospecto responde, la secuencia se detiene y yo (Inhub SDR IA) tomo la conversación.",
         defaultActions: [
           { label: "Configurar mi Cerebro SDR →", href: "/sdr" },
           { label: "Ver Inbox Unificado →", href: "/inbox" },
@@ -188,7 +188,7 @@ export function getRouteCopilotContext(
           "What happens when a prospect replies?",
         ],
         sectionExplanation:
-          "In **Campaigns** you automate LinkedIn outreach with humanized pacing:\n\n1. **Warm-up touches:** Visit profile → Like & comment on their latest post → Follow & request connection.\n2. **Messaging:** Contextual *Icebreaker* DM based on their intent signal + smart follow-ups.\n3. **Safety & Stop on Reply:** runs Mon–Fri within the safe cap (up to 20 interactions/day per account). As soon as a prospect replies, the sequence stops and I (InHub AI SDR) take over.",
+          "In **Campaigns** you automate LinkedIn outreach with humanized pacing:\n\n1. **Warm-up touches:** Visit profile → Like & comment on their latest post → Follow & request connection.\n2. **Messaging:** Contextual *Icebreaker* DM based on their intent signal + smart follow-ups.\n3. **Safety & Stop on Reply:** runs Mon–Fri within the safe cap (up to 20 interactions/day per account). As soon as a prospect replies, the sequence stops and I (Inhub AI SDR) take over.",
         defaultActions: [
           { label: "Configure AI SDR Brain →", href: "/sdr" },
           { label: "Open Unified Inbox →", href: "/inbox" },
@@ -206,7 +206,7 @@ export function getRouteCopilotContext(
           "O que acontece quando o lead responde?",
         ],
         sectionExplanation:
-          "Em **Campanhas** você automatiza sua abordagem no LinkedIn com ritmo humano:\n\n1. **Aquecimento:** Visitar perfil → Curtir e comentar o último post → Seguir e pedir conexão.\n2. **Conversa:** DM *Icebreaker* contextualizada com o sinal detectado + Follow-ups automáticos.\n3. **Segurança e Stop on Reply:** opera de Seg a Sex respeitando o limite seguro (até 20 interações/dia por conta). Assim que o prospect responde, a campanha pausa e eu (InHub SDR IA) assumo.",
+          "Em **Campanhas** você automatiza sua abordagem no LinkedIn com ritmo humano:\n\n1. **Aquecimento:** Visitar perfil → Curtir e comentar o último post → Seguir e pedir conexão.\n2. **Conversa:** DM *Icebreaker* contextualizada com o sinal detectado + Follow-ups automáticos.\n3. **Segurança e Stop on Reply:** opera de Seg a Sex respeitando o limite seguro (até 20 interações/dia por conta). Assim que o prospect responde, a campanha pausa e eu (Inhub SDR IA) assumo.",
         defaultActions: [
           { label: "Configurar Cérebro SDR →", href: "/sdr" },
           { label: "Ver Inbox Unificado →", href: "/inbox" },
@@ -220,11 +220,11 @@ export function getRouteCopilotContext(
     const map: Record<CopilotLocale, RouteCopilotContext> = {
       es: {
         routeKey: "sdr",
-        sectionTitle: "Asistente SDR IA (InHub)",
+        sectionTitle: "Asistente SDR IA (Inhub)",
         proactiveBubble:
           "¡Aquí vive mi cerebro comercial! ¿Quieres que te entrene ahora mismo haciéndote 3 preguntas sobre tu empresa?",
         quickChips: [
-          "Entrenar a InHub con mi empresa ahora",
+          "Entrenar a Inhub con mi empresa ahora",
           "¿Cómo funciona esta sección?",
           "Diferencia entre Copiloto y Automático",
           "¿Cuándo transfieres la conversación a un humano?",
@@ -242,11 +242,11 @@ export function getRouteCopilotContext(
       },
       en: {
         routeKey: "sdr",
-        sectionTitle: "AI SDR Assistant (InHub)",
+        sectionTitle: "AI SDR Assistant (Inhub)",
         proactiveBubble:
           "This is where my sales brain lives! Want me to train on your company right now by asking you 3 quick questions?",
         quickChips: [
-          "Train InHub on my company now",
+          "Train Inhub on my company now",
           "How does this section work?",
           "Copilot vs Autopilot Mode",
           "When do you hand off to a human?",
@@ -264,11 +264,11 @@ export function getRouteCopilotContext(
       },
       "pt-BR": {
         routeKey: "sdr",
-        sectionTitle: "Assistente SDR IA (InHub)",
+        sectionTitle: "Assistente SDR IA (Inhub)",
         proactiveBubble:
           "Aqui vive meu cérebro comercial! Quer me treinar agora mesmo respondendo 3 perguntas rápidas sobre sua empresa?",
         quickChips: [
-          "Treinar o InHub com minha empresa agora",
+          "Treinar o Inhub com minha empresa agora",
           "Como funciona esta seção?",
           "Diferença entre Copiloto e Automático",
           "Quando você transfere para um humano?",
@@ -297,7 +297,7 @@ export function getRouteCopilotContext(
           "Estás en el Inbox Unificado. ¿Quieres que te explique cómo aprobar mis respuestas o tomar el control humano de un chat?",
         quickChips: [
           "¿Cómo funciona esta sección?",
-          "¿Cómo apruebo respuestas de InHub?",
+          "¿Cómo apruebo respuestas de Inhub?",
           "¿Cómo tomo el control humano?",
           "Ver etapas en el Pipeline CRM",
         ],
@@ -315,7 +315,7 @@ export function getRouteCopilotContext(
           "You're in the Unified Inbox. Want me to explain how to approve my drafts or jump into a conversation manually?",
         quickChips: [
           "How does this section work?",
-          "How do I approve InHub's drafts?",
+          "How do I approve Inhub's drafts?",
           "How do I take human control?",
           "View CRM Pipeline stages",
         ],
@@ -333,7 +333,7 @@ export function getRouteCopilotContext(
           "Você está no Inbox Unificado. Quer que eu explique como aprovar minhas respostas ou assumir uma conversa manualmente?",
         quickChips: [
           "Como funciona esta seção?",
-          "Como aprovo rascunhos do InHub?",
+          "Como aprovo rascunhos do Inhub?",
           "Como assumo o atendimento humano?",
           "Ver etapas no Pipeline CRM",
         ],
@@ -420,9 +420,9 @@ export function getRouteCopilotContext(
           "Aquí conectas tus perfiles de LinkedIn de forma segura. ¿Quieres que te guíe paso a paso y luego me entrenes con los datos de tu empresa?",
         quickChips: [
           "¿Cómo conecto mi cuenta de LinkedIn?",
-          "Entrenar a InHub con mi empresa",
+          "Entrenar a Inhub con mi empresa",
           "¿Cuántas cuentas incluye mi plan?",
-          "¿Cómo protege InHub mi cuenta?",
+          "¿Cómo protege Inhub mi cuenta?",
         ],
         sectionExplanation:
           "En **Cuentas de LinkedIn** vinculas los perfiles que ejecutarán contenido, radar y campañas:\n\n1. Haz clic en **Conectar cuenta de LinkedIn** para iniciar la sesión segura mediante Unipile.\n2. Una vez que el estado marque **Conectada (OK)**, el siguiente paso clave es **entrenarme con la información de tu empresa** (nombre, productos/servicios y link de agenda).",
@@ -442,9 +442,9 @@ export function getRouteCopilotContext(
           "Here you connect your LinkedIn profiles safely. Want me to guide you step by step and then train on your company?",
         quickChips: [
           "How do I connect my LinkedIn account?",
-          "Train InHub on my company",
+          "Train Inhub on my company",
           "How many accounts are in my plan?",
-          "How does InHub keep my account safe?",
+          "How does Inhub keep my account safe?",
         ],
         sectionExplanation:
           "In **LinkedIn Accounts** you link the profiles that run content, radar, and campaigns:\n\n1. Click **Connect LinkedIn Account** to authenticate securely via Unipile.\n2. Once status shows **Connected (OK)**, the next key step is **training me on your company details** (company name, products/services, and booking link).",
@@ -464,9 +464,9 @@ export function getRouteCopilotContext(
           "Aqui você conecta seus perfis do LinkedIn com segurança. Quer que eu te guie passo a passo e depois me treine com sua empresa?",
         quickChips: [
           "Como conecto minha conta do LinkedIn?",
-          "Treinar o InHub com minha empresa",
+          "Treinar o Inhub com minha empresa",
           "Quantas contas meu plano inclui?",
-          "Como o InHub protege minha conta?",
+          "Como o Inhub protege minha conta?",
         ],
         sectionExplanation:
           "Em **Contas do LinkedIn** você vincula os perfis que rodarão conteúdo, radar e campanhas:\n\n1. Clique em **Conectar conta do LinkedIn** para autenticar com segurança via Unipile.\n2. Assim que o status ficar **Conectada (OK)**, o próximo passo é **me treinar com as informações da sua empresa** (nome, produtos/serviços e link de agenda).",
@@ -487,21 +487,21 @@ export function getRouteCopilotContext(
   const homeMap: Record<CopilotLocale, RouteCopilotContext> = {
     es: {
       routeKey: "dashboard",
-      sectionTitle: "Panel Principal InHubFlow",
+      sectionTitle: "Panel Principal InhubFlow",
       proactiveBubble:
-        "¡Hola! Soy InHub, tu Asistente SDR IA. ¿Quieres que revise tu cuenta y te lleve paso a paso a configurarla?",
+        "¡Hola! Soy Inhub, tu Asistente SDR IA. ¿Quieres que revise tu cuenta y te lleve paso a paso a configurarla?",
       quickChips: [
         "¿Qué debo hacer primero en mi cuenta?",
-        "Entrenar a InHub con mi empresa",
+        "Entrenar a Inhub con mi empresa",
         "¿Cómo genero contenido para 1 mes?",
         "¿Cómo detecto señales de compra?",
       ],
       sectionExplanation:
-        "¡Bienvenido a **InHubFlow Social Selling Suite**! Este es el orden ideal de 4 pasos para llenar tu calendario en LinkedIn:\n\n1. **Conectar tu cuenta de LinkedIn** en Configuración → Cuentas de LinkedIn.\n2. **Entrenarme a mí (InHub)** con el nombre de tu empresa, tus productos/servicios y tu link de agenda.\n3. **Crear tu mes de contenido** en Viral Post Engine (12 posts Lun/Mié/Vie + carruseles PDF).\n4. **Activar Signal Radar y tu primera Campaña** para convertir interacciones en reuniones.",
+        "¡Bienvenido a **InhubFlow Social Selling Suite**! Este es el orden ideal de 4 pasos para llenar tu calendario en LinkedIn:\n\n1. **Conectar tu cuenta de LinkedIn** en Configuración → Cuentas de LinkedIn.\n2. **Entrenarme a mí (Inhub)** con el nombre de tu empresa, tus productos/servicios y tu link de agenda.\n3. **Crear tu mes de contenido** en Viral Post Engine (12 posts Lun/Mié/Vie + carruseles PDF).\n4. **Activar Signal Radar y tu primera Campaña** para convertir interacciones en reuniones.",
       defaultActions: [
         { label: "1. Conectar LinkedIn →", href: "/linkedin-accounts" },
         {
-          label: "2. Entrenar a InHub por Chat ✦",
+          label: "2. Entrenar a Inhub por Chat ✦",
           href: "#train",
           actionType: "start_training",
         },
@@ -510,21 +510,21 @@ export function getRouteCopilotContext(
     },
     en: {
       routeKey: "dashboard",
-      sectionTitle: "InHubFlow Main Dashboard",
+      sectionTitle: "InhubFlow Main Dashboard",
       proactiveBubble:
-        "Hi! I'm InHub, your AI SDR Assistant. Want me to check your account status and guide you step by step?",
+        "Hi! I'm Inhub, your AI SDR Assistant. Want me to check your account status and guide you step by step?",
       quickChips: [
         "What should I set up first?",
-        "Train InHub on my company",
+        "Train Inhub on my company",
         "How do I create 1 month of content?",
         "How do I detect buying signals?",
       ],
       sectionExplanation:
-        "Welcome to **InHubFlow Social Selling Suite**! Here is the ideal 4-step path to book meetings on LinkedIn:\n\n1. **Connect your LinkedIn account** in Settings → LinkedIn Accounts.\n2. **Train me (InHub)** with your company name, products/services, and booking link.\n3. **Create your month of content** in Viral Post Engine (12 Mon/Wed/Fri posts + PDF carousels).\n4. **Activate Signal Radar & your first Campaign** to turn engagement into meetings.",
+        "Welcome to **InhubFlow Social Selling Suite**! Here is the ideal 4-step path to book meetings on LinkedIn:\n\n1. **Connect your LinkedIn account** in Settings → LinkedIn Accounts.\n2. **Train me (Inhub)** with your company name, products/services, and booking link.\n3. **Create your month of content** in Viral Post Engine (12 Mon/Wed/Fri posts + PDF carousels).\n4. **Activate Signal Radar & your first Campaign** to turn engagement into meetings.",
       defaultActions: [
         { label: "1. Connect LinkedIn →", href: "/linkedin-accounts" },
         {
-          label: "2. Train InHub via Chat ✦",
+          label: "2. Train Inhub via Chat ✦",
           href: "#train",
           actionType: "start_training",
         },
@@ -533,21 +533,21 @@ export function getRouteCopilotContext(
     },
     "pt-BR": {
       routeKey: "dashboard",
-      sectionTitle: "Painel Principal InHubFlow",
+      sectionTitle: "Painel Principal InhubFlow",
       proactiveBubble:
-        "Olá! Sou o InHub, seu Assistente SDR IA. Quer que eu verifique sua conta e te guie passo a passo?",
+        "Olá! Sou o Inhub, seu Assistente SDR IA. Quer que eu verifique sua conta e te guie passo a passo?",
       quickChips: [
         "O que devo configurar primeiro?",
-        "Treinar o InHub com minha empresa",
+        "Treinar o Inhub com minha empresa",
         "Como crio conteúdo para 1 mês?",
         "Como detecto sinais de compra?",
       ],
       sectionExplanation:
-        "Bem-vindo ao **InHubFlow Social Selling Suite**! Este é o passo a passo ideal em 4 etapas para lotar sua agenda no LinkedIn:\n\n1. **Conectar sua conta do LinkedIn** em Configurações → Contas do LinkedIn.\n2. **Me treinar (InHub)** com o nome da sua empresa, produtos/serviços e link de agenda.\n3. **Criar 1 mês de conteúdo** no Viral Post Engine (12 posts Seg/Qua/Sex + carrosséis PDF).\n4. **Ativar o Signal Radar e sua primeira Campanha** para transformar sinais em reuniões.",
+        "Bem-vindo ao **InhubFlow Social Selling Suite**! Este é o passo a passo ideal em 4 etapas para lotar sua agenda no LinkedIn:\n\n1. **Conectar sua conta do LinkedIn** em Configurações → Contas do LinkedIn.\n2. **Me treinar (Inhub)** com o nome da sua empresa, produtos/serviços e link de agenda.\n3. **Criar 1 mês de conteúdo** no Viral Post Engine (12 posts Seg/Qua/Sex + carrosséis PDF).\n4. **Ativar o Signal Radar e sua primeira Campanha** para transformar sinais em reuniões.",
       defaultActions: [
         { label: "1. Conectar LinkedIn →", href: "/linkedin-accounts" },
         {
-          label: "2. Treinar o InHub pelo Chat ✦",
+          label: "2. Treinar o Inhub pelo Chat ✦",
           href: "#train",
           actionType: "start_training",
         },

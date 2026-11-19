@@ -75,7 +75,7 @@ export const defaultCampaignNodes: Node[] = [
       nodeType: "action_dm",
       description: "Entrega directa del Lead Magnet con archivo adjunto",
       dmText: "Hola {{first_name}}, aqui tienes la guia en PDF que solicitaste.",
-      attachedResource: "Guia_Framework_SISTEMA_InHubFlow.pdf",
+      attachedResource: "Guia_Framework_SISTEMA_InhubFlow.pdf",
     } as NodeConfigData,
   },
   {

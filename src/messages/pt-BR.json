@@ -922,7 +922,7 @@
     "signInTitle": "Entrar",
     "signInSubtitle": "Insira seu e-mail e senha para acessar!",
     "signUpTitle": "Cadastrar-se",
-    "signUpSubtitle": "Crie sua conta para começar com InHubFlow!",
+    "signUpSubtitle": "Crie sua conta para começar com InhubFlow!",
     "signInWithGoogle": "Entrar com Google",
     "signInWithX": "Entrar com X",
     "signUpWithGoogle": "Cadastrar com Google",
@@ -947,7 +947,7 @@
     "privacy": "Política de Privacidade",
     "callback": {
       "successTitle": "Conexão Bem-sucedida!",
-      "successDescription": "Sua conta do LinkedIn foi autenticada e vinculada com sucesso ao InHubFlow.",
+      "successDescription": "Sua conta do LinkedIn foi autenticada e vinculada com sucesso ao InhubFlow.",
       "closing": "Fechando janela do assistente...",
       "syncing": "Sincronizando com seu Painel...",
       "closeNow": "Fechar janela agora",
@@ -957,7 +957,7 @@
     }
   },
   "dashboard": {
-    "pageTitle": "Painel de Controle | InHubFlow Social Selling",
+    "pageTitle": "Painel de Controle | InhubFlow Social Selling",
     "subtitle": "Métricas em tempo real, tração de conteúdo e conversão do pipeline.",
     "timeRange": {
       "months12": "12 Meses",
@@ -1059,7 +1059,7 @@
     "radar": {
       "pageTitle": "Post Finder (Top Posts do LinkedIn)",
       "cardTitle": "Explorador de Publicações de Alto Impacto",
-      "cardDesc": "Indexação direta de publicações via InHubFlow LinkedIn Cloud com a conta: {name}.",
+      "cardDesc": "Indexação direta de publicações via InhubFlow LinkedIn Cloud com a conta: {name}.",
       "connectedAccount": "Conta conectada para indexar:",
       "changeAccount": "Mudar conta:",
       "searchPlaceholder": "Palavra-chave, setor ou dor (ex. Social Selling, B2B SaaS, Agentes SDR)...",
@@ -1924,7 +1924,7 @@
     "deleteVoiceNote": "Excluir nota de voz",
     "uploadDocTitle": "Carregar Documento ou PDF (Lead Magnet)",
     "clickUploadDoc": "Clique para enviar um PDF ou recurso para download",
-    "orDocName": "Ou digite o nome: Framework-Prospeccion-B2B-InHubFlow.pdf",
+    "orDocName": "Ou digite o nome: Framework-Prospeccion-B2B-InhubFlow.pdf",
     "leadMagnetPresets": "Presets de Lead Magnet:",
     "deleteFile": "Excluir arquivo",
     "saveChanges": "Salvar Alterações",
@@ -2216,7 +2216,7 @@
     "modalSimulatorTitle": "Simulador Interativo do Assistente SDR",
     "modalSimulatorDesc": "Teste como o agente classifica qualquer mensagem antes de interagir com prospects no LinkedIn.",
     "lifecycleTitle": "Ciclo de Vida de Mensagens Recebidas",
-    "lifecycleDesc": "Cada resposta recebida no LinkedIn é analisada seguindo o fluxo determinístico e seguro do InHubFlow:",
+    "lifecycleDesc": "Cada resposta recebida no LinkedIn é analisada seguindo o fluxo determinístico e seguro do InhubFlow:",
     "step1Title": "1. Captura",
     "step1Desc": "Sincronização segura com deduplicação por message_id.",
     "step2Title": "2. Classificação",
@@ -2246,7 +2246,7 @@
     "confidenceLabel": "Confiança: {val}%",
     "riskLabel": "Risco: {val}",
     "inboundMessageLead": "Mensagem do Prospect (LinkedIn)",
-    "replyGeneratedAi": "Resposta Gerada por InHubFlow Virtual SDR",
+    "replyGeneratedAi": "Resposta Gerada por InhubFlow Virtual SDR",
     "btnEditText": "Editar texto",
     "btnCancelEdit": "Cancelar edição",
     "groundedIn": "Fundamentado em:",
@@ -2471,7 +2471,7 @@
   },
   "plans": {
     "pageTitle": "Planos & Capacidade SaaS",
-    "cardTitle": "Planos de Assinatura InHubFlow",
+    "cardTitle": "Planos de Assinatura InhubFlow",
     "cardDesc": "Escolha o plano que melhor se adapta ao volume de prospecção e ao tamanho da sua equipe comercial.",
     "currentPlan": "Seu Plano Atual",
     "upgradeBtn": "Fazer Upgrade",
@@ -2735,7 +2735,7 @@
   "support": {
     "docsTitle": "Documentação & Guias",
     "docsDesc": "Aprenda as melhores práticas de Social Selling, geração de leads e sequências de prospecção.",
-    "helpTitle": "Central de Ajuda InHubFlow",
+    "helpTitle": "Central de Ajuda InhubFlow",
     "helpDesc": "Respostas para perguntas frequentes, configuração do LinkedIn e solução de problemas.",
     "statusTitle": "Status do Sistema",
     "statusDesc": "Monitoramento em tempo real dos serviços em nuvem, webhooks e API do LinkedIn.",

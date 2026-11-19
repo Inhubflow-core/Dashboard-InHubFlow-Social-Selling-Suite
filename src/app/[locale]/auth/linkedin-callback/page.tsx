@@ -65,7 +65,7 @@ function CallbackContent() {
 
             <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600 dark:bg-brand-950/50 dark:text-brand-400 mb-3">
               <ShieldCheck className="size-3.5" />
-              InHubFlow Social Selling Suite
+              InhubFlow Social Selling Suite
             </span>
 
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

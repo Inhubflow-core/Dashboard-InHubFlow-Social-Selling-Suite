@@ -24,7 +24,7 @@ function generateApiKey(): string {
 
 function getDefaultSettings(): WorkspaceSettingsPayload {
   return {
-    companyName: "InHubFlow Workspace",
+    companyName: "InhubFlow Workspace",
     billingEmail: "",
     timezone: "America/Sao_Paulo",
     workingStart: "09:00",

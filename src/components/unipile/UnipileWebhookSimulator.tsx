@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -118,7 +118,7 @@ export default function UnipileWebhookSimulator() {
             confidence: 0.96,
             riskLevel: "low",
             suggestedReply: `Hola ${simLeadName.split(" ")[0]}, con mucho gusto te muestro el framework. Puedes agendar directamente en mi calendario: https://cal.inhubflow.com/demo-20min`,
-            citations: ["Protocolo de Agendamiento de Reuniones", "Propuesta de Valor de InHubFlow"],
+            citations: ["Protocolo de Agendamiento de Reuniones", "Propuesta de Valor de InhubFlow"],
             createdAt: new Date().toISOString(),
             status: "pending",
           });
@@ -178,7 +178,7 @@ export default function UnipileWebhookSimulator() {
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="text-base font-medium text-gray-800 dark:text-white/90">
-                  Sandbox de Integración Cloud InHubFlow & Emulador de Webhooks
+                  Sandbox de Integración Cloud InhubFlow & Emulador de Webhooks
                 </h4>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   <span className="size-1.5 rounded-full bg-emerald-500"></span>

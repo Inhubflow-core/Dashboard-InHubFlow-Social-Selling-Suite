@@ -103,7 +103,7 @@ export default function ConnectLinkedInModal({
 }: ConnectLinkedInModalProps) {
   const { currentUser } = useAuth();
 
-  // Detección de extensión InHubFlow Connect instalada en el navegador
+  // Detección de extensión InhubFlow Connect instalada en el navegador
   const [isExtensionInstalled, setIsExtensionInstalled] = useState(false);
 
   useEffect(() => {
@@ -354,7 +354,7 @@ export default function ConnectLinkedInModal({
     });
   };
 
-  // Manejo reactivo de autoconexión en 1-clic proveniente de la Extensión InHubFlow Connect
+  // Manejo reactivo de autoconexión en 1-clic proveniente de la Extensión InhubFlow Connect
   useEffect(() => {
     if (!isOpen) return;
 
@@ -489,7 +489,7 @@ export default function ConnectLinkedInModal({
       unipileAccountId: remoteAccountId || `up_acc_${Date.now()}`,
       name: form.name.trim() || initialAccount?.name || authEmail.split("@")[0] || "Cuenta LinkedIn",
       email: form.email.trim() || initialAccount?.email || authEmail.trim(),
-      headline: initialAccount?.headline || "Perfil sincronizado con InHubFlow LinkedIn Cloud",
+      headline: initialAccount?.headline || "Perfil sincronizado con InhubFlow LinkedIn Cloud",
       profilePictureUrl: initialAccount?.profilePictureUrl || "/images/user/owner.png",
       publicProfileUrl: initialAccount?.publicProfileUrl,
       status: "OK",
@@ -806,7 +806,7 @@ export default function ConnectLinkedInModal({
                 </form>
               </div>
 
-              {/* ─── SLIDE 2: Autenticación Nativa InHubFlow ─── */}
+              {/* ─── SLIDE 2: Autenticación Nativa InhubFlow ─── */}
               <div className="w-1/2 shrink-0 flex flex-col justify-between">
                 {!isCheckpoint ? (
                   <form onSubmit={handleNativeLogin}>
@@ -910,7 +910,7 @@ export default function ConnectLinkedInModal({
                         </>
                       ) : (
                         <>
-                          {/* Banner informativo de Extensión InHubFlow Connect */}
+                          {/* Banner informativo de Extensión InhubFlow Connect */}
                           <div className={`rounded-xl border p-3.5 flex flex-col gap-2 transition-all ${
                             isExtensionInstalled
                               ? "border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20"
@@ -925,7 +925,7 @@ export default function ConnectLinkedInModal({
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
                                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                                    Extensión InHubFlow Connect
+                                    Extensión InhubFlow Connect
                                   </h4>
                                   {isExtensionInstalled ? (
                                     <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300 dark:border-emerald-800">
@@ -939,7 +939,7 @@ export default function ConnectLinkedInModal({
                                 </div>
                                 <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
                                   {isExtensionInstalled
-                                    ? "¡Extensión activa en este navegador! Abre el icono de InHubFlow Connect en tu barra de extensiones y presiona '⚡ Conectar LinkedIn con InHub' para vincular de inmediato."
+                                    ? "¡Extensión activa en este navegador! Abre el icono de InhubFlow Connect en tu barra de extensiones y presiona '⚡ Conectar LinkedIn con Inhub' para vincular de inmediato."
                                     : "Detecta tu sesión en 1 solo clic con nuestra extensión oficial. Abre la extensión y presiona conectar, o pega tu código abajo."}
                                 </p>
                               </div>

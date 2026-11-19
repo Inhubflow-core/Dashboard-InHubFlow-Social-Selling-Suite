@@ -358,7 +358,7 @@ const AppSidebar: React.FC = () => {
               <Image
                 className="dark:hidden h-10 w-auto object-contain transition-all duration-200"
                 src="/images/logo/inhubflow-logo-dark.png"
-                alt="InHubFlow"
+                alt="InhubFlow"
                 width={185}
                 height={42}
                 priority
@@ -366,7 +366,7 @@ const AppSidebar: React.FC = () => {
               <Image
                 className="hidden dark:block h-10 w-auto object-contain transition-all duration-200"
                 src="/images/logo/inhubflow-logo-light.png"
-                alt="InHubFlow"
+                alt="InhubFlow"
                 width={185}
                 height={42}
                 priority
@@ -377,7 +377,7 @@ const AppSidebar: React.FC = () => {
               <Image
                 className="dark:hidden h-10 w-10 object-contain"
                 src="/images/logo/inhubflow-icon-dark.png"
-                alt="InHubFlow"
+                alt="InhubFlow"
                 width={40}
                 height={40}
                 priority
@@ -385,7 +385,7 @@ const AppSidebar: React.FC = () => {
               <Image
                 className="hidden dark:block h-10 w-10 object-contain"
                 src="/images/logo/inhubflow-icon-light.png"
-                alt="InHubFlow"
+                alt="InhubFlow"
                 width={40}
                 height={40}
                 priority

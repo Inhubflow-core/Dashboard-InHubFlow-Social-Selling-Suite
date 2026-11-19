@@ -69,7 +69,7 @@ export const OVERLAY_COLORS: { color: string; label: string }[] = [
   { color: '#000000', label: 'Negro Profundo' },
   { color: '#0b132b', label: 'Azul Noche (Recomendado LinkedIn)' },
   { color: '#18181b', label: 'Gris Carbón' },
-  { color: '#0047ff', label: 'Azul InHubFlow' },
+  { color: '#0047ff', label: 'Azul InhubFlow' },
   { color: '#4f46e5', label: 'Violeta Índigo' },
   { color: '#4c0519', label: 'Vino Tinto' },
   { color: '#064e3b', label: 'Verde Esmeralda' },

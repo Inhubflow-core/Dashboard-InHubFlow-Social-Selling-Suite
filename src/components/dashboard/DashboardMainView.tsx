@@ -116,7 +116,7 @@ export default function DashboardMainView() {
         <PipelineFunnelChart stages={analytics.funnelStages} />
       </div>
 
-      {/* 5. Arquitectura del Ecosistema InHubFlow Social Selling */}
+      {/* 5. Arquitectura del Ecosistema InhubFlow Social Selling */}
       <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>

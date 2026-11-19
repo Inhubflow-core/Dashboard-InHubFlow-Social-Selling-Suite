@@ -10,7 +10,7 @@ export async function GET() {
       mode: 'sandbox',
       dsn: 'https://cloud.inhubflow.com (Sandbox Seguro)',
       provider: 'LINKEDIN',
-      trialNotice: 'Modo Sandbox Activo: Probando todas las funciones con el motor seguro InHubFlow.',
+      trialNotice: 'Modo Sandbox Activo: Probando todas las funciones con el motor seguro InhubFlow.',
       webhookEndpoint: '/api/unipile/webhook',
     });
   }

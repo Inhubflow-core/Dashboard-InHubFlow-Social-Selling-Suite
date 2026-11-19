@@ -19,7 +19,7 @@ export const initialLinkedInAccounts: ConnectedLinkedInAccount[] = [
     status: "OK",
     authMode: "hosted",
     connectedAt: "2026-11-09T17:01:26.322Z",
-    lastSyncAt: "Sincronizado con InHubFlow Cloud (Unipile v2)",
+    lastSyncAt: "Sincronizado con InhubFlow Cloud (Unipile v2)",
     dailyActionsCount: {
       invitationsSent: 0,
       messagesSent: 0,

@@ -941,13 +941,13 @@ export default function VisualStudioModal({
 
   if (!isOpen) return null;
 
-  // Custom unified topbar start: Icono de InHubFlow + Switcher de 3 Formatos Principales de LinkedIn
+  // Custom unified topbar start: Icono de InhubFlow + Switcher de 3 Formatos Principales de LinkedIn
   const topBarStart = (
     <div className="flex items-center gap-2.5 pr-2.5 mr-1 border-r border-slate-200">
-      <div className="flex items-center justify-center" title="InHubFlow Social Selling Suite">
+      <div className="flex items-center justify-center" title="InhubFlow Social Selling Suite">
         <img
           src="/images/logo/inhubflow-icon-dark.png"
-          alt="InHubFlow"
+          alt="InhubFlow"
           className="h-7 w-7 object-contain hover:scale-105 transition-transform"
         />
       </div>
@@ -1076,7 +1076,7 @@ export default function VisualStudioModal({
           document={initialDoc}
           meta={{
             id: `inhubflow-design-${docKey}`,
-            title: initialTitle || "Diseño Social InHubFlow",
+            title: initialTitle || "Diseño Social InhubFlow",
             mode: "guest",
             postTitle: initialTitle,
             postSubtitle: initialSubtitle,

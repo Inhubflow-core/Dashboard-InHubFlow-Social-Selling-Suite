@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       } catch {}
     }
     return NextResponse.json(
-      { error: detailMessage || "Error al emitir publicación en LinkedIn a través del motor InHubFlow." },
+      { error: detailMessage || "Error al emitir publicación en LinkedIn a través del motor InhubFlow." },
       { status: error?.status || 500 }
     );
   }

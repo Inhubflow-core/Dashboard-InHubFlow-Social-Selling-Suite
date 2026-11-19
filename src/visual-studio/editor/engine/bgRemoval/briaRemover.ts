@@ -43,7 +43,7 @@ async function getModels(onProgress?: BgRemovalProgress, signal?: AbortSignal): 
           progress_callback: handleProgress,
         })
       } catch (e) {
-        console.warn('[InHubFlow BG Remover] WebGPU unavailable, falling back to wasm:', e)
+        console.warn('[InhubFlow BG Remover] WebGPU unavailable, falling back to wasm:', e)
       }
     }
 
@@ -122,7 +122,7 @@ export class BriaTransformersRemover implements BackgroundRemover {
       try {
         output = await model({ input: pixel_values })
       } catch (inferenceErr) {
-        console.warn('[InHubFlow BG Remover] Inference failed on current device, falling back to WASM:', inferenceErr)
+        console.warn('[InhubFlow BG Remover] Inference failed on current device, falling back to WASM:', inferenceErr)
         const { AutoModel } = await import('@huggingface/transformers')
         model = await AutoModel.from_pretrained(BRIA_MODEL_ID, { device: 'wasm' })
         output = await model({ input: pixel_values })
@@ -155,7 +155,7 @@ export class BriaTransformersRemover implements BackgroundRemover {
       if (signal?.aborted) {
         throw err
       }
-      console.error('[InHubFlow BG Remover] Error during background removal:', err)
+      console.error('[InhubFlow BG Remover] Error during background removal:', err)
       throw new BackgroundRemovalError(err instanceof Error ? err.message : 'Error al eliminar el fondo.')
     }
   }

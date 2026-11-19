@@ -311,7 +311,7 @@ export async function POST(req: NextRequest) {
             text: "✅ **¡Ya tienes tu cuenta de LinkedIn conectada!**\n\nAhora el siguiente paso es **entrenarme dándome toda la información de tu empresa** (nombre, productos o servicios y link de agenda). Haz clic abajo y lo hacemos en 1 minuto aquí mismo en el chat:",
             actions: [
               {
-                label: "Entrenar a InHub Ahora ✦",
+                label: "Entrenar a Inhub Ahora ✦",
                 href: "#train",
                 actionType: "start_training",
               },
@@ -322,7 +322,7 @@ export async function POST(req: NextRequest) {
             text: "✅ **Your LinkedIn account is already connected!**\n\nYour next step is to **train me with your company information** (company name, products/services, and booking link). Click below and we'll do it in 1 minute right here:",
             actions: [
               {
-                label: "Train InHub Now ✦",
+                label: "Train Inhub Now ✦",
                 href: "#train",
                 actionType: "start_training",
               },
@@ -333,7 +333,7 @@ export async function POST(req: NextRequest) {
             text: "✅ **Sua conta do LinkedIn já está conectada!**\n\nAgora o próximo passo é **me treinar com as informações da sua empresa** (nome, produtos ou serviços e link de agenda). Clique abaixo e faremos isso em 1 minuto aqui no chat:",
             actions: [
               {
-                label: "Treinar o InHub Agora ✦",
+                label: "Treinar o Inhub Agora ✦",
                 href: "#train",
                 actionType: "start_training",
               },
@@ -446,21 +446,21 @@ export async function POST(req: NextRequest) {
     if (/campa[ñn]a|campaign|campanha|secuencia|sequence|sequ[êe]ncia|20|l[ií]mite|limit|bloqueo|segur|stop on reply/.test(q)) {
       const ans: Record<CopilotLocale, { text: string; actions: CopilotActionLink[] }> = {
         es: {
-          text: "Así funcionan nuestras **Campañas Seguras en LinkedIn**:\n\n1. **Secuencia natural:** `Visitar perfil` → `Like y comentar último post` → `Seguir y solicitar conexión` → `DM Icebreaker` → `Follow-ups`.\n2. **Límite diario anti-bloqueo:** operamos de **lunes a viernes en horario laboral**, con pausas aleatorias humanizadas y hasta **20 interacciones diarias por cuenta conectada**.\n3. **Stop on Reply + SDR IA:** en cuanto el prospecto responde, la secuencia se detiene automáticamente para no enviarle follow-ups robóticos, y yo (InHub) contesto su duda, manejo objeciones o envío tu link de agenda.",
+          text: "Así funcionan nuestras **Campañas Seguras en LinkedIn**:\n\n1. **Secuencia natural:** `Visitar perfil` → `Like y comentar último post` → `Seguir y solicitar conexión` → `DM Icebreaker` → `Follow-ups`.\n2. **Límite diario anti-bloqueo:** operamos de **lunes a viernes en horario laboral**, con pausas aleatorias humanizadas y hasta **20 interacciones diarias por cuenta conectada**.\n3. **Stop on Reply + SDR IA:** en cuanto el prospecto responde, la secuencia se detiene automáticamente para no enviarle follow-ups robóticos, y yo (Inhub) contesto su duda, manejo objeciones o envío tu link de agenda.",
           actions: [
             { label: "Ir a Campañas →", href: "/campaigns" },
             { label: "Configurar SDR IA →", href: "/sdr" },
           ],
         },
         en: {
-          text: "Here is how our **Safe LinkedIn Campaigns** work:\n\n1. **Natural sequence:** `Visit profile` → `Like & comment latest post` → `Follow & request connection` → `Icebreaker DM` → `Follow-ups`.\n2. **Anti-ban daily limit:** runs **Monday to Friday during business hours** with randomized human delays and a strict cap of **up to 20 interactions/day per connected account**.\n3. **Stop on Reply + AI SDR:** the moment a prospect replies, the sequence stops automatically and I (InHub) answer their question, overcome objections, or share your booking link.",
+          text: "Here is how our **Safe LinkedIn Campaigns** work:\n\n1. **Natural sequence:** `Visit profile` → `Like & comment latest post` → `Follow & request connection` → `Icebreaker DM` → `Follow-ups`.\n2. **Anti-ban daily limit:** runs **Monday to Friday during business hours** with randomized human delays and a strict cap of **up to 20 interactions/day per connected account**.\n3. **Stop on Reply + AI SDR:** the moment a prospect replies, the sequence stops automatically and I (Inhub) answer their question, overcome objections, or share your booking link.",
           actions: [
             { label: "Go to Campaigns →", href: "/campaigns" },
             { label: "Configure AI SDR →", href: "/sdr" },
           ],
         },
         "pt-BR": {
-          text: "Veja como funcionam nossas **Campanhas Seguras no LinkedIn**:\n\n1. **Sequência natural:** `Visitar perfil` → `Curtir e comentar último post` → `Seguir e pedir conexão` → `DM Icebreaker` → `Follow-ups`.\n2. **Limite diário anti-bloqueio:** rodamos de **segunda a sexta em horário comercial**, com pausas humanizadas e até **20 interações diárias por conta conectada**.\n3. **Stop on Reply + SDR IA:** assim que o lead responde, a sequência para automaticamente e eu (InHub) respondo dúvidas, quebro objeções ou envio seu link de agenda.",
+          text: "Veja como funcionam nossas **Campanhas Seguras no LinkedIn**:\n\n1. **Sequência natural:** `Visitar perfil` → `Curtir e comentar último post` → `Seguir e pedir conexão` → `DM Icebreaker` → `Follow-ups`.\n2. **Limite diário anti-bloqueio:** rodamos de **segunda a sexta em horário comercial**, com pausas humanizadas e até **20 interações diárias por conta conectada**.\n3. **Stop on Reply + SDR IA:** assim que o lead responde, a sequência para automaticamente e eu (Inhub) respondo dúvidas, quebro objeções ou envio seu link de agenda.",
           actions: [
             { label: "Ir para Campanhas →", href: "/campaigns" },
             { label: "Configurar SDR IA →", href: "/sdr" },
@@ -519,8 +519,8 @@ export async function POST(req: NextRequest) {
     const apiKey = (process.env.GEMINI_API_KEY || "").trim();
     if (apiKey && rawMsg) {
       const snap = getQuickAccountSnapshot();
-      const systemPrompt = `Eres "InHub", el Asistente SDR IA oficial y Copiloto interactivo dentro del Dashboard de InHubFlow Social Selling Suite.
-Responde siempre en el idioma correspondiente a "${locale}" (es = Español, en = English, pt-BR = Português do Brasil), de forma cálida, breve (máximo 4-5 líneas o 3 bullets cortos) y 100% enfocada en cómo usar InHubFlow Social Selling Suite.
+      const systemPrompt = `Eres "Inhub", el Asistente SDR IA oficial y Copiloto interactivo dentro del Dashboard de InhubFlow Social Selling Suite.
+Responde siempre en el idioma correspondiente a "${locale}" (es = Español, en = English, pt-BR = Português do Brasil), de forma cálida, breve (máximo 4-5 líneas o 3 bullets cortos) y 100% enfocada en cómo usar InhubFlow Social Selling Suite.
 
 ESTADO ACTUAL DE LA CUENTA DEL USUARIO:
 - Cuenta de LinkedIn conectada: ${snap.hasLinkedIn ? "Sí" : "No (indícale conectar su cuenta en Cuentas de LinkedIn)"}

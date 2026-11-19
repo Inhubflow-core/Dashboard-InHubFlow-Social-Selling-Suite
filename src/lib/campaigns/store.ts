@@ -8,7 +8,7 @@ const LINEAR_CAMPAIGNS_KEY = "inhubflow_linear_campaigns";
 
 export const initialWorkflow: CampaignWorkflow = {
   id: "wf-01",
-  name: "Secuencia Lead Magnet InHubFlow (Nivel 1 - SISTEMA)",
+  name: "Secuencia Lead Magnet InhubFlow (Nivel 1 - SISTEMA)",
   description: "Captura de leads por comentarios en post propio, entrega de PDF y follow-up multietapa.",
   status: "active",
   dailyInvitationLimit: 25,
@@ -100,9 +100,9 @@ export const defaultLeadMagnetSequenceSteps: SequenceStepItem[] = [
     delayDaysBefore: 1,
     isInheritedFromMonitor: true,
     messageTemplate: "Hola {{first_name}}, aquí tienes el material que te ofrecí sobre el sistema de prospección B2B: {{attached_resource}}. Espero que te sea de gran utilidad.",
-    attachedResource: "Framework-Prospeccion-B2B-InHubFlow.pdf",
+    attachedResource: "Framework-Prospeccion-B2B-InhubFlow.pdf",
     attachmentType: "document",
-    attachmentName: "Framework-Prospeccion-B2B-InHubFlow.pdf",
+    attachmentName: "Framework-Prospeccion-B2B-InhubFlow.pdf",
   },
   {
     id: "step-magnet-03",

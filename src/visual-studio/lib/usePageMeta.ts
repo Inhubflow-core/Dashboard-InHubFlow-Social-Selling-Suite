@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 export interface PageMeta {
-  /** "<title> · InHubFlow Visual Studio". */
+  /** "<title> · InhubFlow Visual Studio". */
   title?: string | null
   description?: string
   /** An absolute URL, or a path that is resolved against this site's origin. */
@@ -44,8 +44,8 @@ export function usePageMeta({ title, description, canonical, image, noindex }: P
   useEffect(() => {
     const undo: Array<() => void> = []
     const previousTitle = document.title
-    if (title) document.title = `${title} · InHubFlow Visual Studio`
-    const shownTitle = title ? `${title} · InHubFlow Visual Studio` : null
+    if (title) document.title = `${title} · InhubFlow Visual Studio`
+    const shownTitle = title ? `${title} · InhubFlow Visual Studio` : null
     if (description) {
       undo.push(setTag({ tag: 'meta', attr: 'name', key: 'description' }, description))
       undo.push(setTag({ tag: 'meta', attr: 'property', key: 'og:description' }, description))

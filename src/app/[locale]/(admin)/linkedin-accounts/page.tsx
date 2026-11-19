@@ -150,7 +150,7 @@ export default function LinkedInAccountsPage() {
     return () => window.removeEventListener("message", handleCallbackMessage);
   }, [currentUser]);
 
-  // Escuchar evento de 1-Clic emitido por la extensión InHubFlow Connect
+  // Escuchar evento de 1-Clic emitido por la extensión InhubFlow Connect
   useEffect(() => {
     interface ExtensionPayload {
       accessToken?: string;

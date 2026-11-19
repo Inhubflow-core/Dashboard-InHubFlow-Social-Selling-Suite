@@ -1,6 +1,6 @@
 // src/lib/signals/employee-filter.ts
 // Motor compartido de filtrado inteligente anti-engagement interno (empleados y colaboradores del autor/empresa)
-// Heredado de la arquitectura probada en #b2b (InHubFlow Outreach B2B Suite)
+// Heredado de la arquitectura probada en #b2b (InhubFlow Outreach B2B Suite)
 
 export function extractIdentifier(url: string): string {
   try {

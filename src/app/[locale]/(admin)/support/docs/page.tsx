@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
@@ -58,7 +58,7 @@ export default function ApiDocsPage() {
               Referencia Técnica & Simulador de Eventos
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Prueba webhooks en tiempo real y consulta la documentación de integración de InHubFlow Social Selling.
+              Prueba webhooks en tiempo real y consulta la documentación de integración de InhubFlow Social Selling.
             </p>
           </div>
 
@@ -103,7 +103,7 @@ export default function ApiDocsPage() {
               </div>
               <div>
                 <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                  InHubFlow Developer API v1
+                  InhubFlow Developer API v1
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Conecta de forma programática tus bases de leads, automatizaciones externas y eventos en tiempo real.

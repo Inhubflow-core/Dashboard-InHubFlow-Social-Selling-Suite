@@ -22,7 +22,7 @@ export const initialSaaSUsers: SaaSUser[] = [
     email: "inhubflow@gmail.com",
     name: "SuperAdmin",
     role: "super_admin",
-    companyName: "InHubFlow Headquarters",
+    companyName: "InhubFlow Headquarters",
     slotsLimit: 999,
     planTier: "custom",
     subscriptionStatus: "active",
@@ -113,7 +113,7 @@ export function getStoredUsers(): SaaSUser[] {
             name: "SuperAdmin",
             role: "super_admin" as const,
             slotsLimit: 999,
-            companyName: "InHubFlow Headquarters",
+            companyName: "InhubFlow Headquarters",
             assignedAccountId: null,
           };
         }

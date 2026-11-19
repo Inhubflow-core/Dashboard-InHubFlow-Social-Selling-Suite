@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useTranslations } from "next-intl";
 
 import React, { useState } from "react";
@@ -67,7 +67,7 @@ const GUIDES: GuideItem[] = [
 const FAQS = [
   {
     q: "¿Existe riesgo de baneo o restricción de mi cuenta de LinkedIn?",
-    a: "InHubFlow utiliza una infraestructura segura en la nube que emula la navegación de un navegador real con User-Agents residenciales fijos y descansos humanos aleatorios (jitter). Además, el sistema impone límites estrictos de máximo 20-25 invitaciones diarias por cuenta.",
+    a: "InhubFlow utiliza una infraestructura segura en la nube que emula la navegación de un navegador real con User-Agents residenciales fijos y descansos humanos aleatorios (jitter). Además, el sistema impone límites estrictos de máximo 20-25 invitaciones diarias por cuenta.",
   },
   {
     q: "¿Qué ocurre cuando se alcanza el límite de slots de mi plan?",

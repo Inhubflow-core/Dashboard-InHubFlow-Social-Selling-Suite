@@ -135,7 +135,7 @@ export const TEMPLATES: TemplateDefinition[] = [
 ];
 
 export const BRAND_PRESETS = [
-  { name: "InHubFlow Cyan", color: "#0099ff" },
+  { name: "InhubFlow Cyan", color: "#0099ff" },
   { name: "Indigo Tech", color: "#6366f1" },
   { name: "Esmeralda B2B", color: "#10b981" },
   { name: "Ámbar Viral", color: "#f59e0b" },
@@ -434,7 +434,7 @@ const CURATED_BACKGROUNDS: UnsplashPhotoItem[] = [
 ];
 
 const BRAND_COLORS = [
-  { name: "InHubFlow Cyan", hex: "#0099ff" },
+  { name: "InhubFlow Cyan", hex: "#0099ff" },
   { name: "Indigo Tech", hex: "#6366f1" },
   { name: "Esmeralda B2B", hex: "#10b981" },
   { name: "Ámbar Viral", hex: "#f59e0b" },
@@ -1299,7 +1299,7 @@ export default function VisualEditorModal({
   initialSubtitle = "Framework probado para líderes B2B y fundadores de alto impacto",
   initialCategory = "SOCIAL SELLING B2B",
   initialMetric = "+340%",
-  authorName = "Roberto InHubFlow",
+  authorName = "Roberto InhubFlow",
   authorHandle = "@roberto.b2b",
   authorAvatar,
   onApplyImage,
@@ -3258,7 +3258,7 @@ export default function VisualEditorModal({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold text-white tracking-wide">
-                Estudio Gráfico InHubFlow
+                Estudio Gráfico InhubFlow
               </h1>
 
             </div>
@@ -3623,7 +3623,7 @@ export default function VisualEditorModal({
                         <div className="size-3.5 rounded-full bg-brand-500/80 flex items-center justify-center text-[7px] text-white font-bold">
                           IH
                         </div>
-                        <span className="text-[8px] text-slate-300 font-medium truncate">InHubFlow</span>
+                        <span className="text-[8px] text-slate-300 font-medium truncate">InhubFlow</span>
                       </div>
                     </div>
                   );
@@ -3720,7 +3720,7 @@ export default function VisualEditorModal({
                         </div>
                       </div>
                       <div className="relative z-10 text-[7px] text-slate-500">
-                        Validado InHubFlow
+                        Validado InhubFlow
                       </div>
                     </div>
                   );
@@ -3767,7 +3767,7 @@ export default function VisualEditorModal({
                     </div>
                     <div className="text-[7px] text-slate-500 flex items-center justify-between">
                       <span>{tpl.aspectRatio || "4:5"}</span>
-                      <span className="text-brand-400 font-semibold">InHubFlow</span>
+                      <span className="text-brand-400 font-semibold">InhubFlow</span>
                     </div>
                   </div>
                 );
@@ -3880,7 +3880,7 @@ export default function VisualEditorModal({
                       <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
                         <span className="font-mono text-slate-400">{tpl.aspectRatio || "4:5"}</span>
                         <span className="text-amber-400/90 font-medium truncate max-w-[80px]">
-                          {isCustomTpl ? (tpl.authorName || "Creado") : "InHubFlow"}
+                          {isCustomTpl ? (tpl.authorName || "Creado") : "InhubFlow"}
                         </span>
                       </div>
                     </div>
@@ -4008,7 +4008,7 @@ export default function VisualEditorModal({
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                           <Layers className="size-3 text-brand-400" />
-                          Plantillas Oficiales InHubFlow ({filteredOfficial.length})
+                          Plantillas Oficiales InhubFlow ({filteredOfficial.length})
                         </span>
                       </div>
 

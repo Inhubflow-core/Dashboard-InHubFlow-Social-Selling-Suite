@@ -41,7 +41,7 @@ function SettingsContent() {
 
   // Estados de Workspace
   const workspaceKey = currentUser.id || "workspace_default";
-  const [companyName, setCompanyName] = useState("InHubFlow Workspace");
+  const [companyName, setCompanyName] = useState("InhubFlow Workspace");
   const [billingEmail, setBillingEmail] = useState(currentUser.email || "");
   const [timezone, setTimezone] = useState("America/Santiago");
   const [workingStart, setWorkingStart] = useState("09:00");
@@ -112,7 +112,7 @@ function SettingsContent() {
       .then((data) => {
         if (cancelled || !data?.ok || !data.settings) return;
         const s = data.settings;
-        setCompanyName(s.companyName || currentUser.companyName || "InHubFlow Workspace");
+        setCompanyName(s.companyName || currentUser.companyName || "InhubFlow Workspace");
         setBillingEmail(s.billingEmail ?? currentUser.email ?? "");
         setTimezone(s.timezone || "America/Sao_Paulo");
         setWorkingStart(s.workingStart || "09:00");
@@ -499,10 +499,10 @@ function SettingsContent() {
               </div>
               <div>
                 <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
-                  Claves de API de InHubFlow (REST API)
+                  Claves de API de InhubFlow (REST API)
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Utiliza esta clave para autenticar peticiones programáticas a la API de InHubFlow desde tu backend o herramientas de automatización.
+                  Utiliza esta clave para autenticar peticiones programáticas a la API de InhubFlow desde tu backend o herramientas de automatización.
                 </p>
               </div>
             </div>
