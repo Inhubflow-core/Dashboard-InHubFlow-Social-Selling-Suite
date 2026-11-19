@@ -16,11 +16,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | InHubFlow Social Selling",
-    default: "InHubFlow | Social Selling Suite",
+    template: "%s | InhubFlow",
+    default: "InhubFlow | AI-Powered Social Selling Assistant",
   },
   description:
-    "Construye tu marca personal y escala tu facturacion B2B con prospeccion inbound en LinkedIn.",
+    "Construye tu marca personal y escala tus ventas B2B con tu Asistente SDR IA de Social Selling en LinkedIn.",
   icons: {
     icon: [
       { url: "/images/logo/inhubflow-icon-dark.png", type: "image/png" },

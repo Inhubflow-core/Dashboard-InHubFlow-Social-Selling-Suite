@@ -6,8 +6,10 @@ import React from "react";
 import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
-  title: "404 - Error | InHubFlow Social Selling",
-  description: "Página no encontrada en InHubFlow Social Selling Suite",
+  title: {
+    absolute: "404 | InhubFlow",
+  },
+  description: "Página no encontrada en InhubFlow.",
 };
 
 export default async function Error404() {
