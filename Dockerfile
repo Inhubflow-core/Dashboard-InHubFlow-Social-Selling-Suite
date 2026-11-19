@@ -13,7 +13,7 @@ COPY package*.json ./
 
 # Instalar todas las dependencias incluyendo devDependencies (TypeScript, Tailwind, loaders)
 # --include=dev garantiza que se instalen aunque Coolify inyecte NODE_ENV=production
-RUN npm ci --include=dev
+RUN npm install --include=dev
 
 # Copiar el codigo fuente completo
 COPY . .
